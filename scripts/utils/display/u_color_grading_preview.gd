@@ -10,7 +10,7 @@ class_name U_ColorGradingPreview
 ## (M_DisplayManager handles everything in-game).
 
 const COLOR_GRADING_SHADER := preload("res://assets/shaders/sh_color_grading_shader.gdshader")
-const U_CANVAS_LAYERS := preload("res://scripts/ui/u_canvas_layers.gd")
+const U_CANVAS_LAYERS := preload("res://scripts/core/ui/u_canvas_layers.gd")
 
 @export var color_grading: Resource = null:
 	set(value):

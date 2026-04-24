@@ -6,7 +6,7 @@ extends GutTest
 ## gamepad bindings instead of showing keyboard keys.
 
 const OverlayScene := preload("res://scenes/ui/overlays/ui_input_rebinding_overlay.tscn")
-const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 
 var _store: TestStateStore
 var _profile_manager: GamepadFilterProfileStub

@@ -1,10 +1,10 @@
 extends GutTest
 
-const BASE_OVERLAY_SCRIPT := "res://scripts/ui/settings/base_settings_simple_overlay.gd"
-const AUDIO_OVERLAY_SCRIPT := "res://scripts/ui/settings/ui_audio_settings_overlay.gd"
-const DISPLAY_OVERLAY_SCRIPT := "res://scripts/ui/settings/ui_display_settings_overlay.gd"
-const LOCALIZATION_OVERLAY_SCRIPT := "res://scripts/ui/settings/ui_localization_settings_overlay.gd"
-const VFX_OVERLAY_SCRIPT := "res://scripts/ui/settings/ui_vfx_settings_overlay.gd"
+const BASE_OVERLAY_SCRIPT := "res://scripts/core/ui/settings/base_settings_simple_overlay.gd"
+const AUDIO_OVERLAY_SCRIPT := "res://scripts/core/ui/settings/ui_audio_settings_overlay.gd"
+const DISPLAY_OVERLAY_SCRIPT := "res://scripts/core/ui/settings/ui_display_settings_overlay.gd"
+const LOCALIZATION_OVERLAY_SCRIPT := "res://scripts/core/ui/settings/ui_localization_settings_overlay.gd"
+const VFX_OVERLAY_SCRIPT := "res://scripts/core/ui/settings/ui_vfx_settings_overlay.gd"
 
 const MAX_CONCRETE_LINES := 15
 

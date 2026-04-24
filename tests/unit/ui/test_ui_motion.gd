@@ -2,7 +2,7 @@ extends GutTest
 
 const RS_UI_MOTION_PRESET := preload("res://scripts/core/resources/ui/rs_ui_motion_preset.gd")
 const RS_UI_MOTION_SET := preload("res://scripts/core/resources/ui/rs_ui_motion_set.gd")
-const U_UI_MOTION := preload("res://scripts/ui/utils/u_ui_motion.gd")
+const U_UI_MOTION := preload("res://scripts/core/ui/utils/u_ui_motion.gd")
 
 func test_play_returns_tween_for_valid_presets() -> void:
 	var node := Control.new()

@@ -3,7 +3,7 @@ extends GutTest
 ## Tests for high contrast mode in display manager
 
 const U_DISPLAY_UI_THEME_APPLIER := preload("res://scripts/core/managers/helpers/display/u_display_ui_theme_applier.gd")
-const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 
 var _manager: Node
 var _store: Node

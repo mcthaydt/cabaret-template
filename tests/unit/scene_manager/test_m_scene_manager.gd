@@ -12,7 +12,7 @@ const RS_NavigationInitialState = preload("res://scripts/core/resources/state/rs
 const RS_StateStoreSettings = preload("res://scripts/core/resources/state/rs_state_store_settings.gd")
 const U_SceneActions = preload("res://scripts/core/state/actions/u_scene_actions.gd")
 const U_ServiceLocator = preload("res://scripts/core/u_service_locator.gd")
-const UI_HUD_CONTROLLER = preload("res://scripts/ui/hud/ui_hud_controller.gd")
+const UI_HUD_CONTROLLER = preload("res://scripts/core/ui/hud/ui_hud_controller.gd")
 
 var _manager: M_SceneManager
 var _store: M_StateStore

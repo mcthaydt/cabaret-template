@@ -2,7 +2,7 @@ extends GutTest
 
 ## Integration test: Health bar color adapts to color blind palette.
 
-const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 
 var _store: M_StateStore = null
 var _hud: UI_HudController = null

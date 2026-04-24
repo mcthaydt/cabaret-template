@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://jbtongjvvs1u"]
 
-[ext_resource type="Script" uid="uid://b6bjh8jqo382n" path="res://scripts/ui/hud/ui_virtual_joystick.gd" id="1"]
+[ext_resource type="Script" uid="uid://b6bjh8jqo382n" path="res://scripts/core/ui/hud/ui_virtual_joystick.gd" id="1"]
 
 [node name="VirtualJoystick" type="Control" unique_id=1137824657]
 custom_minimum_size = Vector2(180, 180)

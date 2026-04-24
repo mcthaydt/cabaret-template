@@ -1,7 +1,7 @@
 extends GutTest
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_UI_SOUND_PLAYER := preload("res://scripts/ui/utils/u_ui_sound_player.gd")
+const U_UI_SOUND_PLAYER := preload("res://scripts/core/ui/utils/u_ui_sound_player.gd")
 
 
 var _mock_audio_manager: MockAudioManager

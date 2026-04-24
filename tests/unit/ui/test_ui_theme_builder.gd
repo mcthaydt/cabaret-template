@@ -2,7 +2,7 @@ extends GutTest
 
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 const RS_UI_COLOR_PALETTE := preload("res://scripts/core/resources/ui/rs_ui_color_palette.gd")
-const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const U_DISPLAY_UI_THEME_APPLIER := preload("res://scripts/core/managers/helpers/display/u_display_ui_theme_applier.gd")
 const U_LOCALIZATION_FONT_APPLIER := preload("res://scripts/core/managers/helpers/localization/u_localization_font_applier.gd")
 const UI_THEME_CONFIG_DEFAULT := preload("res://resources/ui/cfg_ui_theme_default.tres")

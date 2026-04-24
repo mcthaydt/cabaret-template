@@ -11,7 +11,7 @@ class_name U_OverlayStackManager
 
 const U_SCENE_REGISTRY := preload("res://scripts/core/scene_management/u_scene_registry.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/core/state/actions/u_scene_actions.gd")
-const U_UI_REGISTRY := preload("res://scripts/ui/utils/u_ui_registry.gd")
+const U_UI_REGISTRY := preload("res://scripts/core/ui/utils/u_ui_registry.gd")
 
 var _overlay_scene_ids: Dictionary = {}
 static var _overlay_id_registry: Dictionary = {}

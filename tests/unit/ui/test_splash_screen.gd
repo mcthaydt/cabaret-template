@@ -2,7 +2,7 @@ extends GutTest
 
 ## Tests for UI_SplashScreen boot splash and preloading behavior
 
-const UI_SPLASH_SCREEN := preload("res://scripts/ui/menus/ui_splash_screen.gd")
+const UI_SPLASH_SCREEN := preload("res://scripts/core/ui/menus/ui_splash_screen.gd")
 
 var splash: Control  # UI_SplashScreen
 

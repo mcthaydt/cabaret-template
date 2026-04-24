@@ -3,7 +3,6 @@ extends GutTest
 const GD_DIRECTORIES := [
 	"res://scripts/gameplay",
 	"res://scripts/ecs",
-	"res://scripts/ui",
 	"res://scripts/core",
 	"res://scripts/demo",
 	"res://scripts/utils",
@@ -173,10 +172,10 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/debug": ["debug_"], # Debug utility scripts
 	"res://scripts/core/state": ["u_", "m_"], # m_state_store.gd is in root
 	"res://scripts/core/resources/ui": ["rs_"], # UI screen definitions
-	"res://scripts/ui/base": ["base_"], # base_*.gd UI base classes
-	"res://scripts/ui/settings": ["ui_", "base_"], # ui_ for overlays, base_ for shared overlay base
-	"res://scripts/ui/utils": ["u_"], # UI utilities
-	"res://scripts/ui": ["ui_", "u_"], # ui_ for controllers, u_ for utilities
+	"res://scripts/core/ui/base": ["base_"], # base_*.gd UI base classes
+	"res://scripts/core/ui/settings": ["ui_", "base_"], # ui_ for overlays, base_ for shared overlay base
+	"res://scripts/core/ui/utils": ["u_"], # UI utilities
+	"res://scripts/core/ui": ["ui_", "u_"], # ui_ for controllers, u_ for utilities
 	"res://scripts/gameplay/helpers": ["u_"], # gameplay helper utilities
 	"res://scripts/gameplay": ["e_", "inter_", "base_", "triggered_", "s_"], # e_ for entities, inter_ for interactable controllers, base_ for base controllers, triggered_ for special controllers, s_ for gameplay-scoped ECS systems
 	"res://scripts/core/scene_structure": ["marker_"], # marker_*.gd organizational scripts
@@ -1125,9 +1124,9 @@ func test_migrated_files_do_not_duplicate_dependency_resolution_pattern() -> voi
 		"res://scripts/gameplay/inter_character_light_zone.gd",
 		"res://scripts/demo/gameplay/inter_ai_demo_flag_zone.gd",
 		"res://scripts/ecs/base_event_sfx_system.gd",
-		"res://scripts/ui/menus/ui_splash_screen.gd",
-		"res://scripts/ui/hud/ui_virtual_button.gd",
-		"res://scripts/ui/base/base_panel.gd",
+		"res://scripts/core/ui/menus/ui_splash_screen.gd",
+		"res://scripts/core/ui/hud/ui_virtual_button.gd",
+		"res://scripts/core/ui/base/base_panel.gd",
 		"res://scripts/gameplay/base_interactable_controller.gd",
 		"res://scripts/core/managers/m_vfx_manager.gd",
 		"res://scripts/core/managers/m_audio_manager.gd",
@@ -1621,7 +1620,7 @@ func test_objectives_state_access_uses_selectors() -> void:
 		"res://scripts/core/managers/helpers/u_save_migration_engine.gd",
 		"res://scripts/utils/scene_director/u_objectives_debug_tracer.gd",
 		"res://scripts/ecs/systems/s_victory_handler_system.gd",
-		"res://scripts/ui/menus/ui_victory.gd",
+		"res://scripts/core/ui/menus/ui_victory.gd",
 	]
 	var production_dirs: Array[String] = [
 		"res://scripts/ecs",
@@ -1703,18 +1702,18 @@ func test_all_production_files_use_selectors_for_state_access() -> void:
 		"res://scripts/ecs/systems/s_playtime_system.gd",
 		"res://scripts/ecs/components/c_scene_trigger_component.gd",
 		"res://scripts/gameplay/inter_endgame_goal_zone.gd",
-		"res://scripts/ui/hud/ui_hud_controller.gd",
-		"res://scripts/ui/hud/ui_mobile_controls.gd",
-		"res://scripts/ui/menus/ui_main_menu.gd",
-		"res://scripts/ui/overlays/ui_input_rebinding_overlay.gd",
-		"res://scripts/ui/overlays/ui_save_load_menu.gd",
-		"res://scripts/ui/overlays/ui_touchscreen_settings_overlay.gd",
+		"res://scripts/core/ui/hud/ui_hud_controller.gd",
+		"res://scripts/core/ui/hud/ui_mobile_controls.gd",
+		"res://scripts/core/ui/menus/ui_main_menu.gd",
+		"res://scripts/core/ui/overlays/ui_input_rebinding_overlay.gd",
+		"res://scripts/core/ui/overlays/ui_save_load_menu.gd",
+		"res://scripts/core/ui/overlays/ui_touchscreen_settings_overlay.gd",
 		"res://scripts/utils/scene_director/u_objectives_debug_tracer.gd",
 	]
 	var production_dirs: Array[String] = [
 		"res://scripts/ecs",
 		"res://scripts/gameplay",
-		"res://scripts/ui",
+		"res://scripts/core/ui",
 		"res://scripts/core/managers",
 		"res://scripts/scene_management",
 		"res://scripts/core/scene_management",
@@ -1815,7 +1814,7 @@ func test_no_crt_identifiers_in_display_scripts() -> void:
 		"res://scripts/core/managers/helpers/display",
 		"res://scripts/state",
 		"res://scripts/utils/display",
-		"res://scripts/ui/settings",
+		"res://scripts/core/ui/settings",
 		"res://scripts/debug",
 	]
 	var violations: Array[String] = []
@@ -2409,9 +2408,9 @@ func test_base_event_bus_publish_does_not_duplicate_subscriber_list() -> void:
 
 func test_simple_settings_overlays_under_15_lines() -> void:
 	var simple_overlays := [
-		"res://scripts/ui/settings/ui_audio_settings_overlay.gd",
-		"res://scripts/ui/settings/ui_display_settings_overlay.gd",
-		"res://scripts/ui/settings/ui_localization_settings_overlay.gd",
+		"res://scripts/core/ui/settings/ui_audio_settings_overlay.gd",
+		"res://scripts/core/ui/settings/ui_display_settings_overlay.gd",
+		"res://scripts/core/ui/settings/ui_localization_settings_overlay.gd",
 	]
 	var violations: PackedStringArray = []
 	for overlay_path in simple_overlays:
@@ -2427,7 +2426,7 @@ func test_simple_settings_overlays_under_15_lines() -> void:
 		if line_count > 15:
 			violations.append("%s is %d lines (max 15)" % [overlay_path, line_count])
 	# VFX overlay is explicitly excluded — it has Apply/Cancel and inline controls
-	var vfx_path := "res://scripts/ui/settings/ui_vfx_settings_overlay.gd"
+	var vfx_path := "res://scripts/core/ui/settings/ui_vfx_settings_overlay.gd"
 	var vfx_file := FileAccess.open(vfx_path, FileAccess.READ)
 	if vfx_file != null:
 		var vfx_lines := 0

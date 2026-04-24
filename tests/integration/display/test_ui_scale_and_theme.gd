@@ -12,7 +12,7 @@ const RS_STATE_STORE_SETTINGS := preload("res://scripts/core/resources/state/rs_
 const RS_DISPLAY_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_display_initial_state.gd")
 const RS_UI_COLOR_PALETTE := preload("res://scripts/core/resources/ui/rs_ui_color_palette.gd")
 const U_DISPLAY_UI_THEME_APPLIER := preload("res://scripts/core/managers/helpers/display/u_display_ui_theme_applier.gd")
-const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 
 const U_DISPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_display_actions.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")

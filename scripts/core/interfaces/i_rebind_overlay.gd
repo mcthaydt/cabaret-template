@@ -1,4 +1,4 @@
-extends "res://scripts/ui/base/base_overlay.gd"
+extends "res://scripts/core/ui/base/base_overlay.gd"
 class_name I_RebindOverlay
 
 ## Interface for input rebinding overlay implementations

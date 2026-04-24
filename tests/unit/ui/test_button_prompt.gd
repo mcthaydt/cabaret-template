@@ -2,7 +2,7 @@ extends GutTest
 
 const ButtonPromptScene := preload("res://scenes/ui/hud/ui_button_prompt.tscn")
 const DeviceType := M_InputDeviceManager.DeviceType
-const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 
 class LocalizationManagerStub extends Node:

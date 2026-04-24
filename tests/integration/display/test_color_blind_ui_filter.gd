@@ -3,7 +3,7 @@ extends GutTest
 ## Integration test for color blind filter affecting UI elements
 
 const POST_PROCESS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/ui_post_process_overlay.tscn")
-const U_CanvasLayers = preload("res://scripts/ui/u_canvas_layers.gd")
+const U_CanvasLayers = preload("res://scripts/core/ui/u_canvas_layers.gd")
 
 var _store: M_StateStore
 var _display_manager: M_DisplayManager

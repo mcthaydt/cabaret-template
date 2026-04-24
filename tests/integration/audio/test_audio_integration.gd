@@ -41,7 +41,7 @@ const U_NAVIGATION_ACTIONS := preload("res://scripts/core/state/actions/u_naviga
 const U_SCENE_ACTIONS := preload("res://scripts/core/state/actions/u_scene_actions.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_STATE_HANDOFF := preload("res://scripts/core/state/utils/u_state_handoff.gd")
-const U_UISOUND_PLAYER := preload("res://scripts/ui/utils/u_ui_sound_player.gd")
+const U_UISOUND_PLAYER := preload("res://scripts/core/ui/utils/u_ui_sound_player.gd")
 const U_AUDIO_TEST_HELPERS := preload("res://tests/helpers/u_audio_test_helpers.gd")
 
 const STREAM_MAIN_MENU := preload("res://assets/audio/music/mus_main_menu.mp3")

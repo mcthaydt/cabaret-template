@@ -8,7 +8,7 @@ extends GutTest
 ## 3. Continuous repeat (~50ms interval) while held
 ## 4. Stop when released below deadzone
 
-const U_AnalogStickRepeater = preload("res://scripts/ui/utils/u_analog_stick_repeater.gd")
+const U_AnalogStickRepeater = preload("res://scripts/core/ui/utils/u_analog_stick_repeater.gd")
 
 const REPEAT_INITIAL_DELAY: float = 0.8  # 800ms
 const REPEAT_INTERVAL: float = 0.05      # 50ms

@@ -3,7 +3,7 @@
 extends Node
 class_name U_VCamRuleOfThirdsPreview
 
-const U_CANVAS_LAYERS := preload("res://scripts/ui/u_canvas_layers.gd")
+const U_CANVAS_LAYERS := preload("res://scripts/core/ui/u_canvas_layers.gd")
 const GRID_LINE_COLOR := Color(1.0, 1.0, 1.0, 0.35)
 const GRID_LINE_WIDTH := 1.5
 

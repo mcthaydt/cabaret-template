@@ -12,8 +12,8 @@ const U_LOCALIZATION_FONT_APPLIER := preload("res://scripts/core/managers/helper
 const U_LOCALIZATION_PREVIEW_CONTROLLER := preload("res://scripts/core/managers/helpers/localization/u_localization_preview_controller.gd")
 const U_LOCALIZATION_ROOT_REGISTRY := preload("res://scripts/core/managers/helpers/localization/u_localization_root_registry.gd")
 const U_LOCALIZATION_ACTIONS := preload("res://scripts/core/state/actions/u_localization_actions.gd")
-const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
-const U_UI_THEME_DEBUG := preload("res://scripts/ui/utils/u_ui_theme_debug.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
+const U_UI_THEME_DEBUG := preload("res://scripts/core/ui/utils/u_ui_theme_debug.gd")
 
 const SERVICE_NAME := StringName("localization_manager")
 const LOCALIZATION_SLICE_NAME := StringName("localization")

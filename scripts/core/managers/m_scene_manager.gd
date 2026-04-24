@@ -27,7 +27,7 @@ const U_SCENE_ACTIONS := preload("res://scripts/core/state/actions/u_scene_actio
 const U_NAVIGATION_ACTIONS := preload("res://scripts/core/state/actions/u_navigation_actions.gd")
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
 const U_SCENE_REGISTRY := preload("res://scripts/core/scene_management/u_scene_registry.gd")
-const U_UI_REGISTRY := preload("res://scripts/ui/utils/u_ui_registry.gd")
+const U_UI_REGISTRY := preload("res://scripts/core/ui/utils/u_ui_registry.gd")
 const U_TRANSITION_FACTORY := preload("res://scripts/core/scene_management/u_transition_factory.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/core/interfaces/i_camera_manager.gd")
 const U_SCENE_CACHE := preload("res://scripts/core/scene_management/helpers/u_scene_cache.gd")
@@ -46,7 +46,7 @@ const U_DEBUG_SELECTORS := preload("res://scripts/core/state/selectors/u_debug_s
 const U_SCENE_SELECTORS := preload("res://scripts/core/state/selectors/u_scene_selectors.gd")
 const U_NAVIGATION_SELECTORS := preload("res://scripts/core/state/selectors/u_navigation_selectors.gd")
 const HUD_OVERLAY_SCENE := preload("res://scenes/ui/hud/ui_hud_overlay.tscn")
-const UI_HUD_CONTROLLER := preload("res://scripts/ui/hud/ui_hud_controller.gd")
+const UI_HUD_CONTROLLER := preload("res://scripts/core/ui/hud/ui_hud_controller.gd")
 # T209: Transition class imports removed - now handled by U_TransitionFactory
 # Kept for type checking only:
 const FADE_TRANSITION := preload("res://scripts/core/scene_management/transitions/trans_fade.gd")

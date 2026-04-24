@@ -12,7 +12,7 @@ class_name SC_ColorGradingDebugOverlay
 ##
 ## Toggled with F5 key via M_StateStore._input()
 
-const U_CANVAS_LAYERS := preload("res://scripts/ui/u_canvas_layers.gd")
+const U_CANVAS_LAYERS := preload("res://scripts/core/ui/u_canvas_layers.gd")
 
 @onready var scene_label: Label = %SceneLabel
 @onready var filter_preset_option: OptionButton = %FilterPresetOption
