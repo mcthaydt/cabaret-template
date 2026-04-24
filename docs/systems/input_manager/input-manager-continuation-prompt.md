@@ -27,7 +27,7 @@
 - ✅ Save file migration complete (6.12.1-6.12.5)
 - ⏳ Performance validation pending (6.13)
 
-**See detailed documentation:** `phase-6-touchscreen-architecture.md`, `input-manager-tasks.md`, `DEV_PITFALLS.md`
+**See detailed documentation:** `phase-6-touchscreen-architecture.md`, `input-manager-tasks.md`, `docs/guides/pitfalls/`
 
 ## Required Readings (Phase 6)
 
@@ -48,7 +48,7 @@
    - Baseline: < 16670µs average, < 20000µs max (60 FPS)
    - Stress test + memory allocation tracking
 
-**Task 6.7.1 also pending:** Document `--emulate-mobile` in DEV_PITFALLS.md
+**Task 6.7.1 also pending:** Document `--emulate-mobile` in docs/guides/pitfalls/
 
 **See `input-manager-tasks.md` for complete task breakdown and TDD patterns**
 

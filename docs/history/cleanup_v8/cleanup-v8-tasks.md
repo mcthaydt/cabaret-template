@@ -1168,12 +1168,19 @@ Tail of P3, after all other P3 milestones are green. Moves this plan into `docs/
 
 **P3 Verification**:
 - [ ] Every pre-existing section lives somewhere new.
-- [ ] `AGENTS.md` under 150 lines.
+- [x] `AGENTS.md` under 150 lines.
 - [ ] No dangling cross-references.
-- [ ] `CLAUDE.md` project file still points at the right entry.
-- [ ] `docs/architecture/adr/` contains reconciled ADR set under one numeric convention + V8 ADRs + `README.md` — specifically: 5 pre-existing/V7.2 ADRs renumbered to `0001..0005` + 5 new V8 ADRs at `0006..0010` + amendment on `0005-service-locator.md` + `README.md`.
-- [ ] `docs/architecture/extensions/` contains `ai.md`, `state.md`, `vcam.md`, `ecs.md`, `managers.md`, `ui.md`, `scenes.md`, `save.md`, `input.md`, `audio.md`, `objectives.md`, `conditions_effects_rules.md`, `events.md`, `debug.md`, `display_post_process.md`, `localization.md`, `resources.md`, `tests.md` + `README.md`.
+- [x] `CLAUDE.md` project file still points at the right entry.
+- [x] `docs/architecture/adr/` contains reconciled ADR set under one numeric convention + V8 ADRs + `README.md` — specifically: 5 pre-existing/V7.2 ADRs renumbered to `0001..0005` + 5 new V8 ADRs at `0006..0010` + amendment on `0005-service-locator.md` + `README.md`.
+- [x] `docs/architecture/extensions/` contains `ai.md`, `state.md`, `vcam.md`, `ecs.md`, `managers.md`, `ui.md`, `scenes.md`, `save.md`, `input.md`, `audio.md`, `objectives.md`, `conditions_effects_rules.md`, `events.md`, `debug.md`, `display_post_process.md`, `localization.md`, `resources.md`, `tests.md` + `README.md`.
 - [x] `docs/guides/`, `docs/history/`, `docs/systems/` exist per P3.0 structure; legacy pre-P3 roots (`docs/general/`, top-level ADR directory) no longer exist.
+
+**Audit note (2026-04-24)**:
+- Verified `AGENTS.md` is 54 lines, `DEV_PITFALLS.md` no longer exists, and ADR files `0001..0010` are present under `docs/architecture/adr/`.
+- Authored the missing `scenes.md` and `resources.md` recipes; `docs/architecture/extensions/` now contains the full required recipe set.
+- Fixed the AI extension recipe's canonical wolf test path and removed stale `DEV_PITFALLS.md` references from active tests.
+- Added required-recipe coverage to `test_extension_recipe_structure`, so missing expected recipes now fail style enforcement.
+- Removed remaining active non-history `DEV_PITFALLS.md` mentions; historical `docs/history/**` references remain as provenance.
 
 ---
 

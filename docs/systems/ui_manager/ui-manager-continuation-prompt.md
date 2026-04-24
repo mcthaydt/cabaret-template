@@ -22,7 +22,7 @@ This guide directs you to implement the UI Manager / Navigation feature by follo
 **T062 - Documentation** (commit `8894d33`):
 - Updated `AGENTS.md` with UI Manager patterns (navigation state, actions, registry, base classes)
 - Added UI Manager integration to Scene Manager, State Store, and Input Manager PRDs
-- Documented 6 common pitfalls in `DEV_PITFALLS.md` with code examples
+- Documented 6 common pitfalls in `docs/guides/pitfalls/` with code examples
 
 **T063 - Code Cleanup** (commit `82c8f08`):
 - Removed ~191 lines of diagnostic code across 5 files

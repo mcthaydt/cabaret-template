@@ -22,7 +22,7 @@ version: "2.0"
 - `redux-state-store-prd.md` (required)
 - `redux-state-store-implementation-plan.md` (required)
 
-**Prerequisites**: PRD v2.0, Implementation Plan v2.0, AGENTS.md commit strategy, DEV_PITFALLS.md testing patterns
+**Prerequisites**: PRD v2.0, Implementation Plan v2.0, AGENTS.md commit strategy, docs/guides/pitfalls/ testing patterns
 
 **Tests**: ALL tasks include TDD approach - write failing tests FIRST, then implement to pass
 
@@ -656,7 +656,7 @@ func after_each():
 - 87/87 state store tests passing (100%)
 - Total test coverage: 149/149 tests (62 ECS + 87 State) passing (100%)
 - Test fixes committed (proper GUT assertion patterns, no warnings)
-- Documentation updated (DEV_PITFALLS.md with testing patterns)
+- Documentation updated (docs/guides/pitfalls/ with testing patterns)
 
 **COMMITS**:
 - `b7fb729` - Phase 0C: BaseEventBus + U_StateEventBus

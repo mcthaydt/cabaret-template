@@ -57,7 +57,7 @@
 7. After each completed phase:
    - Update `lighting-manager-tasks.md` checkboxes and progress totals.
    - Update this continuation prompt with current status and next phase.
-   - Update `AGENTS.md` / `DEV_PITFALLS.md` if new stable patterns or pitfalls emerge.
+   - Update `AGENTS.md` / `docs/guides/pitfalls/` if new stable patterns or pitfalls emerge.
 8. Run style enforcement after script/scene/resource changes:
    - `tools/run_gut_suite.sh -gdir=res://tests/unit/style`
 9. Commit documentation updates separately from implementation.

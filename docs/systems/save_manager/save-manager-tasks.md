@@ -20,7 +20,7 @@
 - ✅ Fixed navigation.shell requirement for autosave (must be "gameplay")
 - ✅ Fixed entity_id for gameplay actions (use "" or "E_Player")
 - ✅ Documented Save Manager Patterns in AGENTS.md (194 lines)
-- ✅ Documented Save Manager Pitfalls in DEV_PITFALLS.md (56 lines)
+- ✅ Documented Save Manager Pitfalls in docs/guides/pitfalls/ (56 lines)
 
 ---
 
@@ -531,7 +531,7 @@ Key points:
 - [x] **Task 13.3 (Refactor)**: Final refactor
   - Main manager at 634 lines (includes load workflow + helpers)
   - Added comprehensive Save Manager Patterns to AGENTS.md (lines 449-642)
-  - Added Save Manager Pitfalls to DEV_PITFALLS.md (lines 210-265)
+  - Added Save Manager Pitfalls to docs/guides/pitfalls/ (lines 210-265)
   - Documented autosave triggers, blocking conditions, file I/O patterns, migrations, UI integration, testing patterns, anti-patterns
 
 **Notes:**

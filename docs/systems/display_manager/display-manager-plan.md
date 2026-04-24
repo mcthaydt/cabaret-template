@@ -999,7 +999,7 @@ ScrollContainer
 ### Phase 8 Complete (Documentation):
 - [ ] Continuation prompt created
 - [ ] AGENTS.md updated with Display Manager patterns
-- [ ] DEV_PITFALLS.md updated if applicable
+- [ ] docs/guides/pitfalls/ updated if applicable
 
 ---
 

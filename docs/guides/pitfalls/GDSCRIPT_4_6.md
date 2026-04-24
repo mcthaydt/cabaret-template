@@ -27,7 +27,7 @@ Type system, inference, and language-level gotchas specific to GDScript 4.6.
 
 - **Typed Array annotations can fail to resolve fresh `class_name` symbols in headless**: Exported typed arrays like `@export var conditions: Array[I_Condition]` can parse-fail in headless (`Could not find type ... in the current scope`) immediately after introducing new script classes. The AI system proved `Array[I_Condition]`/`Array[I_Effect]` work in `@export` once the class cache is warm. If a fresh class fails, prefer explicit path-based inheritance (`extends "res://..."`) during the refactor window, then switch to `class_name`-based typed arrays once stable.
 
-- **Typed Array constructor syntax can parse-fail (`Cannot call on an expression`)**: Expressions like `Array[Resource]([value])` are not valid constructor calls in GDScript. Build typed arrays via annotated locals (`var values: Array[Resource] = [value]`) and assign that variable instead.
+- **Typed Array constructor syntax can parse-fail (`Cannot call on an expression`)**: Constructor-style calls on typed arrays are not valid in GDScript. Build typed arrays via annotated locals (`var values: Array[Resource] = [value]`) and assign that variable instead.
 
 - **Assigning typed exported arrays via `Object.set(...)` with untyped array literals can silently coerce to empty/invalid data in headless runs**: This can make rule/goal condition lists appear unset during tests even when authored values look correct.
   - **Fix pattern**: build an explicitly typed local first (`var conditions: Array[Resource] = [condition]`) and assign that typed array to the exported property.

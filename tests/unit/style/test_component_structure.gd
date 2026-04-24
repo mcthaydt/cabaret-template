@@ -2,7 +2,7 @@ extends GutTest
 
 ## Component attachment structure validation test
 ## Enforces that ECS components are attached to proper Node containers
-## See DEV_PITFALLS.md and STYLE_GUIDE.md for details
+## See docs/guides/SCENE_ORGANIZATION_GUIDE.md and STYLE_GUIDE.md for details
 
 # Scene directories to validate
 const SCENE_DIRECTORIES := [
@@ -43,7 +43,7 @@ func test_components_attached_to_valid_containers() -> void:
 	if violations.size() > 0:
 		message += ":\n" + "\n".join(violations)
 		message += "\n\nComponents should be children of their owning nodes, not attached directly."
-		message += "\nSee DEV_PITFALLS.md 'Component Attachment Pattern' section."
+		message += "\nSee docs/guides/SCENE_ORGANIZATION_GUIDE.md component attachment guidance."
 	else:
 		message += " - all scenes compliant!"
 

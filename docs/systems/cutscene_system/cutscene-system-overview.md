@@ -178,7 +178,5 @@ Each cutscene directive has `is_cutscene: true` flag for skip handling.
 
 ## Links
 
-- [Cutscene System Plan](cutscene-system-plan.md)
-- [Cutscene System Tasks](cutscene-system-tasks.md)
-- [Cutscene System Continuation Prompt](cutscene-system-continuation-prompt.md)
+- Cutscene system plan/tasks/continuation docs are not present yet.
 - [Scene Director Overview](../scene_director/scene-director-overview.md)

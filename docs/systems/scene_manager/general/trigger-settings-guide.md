@@ -235,6 +235,6 @@ resources/
 
 ## See Also
 
-- [Scene Manager PRD](scene-manager-prd.md) - Overall architecture
-- [Scene Manager Tasks](scene-manager-tasks.md) - Phase 6 implementation
-- [Area Transitions](test_area_transitions.gd) - Integration tests
+- [Scene Manager PRD](../scene-manager-prd.md) - Overall architecture
+- [Scene Manager Tasks](../scene-manager-tasks.md) - Phase 6 implementation
+- [Transition Effects Tests](../../../../tests/integration/scene_manager/test_transition_effects.gd) - Integration tests

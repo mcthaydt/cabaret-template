@@ -1563,7 +1563,7 @@ metadata: {
 
 **Mitigation:**
 - Prefer on-device validation on the available handset for every release
-- Keep DEV_PITFALLS.md notes on emulation limitations for fallback use
+- Keep docs/guides/pitfalls/ notes on emulation limitations for fallback use
 - Treat `--emulate-mobile` as smoke-only between device runs
 
 ### 5.3 Medium Risk: Input Latency

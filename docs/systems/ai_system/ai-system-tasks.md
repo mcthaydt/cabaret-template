@@ -737,5 +737,5 @@
 - [ ] All tests green (unit, integration, style)
 - [ ] Continuation prompt updated to "Complete"
 - [x] AGENTS.md updated with AI System patterns (if applicable)
-- [x] DEV_PITFALLS.md updated with any new pitfalls discovered
+- [x] docs/guides/pitfalls/ updated with any new pitfalls discovered
 - [ ] Branch merged to main

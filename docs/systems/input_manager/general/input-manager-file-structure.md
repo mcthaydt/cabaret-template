@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document captures the agreed-upon directory layout for the Input Manager initiative (Phases 0‑7). It builds on the conventions in `AGENTS.md`, `DEV_PITFALLS.md`, and the Style Guide so every new script, resource, scene, and test lands in the expected location. Use this as the single source of truth when creating files referenced by the plan/PRD.
+This document captures the agreed-upon directory layout for the Input Manager initiative (Phases 0‑7). It builds on the conventions in `AGENTS.md`, `docs/guides/pitfalls/`, and the Style Guide so every new script, resource, scene, and test lands in the expected location. Use this as the single source of truth when creating files referenced by the plan/PRD.
 
 ```
 scripts/

@@ -26,7 +26,7 @@ This recipe does **not** cover:
 
 - Wolf brain: `resources/ai/woods/wolf/cfg_woods_wolf_brain.tres`
 - Wolf BT resources: `resources/ai/woods/wolf/bt/`
-- Wolf integration test: `tests/unit/ai/integration/test_wolf_brain_bt.gd`
+- Wolf integration test: `tests/unit/ai/integration/test_woods_wolf_brain_bt.gd`
 - Action resource: `scripts/resources/ai/actions/rs_ai_action_move_to.gd`
 - Scorer resource: `scripts/resources/ai/bt/scorers/rs_ai_scorer_condition.gd`
 

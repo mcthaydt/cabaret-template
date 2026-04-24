@@ -1498,7 +1498,7 @@ For brevity in this document, I'm providing the task overview for Phases 3-7. Th
 **Task 6.7**: Add Desktop Emulation Toggle (1-2 hours)
   - Command-line flag: `--emulate-mobile`
   - Debug setting: `debug.emulate_mobile_mode` (future)
-  - Document in `DEV_PITFALLS.md`: "Testing Mobile Controls on Desktop"
+  - Document in `docs/guides/pitfalls/`: "Testing Mobile Controls on Desktop"
   - Note: Enable "Emulate Touch from Mouse" project setting
 
 **Task 6.8**: Integration Testing (2-3 hours) - FR-133
@@ -1573,7 +1573,7 @@ For brevity in this document, I'm providing the task overview for Phases 3-7. Th
 **Task 7.6**: API Documentation (1-2 hours) - SC-015
 **Task 7.7**: Create Quickstart Guide (1-2 hours) - SC-016
 **Task 7.8**: Final Integration Testing (1 hour) - SC-017
-**Task 7.9**: Update AGENTS.md and DEV_PITFALLS.md (30 min)
+**Task 7.9**: Update AGENTS.md and docs/guides/pitfalls/ (30 min)
 
 **Duration**: 8-12 hours
 **Commits**: 5 commits (polish, docs, final validation)
@@ -2388,7 +2388,7 @@ func _apply_landing_vibration(fall_speed: float) -> void:
 - [ ] API documentation complete (## doc comments on all public methods, @export fields, signals)
 - [ ] 5+ complete implementation examples in plan
 - [ ] AGENTS.md updated with Input Manager patterns
-- [ ] DEV_PITFALLS.md updated with input-specific pitfalls discovered
+- [ ] docs/guides/pitfalls/ updated with input-specific pitfalls discovered
 
 ---
 
@@ -2449,7 +2449,7 @@ func _apply_landing_vibration(fall_speed: float) -> void:
 36. Input latency benchmarking and performance validation
 37. Accessibility features polish and complete button prompt asset set
 38. API documentation complete (doc comments)
-39. Quickstart guide and AGENTS.md/DEV_PITFALLS.md updates
+39. Quickstart guide and AGENTS.md/docs/guides/pitfalls/ updates
 40. Phase 7 complete: final integration tests and project validation
 
 **Commit Guidelines**:

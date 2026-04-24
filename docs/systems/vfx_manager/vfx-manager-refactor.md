@@ -861,7 +861,7 @@ Add VFX Manager patterns section:
 - Preview cleared on cancel or overlay close
 ```
 
-### Update DEV_PITFALLS.md
+### Update docs/guides/pitfalls/
 
 Add VFX-specific pitfalls:
 ```markdown

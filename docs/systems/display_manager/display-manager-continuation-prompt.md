@@ -102,7 +102,7 @@ Tests (2026-02-06): `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclu
 ### Later: Phase 8 - Manual Testing
 
 1. **Task 8**: Run manual verification checklist (MT-01 → MT-17)
-2. **Task 9**: Documentation updates (AGENTS.md, DEV_PITFALLS.md if applicable)
+2. **Task 9**: Documentation updates (AGENTS.md, docs/guides/pitfalls/ if applicable)
 3. **Phase 6 (Tuning)**: Tune each scene's .tres for desired artistic look
 
 ---
@@ -285,7 +285,7 @@ Validation for window modes, dither patterns, color blind modes, and preset IDs 
 
 ### Phase 9: Documentation Updates
 - [ ] Update AGENTS.md
-- [ ] Update DEV_PITFALLS.md if needed
+- [ ] Update docs/guides/pitfalls/ if needed
 
 ### Phase 11: Color Grading Post-Process System
 - [x] 11A: Cinema grade GLSL shader

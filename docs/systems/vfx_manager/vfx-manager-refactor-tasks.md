@@ -1226,7 +1226,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
     - Preview cleared on cancel or overlay close
     ```
 
-- [ ] **T9.2**: Update DEV_PITFALLS.md with VFX pitfalls
+- [ ] **T9.2**: Update docs/guides/pitfalls/ with VFX pitfalls
   - Location: `docs/guides/pitfalls/`
   - Add section:
 

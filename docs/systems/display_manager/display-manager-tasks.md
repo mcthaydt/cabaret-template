@@ -606,7 +606,7 @@ Before starting Phase 0, verify:
   - Add anti-patterns section
   - Notes: Completed (AGENTS.md has "Display Manager Patterns (Phase 11 Complete)" section at line ~1051)
 
-- [ ] **Task 9.3**: Update DEV_PITFALLS.md if applicable
+- [ ] **Task 9.3**: Update docs/guides/pitfalls/ if applicable
   - Add Display-specific pitfalls discovered during implementation
   - Document DisplayServer thread safety requirements
   - Document UI scale transform origin issue

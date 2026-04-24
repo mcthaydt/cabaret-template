@@ -365,7 +365,7 @@ Before starting Phase 0, verify:
 
 - [x] **Task 0F.3**: Retire informal `camera` slice
   - Remove any `camera` slice registration if one exists
-  - Add `DEV_PITFALLS.md` note: "The informal `camera` slice is retired. `in_fov_zone` lives in `state.vcam.in_fov_zone`. Do not re-introduce `state.camera`."
+  - Add `docs/guides/pitfalls/` note: "The informal `camera` slice is retired. `in_fov_zone` lives in `state.vcam.in_fov_zone`. Do not re-introduce `state.camera`."
   - Completion note (2026-03-10): Updated docs/contracts to treat `state.vcam.in_fov_zone` as canonical runtime source and added a guardrail pitfall note.
 
 - [x] **Task 0F.4**: Verify migration
@@ -1552,7 +1552,7 @@ Completion note (March 22, 2026): Phase 12A observability checklist is validated
   - Add vCam Manager section (runtime wiring, input contract, blend pattern)
   - Completion note (March 22, 2026): Reviewed current regression/docs closure changes; no additional stable architecture contracts were introduced beyond already documented AGENTS.md entries.
 
-- [x] **Task 13.3**: Update DEV_PITFALLS.md if new pitfalls discovered
+- [x] **Task 13.3**: Update docs/guides/pitfalls/ if new pitfalls discovered
   - Camera-specific pitfalls (shake-safe writes, soft-zone projection, etc.)
   - Completion note (March 22, 2026): No new pitfalls were discovered during this validation/docs closure pass; existing vCam pitfall coverage remains current.
 

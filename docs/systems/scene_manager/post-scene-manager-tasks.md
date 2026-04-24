@@ -85,7 +85,7 @@ Phase F: De‑nesting & Docs Cleanup
 - [x] T-F01 Remove nested scenes from gameplay via interactables base/controller pattern (single `E_*` per interactable; no authored component/Area3D children) (gameplay scenes define controllers inline)
 - [x] T-F02 Retire `exterior.tscn` and `interior_house.tscn` as fixtures; route post–Main Menu action to `gameplay_base.tscn` (main menu/victory/game over now point to hub scene)
 - [x] T-F03 Clean up Scene Manager documentation (reconcile phases, remove stale notes, link to this plan) *(continuation prompt + plan updated; references point to post tasks)*
-- [x] T-F04 Clean up `DEV_PITFALLS.md`, `STYLE_GUIDE.md`, `SCENE_ORGANIZATION_GUIDE.md`, and `AGENTS.md` with new interactables/base patterns *(docs refreshed for spawn-inside policy, resource uniqueness, style checks)*
+- [x] T-F04 Clean up `docs/guides/pitfalls/`, `STYLE_GUIDE.md`, `SCENE_ORGANIZATION_GUIDE.md`, and `AGENTS.md` with new interactables/base patterns *(docs refreshed for spawn-inside policy, resource uniqueness, style checks)*
 - [x] T-F05 Create base templates for PRD, Plan, Tasks, and Continuation Guide in `docs/_templates/` (if not already present), modeled on existing documents *(templates added under `docs/_templates/`)*
 
 Phase E: Validation (Tests)
@@ -109,7 +109,7 @@ Phase G: Cross‑cutting Hardening & Migration Gaps
 Phase Z: Process Discipline (Required after each phase)
 - [x] T-Z01 Update continuation prompt and tasks checklist with current status (per AGENTS.md mandatory step)
 - [x] T-Z02 Update `AGENTS.md` with new patterns/architecture if applicable
-- [x] T-Z03 Update `DEV_PITFALLS.md` with new pitfalls discovered (tabs-only, `.tres` script refs, overlap/arming)
+- [x] T-Z03 Update `docs/guides/pitfalls/` with new pitfalls discovered (tabs-only, `.tres` script refs, overlap/arming)
 - [x] T-Z04 Commit documentation updates separately from implementation; keep commits focused and validated
 
 Acceptance Criteria

@@ -231,8 +231,6 @@ New Beat Effect:
 
 ## Links
 
-- [Dialogue System Plan](dialogue-system-plan.md)
-- [Dialogue System Tasks](dialogue-system-tasks.md)
-- [Dialogue System Continuation Prompt](dialogue-system-continuation-prompt.md)
+- Dialogue system plan/tasks/continuation docs are not present yet.
 - [Narrative System Overview](../narrative_system/narrative-system-overview.md)
 - [QB Rule Manager v2 Overview](../qb_rule_manager/qb-v2-overview.md)

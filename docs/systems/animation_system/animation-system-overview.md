@@ -199,8 +199,6 @@ NPCEntity (BaseECSEntity)  ← movement system controls this
 
 ## Links
 
-- [Animation System Plan](animation-system-plan.md)
-- [Animation System Tasks](animation-system-tasks.md)
-- [Animation System Continuation Prompt](animation-system-continuation-prompt.md)
+- Animation system plan/tasks/continuation docs are not present yet.
 - [AI System Overview](../ai_system/ai-system-overview.md)
 - [QB Rule Manager v2 Overview](../qb_rule_manager/qb-v2-overview.md)

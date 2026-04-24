@@ -153,8 +153,6 @@ Arc: `signal_lost_main` — set active on game start, completed on signal transm
 
 ## Links
 
-- [Narrative System Plan](narrative-system-plan.md)
-- [Narrative System Tasks](narrative-system-tasks.md)
-- [Narrative System Continuation Prompt](narrative-system-continuation-prompt.md)
+- Narrative system plan/tasks/continuation docs are not present yet.
 - [Dialogue System Overview](../dialogue_system/dialogue-system-overview.md)
 - [QB Rule Manager v2 Overview](../qb_rule_manager/qb-v2-overview.md)

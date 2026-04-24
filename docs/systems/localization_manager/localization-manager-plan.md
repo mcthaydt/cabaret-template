@@ -780,8 +780,8 @@ func _on_dyslexia_toggled(enabled: bool) -> void:
 screen_id = &"localization_settings"
 kind = 1  # OVERLAY
 scene_id = &"localization_settings"
-allowed_shells = Array[StringName]([&"gameplay"])
-allowed_parents = Array[StringName]([&"pause_menu", &"settings_menu_overlay"])
+allowed_shells = Array[StringName] placeholder
+allowed_parents = Array[StringName] placeholder
 close_mode = 0
 ```
 

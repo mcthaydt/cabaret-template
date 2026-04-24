@@ -3,7 +3,7 @@
 ## 🚨 CRITICAL WORKFLOW REQUIREMENT 🚨
 
 **YOU MUST FOLLOW `redux-state-store-tasks.md` LINE BY LINE**
-**YOU MUST READ `DEV_PITFALLS.md` LINE BY LINE**
+**YOU MUST READ `docs/guides/pitfalls/` LINE BY LINE**
 **YOU MUST READ `STYLE_GUIDE.md` LINE BY LINE**
 
 Before doing ANYTHING else, read this requirement:
@@ -211,7 +211,7 @@ Before starting implementation:
   - state_test_us1h.tscn - Persistence & StateHandoff
 
 **Documentation:**
-- Lambda closure limitation added to DEV_PITFALLS.md
+- Lambda closure limitation added to docs/guides/pitfalls/
 - GUT testing patterns documented (assert_push_error, warning handling, static state cleanup)
 - Test coverage status: 149/149 passing (100%)
 - Tasks.md updated with current status and proof-of-concept phase
@@ -288,20 +288,20 @@ All phases followed TDD: Write tests → Verify tests fail → Implement → Ver
 1. **Race Condition** (commit 2ffcd79):
    - Problem: Systems' `_ready()` couldn't find M_StateStore (concurrent initialization)
    - Solution: Added `await get_tree().process_frame` before `U_StateUtils.get_store()` in systems
-   - Documented pattern in DEV_PITFALLS.md
+   - Documented pattern in docs/guides/pitfalls/
 
 2. **Input Processing Order** (commit 10014e6):
    - Problem: M_CursorManager consumed "pause" input before M_PauseManager could see it
    - Root Cause: Both used `_unhandled_input()`, first caller's `set_input_as_handled()` blocked others
    - Solution: Changed M_PauseManager to `_input()` for priority processing
-   - Documented Godot input order in DEV_PITFALLS.md: `_input()` → `_gui_input()` → `_unhandled_input()`
+   - Documented Godot input order in docs/guides/pitfalls/: `_input()` → `_gui_input()` → `_unhandled_input()`
 
 3. **Missing Icons** (commit 0e0c843):
    - Problem: M_PauseManager and S_HealthSystem appeared with default script icon
    - Solution: Added `@icon("res://assets/editor_icons/system.svg")` annotations
-   - Documented requirement in DEV_PITFALLS.md
+   - Documented requirement in docs/guides/pitfalls/
 
-**DEV_PITFALLS.md Updates**:
+**docs/guides/pitfalls/ Updates**:
 - ✅ ECS System Pitfalls: @icon annotation requirement
 - ✅ State Store Integration Pitfalls: Race condition with await pattern
 - ✅ Input processing order: `_input()` vs `_unhandled_input()` and `set_input_as_handled()` behavior
@@ -329,7 +329,7 @@ All phases followed TDD: Write tests → Verify tests fail → Implement → Ver
 - 10014e6: Fixed input processing order (_input vs _unhandled_input)
 - 298e57b: Removed debug prints from systems
 - 6d2c5de: Removed debug script, documented input processing pitfall
-- 0e0c843: Added @icon annotations, documented in DEV_PITFALLS.md
+- 0e0c843: Added @icon annotations, documented in docs/guides/pitfalls/
 
 **Validation**: State store successfully integrated with ECS, all patterns proven to work! 🎉
 
@@ -357,7 +357,7 @@ All phases followed TDD: Write tests → Verify tests fail → Implement → Ver
 
 **Bug Fixes Post-Phase 11** (4 commits):
 - 3369a56: Fix jump input blocked after landing (race condition with position resets)
-- 977fb3d: Document event-driven state race condition pitfall in DEV_PITFALLS.md
+- 977fb3d: Document event-driven state race condition pitfall in docs/guides/pitfalls/
 - 45fe0f9: Fix character rotation still active during pause
 - 9403011: Fix gravity and input capture still active during pause
 

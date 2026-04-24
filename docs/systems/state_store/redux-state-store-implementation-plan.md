@@ -2016,7 +2016,7 @@ Before releasing builds with state store:
 - [ ] Code written following STYLE_GUIDE.md naming conventions
 - [ ] Tests written following GUT patterns (autofree, explicit typing, bus reset in `before_each()`)
 - [ ] All tests pass in headless mode
-- [ ] DEV_PITFALLS.md re-read before coding
+- [ ] docs/guides/pitfalls/ re-read before coding
 - [ ] Commit message follows pattern
 - [ ] Git status clean
 
@@ -2045,7 +2045,7 @@ Before releasing builds with state store:
 ## Next Steps
 
 1. **Review Prerequisites** (1 hour)
-   - Read DEV_PITFALLS.md, STYLE_GUIDE.md, AGENTS.md
+   - Read docs/guides/pitfalls/, STYLE_GUIDE.md, AGENTS.md
    - Create directory structure
    - Make event bus refactor decision (Phase 0 or fallback)
 

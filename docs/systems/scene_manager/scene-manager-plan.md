@@ -677,7 +677,7 @@ Before implementing Scene Manager, must restructure existing scenes:
 - [ ] Plan document tracks phases
 - [ ] Quickstart guide enables developers to use Scene Manager
 - [ ] Code follows AGENTS.md patterns
-- [ ] DEV_PITFALLS.md updated with scene-specific pitfalls
+- [ ] docs/guides/pitfalls/ updated with scene-specific pitfalls
 
 ## Next Steps
 
@@ -1029,8 +1029,8 @@ func _perform_transition(...) -> void:
 ## Related Documentation
 
 - [scene-manager-prd.md](./scene-manager-prd.md) - Full feature specification (v2.3)
-- [AUDIT_REPORT.md](./AUDIT_REPORT.md) - Complete audit report with detailed findings
-- [AGENTS.md](../../AGENTS.md) - Project conventions and repo map
-- [DEV_PITFALLS.md](../../guides/pitfalls/) - Common pitfalls to avoid
+- Audit report is not present in this directory.
+- [AGENTS.md](../../../AGENTS.md) - Project conventions and repo map
+- [docs/guides/pitfalls/](../../guides/pitfalls/) - Common pitfalls to avoid
 - [STYLE_GUIDE.md](../../guides/STYLE_GUIDE.md) - Code style requirements
-- [redux-state-store-prd.md](../state%20store/redux-state-store-prd.md) - State store architecture
+- [redux-state-store-prd.md](../state_store/redux-state-store-prd.md) - State store architecture

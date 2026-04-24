@@ -38,13 +38,13 @@
 3. Run relevant test suites; if you add/rename scripts/scenes/resources, run `tests/unit/style/test_style_enforcement.gd`.
 4. Update `vfx-manager-refactor-tasks.md` with [x] and completion notes (commit hash, tests run, deviations).
 5. Update this continuation prompt with current status, tests run, and next step.
-6. Update `AGENTS.md` and/or `DEV_PITFALLS.md` if new patterns or pitfalls emerged.
+6. Update `AGENTS.md` and/or `docs/guides/pitfalls/` if new patterns or pitfalls emerged.
 7. Commit with a clear message; commit documentation updates separately from implementation.
 
 ## Test / Document / Commit Checklist
 
 - **Test**: Run the smallest relevant suite first; expand to integration/regression as needed.
-- **Document**: Update task checklist + this prompt; update `AGENTS.md`/`DEV_PITFALLS.md` when required.
+- **Document**: Update task checklist + this prompt; update `AGENTS.md`/`docs/guides/pitfalls/` when required.
 - **Commit**: Keep code and docs in separate commits and include the commit hash in task notes.
 
 ## Repo Reality Checks (Do Not Skip)

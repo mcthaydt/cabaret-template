@@ -106,6 +106,27 @@ const BT_GENERAL_FORBIDDEN_TOKENS := [
 	"RS_BTPlannerAction",
 ]
 
+const REQUIRED_EXTENSION_RECIPES := [
+	"ai.md",
+	"state.md",
+	"vcam.md",
+	"ecs.md",
+	"managers.md",
+	"ui.md",
+	"scenes.md",
+	"save.md",
+	"input.md",
+	"audio.md",
+	"objectives.md",
+	"conditions_effects_rules.md",
+	"events.md",
+	"debug.md",
+	"display_post_process.md",
+	"localization.md",
+	"resources.md",
+	"tests.md",
+]
+
 # Valid prefixes by directory
 const SCRIPT_PREFIX_RULES := {
 	"res://scripts/core": ["u_"],
@@ -2458,6 +2479,9 @@ func test_extension_recipe_structure() -> void:
 	assert_not_null(dir, "Should open extension recipe directory")
 	if dir == null:
 		return
+	for required_recipe in REQUIRED_EXTENSION_RECIPES:
+		if not FileAccess.file_exists("res://docs/architecture/extensions/%s" % required_recipe):
+			violations.append("res://docs/architecture/extensions/%s: missing required recipe" % required_recipe)
 	dir.list_dir_begin()
 	var entry := dir.get_next()
 	while entry != "":

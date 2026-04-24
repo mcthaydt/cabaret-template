@@ -1253,9 +1253,9 @@ timescale control, and a world simulation clock.
 ## References
 
 - [Time Manager Overview](time-manager-overview.md)
-- [M_PauseManager source](../../scripts/managers/m_pause_manager.gd) (to be replaced)
-- [U_StateSliceManager](../../scripts/state/utils/u_state_slice_manager.gd) (slice registration)
-- [U_GameplayActions](../../scripts/state/actions/u_gameplay_actions.gd) (pause_game/unpause_game)
+- M_PauseManager source is retired/replaced.
+- [U_StateSliceManager](../../../scripts/state/utils/u_state_slice_manager.gd) (slice registration)
+- [U_GameplayActions](../../../scripts/state/actions/u_gameplay_actions.gd) (pause_game/unpause_game)
 
 ---
 

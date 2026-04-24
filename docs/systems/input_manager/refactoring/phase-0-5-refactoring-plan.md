@@ -2012,7 +2012,7 @@ After completing all refactors:
 - [x] No TODO comments left from refactor
 - [x] All console warnings resolved
 - [x] Code follows style guide
-- [x] Documentation updated (AGENTS.md, DEV_PITFALLS.md)
+- [x] Documentation updated (AGENTS.md, docs/guides/pitfalls/)
 
 ### Phase 6 Readiness
 - [x] Device manager ready for touchscreen device type
@@ -2031,7 +2031,7 @@ After completing all refactors:
 5. **Execute Batch 2** (Tasks 2-4 - Initialization, Serialization, State Sync)
 6. **Execute Batch 3** (Task 5 - Deadzone cleanup)
 7. **Run validation checklist**
-8. **Update documentation** (AGENTS.md, DEV_PITFALLS.md, input-manager-tasks.md)
+8. **Update documentation** (AGENTS.md, docs/guides/pitfalls/, input-manager-tasks.md)
 9. **Commit and merge** all refactoring branches
 10. **Kick off Phase 6** (Touchscreen Support)
 

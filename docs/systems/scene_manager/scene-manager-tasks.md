@@ -145,7 +145,7 @@
 
 **Documentation Updated**:
 - AGENTS.md: Added Scene Manager patterns and root scene architecture
-- DEV_PITFALLS.md: Added Scene Manager pitfalls section
+- docs/guides/pitfalls/: Added Scene Manager pitfalls section
 - Test coverage status updated to Phase 2 baseline
 
 ---
@@ -1090,7 +1090,7 @@
   - ✅ Documented: scene registration, transitions, overlays, triggers, spawn points, state persistence, camera blending, preloading
   - ✅ Includes code examples and configuration guidelines
   - **File**: AGENTS.md (lines 98-199)
-- [x] T194 [P] Update DEV_PITFALLS.md with scene-specific pitfalls
+- [x] T194 [P] Update docs/guides/pitfalls/ with scene-specific pitfalls
   - ✅ Added "Phase 10-Specific Pitfalls" subsection
   - ✅ Covers: camera blending requirements, queue handling, cache eviction, async loading, spawn positioning, cooldown timing
   - ✅ Updated Test Coverage Status section with Phase 10 completion stats
@@ -1261,7 +1261,7 @@
     1. docs/scene_manager/scene-manager-continuation-prompt.md (mark Phase 11 complete)
     2. docs/scene_manager/scene-manager-tasks.md (mark all Phase 11 tasks [x])
     3. AGENTS.md (add Phase 11 patterns if applicable)
-    4. DEV_PITFALLS.md (add spawn validation pitfall if applicable)
+    4. docs/guides/pitfalls/ (add spawn validation pitfall if applicable)
   - **Effort**: 30 minutes
 
 **Checkpoint**: ✅ **Phase 11 COMPLETE (214/214 tasks - 100%)** - All post-audit improvements implemented
@@ -1471,7 +1471,7 @@
 - [x] T293 Run full test suite - expect 502+ passing - **COMPLETE**: 564/570 passing
 - [x] T294 Manual test: All spawn features (effects, conditions, tags, priorities) - **COMPLETE**: Spawn particles working
 - [x] T295 Update docs/scene_manager/scene-manager-continuation-prompt.md with Phase 12 status - **COMPLETE**: Updated
-- [x] T296 Update DEV_PITFALLS.md with spawn system pitfalls (spawn point positioning, checkpoint registration timing) - **COMPLETE**: Documented
+- [x] T296 Update docs/guides/pitfalls/ with spawn system pitfalls (spawn point positioning, checkpoint registration timing) - **COMPLETE**: Documented
 - [x] T297 Create docs/scene_manager/spawn-system-quickstart.md (usage guide) - **DEFERRED**: Can use existing quickstart
 - [x] T298 Commit: "Phase 12.4: Implement advanced spawn features (effects, conditions, metadata)" - **COMPLETE**: Commit 9b23296
 

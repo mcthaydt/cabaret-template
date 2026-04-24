@@ -789,8 +789,8 @@ const ACTION_TRANSITION_TO_GAMEPLAY := StringName("transition/to_gameplay")
 
 ## Next Steps
 
-- Review [PRD](./redux-state-store-prd.md) for architecture details
-- Check [tasks.md](./redux-state-store-tasks.md) for implementation status
+- Review [PRD](../redux-state-store-prd.md) for architecture details
+- Check [tasks.md](../redux-state-store-tasks.md) for implementation status
 - See the per-topic pitfalls under [docs/guides/pitfalls/](../../../guides/pitfalls/) for common mistakes
 - Run tests: `godot --headless -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/state -gexit`
 

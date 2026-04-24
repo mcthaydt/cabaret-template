@@ -827,7 +827,7 @@ After **every screen**:
 4. Run relevant tests (style suite mandatory after any moves/renames).
 5. Update task checklist with [x] and completion notes (commit hash, tests run, deviations).
 6. Update this continuation prompt with status, tests run, and next step.
-7. Update `AGENTS.md` and/or `DEV_PITFALLS.md` if new patterns or pitfalls emerged.
+7. Update `AGENTS.md` and/or `docs/guides/pitfalls/` if new patterns or pitfalls emerged.
 8. Commit with a clear message; commit documentation updates separately from implementation.
 
 ## Links
