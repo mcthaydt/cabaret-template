@@ -1,7 +1,7 @@
 # Cross-System Cleanup V8 — Tasks Checklist
 
 **Branch**: `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch. Subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred. Matches continuation prompt.
-**Status**: Phase 1 complete — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 complete (`26289494`, `fffa2e55`, `7de2a6cf`, `c1d7b0fb`, `a2766455`, `2aacb999` + remediation `91c094c0`..`e416469c`); P1.9b complete (`348802ca`, `b2c67185`, `7a96c4b0`, `d2644cf3`, `0bb07870`, `085c428d`, `73a66510`, `cd2afbcf`, `94d4b7c6` + 2026-04-22 verification follow-through); P1.10 BT-only legacy cleanup complete (`43035ad6`, `6a30f13c` + 2026-04-23 docs hygiene follow-through). Phase 2 complete through P2.4 (`28702b95`) with style recheck passing (`83/83`). Phase 3 complete as of 2026-04-23: P3.0–P3.4 + P3.6 landed, and the P3.5 framework deliverable (dir + `README.md` + `TEMPLATE.md` + `test_extension_recipe_structure`) shipped; the 18 individual extension recipes still ship at the tail of their owning phase (Phases 1/4/5), so overall P3 Verification closes only once those recipe commits land. Style recheck now `86/86` after `test_adr_structure` + `test_extension_recipe_structure` were added. Phase 4: P4.1–P4.2 complete; P4.3 complete (`0dba3719`..`ed8e5de0` — all scripts moved to scripts/core/ or scripts/demo/, core→demo import violations eliminated, stale dirs removed, full suite 4587/4595 green); P4.4 enforcement test already in style suite (`test_core_scripts_never_import_from_demo` 87/87). P4 Verification complete — all three checks green (2026-04-24).
+**Status**: Phase 1 complete — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 complete (`26289494`, `fffa2e55`, `7de2a6cf`, `c1d7b0fb`, `a2766455`, `2aacb999` + remediation `91c094c0`..`e416469c`); P1.9b complete (`348802ca`, `b2c67185`, `7a96c4b0`, `d2644cf3`, `0bb07870`, `085c428d`, `73a66510`, `cd2afbcf`, `94d4b7c6` + 2026-04-22 verification follow-through); P1.10 BT-only legacy cleanup complete (`43035ad6`, `6a30f13c` + 2026-04-23 docs hygiene follow-through). Phase 2 complete through P2.4 (`28702b95`) with style recheck passing (`83/83`). Phase 3 complete as of 2026-04-23: P3.0–P3.4 + P3.6 landed, and the P3.5 framework deliverable (dir + `README.md` + `TEMPLATE.md` + `test_extension_recipe_structure`) shipped; the 18 individual extension recipes still ship at the tail of their owning phase (Phases 1/4/5), so overall P3 Verification closes only once those recipe commits land. Style recheck now `86/86` after `test_adr_structure` + `test_extension_recipe_structure` were added. Phase 4: P4.1–P4.2 complete; P4.3 complete (`0dba3719`..`ed8e5de0` — all scripts moved to scripts/core/ or scripts/demo/, core→demo import violations eliminated, stale dirs removed, full suite 4587/4595 green); P4.4 enforcement test already in style suite (`test_core_scripts_never_import_from_demo` 87/87). P4 Verification complete — all three checks green (2026-04-24). Phase 6 (LLM-first fluent builders) not yet started.
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred.
 **Scope**: Six phases. Phase 1 is the largest (AI rewrite) and must complete before Phases 2–5, because Phases 4–5 depend on a stable AI architecture to decide what is "core template" vs "demo content." Phase 6 (fluent builders) can proceed after Phase 4 completes.
 
@@ -1347,6 +1347,403 @@ resources/
 
 ---
 
+# Phase 6 — LLM-First Fluent Builders
+
+**Reference plan**: `~/.claude/plans/stateless-tickling-meerkat.md` (approved).
+
+**Goal**: Replace `.tres` resource authoring with GDScript builder APIs across four systems: BT trees, scene registry, input profiles, and QB rules. An LLM can read and write a 20-line builder script in a single turn; `.tres` files require multiple turns, massive context windows, and are prone to hallucinated ExtResource IDs and syntax failures. Builder scripts produce readable git diffs, eliminate resource ID hallucination, and maintain full backward compatibility during migration.
+
+**LOC target**: ~800 added (builders + factory methods + migration scripts), ~400 removed (deleted .tres files). Net ~400 LOC addition for significantly improved LLM turn efficiency.
+
+**Design Decisions**:
+- **RS_BTScoredNode**: New node type wrapping a child + scorer pair. Cleaner than parallel `child_scorers` arrays. `RS_BTUtilitySelector` updated to detect scored children; falls back to `child_scorers` for backward compat.
+- **API style**: `U_BTBuilder` uses static factory methods (each call creates and returns a node). `U_SceneRegistryBuilder`, `U_InputProfileBuilder`, `U_QBRuleBuilder` use instance-based fluent builders (state accumulation + `build()`).
+- **Typed + convenience factories**: All builder methods accept typed resources. Convenience factory methods create and configure common resource types — no string lookup registries.
+- **Core/demo boundary**: BT structural builder (`U_BTBuilder`) lives in `scripts/core/utils/bt/` (no AI imports). AI-specific convenience factories (`U_AIBTFactory`) live in `scripts/core/utils/ai/`.
+
+---
+
+## Milestone P6.1: RS_BTScoredNode + Utility Selector Update
+
+**Goal**: Introduce `RS_BTScoredNode` as an explicit child+scorer wrapper, update `RS_BTUtilitySelector` to use it, maintain backward compatibility with `child_scorers` array.
+
+- [ ] **Commit 1** (RED) — `tests/unit/ai/bt/test_rs_bt_scored_node.gd`:
+  - `RS_BTScoredNode` extends `RS_BTDecorator`, has `@export var scorer: Resource`
+  - `tick()` delegates to `child.tick()` (pass-through, no behavior change)
+  - Without child → returns `FAILURE`
+  - Scorer can be any `Resource` with a `score(context) -> float` method
+- [ ] **Commit 2** (GREEN) — `scripts/core/resources/bt/rs_bt_scored_node.gd`:
+  - `class_name RS_BTScoredNode`, extends `RS_BTDecorator`
+  - `@export var scorer: Resource = null`
+  - `tick()` delegates to child, returns `FAILURE` if no child
+- [ ] **Commit 3** (RED) — Add to `test_rs_bt_utility_selector.gd`:
+  - Utility selector with `RS_BTScoredNode` children: scorer comes from the scored node, not `child_scorers`
+  - Mixed: some children are `RS_BTScoredNode`, some are raw → `child_scorers` used as fallback
+  - `RS_BTScoredNode` children override parallel `child_scorers` entries at same index
+  - Running-child pinning still works when child is `RS_BTScoredNode`
+- [ ] **Commit 4** (GREEN) — Update `scripts/core/resources/bt/rs_bt_utility_selector.gd`:
+  - In scoring loop: if `children[i] is RS_BTScoredNode`, use its `scorer` property
+  - Fallback to `child_scorers[i]` for non-scored children (backward compat)
+  - Running-child tracking unchanged (index-based)
+- [ ] **Commit 5** (GREEN) — Style enforcement: add `rs_bt_scored_node.gd` line-count guard (max 50 lines), update BT import restrictions if needed.
+
+**P6.1 Verification**:
+- [ ] All existing BT tests green (backward compat)
+- [ ] New scored-node tests green
+- [ ] Style enforcement green
+
+---
+
+## Milestone P6.2: BT Structural Builder (U_BTBuilder)
+
+**Goal**: Static factory class that creates every BT node type. No AI-specific imports.
+
+- [ ] **Commit 1** (RED) — `tests/unit/ai/bt/test_u_bt_builder.gd`:
+  - `sequence([...])` creates `RS_BTSequence` with correct children
+  - `selector([...])` creates `RS_BTSelector` with correct children
+  - `utility_selector([...])` creates `RS_BTUtilitySelector` with scored children
+  - `scored(child, scorer)` creates `RS_BTScoredNode` wrapping child + scorer
+  - `cooldown(child, duration)` creates `RS_BTCooldown` wrapping child
+  - `once(child)` creates `RS_BTOnce` wrapping child
+  - `rising_edge(child, gate_condition)` creates `RS_BTRisingEdge` wrapping child
+  - `inverter(child)` creates `RS_BTInverter` wrapping child
+  - `action(action_resource)` creates `RS_BTAction` wrapping an `I_AIAction`
+  - `condition(condition_resource)` creates `RS_BTCondition` wrapping an `I_Condition`
+  - `planner(goal, action_pool, ...)` creates `RS_BTPlanner`
+  - `score_const(value)` creates `RS_AIScorerConstant`
+  - `score_condition(condition, if_true, if_false)` creates `RS_AIScorerCondition`
+  - `score_context_field(path, multiplier)` creates `RS_AIScorerContextField`
+  - Built trees pass through `U_BTRunner.tick()` correctly
+- [ ] **Commit 2** (GREEN) — `scripts/core/utils/bt/u_bt_builder.gd`:
+  - `class_name U_BTBuilder`, extends `RefCounted`
+  - All methods are `static`
+  - Composites: `sequence`, `selector`, `utility_selector`
+  - Scored: `scored` (creates `RS_BTScoredNode`), `score_const`, `score_condition`, `score_context_field`
+  - Decorators: `cooldown`, `once`, `rising_edge`, `inverter`
+  - Leaves: `action`, `condition`, `planner`
+- [ ] **Commit 3** (GREEN) — Style enforcement: add `u_bt_builder.gd` line-count guard (max 150 lines), verify no AI-specific imports.
+
+**P6.2 Verification**:
+- [ ] All builder tests green
+- [ ] Built trees produce correct behavior via `U_BTRunner`
+- [ ] No AI-specific imports in BT builder (style enforcement)
+- [ ] Full suite green
+
+---
+
+## Milestone P6.3: AI BT Factory (U_AIBTFactory)
+
+**Goal**: Convenience factory methods that create `RS_BTAction` nodes wrapping specific `I_AIAction` implementations. Lives in AI utils (can import AI types).
+
+- [ ] **Commit 1** (RED) — `tests/unit/ai/bt/test_u_ai_bt_factory.gd`:
+  - `move_to(target, radius)` creates `RS_BTAction` wrapping `RS_AIActionMoveTo`
+  - `move_to_detected(radius)` creates `RS_BTAction` wrapping `RS_AIActionMoveToDetected`
+  - `move_to_nearest(scan_type, radius)` creates `RS_BTAction` wrapping `RS_AIActionMoveToNearest`
+  - `flee(distance, radius)` creates `RS_BTAction` wrapping `RS_AIActionFleeFromDetected`
+  - `wander(home_radius)` creates `RS_BTAction` wrapping `RS_AIActionWander`
+  - `wait(duration)` creates `RS_BTAction` wrapping `RS_AIActionWait`
+  - `scan(duration, speed)` creates `RS_BTAction` wrapping `RS_AIActionScan`
+  - `animate(state_name)` creates `RS_BTAction` wrapping `RS_AIActionAnimate`
+  - `publish_event(name, payload)` creates `RS_BTAction` wrapping `RS_AIActionPublishEvent`
+  - `set_field(path, value)` creates `RS_BTAction` wrapping `RS_AIActionSetField`
+  - `always()` creates `RS_BTCondition` wrapping `RS_ConditionConstant` with score 1.0
+  - `never()` creates `RS_BTCondition` wrapping `RS_ConditionConstant` with score 0.0
+  - `component_field(type, field)` creates `RS_BTCondition` wrapping `RS_ConditionComponentField`
+  - `context_field(path)` creates `RS_BTCondition` wrapping `RS_ConditionContextField`
+  - `entity_tag(tag)` creates `RS_BTCondition` wrapping `RS_ConditionEntityTag`
+  - `redux_field(path)` creates `RS_BTCondition` wrapping `RS_ConditionReduxField`
+  - `composite_all([...])` creates `RS_BTCondition` wrapping `RS_ConditionComposite` (ALL mode)
+  - `composite_any([...])` creates `RS_BTCondition` wrapping `RS_ConditionComposite` (ANY mode)
+- [ ] **Commit 2** (GREEN) — `scripts/core/utils/ai/u_ai_bt_factory.gd`:
+  - `class_name U_AIBTFactory`, extends `RefCounted`
+  - All methods are `static`
+  - Action factories delegate to `U_BTBuilder.action()` with configured `I_AIAction` instances
+  - Condition factories delegate to `U_BTBuilder.condition()` with configured `I_Condition` instances
+- [ ] **Commit 3** (GREEN) — Style enforcement: add line-count guard (max 200 lines).
+
+**P6.3 Verification**:
+- [ ] All factory tests green
+- [ ] Factory-created nodes work with `U_BTRunner`
+- [ ] Full suite green
+
+---
+
+## Milestone P6.4: Script-Backed Brain Settings (RS_AIBrainScriptSettings)
+
+**Goal**: Allow brain settings to generate their BT root from a builder script instead of a static `.tres` resource.
+
+- [ ] **Commit 1** (RED) — `tests/unit/ai/bt/test_rs_ai_brain_script_settings.gd`:
+  - `RS_AIBrainScriptSettings` extends `RS_AIBrainSettings`
+  - Has `@export var builder_script: Script`
+  - `get_root()` returns cached `root` if already set
+  - `get_root()` instantiates `builder_script`, calls `build()`, caches and returns result
+  - `get_root()` returns null if no builder script or `build()` method missing
+  - Brain with `RS_AIBrainScriptSettings` works through `S_AIBehaviorSystem` tick cycle
+- [ ] **Commit 2** (GREEN) — Add `get_root()` to `scripts/core/resources/ai/brain/rs_ai_brain_settings.gd`:
+  - Virtual method returning `root` by default
+  - Subclasses override to generate root dynamically
+- [ ] **Commit 3** (GREEN) — `scripts/core/resources/ai/brain/rs_ai_brain_script_settings.gd`:
+  - `class_name RS_AIBrainScriptSettings`, extends `RS_AIBrainSettings`
+  - `@export var builder_script: Script = null`
+  - Overrides `get_root()` to instantiate builder script and call `build()`
+  - Caches result in `root`
+- [ ] **Commit 4** (GREEN) — Update `scripts/demo/ecs/components/c_ai_brain_component.gd`:
+  - Replace direct `brain_settings.root` access with `brain_settings.get_root()`
+- [ ] **Commit 5** (GREEN) — Update `scripts/demo/ecs/systems/s_ai_behavior_system.gd`:
+  - Replace direct `brain_settings.root` access with `brain_settings.get_root()`
+
+**P6.4 Verification**:
+- [ ] Existing `.tres`-backed brains still work (backward compat)
+- [ ] Script-backed brains generate and cache BT roots correctly
+- [ ] Full AI behavior system test green
+- [ ] Full suite green
+
+---
+
+## Milestone P6.5: BT Migration — .tres → Builder Scripts
+
+**Goal**: Convert existing AI brain `.tres` resources to builder scripts as proof-of-concept and to validate the full builder pipeline end-to-end.
+
+- [ ] **Commit 1** (RED) — Integration test: for each creature brain (patrol_drone, guide_prism, sentry, wolf, rabbit, builder), a builder script produces a BT root that is structurally equivalent to the existing `.tres`-authored root.
+  - Test instantiates both the `.tres` brain settings and the builder script brain settings
+  - Compares tree structure: same node types, same nesting, equivalent scorer values
+- [ ] **Commit 2** (GREEN) — Create builder scripts for each creature brain under `scripts/demo/ai/trees/`:
+  - `patrol_drone_behavior.gd` — replaces `cfg_patrol_drone_brain.tres`
+  - `guide_prism_behavior.gd` — replaces `cfg_guide_brain.tres`
+  - `sentry_behavior.gd` — replaces `cfg_sentry_brain.tres`
+  - `wolf_behavior.gd` — replaces `cfg_woods_wolf_brain.tres`
+  - `rabbit_behavior.gd` — replaces `cfg_woods_rabbit_brain.tres`
+  - `builder_behavior.gd` — replaces `cfg_builder_brain.tres`
+  - Each script extends `RefCounted`, has `build() -> RS_BTNode` using `U_BTBuilder` + `U_AIBTFactory`
+- [ ] **Commit 3** (GREEN) — Create `RS_AIBrainScriptSettings` `.tres` resources pointing to the builder scripts:
+  - `cfg_*_brain_script.tres` for each creature (new files, not replacing originals yet)
+  - Each references the corresponding builder script via `builder_script: Script`
+- [ ] **Commit 4** — Update demo scenes/entities to reference script-backed brain settings where applicable
+- [ ] **Commit 5** — Delete original `.tres` brain resources once script-backed equivalents are verified
+  - Remove `child_scorers` arrays from migrated brains (now using `RS_BTScoredNode`)
+  - One commit so the removal is atomic and revertable
+
+**P6.5 Verification**:
+- [ ] All creature behaviors identical to pre-migration (visual parity check in demo scenes)
+- [ ] Builder script tests green
+- [ ] Full suite green
+- [ ] No orphaned `.tres` references
+
+---
+
+## Milestone P6.6: Scene Registry Builder (U_SceneRegistryBuilder)
+
+**Goal**: Fluent builder for programmatic scene registration as an alternative to `.tres` entry files. Allows LLMs to add a scene registration in one line of code rather than generating a whole `.tres` file.
+
+- [ ] **Commit 1** (RED) — `tests/unit/scene_management/test_u_scene_registry_builder.gd`:
+  - `register(scene_id, path)` adds entry with defaults (GAMEPLAY type, "fade" transition, priority 0)
+  - `.with_type(scene_type)` sets scene type on last entry
+  - `.with_transition(transition)` sets transition on last entry
+  - `.with_preload(priority)` sets preload priority on last entry
+  - `.build()` returns `Array[RS_SceneRegistryEntry]` with configured entries
+  - `.apply()` registers entries with `U_SceneRegistry` (calls new public `register_scene()` method)
+  - Fluent chaining works: `builder.register(...).with_type(...).register(...).build()`
+- [ ] **Commit 2** (GREEN) — Add public `register_scene()` to `scripts/core/scene_management/u_scene_registry.gd`:
+  - Public wrapper for existing `_register_scene()` (same signature)
+  - Enables programmatic registration outside `_static_init()`
+- [ ] **Commit 3** (GREEN) — `scripts/core/scene_management/u_scene_registry_builder.gd`:
+  - `class_name U_SceneRegistryBuilder`, extends `RefCounted`
+  - Instance-based fluent API (methods return `self`)
+  - `register()`, `with_type()`, `with_transition()`, `with_preload()`, `build()`, `apply()`
+  - Uses `U_SceneRegistry.SceneType` enum constants
+- [ ] **Commit 4** (GREEN) — Style enforcement: add line-count guard (max 100 lines).
+
+**P6.6 Verification**:
+- [ ] Builder tests green
+- [ ] Builder-created entries work with `M_SceneManager`
+- [ ] Existing `.tres`-based entries unaffected
+- [ ] Full suite green
+
+---
+
+## Milestone P6.7: Scene Registry Migration — .tres → Builder Script
+
+**Goal**: Convert existing scene registry `.tres` entry files to a builder script manifest, validating the scene registry builder pipeline end-to-end.
+
+- [ ] **Commit 1** (RED) — Integration test: builder script produces registry entries equivalent to existing `.tres` entries.
+  - Test loads the builder manifest script and compares produced entries against the current `U_SceneRegistry` state
+  - Each entry matches: scene_id, path, scene_type, default_transition, preload_priority
+- [ ] **Commit 2** (GREEN) — Create `scripts/demo/scene_management/scene_manifest.gd`:
+  - Uses `U_SceneRegistryBuilder` to register all demo scenes
+  - Replaces the 21 `PRELOADED_SCENE_REGISTRY_ENTRIES` const preloads in `U_SceneRegistryLoader`
+  - Each `register()` call matches an existing `.tres` entry
+- [ ] **Commit 3** — Wire `scene_manifest.gd` into `U_SceneRegistryLoader.load_resource_entries()`:
+  - Loader calls the manifest script's build/apply during initialization
+  - Mobile-compatible: manifest script replaces DirAccess scanning, not const preloads
+- [ ] **Commit 4** — Delete original `.tres` scene registry entries once manifest is verified
+  - One commit so the removal is atomic and revertable
+  - Update `PRELOADED_SCENE_REGISTRY_ENTRIES` in loader
+
+**P6.7 Verification**:
+- [ ] All scenes load identically to pre-migration
+- [ ] Builder manifest test green
+- [ ] Full suite green
+- [ ] No orphaned `.tres` references
+
+---
+
+## Milestone P6.8: Input Profile Builder (U_InputProfileBuilder)
+
+**Goal**: Fluent builder for programmatic input profile construction.
+
+- [ ] **Commit 1** (RED) — `tests/unit/input/test_u_input_profile_builder.gd`:
+  - `create(name, device_type)` initializes builder with profile name and device type
+  - `.bind_key(action, keycode)` adds `InputEventKey` to action
+  - `.bind_mouse_button(action, button_index)` adds `InputEventMouseButton` to action
+  - `.bind_gamepad_button(action, button_index)` adds `InputEventJoypadButton` to action
+  - `.bind_gamepad_axis(action, axis, axis_value)` adds `InputEventJoypadMotion` to action
+  - `.with_accessibility(jump_buffer, sprint_toggle, interact_hold)` sets accessibility fields
+  - `.with_touchscreen(virtual_buttons, joystick_pos)` sets touchscreen fields
+  - `.build()` returns configured `RS_InputProfile`
+  - Built profile passes `RS_InputProfile` validation (non-empty name, non-empty action_mappings)
+- [ ] **Commit 2** (GREEN) — `scripts/core/managers/helpers/u_input_profile_builder.gd`:
+  - `class_name U_InputProfileBuilder`, extends `RefCounted`
+  - Instance-based fluent API
+  - Creates `InputEvent` objects and configures `RS_InputProfile.action_mappings`
+- [ ] **Commit 3** (GREEN) — Style enforcement: add line-count guard (max 150 lines).
+
+**P6.8 Verification**:
+- [ ] Builder tests green
+- [ ] Built profiles accepted by `M_InputProfileManager`
+- [ ] Existing `.tres` profiles unaffected
+- [ ] Full suite green
+
+---
+
+## Milestone P6.9: Input Profile Migration — .tres → Builder Scripts
+
+**Goal**: Convert existing input profile `.tres` files to builder scripts, validating the input profile builder pipeline end-to-end.
+
+- [ ] **Commit 1** (RED) — Integration test: builder scripts produce profiles equivalent to existing `.tres` profiles.
+  - Test loads each builder script and compares produced profile against the corresponding `.tres` resource
+  - Action mappings match: same actions, same key bindings, same device types
+- [ ] **Commit 2** (GREEN) — Create builder scripts under `scripts/demo/input/profiles/`:
+  - `default_keyboard_profile.gd` — replaces `cfg_default_keyboard.tres`
+  - `alternate_keyboard_profile.gd` — replaces `cfg_alternate_keyboard.tres`
+  - `accessibility_keyboard_profile.gd` — replaces `cfg_accessibility_keyboard.tres`
+  - `default_gamepad_profile.gd` — replaces `cfg_default_gamepad.tres`
+  - `accessibility_gamepad_profile.gd` — replaces `cfg_accessibility_gamepad.tres`
+  - `default_touchscreen_profile.gd` — replaces `cfg_default_touchscreen.tres`
+  - Each script extends `RefCounted`, has `build() -> RS_InputProfile` using `U_InputProfileBuilder`
+- [ ] **Commit 3** — Update `U_InputProfileLoader.load_available_profiles()` to load from builder scripts:
+  - Replace hardcoded `.tres` resource paths with builder script paths
+  - Call `build()` on each script instance instead of `load()`
+- [ ] **Commit 4** — Delete original `.tres` input profile files once builder scripts are verified
+  - One commit so the removal is atomic and revertable
+
+**P6.9 Verification**:
+- [ ] All input profiles load and function identically to pre-migration
+- [ ] Builder script tests green
+- [ ] Full suite green
+- [ ] No orphaned `.tres` references
+
+---
+
+## Milestone P6.10: QB Rule Builder (U_QBRuleBuilder)
+
+**Goal**: Fluent builder for programmatic QB rule construction.
+
+- [ ] **Commit 1** (RED) — `tests/unit/qb/test_u_qb_rule_builder.gd`:
+  - `create(rule_id)` initializes builder with rule identity
+  - `.on_tick()`, `.on_event()`, `.on_both()` set trigger mode
+  - `.condition(condition_resource)` adds an `I_Condition` to the rule
+  - `.when_component_field(type, field)` adds `RS_ConditionComponentField` convenience
+  - `.when_context_field(path)` adds `RS_ConditionContextField` convenience
+  - `.when_event_name(name)` adds `RS_ConditionEventName` convenience
+  - `.when_redux_field(path)` adds `RS_ConditionReduxField` convenience
+  - `.when_entity_tag(tag)` adds `RS_ConditionEntityTag` convenience
+  - `.when_constant(score)` adds `RS_ConditionConstant` convenience
+  - `.when_all([...])` adds `RS_ConditionComposite` ALL mode convenience
+  - `.when_any([...])` adds `RS_ConditionComposite` ANY mode convenience
+  - `.effect(effect_resource)` adds an `I_Effect` to the rule
+  - `.then_set_field(component, field, value)` adds `RS_EffectSetField` convenience
+  - `.then_publish_event(name, payload)` adds `RS_EffectPublishEvent` convenience
+  - `.then_dispatch(action_type, payload)` adds `RS_EffectDispatchAction` convenience
+  - `.then_set_context(key, value)` adds `RS_EffectSetContextValue` convenience
+  - `.in_group(group)` sets decision group
+  - `.with_priority(p)` sets priority
+  - `.with_cooldown(seconds)` sets cooldown
+  - `.one_shot()` sets one_shot flag
+  - `.rising_edge()` sets requires_rising_edge flag
+  - `.threshold(value)` sets score_threshold
+  - `.build()` returns configured `RS_Rule`
+  - Built rule passes `U_RuleValidator` validation
+- [ ] **Commit 2** (GREEN) — `scripts/core/utils/qb/u_qb_rule_builder.gd`:
+  - `class_name U_QBRuleBuilder`, extends `RefCounted`
+  - Instance-based fluent API
+  - Condition convenience methods create and configure `RS_BaseCondition` subclasses
+  - Effect convenience methods create and configure `I_Effect` subclasses
+  - `build()` assembles `RS_Rule` with all configured properties
+- [ ] **Commit 3** (GREEN) — Style enforcement: add line-count guard (max 200 lines).
+
+**P6.10 Verification**:
+- [ ] Builder tests green
+- [ ] Built rules pass `U_RuleValidator` validation
+- [ ] Built rules work with `U_RuleEvaluator` pipeline
+- [ ] Full suite green
+
+---
+
+## Milestone P6.11: QB Rule Migration — .tres → Builder Scripts
+
+**Goal**: Convert existing QB rule `.tres` files to builder scripts, validating the QB rule builder pipeline end-to-end.
+
+- [ ] **Commit 1** (RED) — Integration test: builder scripts produce rules equivalent to existing `.tres` rules.
+  - Test loads each builder script and compares produced rule against the corresponding `.tres` resource
+  - Conditions, effects, trigger mode, cooldown, one-shot, decision group all match
+- [ ] **Commit 2** (GREEN) — Create builder scripts under `scripts/demo/qb/rules/`:
+  - `death_sync_rule.gd` — replaces `cfg_death_sync_rule.tres`
+  - `spawn_freeze_rule.gd` — replaces `cfg_spawn_freeze_rule.tres`
+  - `pause_gate_shell.gd` — replaces `cfg_pause_gate_shell.tres`
+  - `pause_gate_paused.gd` — replaces `cfg_pause_gate_paused.tres`
+  - `pause_gate_transitioning.gd` — replaces `cfg_pause_gate_transitioning.tres`
+  - `camera_zone_fov_rule.gd` — replaces `cfg_camera_zone_fov_rule.tres`
+  - `camera_speed_fov_rule.gd` — replaces `cfg_camera_speed_fov_rule.tres`
+  - `camera_landing_impact_rule.gd` — replaces `cfg_camera_landing_impact_rule.tres`
+  - `camera_shake_rule.gd` — replaces `cfg_camera_shake_rule.tres`
+  - `checkpoint_rule.gd` — replaces `cfg_checkpoint_rule.tres`
+  - `victory_rule.gd` — replaces `cfg_victory_rule.tres`
+  - Each script extends `RefCounted`, has `build() -> RS_Rule` using `U_QBRuleBuilder`
+- [ ] **Commit 3** — Update ECS systems that preload rule `.tres` files to load from builder scripts instead:
+  - `S_DeathHandlerSystem`, `S_CheckpointHandlerSystem`, `S_VictoryHandlerSystem`, `S_CameraStateSystem`, `S_CharacterStateSystem`, etc.
+  - Replace `preload("res://resources/qb/.../cfg_*.tres")` with builder script instantiation
+- [ ] **Commit 4** — Delete original `.tres` rule files once builder scripts are verified
+  - One commit so the removal is atomic and revertable
+
+**P6.11 Verification**:
+- [ ] All QB rules function identically to pre-migration
+- [ ] Builder script tests green
+- [ ] Full suite green
+- [ ] No orphaned `.tres` references
+
+---
+
+## Milestone P6.12: ADR + Extension Recipes
+
+**Goal**: Document the fluent builder pattern decision and provide extension recipes.
+
+- [ ] **Commit 1** — ADR: `docs/architecture/adr/0011-llm-first-fluent-builders.md`:
+  - Status, Context, Decision, Alternatives, Consequences
+  - Documents the pattern: move configuration from `.tres` resources to GDScript builder APIs for LLM co-pilot efficiency
+  - Alternatives: keep `.tres`-only, hybrid approach, string-lookup registries
+  - Consequences: better LLM turn efficiency, readable git diffs, backward compat maintained
+- [ ] **Commit 2** — Extension recipe: `docs/architecture/extensions/ai-behavior-builder.md`:
+  - How to create a new AI behavior using `U_BTBuilder` + `U_AIBTFactory`
+  - How to use `RS_AIBrainScriptSettings` for script-backed brains
+  - Example builder script (e.g., wolf hunting behavior)
+
+**P6.12 Verification**:
+- [ ] ADR passes `test_adr_structure` style test
+- [ ] Extension recipe passes `test_extension_recipe_structure` style test
+- [ ] Full suite green
+
+---
+
 ## Dependency Graph
 
 ```
@@ -1354,7 +1751,12 @@ Phase 1 (AI BT rewrite)
    ├── Phase 2 (debug/perf) — independent
    ├── Phase 3 (docs split) — independent
    ├── Phase 4 (template/demo split) ── depends on Phase 1
-   └── Phase 5 (scenes) ── depends on Phase 4
+   ├── Phase 5 (scenes) ── depends on Phase 4
+   └── Phase 6 (fluent builders) ── depends on Phase 4
+       ├── P6.1 → P6.2 → P6.3 → P6.4 → P6.5 (BT chain)
+       ├── P6.6 → P6.7 (scene registry chain)
+       ├── P6.8 → P6.9 (input profile chain)
+       └── P6.10 → P6.11 (QB rule chain)
 ```
 
 ---
@@ -1364,6 +1766,7 @@ Phase 1 (AI BT rewrite)
 - Keep `I_*` interface contracts and `M_*Manager` public APIs stable across phases.
 - Phase 1 is the only phase with intentional behavior changes (AI rewrite); parity with existing demo behavior is the acceptance bar.
 - Phase 4 changes paths — every `.tres`, scene, and autoload reference must be updated in the same commit that moves the file.
+- Phase 6: `RS_BTScoredNode` is additive — existing `child_scorers` array still works during transition. `RS_AIBrainSettings.get_root()` is a virtual method returning `root` by default — no breaking change. During migration, `.tres` and builder scripts coexist until final deletion commit.
 
 ---
 
@@ -1384,4 +1787,5 @@ Phase 1 (AI BT rewrite)
 - **Manual demo check is mandatory** at end of P1.9 before P1.10 deletions.
 - **Phase 4 is high-churn**: every move commit should be reviewable in isolation; don't bundle unrelated moves.
 - **Phase 5 is last**: easier once code is organized.
+- **Phase 6 migration is destructive**: each `.tres` deletion commit is atomic and revertable. Run full suite + visual parity check before deleting.
 - **Update `DEV_PITFALLS.md` / `AGENTS.md` after each phase** if entries reference deleted or moved files.
