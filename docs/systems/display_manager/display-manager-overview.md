@@ -10,6 +10,15 @@
 
 The Display Manager handles visual post-processing effects, graphics quality settings, UI scaling, and color blind accessibility features. It owns the post-processing overlay (CanvasLayer + shader) and provides preview APIs for settings UI.
 
+## Current Runtime Contracts
+
+- Display Manager owns display-domain post-process, graphics settings, UI scale, color blind palettes, and settings-preview APIs.
+- Display Manager does not own gameplay camera orchestration, screen shake, damage flash, audio settings, or particle systems.
+- DisplayServer operations must be deferred to the main thread.
+- Current UI scale behavior is font-only; avoid layout scaling unless pivot/position compensation is intentionally reintroduced.
+- Post-process overlay uses CanvasLayer ordering below UI overlays and above gameplay. Do not add `UIScaleRoot` to post-process overlays.
+- Headless tests that assert DisplayServer behavior must mark themselves pending when `DisplayServer.get_name() == "headless"`.
+
 ## Camera Ownership Boundary (vCam Alignment)
 
 - Gameplay camera orchestration source of truth is `docs/vcam_manager/*`.
