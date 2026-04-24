@@ -1,10 +1,10 @@
 extends BaseTest
 
-const S_MOVE_TARGET_FOLLOWER_SYSTEM_PATH := "res://scripts/ecs/systems/s_move_target_follower_system.gd"
-const C_MOVE_TARGET_COMPONENT_PATH := "res://scripts/ecs/components/c_move_target_component.gd"
+const S_MOVE_TARGET_FOLLOWER_SYSTEM_PATH := "res://scripts/demo/ecs/systems/s_move_target_follower_system.gd"
+const C_MOVE_TARGET_COMPONENT_PATH := "res://scripts/demo/ecs/components/c_move_target_component.gd"
 const BASE_ECS_SYSTEM := preload("res://scripts/ecs/base_ecs_system.gd")
 const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")
-const C_AI_BRAIN_COMPONENT := preload("res://scripts/ecs/components/c_ai_brain_component.gd")
+const C_AI_BRAIN_COMPONENT := preload("res://scripts/demo/ecs/components/c_ai_brain_component.gd")
 const C_INPUT_COMPONENT := preload("res://scripts/ecs/components/c_input_component.gd")
 const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
 const RS_AI_BRAIN_SETTINGS := preload("res://scripts/resources/ai/brain/rs_ai_brain_settings.gd")

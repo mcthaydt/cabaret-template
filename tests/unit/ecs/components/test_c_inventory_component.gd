@@ -1,6 +1,6 @@
 extends BaseTest
 
-const C_INVENTORY_COMPONENT := preload("res://scripts/ecs/components/c_inventory_component.gd")
+const C_INVENTORY_COMPONENT := preload("res://scripts/demo/ecs/components/c_inventory_component.gd")
 const RS_INVENTORY_SETTINGS := preload("res://scripts/resources/ai/world/rs_inventory_settings.gd")
 
 func _instantiate(capacity: int = 4, allowed_types: Array[StringName] = []) -> Variant:

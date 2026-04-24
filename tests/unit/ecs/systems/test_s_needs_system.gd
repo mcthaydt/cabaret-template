@@ -1,7 +1,7 @@
 extends BaseTest
 
-const S_NEEDS_SYSTEM_PATH := "res://scripts/ecs/systems/s_needs_system.gd"
-const C_NEEDS_COMPONENT_PATH := "res://scripts/ecs/components/c_needs_component.gd"
+const S_NEEDS_SYSTEM_PATH := "res://scripts/demo/ecs/systems/s_needs_system.gd"
+const C_NEEDS_COMPONENT_PATH := "res://scripts/demo/ecs/components/c_needs_component.gd"
 const RS_NEEDS_SETTINGS_PATH := "res://scripts/resources/ecs/rs_needs_settings.gd"
 
 const BASE_ECS_SYSTEM := preload("res://scripts/ecs/base_ecs_system.gd")

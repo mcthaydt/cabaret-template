@@ -3,7 +3,7 @@ extends I_AIAction
 class_name RS_AIActionMoveTo
 
 const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
-const C_MOVE_TARGET_COMPONENT := preload("res://scripts/ecs/components/c_move_target_component.gd")
+const C_MOVE_TARGET_COMPONENT := preload("res://scripts/demo/ecs/components/c_move_target_component.gd")
 
 @export_group("Target")
 @export var target_position: Vector3 = Vector3.ZERO

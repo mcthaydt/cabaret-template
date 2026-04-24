@@ -2,8 +2,8 @@
 extends I_AIAction
 class_name RS_AIActionBuildStage
 
-const C_BUILD_SITE_COMPONENT := preload("res://scripts/ecs/components/c_build_site_component.gd")
-const C_DETECTION_COMPONENT := preload("res://scripts/ecs/components/c_detection_component.gd")
+const C_BUILD_SITE_COMPONENT := preload("res://scripts/demo/ecs/components/c_build_site_component.gd")
+const C_DETECTION_COMPONENT := preload("res://scripts/demo/ecs/components/c_detection_component.gd")
 const RS_BUILD_STAGE := preload("res://scripts/resources/ai/world/rs_build_stage.gd")
 
 func start(context: Dictionary, task_state: Dictionary) -> void:

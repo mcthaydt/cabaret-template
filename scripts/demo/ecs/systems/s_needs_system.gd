@@ -2,7 +2,7 @@
 extends BaseECSSystem
 class_name S_NeedsSystem
 
-const C_NEEDS_COMPONENT := preload("res://scripts/ecs/components/c_needs_component.gd")
+const C_NEEDS_COMPONENT := preload("res://scripts/demo/ecs/components/c_needs_component.gd")
 
 func get_phase() -> BaseECSSystem.SystemPhase:
 	return BaseECSSystem.SystemPhase.PRE_PHYSICS

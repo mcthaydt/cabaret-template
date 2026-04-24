@@ -1,7 +1,7 @@
 extends Label3D
 class_name DebugWoodsBuildSiteLabel
 
-const C_BUILD_SITE_COMPONENT := preload("res://scripts/ecs/components/c_build_site_component.gd")
+const C_BUILD_SITE_COMPONENT := preload("res://scripts/demo/ecs/components/c_build_site_component.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 
 @export var build_site_component_path: NodePath = NodePath("../C_BuildSiteComponent")

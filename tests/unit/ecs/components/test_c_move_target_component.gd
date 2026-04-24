@@ -1,7 +1,7 @@
 extends BaseTest
 
 const BASE_ECS_COMPONENT := preload("res://scripts/ecs/base_ecs_component.gd")
-const C_MOVE_TARGET_COMPONENT_PATH := "res://scripts/ecs/components/c_move_target_component.gd"
+const C_MOVE_TARGET_COMPONENT_PATH := "res://scripts/demo/ecs/components/c_move_target_component.gd"
 
 func _load_script(path: String) -> Script:
 	var script_variant: Variant = load(path)

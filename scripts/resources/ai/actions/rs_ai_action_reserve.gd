@@ -2,8 +2,8 @@
 extends I_AIAction
 class_name RS_AIActionReserve
 
-const C_RESOURCE_NODE_COMPONENT := preload("res://scripts/ecs/components/c_resource_node_component.gd")
-const C_DETECTION_COMPONENT := preload("res://scripts/ecs/components/c_detection_component.gd")
+const C_RESOURCE_NODE_COMPONENT := preload("res://scripts/demo/ecs/components/c_resource_node_component.gd")
+const C_DETECTION_COMPONENT := preload("res://scripts/demo/ecs/components/c_detection_component.gd")
 
 @export var reserve_duration_seconds: float = 10.0
 

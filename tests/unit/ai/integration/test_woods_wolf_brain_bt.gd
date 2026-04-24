@@ -6,8 +6,8 @@ const RS_BT_UTILITY_SELECTOR := preload("res://scripts/resources/bt/rs_bt_utilit
 const RS_AI_BRAIN_SETTINGS := preload("res://scripts/resources/ai/brain/rs_ai_brain_settings.gd")
 const RS_NEEDS_SETTINGS := preload("res://scripts/resources/ecs/rs_needs_settings.gd")
 
-const C_NEEDS_COMPONENT := preload("res://scripts/ecs/components/c_needs_component.gd")
-const C_DETECTION_COMPONENT := preload("res://scripts/ecs/components/c_detection_component.gd")
+const C_NEEDS_COMPONENT := preload("res://scripts/demo/ecs/components/c_needs_component.gd")
+const C_DETECTION_COMPONENT := preload("res://scripts/demo/ecs/components/c_detection_component.gd")
 
 func _load_brain_settings() -> RS_AIBrainSettings:
 	assert_true(FileAccess.file_exists(WOLF_BT_BRAIN_PATH), "Woods wolf brain .tres should exist")

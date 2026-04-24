@@ -131,6 +131,8 @@ const REQUIRED_EXTENSION_RECIPES := [
 # Valid prefixes by directory
 const SCRIPT_PREFIX_RULES := {
 	"res://scripts/core": ["u_"],
+	"res://scripts/demo/ecs/components": ["c_"],
+	"res://scripts/demo/ecs/systems": ["s_"],
 	"res://scripts/demo/gameplay": ["inter_", "s_"],
 	"res://scripts/demo/debug": ["debug_"],
 	"res://scripts/demo/debug/utils": ["u_"],
@@ -604,8 +606,8 @@ func test_ai_action_scripts_use_task_state_key_constants() -> void:
 	var violations: Array[String] = []
 	_collect_gd_literal_occurrences("res://scripts/resources/ai/actions", "task_state[\"", violations)
 	_collect_gd_literal_occurrences("res://scripts/utils/ai", "task_state[\"", violations)
-	_collect_gd_literal_occurrences("res://scripts/ecs/systems/s_ai_behavior_system.gd", "task_state[\"", violations)
-	_collect_gd_literal_occurrences("res://scripts/ecs/systems/s_move_target_follower_system.gd", "task_state[\"", violations)
+	_collect_gd_literal_occurrences("res://scripts/demo/ecs/systems/s_ai_behavior_system.gd", "task_state[\"", violations)
+	_collect_gd_literal_occurrences("res://scripts/demo/ecs/systems/s_move_target_follower_system.gd", "task_state[\"", violations)
 
 	var message := "AI scripts should not use bare string keys for task_state access"
 	if violations.size() > 0:
@@ -684,7 +686,7 @@ func test_ecs_system_filenames_do_not_include_demo_marker() -> void:
 	assert_eq(violations.size(), 0, message)
 
 func test_ai_behavior_system_has_no_local_duck_typing_helpers() -> void:
-	var behavior_system_path := "res://scripts/ecs/systems/s_ai_behavior_system.gd"
+	var behavior_system_path := "res://scripts/demo/ecs/systems/s_ai_behavior_system.gd"
 	var forbidden_helpers: Array[String] = [
 		"_read_object_property",
 		"_read_int_property",
@@ -709,7 +711,7 @@ func test_ai_behavior_system_has_no_local_duck_typing_helpers() -> void:
 	assert_eq(violations.size(), 0, message)
 
 func test_ai_behavior_system_stays_under_two_hundred_lines() -> void:
-	var behavior_system_path := "res://scripts/ecs/systems/s_ai_behavior_system.gd"
+	var behavior_system_path := "res://scripts/demo/ecs/systems/s_ai_behavior_system.gd"
 	var file := FileAccess.open(behavior_system_path, FileAccess.READ)
 	assert_not_null(file, "Unable to open %s" % behavior_system_path)
 	if file == null:
@@ -727,7 +729,7 @@ func test_ai_behavior_system_stays_under_two_hundred_lines() -> void:
 	)
 
 func test_ai_behavior_system_has_no_bare_print_calls() -> void:
-	var behavior_system_path := "res://scripts/ecs/systems/s_ai_behavior_system.gd"
+	var behavior_system_path := "res://scripts/demo/ecs/systems/s_ai_behavior_system.gd"
 	var file := FileAccess.open(behavior_system_path, FileAccess.READ)
 	assert_not_null(file, "Unable to open %s" % behavior_system_path)
 	if file == null:
@@ -868,7 +870,7 @@ func test_gravity_system_has_no_bare_print_calls() -> void:
 
 func test_detection_system_has_no_direct_print_calls() -> void:
 	_assert_file_has_no_direct_print_calls(
-		"res://scripts/ecs/systems/s_ai_detection_system.gd",
+		"res://scripts/demo/ecs/systems/s_ai_detection_system.gd",
 		"s_ai_detection_system.gd"
 	)
 
@@ -886,7 +888,7 @@ func test_input_system_has_no_direct_print_calls() -> void:
 
 func test_move_target_follower_system_has_no_direct_print_calls() -> void:
 	_assert_file_has_no_direct_print_calls(
-		"res://scripts/ecs/systems/s_move_target_follower_system.gd",
+		"res://scripts/demo/ecs/systems/s_move_target_follower_system.gd",
 		"s_move_target_follower_system.gd"
 	)
 
@@ -1103,8 +1105,8 @@ func test_migrated_files_do_not_duplicate_dependency_resolution_pattern() -> voi
 		"res://scripts/ecs/systems/s_camera_state_system.gd",
 		"res://scripts/ecs/systems/s_character_state_system.gd",
 		"res://scripts/ecs/systems/s_game_event_system.gd",
-		"res://scripts/ecs/systems/s_ai_detection_system.gd",
-		"res://scripts/ecs/systems/s_ai_behavior_system.gd",
+		"res://scripts/demo/ecs/systems/s_ai_detection_system.gd",
+		"res://scripts/demo/ecs/systems/s_ai_behavior_system.gd",
 		"res://scripts/ecs/systems/s_wall_visibility_system.gd",
 		"res://scripts/ecs/systems/s_region_visibility_system.gd",
 		"res://scripts/demo/gameplay/s_demo_alarm_relay_system.gd",
@@ -1160,7 +1162,7 @@ func test_ecs_systems_do_not_define_local_get_frame_state_snapshot() -> void:
 		"res://scripts/ecs/systems/s_character_state_system.gd",
 		"res://scripts/ecs/systems/s_vcam_system.gd",
 		"res://scripts/ecs/systems/s_wall_visibility_system.gd",
-		"res://scripts/ecs/systems/s_ai_behavior_system.gd",
+		"res://scripts/demo/ecs/systems/s_ai_behavior_system.gd",
 	]
 	var forbidden_pattern: String = "func _get_frame_state_snapshot"
 	var snapshot_violations: Array[String] = []

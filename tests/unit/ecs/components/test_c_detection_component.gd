@@ -1,6 +1,6 @@
 extends BaseTest
 
-const C_DETECTION_COMPONENT := preload("res://scripts/ecs/components/c_detection_component.gd")
+const C_DETECTION_COMPONENT := preload("res://scripts/demo/ecs/components/c_detection_component.gd")
 
 func _instantiate_component() -> Variant:
 	var component: Variant = C_DETECTION_COMPONENT.new()

@@ -13,9 +13,9 @@ const U_AI_CONTEXT_ASSEMBLER := preload("res://scripts/utils/ai/u_ai_context_ass
 const U_ENTITY_QUERY := preload("res://scripts/ecs/u_entity_query.gd")
 const M_ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 
-const C_NEEDS_COMPONENT := preload("res://scripts/ecs/components/c_needs_component.gd")
-const C_INVENTORY_COMPONENT := preload("res://scripts/ecs/components/c_inventory_component.gd")
-const C_BUILD_SITE_COMPONENT := preload("res://scripts/ecs/components/c_build_site_component.gd")
+const C_NEEDS_COMPONENT := preload("res://scripts/demo/ecs/components/c_needs_component.gd")
+const C_INVENTORY_COMPONENT := preload("res://scripts/demo/ecs/components/c_inventory_component.gd")
+const C_BUILD_SITE_COMPONENT := preload("res://scripts/demo/ecs/components/c_build_site_component.gd")
 
 const BRANCH_DRINK := 0
 const BRANCH_GATHER := 1

@@ -1,7 +1,7 @@
 extends Control
 class_name DebugAIBrainPanel
 
-const C_AI_BRAIN_COMPONENT := preload("res://scripts/ecs/components/c_ai_brain_component.gd")
+const C_AI_BRAIN_COMPONENT := preload("res://scripts/demo/ecs/components/c_ai_brain_component.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 
 @export var ecs_manager: I_ECSManager = null

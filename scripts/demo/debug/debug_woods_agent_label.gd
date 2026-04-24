@@ -1,10 +1,10 @@
 extends Label3D
 class_name DebugWoodsAgentLabel
 
-const C_AI_BRAIN_COMPONENT := preload("res://scripts/ecs/components/c_ai_brain_component.gd")
+const C_AI_BRAIN_COMPONENT := preload("res://scripts/demo/ecs/components/c_ai_brain_component.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
-const C_INVENTORY_COMPONENT := preload("res://scripts/ecs/components/c_inventory_component.gd")
-const C_NEEDS_COMPONENT := preload("res://scripts/ecs/components/c_needs_component.gd")
+const C_INVENTORY_COMPONENT := preload("res://scripts/demo/ecs/components/c_inventory_component.gd")
+const C_NEEDS_COMPONENT := preload("res://scripts/demo/ecs/components/c_needs_component.gd")
 
 @export var brain_component_path: NodePath = NodePath("../Components/C_AIBrainComponent")
 

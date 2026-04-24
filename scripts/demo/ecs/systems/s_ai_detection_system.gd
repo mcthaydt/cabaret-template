@@ -2,7 +2,7 @@
 extends BaseECSSystem
 class_name S_AIDetectionSystem
 
-const C_DETECTION_COMPONENT := preload("res://scripts/ecs/components/c_detection_component.gd")
+const C_DETECTION_COMPONENT := preload("res://scripts/demo/ecs/components/c_detection_component.gd")
 const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
 const C_PLAYER_TAG_COMPONENT := preload("res://scripts/ecs/components/c_player_tag_component.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")

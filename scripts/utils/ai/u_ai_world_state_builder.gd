@@ -2,12 +2,12 @@ extends RefCounted
 class_name U_AIWorldStateBuilder
 
 const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
-const C_DETECTION_COMPONENT := preload("res://scripts/ecs/components/c_detection_component.gd")
-const C_NEEDS_COMPONENT := preload("res://scripts/ecs/components/c_needs_component.gd")
+const C_DETECTION_COMPONENT := preload("res://scripts/demo/ecs/components/c_detection_component.gd")
+const C_NEEDS_COMPONENT := preload("res://scripts/demo/ecs/components/c_needs_component.gd")
 const C_HEALTH_COMPONENT := preload("res://scripts/ecs/components/c_health_component.gd")
-const C_INVENTORY_COMPONENT := preload("res://scripts/ecs/components/c_inventory_component.gd")
-const C_RESOURCE_NODE_COMPONENT := preload("res://scripts/ecs/components/c_resource_node_component.gd")
-const C_BUILD_SITE_COMPONENT := preload("res://scripts/ecs/components/c_build_site_component.gd")
+const C_INVENTORY_COMPONENT := preload("res://scripts/demo/ecs/components/c_inventory_component.gd")
+const C_RESOURCE_NODE_COMPONENT := preload("res://scripts/demo/ecs/components/c_resource_node_component.gd")
+const C_BUILD_SITE_COMPONENT := preload("res://scripts/demo/ecs/components/c_build_site_component.gd")
 
 const BRAIN_COMPONENT_TYPE := C_AIBrainComponent.COMPONENT_TYPE
 const MOVEMENT_COMPONENT_TYPE := C_MOVEMENT_COMPONENT.COMPONENT_TYPE

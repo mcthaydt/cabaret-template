@@ -1,10 +1,10 @@
 extends BaseTest
 
-const S_AI_DETECTION_SYSTEM_PATH := "res://scripts/ecs/systems/s_ai_detection_system.gd"
+const S_AI_DETECTION_SYSTEM_PATH := "res://scripts/demo/ecs/systems/s_ai_detection_system.gd"
 const BASE_ECS_SYSTEM := preload("res://scripts/ecs/base_ecs_system.gd")
 const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
-const C_DETECTION_COMPONENT := preload("res://scripts/ecs/components/c_detection_component.gd")
+const C_DETECTION_COMPONENT := preload("res://scripts/demo/ecs/components/c_detection_component.gd")
 const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
 const C_PLAYER_TAG_COMPONENT := preload("res://scripts/ecs/components/c_player_tag_component.gd")
 const RS_MOVEMENT_SETTINGS := preload("res://scripts/resources/ecs/rs_movement_settings.gd")

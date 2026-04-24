@@ -2,7 +2,7 @@
 extends BaseECSSystem
 class_name S_ResourceRegrowSystem
 
-const C_RESOURCE_NODE_COMPONENT := preload("res://scripts/ecs/components/c_resource_node_component.gd")
+const C_RESOURCE_NODE_COMPONENT := preload("res://scripts/demo/ecs/components/c_resource_node_component.gd")
 
 func _init() -> void:
 	execution_priority = -5

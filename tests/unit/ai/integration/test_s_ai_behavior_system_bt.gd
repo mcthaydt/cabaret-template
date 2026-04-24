@@ -1,10 +1,10 @@
 extends BaseTest
 
-const S_AI_BEHAVIOR_SYSTEM_PATH := "res://scripts/ecs/systems/s_ai_behavior_system.gd"
+const S_AI_BEHAVIOR_SYSTEM_PATH := "res://scripts/demo/ecs/systems/s_ai_behavior_system.gd"
 const BASE_ECS_SYSTEM := preload("res://scripts/ecs/base_ecs_system.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")
-const C_AI_BRAIN_COMPONENT := preload("res://scripts/ecs/components/c_ai_brain_component.gd")
+const C_AI_BRAIN_COMPONENT := preload("res://scripts/demo/ecs/components/c_ai_brain_component.gd")
 const RS_AI_BRAIN_SETTINGS := preload("res://scripts/resources/ai/brain/rs_ai_brain_settings.gd")
 const RS_BT_NODE := preload("res://scripts/resources/bt/rs_bt_node.gd")
 

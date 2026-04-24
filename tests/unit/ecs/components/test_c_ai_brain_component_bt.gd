@@ -1,6 +1,6 @@
 extends BaseTest
 
-const C_AI_BRAIN_COMPONENT_PATH := "res://scripts/ecs/components/c_ai_brain_component.gd"
+const C_AI_BRAIN_COMPONENT_PATH := "res://scripts/demo/ecs/components/c_ai_brain_component.gd"
 
 func _load_component_script() -> Script:
 	var script_variant: Variant = load(C_AI_BRAIN_COMPONENT_PATH)

@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cpu10a55x44bm"]
 
-[ext_resource type="Script" uid="uid://cqapg68flj01a" path="res://scripts/ecs/components/c_resource_node_component.gd" id="1_resource_node"]
+[ext_resource type="Script" path="res://scripts/demo/ecs/components/c_resource_node_component.gd" id="1_resource_node"]
 [ext_resource type="Resource" uid="uid://c588cfurrhla7" path="res://resources/base_settings/ai_woods/cfg_resource_node_water.tres" id="2_water_settings"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_water"]

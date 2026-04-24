@@ -2,7 +2,7 @@
 extends I_AIAction
 class_name RS_AIActionDrink
 
-const C_NEEDS_COMPONENT := preload("res://scripts/ecs/components/c_needs_component.gd")
+const C_NEEDS_COMPONENT := preload("res://scripts/demo/ecs/components/c_needs_component.gd")
 const RS_NEEDS_SETTINGS := preload("res://scripts/resources/ecs/rs_needs_settings.gd")
 
 @export var drink_seconds: float = 1.5
