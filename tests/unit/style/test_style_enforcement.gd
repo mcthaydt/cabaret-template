@@ -1623,14 +1623,14 @@ func test_objectives_state_access_uses_selectors() -> void:
 	]
 	var production_dirs: Array[String] = [
 		"res://scripts/core/ecs",
-		"res://scripts/state",
-		"res://scripts/ui",
+		"res://scripts/core/state",
+		"res://scripts/core/ui",
 		"res://scripts/core/managers",
 		"res://scripts/core",
 		"res://scripts/core/interfaces",
 		"res://scripts/core/utils",
-		"res://scripts/input",
-		"res://scripts/scene_management",
+		"res://scripts/core/input",
+		"res://scripts/core/scene_management",
 		"res://scripts/core/events",
 		"res://scripts/core/scene_structure",
 		"res://scripts/core/resources",
@@ -1714,7 +1714,7 @@ func test_all_production_files_use_selectors_for_state_access() -> void:
 		"res://scripts/core/gameplay",
 		"res://scripts/core/ui",
 		"res://scripts/core/managers",
-		"res://scripts/scene_management",
+		"res://scripts/core/scene_management",
 		"res://scripts/core/scene_management",
 		"res://scripts/core/utils",
 		"res://scripts/demo",
@@ -1757,7 +1757,7 @@ func test_no_cinema_identifiers_in_display_scripts() -> void:
 	]
 	var display_dirs: Array[String] = [
 		"res://scripts/core/managers/helpers/display",
-		"res://scripts/state",
+		"res://scripts/core/state",
 		"res://scripts/core/utils/debug",
 		"res://scripts/core/debug",
 	]
@@ -1811,7 +1811,7 @@ func test_no_crt_identifiers_in_display_scripts() -> void:
 	]
 	var display_dirs: Array[String] = [
 		"res://scripts/core/managers/helpers/display",
-		"res://scripts/state",
+		"res://scripts/core/state",
 		"res://scripts/core/utils/display",
 		"res://scripts/core/ui/settings",
 		"res://scripts/core/debug",
@@ -1885,13 +1885,13 @@ func test_no_state_mutation_outside_store() -> void:
 	var production_dirs: Array[String] = [
 		"res://scripts/core/ecs",
 		"res://scripts/core/gameplay",
-		"res://scripts/ui",
+		"res://scripts/core/ui",
 		"res://scripts/core/managers",
-		"res://scripts/scene_management",
+		"res://scripts/core/scene_management",
 		"res://scripts/core/utils",
 		"res://scripts/core",
-		"res://scripts/state",
-		"res://scripts/input",
+		"res://scripts/core/state",
+		"res://scripts/core/input",
 		"res://scripts/core/events",
 		"res://scripts/core/scene_structure",
 		"res://scripts/core/interfaces",
