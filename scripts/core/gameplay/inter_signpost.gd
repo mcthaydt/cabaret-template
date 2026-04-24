@@ -1,9 +1,9 @@
-extends "res://scripts/gameplay/triggered_interactable_controller.gd"
+extends "res://scripts/core/gameplay/triggered_interactable_controller.gd"
 class_name Inter_Signpost
 
 const SIGNPOST_MESSAGE_EVENT := StringName("signpost_message")
 const RS_SIGNPOST_INTERACTION_CONFIG := preload("res://scripts/core/resources/interactions/rs_signpost_interaction_config.gd")
-const U_INTERACTION_CONFIG_RESOLVER := preload("res://scripts/gameplay/helpers/u_interaction_config_resolver.gd")
+const U_INTERACTION_CONFIG_RESOLVER := preload("res://scripts/core/gameplay/helpers/u_interaction_config_resolver.gd")
 
 signal signpost_activated(message: String, signpost: Inter_Signpost)
 

@@ -1,6 +1,6 @@
 extends BaseTest
 
-const INTER_CHARACTER_LIGHT_ZONE := preload("res://scripts/gameplay/inter_character_light_zone.gd")
+const INTER_CHARACTER_LIGHT_ZONE := preload("res://scripts/demo/gameplay/inter_character_light_zone.gd")
 const RS_CHARACTER_LIGHT_ZONE_CONFIG := preload("res://scripts/demo/resources/lighting/rs_character_light_zone_config.gd")
 const RS_CHARACTER_LIGHTING_PROFILE := preload("res://scripts/demo/resources/lighting/rs_character_lighting_profile.gd")
 

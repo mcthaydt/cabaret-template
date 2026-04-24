@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://jd1xkl5ignjh"]
 
-[ext_resource type="Script" uid="uid://dr2u7w3ufadya" path="res://scripts/gameplay/inter_hazard_zone.gd" id="1_controller"]
+[ext_resource type="Script" uid="uid://dr2u7w3ufadya" path="res://scripts/core/gameplay/inter_hazard_zone.gd" id="1_controller"]
 [ext_resource type="Material" uid="uid://dtyyrgwkln3r4" path="res://assets/materials/mat_fade_hazard.tres" id="3_fade_material"]
 [ext_resource type="Resource" uid="uid://bhpts5ki7j6uv" path="res://resources/interactions/hazards/cfg_hazard_spike_trap.tres" id="4_hazard_config"]
 

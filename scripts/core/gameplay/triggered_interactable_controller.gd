@@ -1,4 +1,4 @@
-extends "res://scripts/gameplay/base_interactable_controller.gd"
+extends "res://scripts/core/gameplay/base_interactable_controller.gd"
 class_name TriggeredInteractableController
 
 

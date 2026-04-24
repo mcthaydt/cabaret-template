@@ -1,4 +1,4 @@
-extends "res://scripts/gameplay/base_volume_controller.gd"
+extends "res://scripts/core/gameplay/base_volume_controller.gd"
 class_name BaseInteractableController
 
 # U_ECS_UTILS inherited from BaseECSEntity (via base_volume_controller.gd)

@@ -55,7 +55,7 @@
 [ext_resource type="Script" uid="uid://bxuh4wr37jbss" path="res://scripts/core/scene_structure/marker_spawn_points_group.gd" id="53_xgymr"]
 [ext_resource type="Script" uid="uid://c1vg0nn41f77u" path="res://scripts/core/scene_management/sp_spawn_point.gd" id="54_5nj3c"]
 [ext_resource type="Resource" uid="uid://bsyk32fi3mvu3" path="res://resources/spawn_metadata/cfg_sp_interior_a.tres" id="55_x3b4u"]
-[ext_resource type="Script" uid="uid://dr2u7w3ufadya" path="res://scripts/gameplay/inter_hazard_zone.gd" id="56_lj6cy"]
+[ext_resource type="Script" uid="uid://dr2u7w3ufadya" path="res://scripts/core/gameplay/inter_hazard_zone.gd" id="56_lj6cy"]
 [ext_resource type="Resource" uid="uid://clhnj5hf0m0pa" path="res://resources/interactions/hazards/cfg_hazard_death_zone.tres" id="57_eropg"]
 [ext_resource type="PackedScene" uid="uid://d1cugdu6fb42l" path="res://scenes/prefabs/prefab_player.tscn" id="58_b02xr"]
 [ext_resource type="PackedScene" uid="uid://4f8xryxbxit0" path="res://scenes/templates/tmpl_camera.tscn" id="59_qu3gu"]

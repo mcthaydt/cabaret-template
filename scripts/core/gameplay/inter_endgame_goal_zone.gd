@@ -1,4 +1,4 @@
-extends "res://scripts/gameplay/inter_victory_zone.gd"
+extends "res://scripts/core/gameplay/inter_victory_zone.gd"
 class_name Inter_EndgameGoalZone
 
 const RS_ENDGAME_GOAL_INTERACTION_CONFIG := preload("res://scripts/core/resources/interactions/rs_endgame_goal_interaction_config.gd")

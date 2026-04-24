@@ -1,9 +1,9 @@
-extends "res://scripts/gameplay/base_volume_controller.gd"
+extends "res://scripts/core/gameplay/base_volume_controller.gd"
 class_name Inter_CharacterLightZone
 
 const RS_CHARACTER_LIGHT_ZONE_CONFIG := preload("res://scripts/demo/resources/lighting/rs_character_light_zone_config.gd")
 const RS_TRIGGER_SETTINGS := preload("res://scripts/core/resources/ecs/rs_scene_trigger_settings.gd")
-const U_INTERACTION_CONFIG_RESOLVER := preload("res://scripts/gameplay/helpers/u_interaction_config_resolver.gd")
+const U_INTERACTION_CONFIG_RESOLVER := preload("res://scripts/core/gameplay/helpers/u_interaction_config_resolver.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 
 const LIGHTING_SERVICE := StringName("character_lighting_manager")

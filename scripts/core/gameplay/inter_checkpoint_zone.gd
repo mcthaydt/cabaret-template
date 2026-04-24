@@ -1,10 +1,10 @@
-extends "res://scripts/gameplay/base_volume_controller.gd"
-class_name Inter_HazardZone
+extends "res://scripts/core/gameplay/base_volume_controller.gd"
+class_name Inter_CheckpointZone
 
-const RS_HAZARD_INTERACTION_CONFIG := preload("res://scripts/core/resources/interactions/rs_hazard_interaction_config.gd")
-const U_INTERACTION_CONFIG_RESOLVER := preload("res://scripts/gameplay/helpers/u_interaction_config_resolver.gd")
+const RS_CHECKPOINT_INTERACTION_CONFIG := preload("res://scripts/core/resources/interactions/rs_checkpoint_interaction_config.gd")
+const U_INTERACTION_CONFIG_RESOLVER := preload("res://scripts/core/gameplay/helpers/u_interaction_config_resolver.gd")
 
-@export var component_name: StringName = StringName("C_DamageZoneComponent")
+@export var component_name: StringName = StringName("C_CheckpointComponent")
 
 var component_factory: Callable
 
@@ -13,13 +13,13 @@ var _config: Resource = null
 	get:
 		return _config
 	set(value):
-		if value != null and not U_INTERACTION_CONFIG_RESOLVER.script_matches(value, RS_HAZARD_INTERACTION_CONFIG):
+		if value != null and not U_INTERACTION_CONFIG_RESOLVER.script_matches(value, RS_CHECKPOINT_INTERACTION_CONFIG):
 			return
 		_config = value
 		_apply_config_resource()
 		_apply_component_config()
 
-var _component: C_DamageZoneComponent = null
+var _component: C_CheckpointComponent = null
 
 func _ready() -> void:
 	_apply_config_resource()
@@ -41,29 +41,37 @@ func _ensure_component(area: Area3D) -> void:
 
 	var instance := _instantiate_component()
 	if instance == null:
-		push_error("Inter_HazardZone: Unable to instantiate C_DamageZoneComponent.")
+		push_error("Inter_CheckpointZone: Unable to instantiate C_CheckpointComponent.")
 		return
 
 	instance.name = _resolve_component_name()
 	var provisional_path := _build_provisional_area_path(area)
 	if not provisional_path.is_empty():
 		instance.area_path = provisional_path
+	var typed := _resolve_config()
+	if typed != null:
+		instance.checkpoint_id = typed.checkpoint_id
+		instance.spawn_point_id = typed.spawn_point_id
+		if typed.trigger_settings != null:
+			typed.trigger_settings.ignore_initial_overlap = false
+			instance.settings = typed.trigger_settings
 
 	add_child(instance)
 	_component = instance
 	_update_component_area_path()
+	_component._resolve_or_create_area()
 
-func _instantiate_component() -> C_DamageZoneComponent:
+func _instantiate_component() -> C_CheckpointComponent:
 	if component_factory != null and component_factory.is_valid():
 		var created: Variant = component_factory.call()
-		if created is C_DamageZoneComponent:
-			return created as C_DamageZoneComponent
-		push_warning("Inter_HazardZone: component_factory returned incompatible instance.")
-	return C_DamageZoneComponent.new()
+		if created is C_CheckpointComponent:
+			return created as C_CheckpointComponent
+		push_warning("Inter_CheckpointZone: component_factory returned incompatible instance.")
+	return C_CheckpointComponent.new()
 
 func _resolve_component_name() -> String:
 	if String(component_name).is_empty():
-		return "C_DamageZoneComponent"
+		return "C_CheckpointComponent"
 	return String(component_name)
 
 func _build_provisional_area_path(area: Area3D) -> NodePath:
@@ -81,8 +89,6 @@ func _update_component_area_path() -> void:
 	if path.is_empty():
 		return
 	_component.area_path = path
-	if _component.has_method("set_area_path"):
-		_component.set_area_path(path)
 
 func _apply_component_config() -> void:
 	if _component == null or not is_instance_valid(_component):
@@ -91,22 +97,23 @@ func _apply_component_config() -> void:
 	if typed == null:
 		return
 
-	_component.damage_amount = typed.damage_amount
-	_component.is_instant_death = typed.is_instant_death
-	_component.damage_cooldown = max(typed.damage_cooldown, 0.0)
-
+	_component.checkpoint_id = typed.checkpoint_id
+	_component.spawn_point_id = typed.spawn_point_id
 	if typed.trigger_settings != null:
 		typed.trigger_settings.ignore_initial_overlap = false
-		var mask := int(typed.trigger_settings.player_mask)
-		if mask <= 0:
-			mask = 1
-		_component.collision_layer_mask = mask
+		_component.settings = typed.trigger_settings
 
 	_update_component_area_path()
+	_component.set_enabled(is_enabled())
 
 func refresh_volume_from_settings() -> void:
 	super.refresh_volume_from_settings()
 	_apply_component_config()
+
+func _on_enabled_state_changed(enabled: bool) -> void:
+	super._on_enabled_state_changed(enabled)
+	if _component != null and is_instance_valid(_component):
+		_component.set_enabled(enabled)
 
 func _apply_config_resource() -> void:
 	var typed := _resolve_config()
@@ -117,7 +124,7 @@ func _apply_config_resource() -> void:
 	if trigger_settings != null:
 		settings = trigger_settings
 
-func _resolve_config() -> RS_HazardInteractionConfig:
-	if _config != null and U_INTERACTION_CONFIG_RESOLVER.script_matches(_config, RS_HAZARD_INTERACTION_CONFIG):
-		return _config as RS_HazardInteractionConfig
+func _resolve_config() -> RS_CheckpointInteractionConfig:
+	if _config != null and U_INTERACTION_CONFIG_RESOLVER.script_matches(_config, RS_CHECKPOINT_INTERACTION_CONFIG):
+		return _config as RS_CheckpointInteractionConfig
 	return null

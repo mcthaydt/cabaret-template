@@ -1,6 +1,6 @@
 extends BaseTest
 
-const U_INTERACTION_CONFIG_RESOLVER := preload("res://scripts/gameplay/helpers/u_interaction_config_resolver.gd")
+const U_INTERACTION_CONFIG_RESOLVER := preload("res://scripts/core/gameplay/helpers/u_interaction_config_resolver.gd")
 const RS_DOOR_INTERACTION_CONFIG := preload("res://scripts/core/resources/interactions/rs_door_interaction_config.gd")
 const RS_CHECKPOINT_INTERACTION_CONFIG := preload("res://scripts/core/resources/interactions/rs_checkpoint_interaction_config.gd")
 const RS_HAZARD_INTERACTION_CONFIG := preload("res://scripts/core/resources/interactions/rs_hazard_interaction_config.gd")
@@ -27,12 +27,12 @@ const SCENE_PATHS := [
 ]
 
 const CONTROLLER_TO_CONFIG_SCRIPT := {
-	"res://scripts/gameplay/inter_door_trigger.gd": RS_DOOR_INTERACTION_CONFIG,
-	"res://scripts/gameplay/inter_checkpoint_zone.gd": RS_CHECKPOINT_INTERACTION_CONFIG,
-	"res://scripts/gameplay/inter_hazard_zone.gd": RS_HAZARD_INTERACTION_CONFIG,
-	"res://scripts/gameplay/inter_victory_zone.gd": RS_VICTORY_INTERACTION_CONFIG,
-	"res://scripts/gameplay/inter_signpost.gd": RS_SIGNPOST_INTERACTION_CONFIG,
-	"res://scripts/gameplay/inter_endgame_goal_zone.gd": RS_ENDGAME_GOAL_INTERACTION_CONFIG,
+	"res://scripts/core/gameplay/inter_door_trigger.gd": RS_DOOR_INTERACTION_CONFIG,
+	"res://scripts/core/gameplay/inter_checkpoint_zone.gd": RS_CHECKPOINT_INTERACTION_CONFIG,
+	"res://scripts/core/gameplay/inter_hazard_zone.gd": RS_HAZARD_INTERACTION_CONFIG,
+	"res://scripts/core/gameplay/inter_victory_zone.gd": RS_VICTORY_INTERACTION_CONFIG,
+	"res://scripts/core/gameplay/inter_signpost.gd": RS_SIGNPOST_INTERACTION_CONFIG,
+	"res://scripts/core/gameplay/inter_endgame_goal_zone.gd": RS_ENDGAME_GOAL_INTERACTION_CONFIG,
 }
 
 func test_interaction_controllers_have_typed_config_assignments_in_scenes() -> void:

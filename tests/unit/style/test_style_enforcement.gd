@@ -1,7 +1,7 @@
 extends GutTest
 
 const GD_DIRECTORIES := [
-	"res://scripts/gameplay",
+	"res://scripts/core/gameplay",
 	"res://scripts/core",
 	"res://scripts/demo",
 	"res://scripts/utils",
@@ -175,8 +175,8 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/core/ui/settings": ["ui_", "base_"], # ui_ for overlays, base_ for shared overlay base
 	"res://scripts/core/ui/utils": ["u_"], # UI utilities
 	"res://scripts/core/ui": ["ui_", "u_"], # ui_ for controllers, u_ for utilities
-	"res://scripts/gameplay/helpers": ["u_"], # gameplay helper utilities
-	"res://scripts/gameplay": ["e_", "inter_", "base_", "triggered_", "s_"], # e_ for entities, inter_ for interactable controllers, base_ for base controllers, triggered_ for special controllers, s_ for gameplay-scoped ECS systems
+	"res://scripts/core/gameplay/helpers": ["u_"], # gameplay helper utilities
+	"res://scripts/core/gameplay": ["e_", "inter_", "base_", "triggered_", "s_"], # e_ for entities, inter_ for interactable controllers, base_ for base controllers, triggered_ for special controllers, s_ for gameplay-scoped ECS systems
 	"res://scripts/core/scene_structure": ["marker_"], # marker_*.gd organizational scripts
 	"res://scripts/core/scene_management/transitions": ["trans_", "base_"], # transition effects
 	"res://scripts/core/resources/scene_management": ["rs_"], # scene registry resources
@@ -1117,16 +1117,16 @@ func test_migrated_files_do_not_duplicate_dependency_resolution_pattern() -> voi
 		"res://scripts/core/managers/m_vcam_manager.gd",
 		"res://scripts/core/managers/m_character_lighting_manager.gd",
 		"res://scripts/core/managers/m_run_coordinator_manager.gd",
-		"res://scripts/gameplay/inter_victory_zone.gd",
+		"res://scripts/core/gameplay/inter_victory_zone.gd",
 		"res://scripts/demo/gameplay/inter_ai_demo_guard_barrier.gd",
 		"res://scripts/core/ecs/systems/helpers/u_vcam_runtime_services.gd",
-		"res://scripts/gameplay/inter_character_light_zone.gd",
+		"res://scripts/demo/gameplay/inter_character_light_zone.gd",
 		"res://scripts/demo/gameplay/inter_ai_demo_flag_zone.gd",
 		"res://scripts/core/ecs/base_event_sfx_system.gd",
 		"res://scripts/core/ui/menus/ui_splash_screen.gd",
 		"res://scripts/core/ui/hud/ui_virtual_button.gd",
 		"res://scripts/core/ui/base/base_panel.gd",
-		"res://scripts/gameplay/base_interactable_controller.gd",
+		"res://scripts/core/gameplay/base_interactable_controller.gd",
 		"res://scripts/core/managers/m_vfx_manager.gd",
 		"res://scripts/core/managers/m_audio_manager.gd",
 		"res://scripts/core/managers/m_localization_manager.gd",
@@ -1579,7 +1579,7 @@ func test_resolve_state_store_naming_consistent() -> void:
 	var gd_dirs: Array[String] = [
 		"res://scripts/core/ecs",
 		"res://scripts/core/managers",
-		"res://scripts/gameplay",
+		"res://scripts/core/gameplay",
 		"res://scripts/demo",
 	]
 	var violations: Array[String] = []
@@ -1634,7 +1634,7 @@ func test_objectives_state_access_uses_selectors() -> void:
 		"res://scripts/core/events",
 		"res://scripts/core/scene_structure",
 		"res://scripts/core/resources",
-		"res://scripts/gameplay",
+		"res://scripts/core/gameplay",
 		"res://scripts/demo",
 		"res://scripts/debug",
 	]
@@ -1700,7 +1700,7 @@ func test_all_production_files_use_selectors_for_state_access() -> void:
 		"res://scripts/core/ecs/systems/s_jump_system.gd",
 		"res://scripts/core/ecs/systems/s_playtime_system.gd",
 		"res://scripts/core/ecs/components/c_scene_trigger_component.gd",
-		"res://scripts/gameplay/inter_endgame_goal_zone.gd",
+		"res://scripts/core/gameplay/inter_endgame_goal_zone.gd",
 		"res://scripts/core/ui/hud/ui_hud_controller.gd",
 		"res://scripts/core/ui/hud/ui_mobile_controls.gd",
 		"res://scripts/core/ui/menus/ui_main_menu.gd",
@@ -1711,7 +1711,7 @@ func test_all_production_files_use_selectors_for_state_access() -> void:
 	]
 	var production_dirs: Array[String] = [
 		"res://scripts/core/ecs",
-		"res://scripts/gameplay",
+		"res://scripts/core/gameplay",
 		"res://scripts/core/ui",
 		"res://scripts/core/managers",
 		"res://scripts/scene_management",
@@ -1884,7 +1884,7 @@ func test_no_state_mutation_outside_store() -> void:
 	]
 	var production_dirs: Array[String] = [
 		"res://scripts/core/ecs",
-		"res://scripts/gameplay",
+		"res://scripts/core/gameplay",
 		"res://scripts/ui",
 		"res://scripts/core/managers",
 		"res://scripts/scene_management",
