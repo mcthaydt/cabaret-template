@@ -4,6 +4,16 @@
 
 This guide documents the standardized scene tree organization used throughout Project Musical Parakeet. Following these conventions ensures consistency, maintainability, and clarity across all gameplay scenes.
 
+## Current Authoring Contracts
+
+- `scenes/root.tscn` is the persistent app root. Long-lived managers live under its `Managers` node and register through `U_ServiceLocator`.
+- Gameplay scenes own their own `M_ECSManager`; do not rely on a global ECS manager.
+- `scenes/templates/tmpl_base_scene.tscn` is the canonical base-scene template and should be extended before adding new gameplay scenes.
+- Keep gameplay content under `SceneObjects`, `Environment`, `Systems`, `Managers`, and `Entities` groups using marker scripts.
+- UI scenes are organized by type under `scenes/ui/menus/`, `scenes/ui/overlays/`, `scenes/ui/hud/`, and `scenes/ui/widgets/`.
+- Interactable controllers should author a single `Inter_*` node that creates/resolves its `Area3D`, collision shape, ECS component, and settings resource. Avoid hand-authoring parallel nested trigger/component stacks.
+- Spawn markers live under `Entities/SpawnPoints`, use lowercase `sp_*` names, and may attach `SP_SpawnPoint` metadata scripts.
+
 ## Table of Contents
 
 1. [Standardized Node Tree Structure](#standardized-node-tree-structure)
