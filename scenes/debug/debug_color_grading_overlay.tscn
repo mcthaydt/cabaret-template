@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bvq7y8xtm5pfw"]
 
-[ext_resource type="Script" uid="uid://c4ywwrg3elq5o" path="res://scripts/debug/debug_color_grading_overlay.gd" id="1_cinema"]
+[ext_resource type="Script" uid="uid://c4ywwrg3elq5o" path="res://scripts/core/debug/debug_color_grading_overlay.gd" id="1_cinema"]
 
 [node name="SC_ColorGradingDebugOverlay" type="CanvasLayer" unique_id=542098800]
 layer = 128

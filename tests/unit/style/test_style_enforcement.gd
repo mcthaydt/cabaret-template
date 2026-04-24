@@ -15,7 +15,7 @@ const GD_DIRECTORIES := [
 	"res://scripts/core/resources/display",
 	"res://scripts/core/resources/localization",
 	"res://scripts/core/resources/ai",
-	"res://scripts/debug",
+	"res://scripts/core/debug",
 	"res://tests/unit/interactables",
 	"res://tests/unit/input",
 	"res://tests/unit/lighting",
@@ -168,7 +168,7 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/core/resources/localization": ["rs_"], # Localization resources
 	"res://scripts/core/resources/ai": ["rs_"], # AI resources
 	"res://scripts/core/resources/ai/actions": ["rs_"], # AI action resources
-	"res://scripts/debug": ["debug_"], # Debug utility scripts
+	"res://scripts/core/debug": ["debug_"], # Debug utility scripts
 	"res://scripts/core/state": ["u_", "m_"], # m_state_store.gd is in root
 	"res://scripts/core/resources/ui": ["rs_"], # UI screen definitions
 	"res://scripts/core/ui/base": ["base_"], # base_*.gd UI base classes
@@ -1636,7 +1636,7 @@ func test_objectives_state_access_uses_selectors() -> void:
 		"res://scripts/core/resources",
 		"res://scripts/core/gameplay",
 		"res://scripts/demo",
-		"res://scripts/debug",
+		"res://scripts/core/debug",
 	]
 	var violations: Array[String] = []
 	var patterns: Array[String] = [
@@ -1759,7 +1759,7 @@ func test_no_cinema_identifiers_in_display_scripts() -> void:
 		"res://scripts/core/managers/helpers/display",
 		"res://scripts/state",
 		"res://scripts/core/utils/debug",
-		"res://scripts/debug",
+		"res://scripts/core/debug",
 	]
 	var violations: Array[String] = []
 	for dir_path in display_dirs:
@@ -1814,7 +1814,7 @@ func test_no_crt_identifiers_in_display_scripts() -> void:
 		"res://scripts/state",
 		"res://scripts/core/utils/display",
 		"res://scripts/core/ui/settings",
-		"res://scripts/debug",
+		"res://scripts/core/debug",
 	]
 	var violations: Array[String] = []
 	for dir_path in display_dirs:
@@ -1896,7 +1896,7 @@ func test_no_state_mutation_outside_store() -> void:
 		"res://scripts/core/scene_structure",
 		"res://scripts/core/interfaces",
 		"res://scripts/core/resources",
-		"res://scripts/debug",
+		"res://scripts/core/debug",
 	]
 	var violations: Array[String] = []
 	for dir_path in production_dirs:
