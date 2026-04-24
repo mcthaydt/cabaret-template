@@ -17,8 +17,8 @@ extends I_GameplayInitializerManager
 ## - Discovers M_SpawnManager via ServiceLocator
 ## - Only spawns if player is NOT already at spawn point
 
-const I_SPAWN_MANAGER := preload("res://scripts/interfaces/i_spawn_manager.gd")
-const M_SCENE_MANAGER := preload("res://scripts/managers/m_scene_manager.gd")
+const I_SPAWN_MANAGER := preload("res://scripts/core/interfaces/i_spawn_manager.gd")
+const M_SCENE_MANAGER := preload("res://scripts/core/managers/m_scene_manager.gd")
 
 func _ready() -> void:
 	# Get scene root early for metadata check

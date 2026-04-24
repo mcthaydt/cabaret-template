@@ -1,6 +1,6 @@
 extends GutTest
 
-const M_InputProfileManager = preload("res://scripts/managers/m_input_profile_manager.gd")
+const M_InputProfileManager = preload("res://scripts/core/managers/m_input_profile_manager.gd")
 const RS_InputProfile = preload("res://scripts/resources/input/rs_input_profile.gd")
 const M_StateStore = preload("res://scripts/state/m_state_store.gd")
 const RS_StateStoreSettings = preload("res://scripts/resources/state/rs_state_store_settings.gd")

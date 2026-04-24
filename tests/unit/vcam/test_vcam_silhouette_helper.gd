@@ -1,7 +1,7 @@
 extends GutTest
 
 const U_VCAM_SILHOUETTE_HELPER := preload(
-	"res://scripts/managers/helpers/u_vcam_silhouette_helper.gd"
+	"res://scripts/core/managers/helpers/u_vcam_silhouette_helper.gd"
 )
 
 var _helper: U_VCamSilhouetteHelper = null

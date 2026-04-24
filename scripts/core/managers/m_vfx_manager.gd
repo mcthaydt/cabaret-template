@@ -1,5 +1,5 @@
 @icon("res://assets/editor_icons/icn_manager.svg")
-extends "res://scripts/interfaces/i_vfx_manager.gd"
+extends "res://scripts/core/interfaces/i_vfx_manager.gd"
 class_name M_VFXManager
 
 ## VFX Manager - Coordinates visual feedback effects (screen shake, damage flash)
@@ -7,14 +7,14 @@ class_name M_VFXManager
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
 const U_ECS_EVENT_NAMES := preload("res://scripts/core/events/ecs/u_ecs_event_names.gd")
-const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
+const I_CAMERA_MANAGER := preload("res://scripts/core/interfaces/i_camera_manager.gd")
 const U_VFX_SELECTORS := preload("res://scripts/state/selectors/u_vfx_selectors.gd")
 const U_VCAM_ACTIONS := preload("res://scripts/state/actions/u_vcam_actions.gd")
 const U_SCENE_SELECTORS := preload("res://scripts/state/selectors/u_scene_selectors.gd")
 const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 const U_ENTITY_SELECTORS := preload("res://scripts/state/selectors/u_entity_selectors.gd")
 const U_VCAM_SELECTORS := preload("res://scripts/state/selectors/u_vcam_selectors.gd")
-const U_VCAM_SILHOUETTE_HELPER := preload("res://scripts/managers/helpers/u_vcam_silhouette_helper.gd")
+const U_VCAM_SILHOUETTE_HELPER := preload("res://scripts/core/managers/helpers/u_vcam_silhouette_helper.gd")
 const DAMAGE_FLASH_SCENE := preload("res://scenes/ui/overlays/ui_damage_flash_overlay.tscn")
 const SCREEN_SHAKE_TUNING := preload("res://resources/vfx/cfg_screen_shake_tuning.tres")
 const SCREEN_SHAKE_CONFIG := preload("res://resources/vfx/cfg_screen_shake_config.tres")

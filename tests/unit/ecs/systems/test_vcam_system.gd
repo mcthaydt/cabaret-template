@@ -1,6 +1,6 @@
 extends BaseTest
 
-const M_ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
+const M_ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
 const S_VCAM_SYSTEM := preload("res://scripts/ecs/systems/s_vcam_system.gd")
 const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component.gd")
 const C_CAMERA_STATE_COMPONENT := preload("res://scripts/ecs/components/c_camera_state_component.gd")
@@ -10,7 +10,7 @@ const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const RS_VCAM_MODE_ORBIT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_orbit.gd")
 const RS_VCAM_RESPONSE := preload("res://scripts/resources/display/vcam/rs_vcam_response.gd")
 const RS_VCAM_SOFT_ZONE := preload("res://scripts/resources/display/vcam/rs_vcam_soft_zone.gd")
-const U_VCAM_MODE_EVALUATOR := preload("res://scripts/managers/helpers/u_vcam_mode_evaluator.gd")
+const U_VCAM_MODE_EVALUATOR := preload("res://scripts/core/managers/helpers/u_vcam_mode_evaluator.gd")
 const U_VCAM_LOOK_INPUT := preload("res://scripts/ecs/systems/helpers/u_vcam_look_input.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
 const U_ECS_EVENT_NAMES := preload("res://scripts/core/events/ecs/u_ecs_event_names.gd")

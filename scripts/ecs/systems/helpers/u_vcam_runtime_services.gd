@@ -2,7 +2,7 @@ extends RefCounted
 class_name U_VCamRuntimeServices
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const I_VCAM_MANAGER := preload("res://scripts/interfaces/i_vcam_manager.gd")
+const I_VCAM_MANAGER := preload("res://scripts/core/interfaces/i_vcam_manager.gd")
 const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component.gd")
 
 var _owner: Node = null

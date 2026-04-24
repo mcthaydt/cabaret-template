@@ -8,8 +8,8 @@ extends BaseTest
 ## matching the established pattern in RS_AIGoal and RS_AICompoundTask.
 
 const RS_RULE := preload("res://scripts/resources/qb/rs_rule.gd")
-const I_CONDITION := preload("res://scripts/interfaces/i_condition.gd")
-const I_EFFECT := preload("res://scripts/interfaces/i_effect.gd")
+const I_CONDITION := preload("res://scripts/core/interfaces/i_condition.gd")
+const I_EFFECT := preload("res://scripts/core/interfaces/i_effect.gd")
 const CONDITION_REDUX_FIELD := preload("res://scripts/resources/qb/conditions/rs_condition_redux_field.gd")
 const CONDITION_EVENT_NAME := preload("res://scripts/resources/qb/conditions/rs_condition_event_name.gd")
 const CONDITION_COMPOSITE := preload("res://scripts/resources/qb/conditions/rs_condition_composite.gd")

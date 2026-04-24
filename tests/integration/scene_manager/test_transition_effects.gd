@@ -6,7 +6,7 @@ extends GutTest
 ## Validates effect selection, execution, minimum duration, and progress updates.
 ## Tests follow TDD discipline: written BEFORE implementation.
 
-const M_SceneManager = preload("res://scripts/managers/m_scene_manager.gd")
+const M_SceneManager = preload("res://scripts/core/managers/m_scene_manager.gd")
 const M_StateStore = preload("res://scripts/state/m_state_store.gd")
 const RS_SceneInitialState = preload("res://scripts/resources/state/rs_scene_initial_state.gd")
 const RS_StateStoreSettings = preload("res://scripts/resources/state/rs_state_store_settings.gd")

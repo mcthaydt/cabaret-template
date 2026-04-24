@@ -9,12 +9,12 @@ extends BaseTest
 ## - ColorGradingLayer is created under PostProcessOverlay after first apply
 ## - Shader uniforms on ColorGradingRect reflect the loaded grade
 
-const M_DISPLAY_MANAGER := preload("res://scripts/managers/m_display_manager.gd")
+const M_DISPLAY_MANAGER := preload("res://scripts/core/managers/m_display_manager.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const RS_DISPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_display_initial_state.gd")
 
-const U_COLOR_GRADING_REGISTRY := preload("res://scripts/managers/helpers/display/u_color_grading_registry.gd")
+const U_COLOR_GRADING_REGISTRY := preload("res://scripts/core/managers/helpers/display/u_color_grading_registry.gd")
 const U_COLOR_GRADING_SELECTORS := preload("res://scripts/state/selectors/u_color_grading_selectors.gd")
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")

@@ -1,6 +1,6 @@
 extends BaseTest
 
-const M_VCAM_MANAGER := preload("res://scripts/managers/m_vcam_manager.gd")
+const M_VCAM_MANAGER := preload("res://scripts/core/managers/m_vcam_manager.gd")
 const C_ROOM_FADE_GROUP_COMPONENT := preload(
 	"res://scripts/ecs/components/c_room_fade_group_component.gd"
 )

@@ -8,7 +8,7 @@ extends BaseTest
 ## - CJK locale applies CJK font path; dyslexia toggle has no visible effect
 
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
-const M_LOCALIZATION_MANAGER := preload("res://scripts/managers/m_localization_manager.gd")
+const M_LOCALIZATION_MANAGER := preload("res://scripts/core/managers/m_localization_manager.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const RS_LOCALIZATION_INITIAL_STATE := preload("res://scripts/resources/state/rs_localization_initial_state.gd")
 const U_LOCALIZATION_ACTIONS := preload("res://scripts/state/actions/u_localization_actions.gd")

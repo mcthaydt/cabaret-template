@@ -1,6 +1,6 @@
 extends BaseTest
 
-const M_VCAM_MANAGER := preload("res://scripts/managers/m_vcam_manager.gd")
+const M_VCAM_MANAGER := preload("res://scripts/core/managers/m_vcam_manager.gd")
 const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const MOCK_CAMERA_MANAGER := preload("res://tests/mocks/mock_camera_manager.gd")

@@ -1,4 +1,4 @@
-extends "res://scripts/interfaces/i_save_manager.gd"
+extends "res://scripts/core/interfaces/i_save_manager.gd"
 class_name MockSaveManager
 
 ## Mock Save Manager for autosave scheduler tests

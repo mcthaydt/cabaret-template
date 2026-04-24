@@ -1,5 +1,5 @@
 @icon("res://assets/editor_icons/icn_manager.svg")
-extends "res://scripts/interfaces/i_display_manager.gd"
+extends "res://scripts/core/interfaces/i_display_manager.gd"
 class_name M_DisplayManager
 
 ## Display Manager - applies display settings from Redux display slice.
@@ -9,15 +9,15 @@ const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_DISPLAY_SELECTORS := preload("res://scripts/state/selectors/u_display_selectors.gd")
 const U_LOCALIZATION_SELECTORS := preload("res://scripts/state/selectors/u_localization_selectors.gd")
 const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
-const U_PALETTE_MANAGER := preload("res://scripts/managers/helpers/u_palette_manager.gd")
+const U_PALETTE_MANAGER := preload("res://scripts/core/managers/helpers/u_palette_manager.gd")
 const U_DISPLAY_SERVER_WINDOW_OPS := preload("res://scripts/utils/display/u_display_server_window_ops.gd")
-const U_DISPLAY_WINDOW_APPLIER := preload("res://scripts/managers/helpers/display/u_display_window_applier.gd")
-const U_DISPLAY_QUALITY_APPLIER := preload("res://scripts/managers/helpers/display/u_display_quality_applier.gd")
-const U_DISPLAY_POST_PROCESS_APPLIER := preload("res://scripts/managers/helpers/display/u_display_post_process_applier.gd")
-const U_DISPLAY_UI_SCALE_APPLIER := preload("res://scripts/managers/helpers/display/u_display_ui_scale_applier.gd")
-const U_DISPLAY_UI_THEME_APPLIER := preload("res://scripts/managers/helpers/display/u_display_ui_theme_applier.gd")
-const U_DISPLAY_COLOR_GRADING_APPLIER := preload("res://scripts/managers/helpers/display/u_display_color_grading_applier.gd")
-const U_POST_PROCESS_PIPELINE := preload("res://scripts/managers/helpers/display/u_post_process_pipeline.gd")
+const U_DISPLAY_WINDOW_APPLIER := preload("res://scripts/core/managers/helpers/display/u_display_window_applier.gd")
+const U_DISPLAY_QUALITY_APPLIER := preload("res://scripts/core/managers/helpers/display/u_display_quality_applier.gd")
+const U_DISPLAY_POST_PROCESS_APPLIER := preload("res://scripts/core/managers/helpers/display/u_display_post_process_applier.gd")
+const U_DISPLAY_UI_SCALE_APPLIER := preload("res://scripts/core/managers/helpers/display/u_display_ui_scale_applier.gd")
+const U_DISPLAY_UI_THEME_APPLIER := preload("res://scripts/core/managers/helpers/display/u_display_ui_theme_applier.gd")
+const U_DISPLAY_COLOR_GRADING_APPLIER := preload("res://scripts/core/managers/helpers/display/u_display_color_grading_applier.gd")
+const U_POST_PROCESS_PIPELINE := preload("res://scripts/core/managers/helpers/display/u_post_process_pipeline.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
 const U_UI_THEME_DEBUG := preload("res://scripts/ui/utils/u_ui_theme_debug.gd")
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")

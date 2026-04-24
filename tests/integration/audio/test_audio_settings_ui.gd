@@ -8,7 +8,7 @@ extends BaseTest
 ## - Reset applies defaults immediately
 ## - Settings persist to global settings file and restore across sessions
 
-const M_AUDIO_MANAGER := preload("res://scripts/managers/m_audio_manager.gd")
+const M_AUDIO_MANAGER := preload("res://scripts/core/managers/m_audio_manager.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const RS_AUDIO_INITIAL_STATE := preload("res://scripts/resources/state/rs_audio_initial_state.gd")

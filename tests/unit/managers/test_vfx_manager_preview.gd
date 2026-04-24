@@ -1,6 +1,6 @@
 extends GutTest
 
-const M_VFX_MANAGER := preload("res://scripts/managers/m_vfx_manager.gd")
+const M_VFX_MANAGER := preload("res://scripts/core/managers/m_vfx_manager.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 
 func test_set_preview_overrides_redux_state() -> void:

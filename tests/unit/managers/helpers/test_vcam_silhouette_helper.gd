@@ -1,6 +1,6 @@
 extends GutTest
 
-const U_VCAM_SILHOUETTE_HELPER := preload("res://scripts/managers/helpers/u_vcam_silhouette_helper.gd")
+const U_VCAM_SILHOUETTE_HELPER := preload("res://scripts/core/managers/helpers/u_vcam_silhouette_helper.gd")
 
 func _create_mesh_target(initial_transparency: float = 0.0) -> MeshInstance3D:
 	var mesh_instance := MeshInstance3D.new()

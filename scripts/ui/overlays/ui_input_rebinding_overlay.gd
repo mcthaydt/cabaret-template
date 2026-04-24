@@ -1,8 +1,8 @@
 @icon("res://assets/editor_icons/icn_utility.svg")
-extends "res://scripts/interfaces/i_rebind_overlay.gd"
+extends "res://scripts/core/interfaces/i_rebind_overlay.gd"
 class_name UI_InputRebindingOverlay
 
-const I_INPUT_PROFILE_MANAGER := preload("res://scripts/interfaces/i_input_profile_manager.gd")
+const I_INPUT_PROFILE_MANAGER := preload("res://scripts/core/interfaces/i_input_profile_manager.gd")
 const DEFAULT_REBIND_SETTINGS: Resource = preload("res://resources/input/rebind_settings/cfg_default_rebind_settings.tres")
 const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")

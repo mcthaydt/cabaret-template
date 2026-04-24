@@ -2,9 +2,9 @@ extends GutTest
 
 ## Test suite for M_LocalizationManager lifecycle (Phase 1B)
 
-const M_LOCALIZATION_MANAGER := preload("res://scripts/managers/m_localization_manager.gd")
+const M_LOCALIZATION_MANAGER := preload("res://scripts/core/managers/m_localization_manager.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
-const I_LOCALIZATION_MANAGER := preload("res://scripts/interfaces/i_localization_manager.gd")
+const I_LOCALIZATION_MANAGER := preload("res://scripts/core/interfaces/i_localization_manager.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const LOCALE_DIFFERENTIATED_KEY := &"menu.settings.back_to_main"
 const EN_LOCALE_DIFFERENTIATED_VALUE := "Back to Main Menu"

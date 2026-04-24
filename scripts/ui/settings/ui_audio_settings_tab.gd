@@ -2,7 +2,7 @@
 extends VBoxContainer
 class_name UI_AudioSettingsTab
 
-const I_AUDIO_MANAGER := preload("res://scripts/interfaces/i_audio_manager.gd")
+const I_AUDIO_MANAGER := preload("res://scripts/core/interfaces/i_audio_manager.gd")
 const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")

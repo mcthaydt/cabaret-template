@@ -3,7 +3,7 @@ extends I_ECSEntity
 class_name BaseECSEntity
 
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
-const I_ECS_MANAGER := preload("res://scripts/interfaces/i_ecs_manager.gd")
+const I_ECS_MANAGER := preload("res://scripts/core/interfaces/i_ecs_manager.gd")
 
 @export var entity_id: StringName = StringName("")
 @export var tags: Array[StringName] = []

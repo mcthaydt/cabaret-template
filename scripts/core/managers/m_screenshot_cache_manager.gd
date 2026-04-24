@@ -7,7 +7,7 @@ class_name M_ScreenshotCacheManager
 ## Caches the last gameplay frame before pause so manual saves can use a
 ## gameplay thumbnail instead of a paused UI screenshot.
 
-const U_SCREENSHOT_CAPTURE := preload("res://scripts/managers/helpers/u_screenshot_capture.gd")
+const U_SCREENSHOT_CAPTURE := preload("res://scripts/core/managers/helpers/u_screenshot_capture.gd")
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 

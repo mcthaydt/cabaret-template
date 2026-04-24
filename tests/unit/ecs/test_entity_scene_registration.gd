@@ -5,7 +5,7 @@ const SCENE_BASE := preload("res://scenes/templates/tmpl_base_scene.tscn")
 const SCENE_EXTERIOR := preload("res://scenes/gameplay/gameplay_exterior.tscn")
 const SCENE_INTERIOR := preload("res://scenes/gameplay/gameplay_interior_house.tscn")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
-const M_SPAWN_MANAGER := preload("res://scripts/managers/m_spawn_manager.gd")
+const M_SPAWN_MANAGER := preload("res://scripts/core/managers/m_spawn_manager.gd")
 
 var _state_store: M_StateStore = null
 var _spawn_manager: M_SpawnManager = null

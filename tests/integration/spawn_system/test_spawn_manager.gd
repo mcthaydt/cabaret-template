@@ -5,7 +5,7 @@ extends GutTest
 ## Tests spawn point discovery, player positioning, and validation logic
 ## in realistic scene configurations.
 
-const M_SPAWN_MANAGER := preload("res://scripts/managers/m_spawn_manager.gd")
+const M_SPAWN_MANAGER := preload("res://scripts/core/managers/m_spawn_manager.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")

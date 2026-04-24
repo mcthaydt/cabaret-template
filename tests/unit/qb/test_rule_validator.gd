@@ -2,7 +2,7 @@ extends BaseTest
 
 const RULE_VALIDATOR := preload("res://scripts/utils/qb/u_rule_validator.gd")
 const RULE_RESOURCE := preload("res://scripts/resources/qb/rs_rule.gd")
-const I_CONDITION := preload("res://scripts/interfaces/i_condition.gd")
+const I_CONDITION := preload("res://scripts/core/interfaces/i_condition.gd")
 const CONDITION_COMPONENT_FIELD := preload("res://scripts/resources/qb/conditions/rs_condition_component_field.gd")
 const CONDITION_REDUX_FIELD := preload("res://scripts/resources/qb/conditions/rs_condition_redux_field.gd")
 const CONDITION_EVENT_NAME := preload("res://scripts/resources/qb/conditions/rs_condition_event_name.gd")

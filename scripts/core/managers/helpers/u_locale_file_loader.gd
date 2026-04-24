@@ -4,7 +4,7 @@ extends RefCounted
 ## Compatibility shim around U_LocalizationCatalog.
 ## Kept temporarily to avoid breaking existing call sites during the refactor.
 
-const U_LOCALIZATION_CATALOG := preload("res://scripts/managers/helpers/localization/u_localization_catalog.gd")
+const U_LOCALIZATION_CATALOG := preload("res://scripts/core/managers/helpers/localization/u_localization_catalog.gd")
 
 static var _catalog := U_LOCALIZATION_CATALOG.new()
 

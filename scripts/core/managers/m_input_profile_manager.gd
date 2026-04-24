@@ -1,5 +1,5 @@
 @icon("res://assets/editor_icons/icn_manager.svg")
-extends "res://scripts/interfaces/i_input_profile_manager.gd"
+extends "res://scripts/core/interfaces/i_input_profile_manager.gd"
 class_name M_InputProfileManager
 
 const U_SETTINGS_SELECTORS := preload("res://scripts/state/selectors/u_settings_selectors.gd")

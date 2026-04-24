@@ -1,7 +1,7 @@
 extends GutTest
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const I_AUDIO_MANAGER := preload("res://scripts/interfaces/i_audio_manager.gd")
+const I_AUDIO_MANAGER := preload("res://scripts/core/interfaces/i_audio_manager.gd")
 
 func before_each() -> void:
 	U_SERVICE_LOCATOR.clear()

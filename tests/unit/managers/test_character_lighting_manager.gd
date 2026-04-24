@@ -1,9 +1,9 @@
 extends BaseTest
 
-const M_CHARACTER_LIGHTING_MANAGER := preload("res://scripts/managers/m_character_lighting_manager.gd")
+const M_CHARACTER_LIGHTING_MANAGER := preload("res://scripts/core/managers/m_character_lighting_manager.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
-const I_ECS_MANAGER := preload("res://scripts/interfaces/i_ecs_manager.gd")
-const I_SCENE_MANAGER := preload("res://scripts/interfaces/i_scene_manager.gd")
+const I_ECS_MANAGER := preload("res://scripts/core/interfaces/i_ecs_manager.gd")
+const I_SCENE_MANAGER := preload("res://scripts/core/interfaces/i_scene_manager.gd")
 const RS_CHARACTER_LIGHTING_PROFILE := preload("res://scripts/demo/resources/lighting/rs_character_lighting_profile.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 

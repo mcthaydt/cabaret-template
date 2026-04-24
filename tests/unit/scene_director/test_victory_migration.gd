@@ -1,9 +1,9 @@
 extends GutTest
 
-const M_SCENE_MANAGER := preload("res://scripts/managers/m_scene_manager.gd")
-const M_OBJECTIVES_MANAGER := preload("res://scripts/managers/m_objectives_manager.gd")
+const M_SCENE_MANAGER := preload("res://scripts/core/managers/m_scene_manager.gd")
+const M_OBJECTIVES_MANAGER := preload("res://scripts/core/managers/m_objectives_manager.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
-const I_STATE_STORE := preload("res://scripts/interfaces/i_state_store.gd")
+const I_STATE_STORE := preload("res://scripts/core/interfaces/i_state_store.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const RS_SCENE_INITIAL_STATE := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
 const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")

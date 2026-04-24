@@ -1,4 +1,4 @@
-extends "res://scripts/interfaces/i_camera_manager.gd"
+extends "res://scripts/core/interfaces/i_camera_manager.gd"
 class_name MockCameraManager
 
 ## Lightweight mock camera manager for VFX tests.

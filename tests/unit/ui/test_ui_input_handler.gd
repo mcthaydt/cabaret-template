@@ -1,6 +1,6 @@
 extends GutTest
 
-const I_SCENE_MANAGER := preload("res://scripts/interfaces/i_scene_manager.gd")
+const I_SCENE_MANAGER := preload("res://scripts/core/interfaces/i_scene_manager.gd")
 
 var _store: M_StateStore = null
 var _input_handler: M_UIInputHandler = null

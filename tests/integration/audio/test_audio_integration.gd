@@ -10,9 +10,9 @@ extends BaseTest
 ## - Event-driven gameplay SFX systems + pooled 3D spawner
 ## - Footstep system surface selection + timing
 
-const M_AUDIO_MANAGER := preload("res://scripts/managers/m_audio_manager.gd")
-const M_ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
-const U_SFX_SPAWNER := preload("res://scripts/managers/helpers/u_sfx_spawner.gd")
+const M_AUDIO_MANAGER := preload("res://scripts/core/managers/m_audio_manager.gd")
+const M_ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
+const U_SFX_SPAWNER := preload("res://scripts/core/managers/helpers/u_sfx_spawner.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 
 const C_FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")

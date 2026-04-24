@@ -1,6 +1,6 @@
 extends GutTest
 
-const U_LOCALIZATION_ROOT_REGISTRY := preload("res://scripts/managers/helpers/localization/u_localization_root_registry.gd")
+const U_LOCALIZATION_ROOT_REGISTRY := preload("res://scripts/core/managers/helpers/localization/u_localization_root_registry.gd")
 
 class MockLocalizedRoot extends Control:
 	var locales_seen: Array[StringName] = []

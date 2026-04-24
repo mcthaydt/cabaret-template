@@ -14,7 +14,7 @@ const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_c
 const RS_AI_BRAIN_SETTINGS := preload("res://scripts/resources/ai/brain/rs_ai_brain_settings.gd")
 const RS_FLOATING_SETTINGS := preload("res://scripts/resources/ecs/rs_floating_settings.gd")
 const RS_MOVEMENT_SETTINGS := preload("res://scripts/resources/ecs/rs_movement_settings.gd")
-const I_SPAWN_MANAGER := preload("res://scripts/interfaces/i_spawn_manager.gd")
+const I_SPAWN_MANAGER := preload("res://scripts/core/interfaces/i_spawn_manager.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 
 class SpawnManagerStub extends I_SPAWN_MANAGER:

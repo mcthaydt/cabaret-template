@@ -1,7 +1,7 @@
 extends GutTest
 
-const U_LOCALIZATION_FONT_APPLIER := preload("res://scripts/managers/helpers/localization/u_localization_font_applier.gd")
-const U_DISPLAY_UI_THEME_APPLIER := preload("res://scripts/managers/helpers/display/u_display_ui_theme_applier.gd")
+const U_LOCALIZATION_FONT_APPLIER := preload("res://scripts/core/managers/helpers/localization/u_localization_font_applier.gd")
+const U_DISPLAY_UI_THEME_APPLIER := preload("res://scripts/core/managers/helpers/display/u_display_ui_theme_applier.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
 
 func before_each() -> void:

@@ -11,8 +11,8 @@ const CONDITION_CONSTANT := preload("res://scripts/resources/qb/conditions/rs_co
 const EFFECT_SET_CONTEXT_VALUE := preload("res://scripts/resources/qb/effects/rs_effect_set_context_value.gd")
 const EFFECT_DISPATCH_ACTION := preload("res://scripts/resources/qb/effects/rs_effect_dispatch_action.gd")
 
-const I_CONDITION := preload("res://scripts/interfaces/i_condition.gd")
-const I_EFFECT := preload("res://scripts/interfaces/i_effect.gd")
+const I_CONDITION := preload("res://scripts/core/interfaces/i_condition.gd")
+const I_EFFECT := preload("res://scripts/core/interfaces/i_effect.gd")
 
 const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/ecs/components/c_character_state_component.gd")
 const C_FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")

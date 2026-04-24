@@ -1,7 +1,7 @@
 extends GutTest
 
 const RS_BT_ACTION_PATH := "res://scripts/resources/ai/bt/rs_bt_action.gd"
-const I_AI_ACTION_PATH := "res://scripts/interfaces/i_ai_action.gd"
+const I_AI_ACTION_PATH := "res://scripts/core/interfaces/i_ai_action.gd"
 
 const RS_AI_ACTION_PATHS := [
 	"res://scripts/resources/ai/actions/rs_ai_action_animate.gd",

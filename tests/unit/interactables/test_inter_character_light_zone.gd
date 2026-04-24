@@ -4,7 +4,7 @@ const INTER_CHARACTER_LIGHT_ZONE := preload("res://scripts/gameplay/inter_charac
 const RS_CHARACTER_LIGHT_ZONE_CONFIG := preload("res://scripts/demo/resources/lighting/rs_character_light_zone_config.gd")
 const RS_CHARACTER_LIGHTING_PROFILE := preload("res://scripts/demo/resources/lighting/rs_character_lighting_profile.gd")
 
-class FakeCharacterLightingManager extends "res://scripts/interfaces/i_character_lighting_manager.gd":
+class FakeCharacterLightingManager extends "res://scripts/core/interfaces/i_character_lighting_manager.gd":
 	var register_calls: int = 0
 	var unregister_calls: int = 0
 	var registered_zones: Array[Node] = []
@@ -21,7 +21,7 @@ class FakeCharacterLightingManager extends "res://scripts/interfaces/i_character
 		unregister_calls += 1
 		registered_zones.erase(zone)
 
-class FakeSceneManager extends "res://scripts/interfaces/i_scene_manager.gd":
+class FakeSceneManager extends "res://scripts/core/interfaces/i_scene_manager.gd":
 	var transitioning: bool = false
 
 	func is_transitioning() -> bool:

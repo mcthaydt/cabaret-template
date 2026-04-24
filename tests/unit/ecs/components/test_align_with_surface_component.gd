@@ -1,6 +1,6 @@
 extends BaseTest
 
-const ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
+const ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
 const ALIGN_COMPONENT := preload("res://scripts/ecs/components/c_align_with_surface_component.gd")
 func _pump() -> void:
 	await get_tree().process_frame

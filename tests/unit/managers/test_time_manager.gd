@@ -1,9 +1,9 @@
 extends GutTest
 
-const U_PAUSE_SYSTEM := preload("res://scripts/managers/helpers/time/u_pause_system.gd")
-const U_TIMESCALE_CONTROLLER := preload("res://scripts/managers/helpers/time/u_timescale_controller.gd")
-const U_WORLD_CLOCK := preload("res://scripts/managers/helpers/time/u_world_clock.gd")
-const M_TIME_MANAGER := preload("res://scripts/managers/m_time_manager.gd")
+const U_PAUSE_SYSTEM := preload("res://scripts/core/managers/helpers/time/u_pause_system.gd")
+const U_TIMESCALE_CONTROLLER := preload("res://scripts/core/managers/helpers/time/u_timescale_controller.gd")
+const U_WORLD_CLOCK := preload("res://scripts/core/managers/helpers/time/u_world_clock.gd")
+const M_TIME_MANAGER := preload("res://scripts/core/managers/m_time_manager.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_TIME_ACTIONS := preload("res://scripts/state/actions/u_time_actions.gd")

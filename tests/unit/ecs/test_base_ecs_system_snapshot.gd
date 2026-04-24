@@ -6,8 +6,8 @@ extends BaseTest
 ## snapshot (skip if empty), fall back to state store, return empty dict.
 
 const BASE_ECS_SYSTEM := preload("res://scripts/ecs/base_ecs_system.gd")
-const I_STATE_STORE := preload("res://scripts/interfaces/i_state_store.gd")
-const I_ECS_MANAGER := preload("res://scripts/interfaces/i_ecs_manager.gd")
+const I_STATE_STORE := preload("res://scripts/core/interfaces/i_state_store.gd")
+const I_ECS_MANAGER := preload("res://scripts/core/interfaces/i_ecs_manager.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 
 # ─── Stub helpers (distinct names to avoid global class collisions) ─────

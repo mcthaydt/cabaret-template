@@ -8,7 +8,7 @@ class_name S_TouchscreenSystem
 const INPUT_TYPE := StringName("C_InputComponent")
 const ACTION_MOVE_STRENGTH := StringName("move")
 const ACTION_LOOK_STRENGTH := StringName("look")
-const I_INPUT_DEVICE_MANAGER := preload("res://scripts/interfaces/i_input_device_manager.gd")
+const I_INPUT_DEVICE_MANAGER := preload("res://scripts/core/interfaces/i_input_device_manager.gd")
 const GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 
 @export var force_enable: bool = false

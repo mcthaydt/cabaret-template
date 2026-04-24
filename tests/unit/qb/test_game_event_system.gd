@@ -12,8 +12,8 @@ const CONDITION_CONSTANT := preload("res://scripts/resources/qb/conditions/rs_co
 const EFFECT_DISPATCH_ACTION := preload("res://scripts/resources/qb/effects/rs_effect_dispatch_action.gd")
 const EFFECT_PUBLISH_EVENT := preload("res://scripts/resources/qb/effects/rs_effect_publish_event.gd")
 
-const I_CONDITION := preload("res://scripts/interfaces/i_condition.gd")
-const I_EFFECT := preload("res://scripts/interfaces/i_effect.gd")
+const I_CONDITION := preload("res://scripts/core/interfaces/i_condition.gd")
+const I_EFFECT := preload("res://scripts/core/interfaces/i_effect.gd")
 
 const C_CHECKPOINT_COMPONENT := preload("res://scripts/ecs/components/c_checkpoint_component.gd")
 const C_VICTORY_TRIGGER_COMPONENT := preload("res://scripts/ecs/components/c_victory_trigger_component.gd")

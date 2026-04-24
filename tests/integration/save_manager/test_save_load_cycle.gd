@@ -11,7 +11,7 @@ extends BaseTest
 ## - Lock timing prevents concurrent operations
 ## - File structure is valid JSON
 
-const M_SAVE_MANAGER := preload("res://scripts/managers/m_save_manager.gd")
+const M_SAVE_MANAGER := preload("res://scripts/core/managers/m_save_manager.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")

@@ -6,7 +6,7 @@ class_name U_AudioUtils
 ## Phase 5: Created to provide type-safe access to audio manager via interface
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const I_AUDIO_MANAGER := preload("res://scripts/interfaces/i_audio_manager.gd")
+const I_AUDIO_MANAGER := preload("res://scripts/core/interfaces/i_audio_manager.gd")
 
 ## Get the audio manager instance via ServiceLocator
 ##

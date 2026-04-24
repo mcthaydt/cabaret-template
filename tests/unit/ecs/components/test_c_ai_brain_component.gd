@@ -1,6 +1,6 @@
 extends BaseTest
 
-const ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
+const ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
 const BASE_ECS_COMPONENT := preload("res://scripts/ecs/base_ecs_component.gd")
 const C_AI_BRAIN_COMPONENT_PATH := "res://scripts/demo/ecs/components/c_ai_brain_component.gd"
 const RS_AI_BRAIN_SETTINGS_PATH := "res://scripts/resources/ai/brain/rs_ai_brain_settings.gd"

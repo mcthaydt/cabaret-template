@@ -1,6 +1,6 @@
 extends BaseTest
 
-const ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
+const ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
 const ECS_COMPONENT := preload("res://scripts/ecs/base_ecs_component.gd")
 const ECS_SYSTEM := preload("res://scripts/ecs/base_ecs_system.gd")
 const PLAYER_SCENE := preload("res://scenes/prefabs/prefab_player.tscn")

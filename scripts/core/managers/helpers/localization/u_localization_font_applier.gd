@@ -2,7 +2,7 @@ extends RefCounted
 class_name U_LocalizationFontApplier
 
 const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
-const U_DISPLAY_UI_THEME_APPLIER := preload("res://scripts/managers/helpers/display/u_display_ui_theme_applier.gd")
+const U_DISPLAY_UI_THEME_APPLIER := preload("res://scripts/core/managers/helpers/display/u_display_ui_theme_applier.gd")
 const U_UI_THEME_DEBUG := preload("res://scripts/ui/utils/u_ui_theme_debug.gd")
 
 const CJK_LOCALES: Array[StringName] = [&"zh_CN", &"ja"]

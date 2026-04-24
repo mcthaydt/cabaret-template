@@ -1,5 +1,5 @@
 @icon("res://assets/editor_icons/icn_manager.svg")
-extends "res://scripts/interfaces/i_character_lighting_manager.gd"
+extends "res://scripts/core/interfaces/i_character_lighting_manager.gd"
 class_name M_CharacterLightingManager
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")

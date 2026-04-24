@@ -7,7 +7,7 @@ extends GutTest
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
-const I_OBJECTIVES_MANAGER := preload("res://scripts/interfaces/i_objectives_manager.gd")
+const I_OBJECTIVES_MANAGER := preload("res://scripts/core/interfaces/i_objectives_manager.gd")
 
 class ObjectivesStub extends I_OBJECTIVES_MANAGER:
 	var _known_sets: Dictionary = {StringName("default_progression"): true}

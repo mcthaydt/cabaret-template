@@ -7,7 +7,7 @@ extends GutTest
 ## 2. Physics warmup frame after unfreezing physics
 ## 3. Floating component stable state reset on spawn
 
-const M_SPAWN_MANAGER := preload("res://scripts/managers/m_spawn_manager.gd")
+const M_SPAWN_MANAGER := preload("res://scripts/core/managers/m_spawn_manager.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
 const U_SCENE_LOADER := preload("res://scripts/scene_management/helpers/u_scene_loader.gd")

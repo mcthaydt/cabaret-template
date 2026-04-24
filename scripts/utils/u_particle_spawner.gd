@@ -3,7 +3,7 @@ class_name U_ParticleSpawner
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_VFX_SELECTORS := preload("res://scripts/state/selectors/u_vfx_selectors.gd")
-const I_VFX_MANAGER := preload("res://scripts/interfaces/i_vfx_manager.gd")
+const I_VFX_MANAGER := preload("res://scripts/core/interfaces/i_vfx_manager.gd")
 
 const STORE_SERVICE := StringName("state_store")
 

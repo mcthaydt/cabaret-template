@@ -1,6 +1,6 @@
 extends BaseTest
 
-const ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
+const ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const CHARACTER_STATE_SYSTEM := preload("res://scripts/ecs/systems/s_character_state_system.gd")
 const MOVEMENT_SYSTEM := preload("res://scripts/ecs/systems/s_movement_system.gd")

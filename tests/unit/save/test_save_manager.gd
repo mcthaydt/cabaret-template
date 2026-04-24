@@ -1,11 +1,11 @@
 extends BaseTest
 
-const M_SAVE_MANAGER := preload("res://scripts/managers/m_save_manager.gd")
+const M_SAVE_MANAGER := preload("res://scripts/core/managers/m_save_manager.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 const U_SAVE_ACTIONS := preload("res://scripts/state/actions/u_save_actions.gd")
 const U_SAVE_TEST_UTILS := preload("res://tests/unit/save/u_save_test_utils.gd")
-const U_SAVE_FILE_IO := preload("res://scripts/managers/helpers/u_save_file_io.gd")
+const U_SAVE_FILE_IO := preload("res://scripts/core/managers/helpers/u_save_file_io.gd")
 
 const TEST_SAVE_DIR := U_SAVE_TEST_UTILS.TEST_SAVE_DIR
 

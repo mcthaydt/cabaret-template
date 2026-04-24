@@ -1,5 +1,5 @@
 @icon("res://assets/editor_icons/icn_manager.svg")
-extends "res://scripts/interfaces/i_input_device_manager.gd"
+extends "res://scripts/core/interfaces/i_input_device_manager.gd"
 class_name M_InputDeviceManager
 
 const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")

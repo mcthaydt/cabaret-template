@@ -2,7 +2,7 @@ extends RefCounted
 class_name U_VCamPipelineBuilder
 ## Orchestrates vCam pipeline stages: prepare + evaluate via decomposed helpers.
 
-const U_VCAM_MODE_EVALUATOR := preload("res://scripts/managers/helpers/u_vcam_mode_evaluator.gd")
+const U_VCAM_MODE_EVALUATOR := preload("res://scripts/core/managers/helpers/u_vcam_mode_evaluator.gd")
 const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component.gd")
 const U_VCAM_EFFECT_PIPELINE := preload("res://scripts/ecs/systems/helpers/u_vcam_effect_pipeline.gd")
 const U_VCAM_LOOK_INPUT := preload("res://scripts/ecs/systems/helpers/u_vcam_look_input.gd")

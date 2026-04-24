@@ -5,10 +5,8 @@ const GD_DIRECTORIES := [
 	"res://scripts/ecs",
 	"res://scripts/state",
 	"res://scripts/ui",
-	"res://scripts/managers",
 	"res://scripts/core",
 	"res://scripts/demo",
-	"res://scripts/interfaces",
 	"res://scripts/utils",
 	"res://scripts/input",
 	"res://scripts/scene_management",
@@ -131,6 +129,8 @@ const REQUIRED_EXTENSION_RECIPES := [
 # Valid prefixes by directory
 const SCRIPT_PREFIX_RULES := {
 	"res://scripts/core": ["u_"],
+	"res://scripts/core/interfaces": ["i_"],
+	"res://scripts/core/managers": ["m_"],
 	"res://scripts/demo/ecs/components": ["c_"],
 	"res://scripts/demo/ecs/systems": ["s_"],
 	"res://scripts/demo/gameplay": ["inter_", "s_"],
@@ -140,15 +140,13 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/demo/resources/ai/world": ["rs_"],
 	"res://scripts/demo/resources/lighting": ["rs_"], # Demo lighting resources
 	"res://scripts/demo/utils/ai": ["u_"],
-	"res://scripts/interfaces": ["i_"],
 	"res://scripts/utils": ["u_"],
 	"res://scripts/input": ["u_", "i_"],
 	"res://scripts/input/sources": [""], # Wildcard: validated by suffix rule (see test_input_source_scripts_follow_suffix_rule)
 	"res://scripts/resources/input": ["rs_"],
 	"res://scripts/resources/interactions": ["rs_"],
 	"res://scripts/resources/lighting": ["rs_"], # Character lighting resources
-	"res://scripts/managers": ["m_"],
-	"res://scripts/managers/helpers": ["u_"],
+	"res://scripts/core/managers/helpers": ["u_"],
 	"res://scripts/ecs/systems": ["s_", "base_"], # s_*_system.gd plus base system scripts
 	"res://scripts/ecs/systems/helpers": ["u_"], # vCam/system helper utilities
 	"res://scripts/ecs/components": ["c_"],
@@ -749,7 +747,7 @@ func test_ai_behavior_system_has_no_bare_print_calls() -> void:
 	)
 
 func test_save_manager_has_no_bare_print_calls() -> void:
-	var save_manager_path := "res://scripts/managers/m_save_manager.gd"
+	var save_manager_path := "res://scripts/core/managers/m_save_manager.gd"
 	var file := FileAccess.open(save_manager_path, FileAccess.READ)
 	assert_not_null(file, "Unable to open %s" % save_manager_path)
 	if file == null:
@@ -763,7 +761,7 @@ func test_save_manager_has_no_bare_print_calls() -> void:
 	)
 
 func test_vcam_manager_has_no_bare_print_calls() -> void:
-	var vcam_manager_path := "res://scripts/managers/m_vcam_manager.gd"
+	var vcam_manager_path := "res://scripts/core/managers/m_vcam_manager.gd"
 	var file := FileAccess.open(vcam_manager_path, FileAccess.READ)
 	assert_not_null(file, "Unable to open %s" % vcam_manager_path)
 	if file == null:
@@ -777,7 +775,7 @@ func test_vcam_manager_has_no_bare_print_calls() -> void:
 	)
 
 func test_run_coordinator_manager_has_no_bare_print_calls() -> void:
-	var run_coordinator_path := "res://scripts/managers/m_run_coordinator_manager.gd"
+	var run_coordinator_path := "res://scripts/core/managers/m_run_coordinator_manager.gd"
 	var file := FileAccess.open(run_coordinator_path, FileAccess.READ)
 	assert_not_null(file, "Unable to open %s" % run_coordinator_path)
 	if file == null:
@@ -791,7 +789,7 @@ func test_run_coordinator_manager_has_no_bare_print_calls() -> void:
 	)
 
 func test_scene_manager_has_no_bare_print_calls() -> void:
-	var scene_manager_path := "res://scripts/managers/m_scene_manager.gd"
+	var scene_manager_path := "res://scripts/core/managers/m_scene_manager.gd"
 	var file := FileAccess.open(scene_manager_path, FileAccess.READ)
 	assert_not_null(file, "Unable to open %s" % scene_manager_path)
 	if file == null:
@@ -805,7 +803,7 @@ func test_scene_manager_has_no_bare_print_calls() -> void:
 	)
 
 func test_scene_director_manager_has_no_bare_print_calls() -> void:
-	var scene_director_manager_path := "res://scripts/managers/m_scene_director_manager.gd"
+	var scene_director_manager_path := "res://scripts/core/managers/m_scene_director_manager.gd"
 	var file := FileAccess.open(scene_director_manager_path, FileAccess.READ)
 	assert_not_null(file, "Unable to open %s" % scene_director_manager_path)
 	if file == null:
@@ -819,7 +817,7 @@ func test_scene_director_manager_has_no_bare_print_calls() -> void:
 	)
 
 func test_vcam_collision_detector_has_no_bare_print_calls() -> void:
-	var collision_detector_path := "res://scripts/managers/helpers/u_vcam_collision_detector.gd"
+	var collision_detector_path := "res://scripts/core/managers/helpers/u_vcam_collision_detector.gd"
 	var file := FileAccess.open(collision_detector_path, FileAccess.READ)
 	assert_not_null(file, "Unable to open %s" % collision_detector_path)
 	if file == null:
@@ -933,8 +931,8 @@ func test_rule_systems_do_not_define_local_rule_pipeline_helpers() -> void:
 		"res://scripts/ecs/systems/s_camera_state_system.gd",
 		"res://scripts/ecs/systems/s_character_state_system.gd",
 		"res://scripts/ecs/systems/s_game_event_system.gd",
-		"res://scripts/managers/m_objectives_manager.gd",
-		"res://scripts/managers/m_scene_director_manager.gd",
+		"res://scripts/core/managers/m_objectives_manager.gd",
+		"res://scripts/core/managers/m_scene_director_manager.gd",
 	]
 	var forbidden_methods: Array[String] = [
 		"_refresh_active_rules",
@@ -1028,8 +1026,8 @@ func test_rule_systems_do_not_use_bare_string_context_keys() -> void:
 		"res://scripts/ecs/systems/s_camera_state_system.gd",
 		"res://scripts/ecs/systems/s_character_state_system.gd",
 		"res://scripts/ecs/systems/s_game_event_system.gd",
-		"res://scripts/managers/m_objectives_manager.gd",
-		"res://scripts/managers/m_scene_director_manager.gd",
+		"res://scripts/core/managers/m_objectives_manager.gd",
+		"res://scripts/core/managers/m_scene_director_manager.gd",
 	]
 	# Forbidden: context["key"] or context.get("key") with bare string keys
 	# Allowed: context[RSRuleContext.KEY_*]
@@ -1078,7 +1076,7 @@ func test_rule_systems_do_not_use_bare_string_context_keys() -> void:
 	assert_eq(violations.size(), 0, message)
 
 func test_scene_manager_transition_path_avoids_reflection_and_array_wrapper_captures() -> void:
-	var path := "res://scripts/managers/m_scene_manager.gd"
+	var path := "res://scripts/core/managers/m_scene_manager.gd"
 	var file := FileAccess.open(path, FileAccess.READ)
 	assert_not_null(file, "Unable to open %s" % path)
 	if file == null:
@@ -1116,9 +1114,9 @@ func test_migrated_files_do_not_duplicate_dependency_resolution_pattern() -> voi
 		"res://scripts/ecs/systems/s_wall_visibility_system.gd",
 		"res://scripts/ecs/systems/s_region_visibility_system.gd",
 		"res://scripts/demo/gameplay/s_demo_alarm_relay_system.gd",
-		"res://scripts/managers/m_vcam_manager.gd",
-		"res://scripts/managers/m_character_lighting_manager.gd",
-		"res://scripts/managers/m_run_coordinator_manager.gd",
+		"res://scripts/core/managers/m_vcam_manager.gd",
+		"res://scripts/core/managers/m_character_lighting_manager.gd",
+		"res://scripts/core/managers/m_run_coordinator_manager.gd",
 		"res://scripts/gameplay/inter_victory_zone.gd",
 		"res://scripts/demo/gameplay/inter_ai_demo_guard_barrier.gd",
 		"res://scripts/ecs/systems/helpers/u_vcam_runtime_services.gd",
@@ -1129,10 +1127,10 @@ func test_migrated_files_do_not_duplicate_dependency_resolution_pattern() -> voi
 		"res://scripts/ui/hud/ui_virtual_button.gd",
 		"res://scripts/ui/base/base_panel.gd",
 		"res://scripts/gameplay/base_interactable_controller.gd",
-		"res://scripts/managers/m_vfx_manager.gd",
-		"res://scripts/managers/m_audio_manager.gd",
-		"res://scripts/managers/m_localization_manager.gd",
-		"res://scripts/managers/m_display_manager.gd",
+		"res://scripts/core/managers/m_vfx_manager.gd",
+		"res://scripts/core/managers/m_audio_manager.gd",
+		"res://scripts/core/managers/m_localization_manager.gd",
+		"res://scripts/core/managers/m_display_manager.gd",
 		"res://scripts/utils/scene_director/u_store_action_binder.gd",
 	]
 	# Forbidden: inline U_STATE_UTILS.try_get_store calls in migrated files
@@ -1580,7 +1578,7 @@ func _collect_gd_forbidden_token_violations(
 func test_resolve_state_store_naming_consistent() -> void:
 	var gd_dirs: Array[String] = [
 		"res://scripts/ecs",
-		"res://scripts/managers",
+		"res://scripts/core/managers",
 		"res://scripts/gameplay",
 		"res://scripts/demo",
 	]
@@ -1618,7 +1616,7 @@ func test_objectives_state_access_uses_selectors() -> void:
 	var allowed_files: Array[String] = [
 		"res://scripts/state/selectors/u_objectives_selectors.gd",
 		"res://scripts/state/reducers/u_objectives_reducer.gd",
-		"res://scripts/managers/helpers/u_save_migration_engine.gd",
+		"res://scripts/core/managers/helpers/u_save_migration_engine.gd",
 		"res://scripts/utils/scene_director/u_objectives_debug_tracer.gd",
 		"res://scripts/ecs/systems/s_victory_handler_system.gd",
 		"res://scripts/ui/menus/ui_victory.gd",
@@ -1627,9 +1625,9 @@ func test_objectives_state_access_uses_selectors() -> void:
 		"res://scripts/ecs",
 		"res://scripts/state",
 		"res://scripts/ui",
-		"res://scripts/managers",
+		"res://scripts/core/managers",
 		"res://scripts/core",
-		"res://scripts/interfaces",
+		"res://scripts/core/interfaces",
 		"res://scripts/utils",
 		"res://scripts/input",
 		"res://scripts/scene_management",
@@ -1657,11 +1655,11 @@ func test_managers_use_selectors_for_state_access() -> void:
 	# - m_state_store.gd: The state store itself owns the state dict
 	# - u_save_migration_engine.gd: Operates on save file data, not live Redux state
 	var allowed_files: Array[String] = [
-		"res://scripts/managers/m_state_store.gd",
-		"res://scripts/managers/helpers/u_save_migration_engine.gd",
+		"res://scripts/state/m_state_store.gd",
+		"res://scripts/core/managers/helpers/u_save_migration_engine.gd",
 	]
 	var manager_dirs: Array[String] = [
-		"res://scripts/managers",
+		"res://scripts/core/managers",
 	]
 	var violations: Array[String] = []
 	var patterns: Array[String] = [
@@ -1681,8 +1679,8 @@ func test_managers_use_selectors_for_state_access() -> void:
 func test_all_production_files_use_selectors_for_state_access() -> void:
 	var allowed_files: Array[String] = [
 		# Core exemptions: own the state dict or operate on save data
-		"res://scripts/managers/m_state_store.gd",
-		"res://scripts/managers/helpers/u_save_migration_engine.gd",
+		"res://scripts/state/m_state_store.gd",
+		"res://scripts/core/managers/helpers/u_save_migration_engine.gd",
 		# False positives: files that use local dict variables named "state" (not Redux state)
 		# u_vcam_orbit_effects and u_vcam_rotation use "state" for per-vcam internal tracking dicts.
 		# Decomposed helpers carry the same per-vcam dict pattern.
@@ -1715,7 +1713,7 @@ func test_all_production_files_use_selectors_for_state_access() -> void:
 		"res://scripts/ecs",
 		"res://scripts/gameplay",
 		"res://scripts/ui",
-		"res://scripts/managers",
+		"res://scripts/core/managers",
 		"res://scripts/scene_management",
 		"res://scripts/utils",
 		"res://scripts/core",
@@ -1755,10 +1753,10 @@ func test_no_cinema_grade_identifiers_in_scripts() -> void:
 ## and is allowlisted. All other uses should be "color_grading".
 func test_no_cinema_identifiers_in_display_scripts() -> void:
 	var allowed_files: Array[String] = [
-		"res://scripts/managers/m_camera_manager.gd",  # "cinematics" = cutscene camera work
+		"res://scripts/core/managers/m_camera_manager.gd",  # "cinematics" = cutscene camera work
 	]
 	var display_dirs: Array[String] = [
-		"res://scripts/managers/helpers/display",
+		"res://scripts/core/managers/helpers/display",
 		"res://scripts/state",
 		"res://scripts/utils/debug",
 		"res://scripts/debug",
@@ -1787,7 +1785,7 @@ func test_no_cinema_identifiers_in_display_scripts() -> void:
 ## reference CombinedLayer, CombinedRect, or combined visibility helpers.
 func test_no_combined_identifiers_in_display_scripts() -> void:
 	var display_dirs: Array[String] = [
-		"res://scripts/managers/helpers/display",
+		"res://scripts/core/managers/helpers/display",
 		"res://scripts/utils/debug",
 	]
 	var violations: Array[String] = []
@@ -1812,7 +1810,7 @@ func test_no_crt_identifiers_in_display_scripts() -> void:
 		# Audio/input scanning is unrelated to CRT display
 	]
 	var display_dirs: Array[String] = [
-		"res://scripts/managers/helpers/display",
+		"res://scripts/core/managers/helpers/display",
 		"res://scripts/state",
 		"res://scripts/utils/display",
 		"res://scripts/ui/settings",
@@ -1846,14 +1844,14 @@ func test_no_crt_identifiers_in_display_scripts() -> void:
 ## children under PostProcessOverlay. All other files must go through the pipeline.
 func test_post_process_overlay_colorrect_creation_only_via_pipeline() -> void:
 	var allowed_files: Array[String] = [
-		"res://scripts/managers/helpers/display/u_post_process_pipeline.gd",
-		"res://scripts/managers/helpers/display/u_display_color_grading_applier.gd",
-		"res://scripts/managers/helpers/display/u_display_post_process_applier.gd",
+		"res://scripts/core/managers/helpers/display/u_post_process_pipeline.gd",
+		"res://scripts/core/managers/helpers/display/u_display_color_grading_applier.gd",
+		"res://scripts/core/managers/helpers/display/u_display_post_process_applier.gd",
 		# Editor-only preview (removes itself at runtime; not under PostProcessOverlay)
 		"res://scripts/utils/display/u_color_grading_preview.gd",
 	]
 	var display_dirs: Array[String] = [
-		"res://scripts/managers/helpers/display",
+		"res://scripts/core/managers/helpers/display",
 		"res://scripts/utils/display",
 	]
 	var violations: Array[String] = []
@@ -1888,7 +1886,7 @@ func test_no_state_mutation_outside_store() -> void:
 		"res://scripts/ecs",
 		"res://scripts/gameplay",
 		"res://scripts/ui",
-		"res://scripts/managers",
+		"res://scripts/core/managers",
 		"res://scripts/scene_management",
 		"res://scripts/utils",
 		"res://scripts/core",
@@ -1896,7 +1894,7 @@ func test_no_state_mutation_outside_store() -> void:
 		"res://scripts/input",
 		"res://scripts/core/events",
 		"res://scripts/core/scene_structure",
-		"res://scripts/interfaces",
+		"res://scripts/core/interfaces",
 		"res://scripts/resources",
 		"res://scripts/debug",
 	]
@@ -1919,9 +1917,9 @@ func test_no_state_mutation_outside_store() -> void:
 ## infrastructure (publishes entity_registered/unregistered lifecycle events).
 func test_managers_dont_publish_to_ecs_bus() -> void:
 	var allowed_files: Array[String] = [
-		"res://scripts/managers/m_ecs_manager.gd",
+		"res://scripts/core/managers/m_ecs_manager.gd",
 	]
-	var manager_dir := "res://scripts/managers"
+	var manager_dir := "res://scripts/core/managers"
 	var violations: Array[String] = []
 	# Match both direct U_ECSEventBus references and const alias U_ECS_EVENT_BUS references,
 	# plus the EVENT_BUS alias used by m_spawn_manager
@@ -1952,7 +1950,7 @@ func test_scene_manager_no_victory_ecs_subscription() -> void:
 	# Search for victory event names in m_scene_manager.gd
 	# The filename_prefix_filter ensures we only check m_scene_manager.gd
 	_collect_gd_literal_occurrences(
-		"res://scripts/managers",
+		"res://scripts/core/managers",
 		"OBJECTIVE_VICTORY_TRIGGERED",
 		violations,
 		"m_scene_manager"
@@ -1970,36 +1968,36 @@ func test_scene_manager_no_victory_ecs_subscription() -> void:
 func test_manager_signals_allow_list() -> void:
 	var allowed_signals: Dictionary = {
 		# m_ecs_manager — component lifecycle notifications for UI consumers
-		"res://scripts/managers/m_ecs_manager.gd": [
+		"res://scripts/core/managers/m_ecs_manager.gd": [
 			"component_added", "component_removed"
 		],
 		# m_cursor_manager — cursor state for UI
-		"res://scripts/managers/m_cursor_manager.gd": [
+		"res://scripts/core/managers/m_cursor_manager.gd": [
 			"cursor_state_changed"
 		],
 		# m_time_manager — time state for UI
-		"res://scripts/managers/m_time_manager.gd": [
+		"res://scripts/core/managers/m_time_manager.gd": [
 			"pause_state_changed", "timescale_changed", "world_hour_changed"
 		],
 		# m_scene_manager — transition state for UI
-		"res://scripts/managers/m_scene_manager.gd": [
+		"res://scripts/core/managers/m_scene_manager.gd": [
 			"transition_visual_complete"
 		],
 		# m_input_profile_manager — input profile state for UI
-		"res://scripts/managers/m_input_profile_manager.gd": [
+		"res://scripts/core/managers/m_input_profile_manager.gd": [
 			"profile_switched", "bindings_reset", "custom_binding_added"
 		],
 		# u_palette_manager — palette state for UI
-		"res://scripts/managers/helpers/u_palette_manager.gd": [
+		"res://scripts/core/managers/helpers/u_palette_manager.gd": [
 			"active_palette_changed"
 		],
 		# m_input_device_manager — device state for UI
-		"res://scripts/managers/m_input_device_manager.gd": [
+		"res://scripts/core/managers/m_input_device_manager.gd": [
 			"device_changed"
 		],
 	}
 	var violations: Array[String] = []
-	_collect_manager_signal_violations("res://scripts/managers", allowed_signals, violations)
+	_collect_manager_signal_violations("res://scripts/core/managers", allowed_signals, violations)
 	assert_eq(
 		violations.size(),
 		0,
@@ -2440,7 +2438,7 @@ func test_simple_settings_overlays_under_15_lines() -> void:
 
 func test_managers_and_ecs_systems_have_no_bare_print_calls() -> void:
 	var roots: Array[String] = [
-		"res://scripts/managers",
+		"res://scripts/core/managers",
 		"res://scripts/ecs/systems",
 	]
 	var violations: Array[String] = []

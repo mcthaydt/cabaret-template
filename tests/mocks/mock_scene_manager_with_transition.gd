@@ -1,4 +1,4 @@
-extends "res://scripts/interfaces/i_scene_manager.gd"
+extends "res://scripts/core/interfaces/i_scene_manager.gd"
 class_name MockSceneManagerWithTransition
 
 ## Mock scene manager for testing load workflow

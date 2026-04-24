@@ -1,6 +1,6 @@
 extends GutTest
 
-const U_LOCALIZATION_CATALOG := preload("res://scripts/managers/helpers/localization/u_localization_catalog.gd")
+const U_LOCALIZATION_CATALOG := preload("res://scripts/core/managers/helpers/localization/u_localization_catalog.gd")
 const RS_LOCALE_TRANSLATIONS := preload("res://scripts/resources/localization/rs_locale_translations.gd")
 
 func test_load_catalog_merges_multiple_domains_for_locale() -> void:

@@ -1,6 +1,6 @@
 extends BaseTest
 
-const ECS_MANAGER = preload("res://scripts/managers/m_ecs_manager.gd")
+const ECS_MANAGER = preload("res://scripts/core/managers/m_ecs_manager.gd")
 const MovementComponentScript = preload("res://scripts/ecs/components/c_movement_component.gd")
 const MovementSystemScript = preload("res://scripts/ecs/systems/s_movement_system.gd")
 const InputComponentScript = preload("res://scripts/ecs/components/c_input_component.gd")
@@ -9,7 +9,7 @@ const AIBrainComponentScript = preload("res://scripts/demo/ecs/components/c_ai_b
 const AIBrainSettingsScript = preload("res://scripts/resources/ai/brain/rs_ai_brain_settings.gd")
 const ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
+const I_CAMERA_MANAGER := preload("res://scripts/core/interfaces/i_camera_manager.gd")
 
 class FakeBody extends CharacterBody3D:
 	var move_called: bool = false

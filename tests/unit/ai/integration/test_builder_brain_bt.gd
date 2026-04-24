@@ -11,7 +11,7 @@ const RS_BUILD_SITE_SETTINGS := preload("res://scripts/demo/resources/ai/world/r
 const RS_BUILD_STAGE := preload("res://scripts/demo/resources/ai/world/rs_build_stage.gd")
 const U_AI_CONTEXT_ASSEMBLER := preload("res://scripts/demo/utils/ai/u_ai_context_assembler.gd")
 const U_ENTITY_QUERY := preload("res://scripts/ecs/u_entity_query.gd")
-const M_ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
+const M_ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
 
 const C_NEEDS_COMPONENT := preload("res://scripts/demo/ecs/components/c_needs_component.gd")
 const C_INVENTORY_COMPONENT := preload("res://scripts/demo/ecs/components/c_inventory_component.gd")

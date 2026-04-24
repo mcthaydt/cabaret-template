@@ -9,9 +9,9 @@ extends BaseTest
 ## - Trauma decay reduces shake magnitude over time
 ## - Multiple damage events accumulate trauma (clamped to 1.0)
 
-const M_VFX_MANAGER := preload("res://scripts/managers/m_vfx_manager.gd")
-const M_CAMERA_MANAGER := preload("res://scripts/managers/m_camera_manager.gd")
-const M_SCREEN_SHAKE := preload("res://scripts/managers/helpers/u_screen_shake.gd")
+const M_VFX_MANAGER := preload("res://scripts/core/managers/m_vfx_manager.gd")
+const M_CAMERA_MANAGER := preload("res://scripts/core/managers/m_camera_manager.gd")
+const M_SCREEN_SHAKE := preload("res://scripts/core/managers/helpers/u_screen_shake.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")

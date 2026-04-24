@@ -7,7 +7,7 @@ extends BaseTest
 ## - Palette switching emits active_palette_changed
 ## - High contrast mode overrides color blind mode
 
-const M_DISPLAY_MANAGER := preload("res://scripts/managers/m_display_manager.gd")
+const M_DISPLAY_MANAGER := preload("res://scripts/core/managers/m_display_manager.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const RS_DISPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_display_initial_state.gd")

@@ -1,6 +1,6 @@
 extends GutTest
 
-const U_DISPLAY_WINDOW_APPLIER := preload("res://scripts/managers/helpers/display/u_display_window_applier.gd")
+const U_DISPLAY_WINDOW_APPLIER := preload("res://scripts/core/managers/helpers/display/u_display_window_applier.gd")
 
 class ResizeGuardWindowOps:
 	extends MockWindowOps

@@ -1,5 +1,5 @@
 @icon("res://assets/editor_icons/icn_manager.svg")
-extends "res://scripts/interfaces/i_save_manager.gd"
+extends "res://scripts/core/interfaces/i_save_manager.gd"
 class_name M_SaveManager
 
 ## Save Manager - Coordinates save/load timing, slot management, and disk IO
@@ -17,14 +17,14 @@ class_name M_SaveManager
 ## - M_StateStore: State access and dispatch
 ## - M_SceneManager: Scene transitions during load
 
-const I_SCENE_MANAGER := preload("res://scripts/interfaces/i_scene_manager.gd")
+const I_SCENE_MANAGER := preload("res://scripts/core/interfaces/i_scene_manager.gd")
 const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_GAMEPLAY_SELECTORS := preload("res://scripts/state/selectors/u_gameplay_selectors.gd")
 const U_SCENE_SELECTORS := preload("res://scripts/state/selectors/u_scene_selectors.gd")
-const U_SAVE_FILE_IO := preload("res://scripts/managers/helpers/u_save_file_io.gd")
-const U_SAVE_MIGRATION_ENGINE := preload("res://scripts/managers/helpers/u_save_migration_engine.gd")
-const U_SCREENSHOT_CAPTURE := preload("res://scripts/managers/helpers/u_screenshot_capture.gd")
+const U_SAVE_FILE_IO := preload("res://scripts/core/managers/helpers/u_save_file_io.gd")
+const U_SAVE_MIGRATION_ENGINE := preload("res://scripts/core/managers/helpers/u_save_migration_engine.gd")
+const U_SCREENSHOT_CAPTURE := preload("res://scripts/core/managers/helpers/u_screenshot_capture.gd")
 const U_SAVE_VALIDATOR := preload("res://scripts/utils/u_save_validator.gd")
 const U_SAVE_ACTIONS := preload("res://scripts/state/actions/u_save_actions.gd")
 
@@ -170,7 +170,7 @@ func _cleanup_orphaned_thumbnails() -> void:
 ## Initialize autosave scheduler as child node
 func _initialize_autosave_scheduler() -> void:
 	# Load and instantiate the autosave scheduler script
-	var scheduler_script := load("res://scripts/managers/helpers/u_autosave_scheduler.gd")
+	var scheduler_script := load("res://scripts/core/managers/helpers/u_autosave_scheduler.gd")
 	_autosave_scheduler = scheduler_script.new()
 	_autosave_scheduler.name = "U_AutosaveScheduler"
 

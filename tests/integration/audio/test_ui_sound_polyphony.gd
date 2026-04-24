@@ -5,9 +5,9 @@ extends GutTest
 ## Verifies that multiple UI sounds can overlap correctly using round-robin
 ## player selection (4 concurrent players).
 
-const M_AUDIO_MANAGER := preload("res://scripts/managers/m_audio_manager.gd")
+const M_AUDIO_MANAGER := preload("res://scripts/core/managers/m_audio_manager.gd")
 const U_AUDIO_TEST_HELPERS := preload("res://tests/helpers/u_audio_test_helpers.gd")
-const U_AUDIO_REGISTRY_LOADER := preload("res://scripts/managers/helpers/u_audio_registry_loader.gd")
+const U_AUDIO_REGISTRY_LOADER := preload("res://scripts/core/managers/helpers/u_audio_registry_loader.gd")
 
 var _manager: M_AudioManager
 

@@ -4,7 +4,7 @@ extends GutTest
 ##
 ## Tests edge cases for CameraState creation, validation, and camera discovery.
 
-const M_CAMERA_MANAGER := preload("res://scripts/managers/m_camera_manager.gd")
+const M_CAMERA_MANAGER := preload("res://scripts/core/managers/m_camera_manager.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 
 var camera_manager: M_CAMERA_MANAGER

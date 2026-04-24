@@ -1,6 +1,6 @@
 extends GutTest
 
-const U_AUDIO_BUS_CONSTANTS := preload("res://scripts/managers/helpers/u_audio_bus_constants.gd")
+const U_AUDIO_BUS_CONSTANTS := preload("res://scripts/core/managers/helpers/u_audio_bus_constants.gd")
 
 func before_each() -> void:
 	_reset_audio_buses()

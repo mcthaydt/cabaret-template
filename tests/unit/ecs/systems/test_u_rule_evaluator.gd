@@ -2,8 +2,8 @@ extends BaseTest
 
 const RULE_EVALUATOR_PATH := "res://scripts/utils/ecs/u_rule_evaluator.gd"
 const RULE_RESOURCE := preload("res://scripts/resources/qb/rs_rule.gd")
-const I_CONDITION := preload("res://scripts/interfaces/i_condition.gd")
-const I_EFFECT := preload("res://scripts/interfaces/i_effect.gd")
+const I_CONDITION := preload("res://scripts/core/interfaces/i_condition.gd")
+const I_EFFECT := preload("res://scripts/core/interfaces/i_effect.gd")
 const CONDITION_CONSTANT := preload("res://scripts/resources/qb/conditions/rs_condition_constant.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
 

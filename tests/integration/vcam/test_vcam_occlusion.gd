@@ -16,10 +16,10 @@ const RS_DISPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_disp
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 const U_VCAM_SELECTORS := preload("res://scripts/state/selectors/u_vcam_selectors.gd")
-const U_VCAM_SILHOUETTE_HELPER := preload("res://scripts/managers/helpers/u_vcam_silhouette_helper.gd")
+const U_VCAM_SILHOUETTE_HELPER := preload("res://scripts/core/managers/helpers/u_vcam_silhouette_helper.gd")
 
-const M_VCAM_MANAGER := preload("res://scripts/managers/m_vcam_manager.gd")
-const M_VFX_MANAGER := preload("res://scripts/managers/m_vfx_manager.gd")
+const M_VCAM_MANAGER := preload("res://scripts/core/managers/m_vcam_manager.gd")
+const M_VFX_MANAGER := preload("res://scripts/core/managers/m_vfx_manager.gd")
 const MOCK_CAMERA_MANAGER := preload("res://tests/mocks/mock_camera_manager.gd")
 const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component.gd")
 const RS_VCAM_MODE_ORBIT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_orbit.gd")

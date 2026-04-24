@@ -5,7 +5,7 @@ class_name U_VCamSoftZoneApplier
 ## Uses U_VCamSoftZone to compute camera correction vectors that keep
 ## the follow target within configured screen-space bounds.
 
-const U_VCAM_SOFT_ZONE := preload("res://scripts/managers/helpers/u_vcam_soft_zone.gd")
+const U_VCAM_SOFT_ZONE := preload("res://scripts/core/managers/helpers/u_vcam_soft_zone.gd")
 const U_VCAM_UTILS := preload("res://scripts/utils/display/u_vcam_utils.gd")
 
 var _soft_zone_dead_zone_state: Dictionary = {}  # StringName -> {x: bool, y: bool}

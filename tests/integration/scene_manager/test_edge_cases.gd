@@ -15,9 +15,9 @@ extends GutTest
 ## - T190: Transitions from physics frame
 ## - T191: Unsaved progress auto-save
 
-const M_SceneManager = preload("res://scripts/managers/m_scene_manager.gd")
+const M_SceneManager = preload("res://scripts/core/managers/m_scene_manager.gd")
 const M_StateStore = preload("res://scripts/state/m_state_store.gd")
-const M_CursorManager = preload("res://scripts/managers/m_cursor_manager.gd")
+const M_CursorManager = preload("res://scripts/core/managers/m_cursor_manager.gd")
 const RS_SceneInitialState = preload("res://scripts/resources/state/rs_scene_initial_state.gd")
 const RS_NavigationInitialState = preload("res://scripts/resources/state/rs_navigation_initial_state.gd")
 const RS_BootInitialState = preload("res://scripts/resources/state/rs_boot_initial_state.gd")

@@ -50,7 +50,7 @@
 [ext_resource type="Script" uid="uid://cedo14086bdnm" path="res://scripts/ecs/systems/s_screen_shake_publisher_system.gd" id="48_yl23q"]
 [ext_resource type="Script" uid="uid://cl3h6t7pmdx1b" path="res://scripts/ecs/systems/s_damage_flash_publisher_system.gd" id="49_clotq"]
 [ext_resource type="Script" uid="uid://d0omtagbm74cs" path="res://scripts/core/scene_structure/marker_managers_group.gd" id="50_w41ox"]
-[ext_resource type="Script" uid="uid://b8r23xdb7nfxv" path="res://scripts/managers/m_ecs_manager.gd" id="51_qvu0d"]
+[ext_resource type="Script" uid="uid://b8r23xdb7nfxv" path="res://scripts/core/managers/m_ecs_manager.gd" id="51_qvu0d"]
 [ext_resource type="Script" uid="uid://bdp7886fufa8v" path="res://scripts/core/scene_structure/marker_entities_group.gd" id="52_hynq2"]
 [ext_resource type="Script" uid="uid://bxuh4wr37jbss" path="res://scripts/core/scene_structure/marker_spawn_points_group.gd" id="53_xgymr"]
 [ext_resource type="Script" uid="uid://c1vg0nn41f77u" path="res://scripts/scene_management/sp_spawn_point.gd" id="54_5nj3c"]

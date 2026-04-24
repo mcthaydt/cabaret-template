@@ -9,7 +9,7 @@ const C_INPUT_COMPONENT := preload("res://scripts/ecs/components/c_input_compone
 const C_AI_BRAIN_COMPONENT := preload("res://scripts/demo/ecs/components/c_ai_brain_component.gd")
 const C_PLAYER_TAG_COMPONENT := preload("res://scripts/ecs/components/c_player_tag_component.gd")
 const RS_SPAWN_RECOVERY_SETTINGS := preload("res://scripts/resources/ecs/rs_spawn_recovery_settings.gd")
-const I_SPAWN_MANAGER := preload("res://scripts/interfaces/i_spawn_manager.gd")
+const I_SPAWN_MANAGER := preload("res://scripts/core/interfaces/i_spawn_manager.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_DEBUG_LOG_THROTTLE := preload("res://scripts/utils/debug/u_debug_log_throttle.gd")
 

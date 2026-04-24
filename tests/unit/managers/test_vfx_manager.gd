@@ -4,7 +4,7 @@ extends GutTest
 # Tests manager initialization, ServiceLocator bootstrap expectations,
 # StateStore discovery, and basic trauma system functionality
 
-const M_VFX_MANAGER := preload("res://scripts/managers/m_vfx_manager.gd")
+const M_VFX_MANAGER := preload("res://scripts/core/managers/m_vfx_manager.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")

@@ -1,14 +1,14 @@
 @icon("res://assets/editor_icons/icn_manager.svg")
-extends "res://scripts/interfaces/i_time_manager.gd"
+extends "res://scripts/core/interfaces/i_time_manager.gd"
 class_name M_TimeManager
 
 signal pause_state_changed(is_paused: bool)
 signal timescale_changed(new_scale: float)
 signal world_hour_changed(hour: int)
 
-const U_PAUSE_SYSTEM := preload("res://scripts/managers/helpers/time/u_pause_system.gd")
-const U_TIMESCALE_CONTROLLER := preload("res://scripts/managers/helpers/time/u_timescale_controller.gd")
-const U_WORLD_CLOCK := preload("res://scripts/managers/helpers/time/u_world_clock.gd")
+const U_PAUSE_SYSTEM := preload("res://scripts/core/managers/helpers/time/u_pause_system.gd")
+const U_TIMESCALE_CONTROLLER := preload("res://scripts/core/managers/helpers/time/u_timescale_controller.gd")
+const U_WORLD_CLOCK := preload("res://scripts/core/managers/helpers/time/u_world_clock.gd")
 const U_TIME_ACTIONS := preload("res://scripts/state/actions/u_time_actions.gd")
 const U_TIME_SELECTORS := preload("res://scripts/state/selectors/u_time_selectors.gd")
 const U_SCENE_SELECTORS := preload("res://scripts/state/selectors/u_scene_selectors.gd")

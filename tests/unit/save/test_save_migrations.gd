@@ -1,6 +1,6 @@
 extends BaseTest
 
-const U_SAVE_MIGRATION_ENGINE := preload("res://scripts/managers/helpers/u_save_migration_engine.gd")
+const U_SAVE_MIGRATION_ENGINE := preload("res://scripts/core/managers/helpers/u_save_migration_engine.gd")
 const U_SAVE_TEST_UTILS := preload("res://tests/unit/save/u_save_test_utils.gd")
 
 const TEST_LEGACY_SAVE_PATH := "user://test_savegame.json"

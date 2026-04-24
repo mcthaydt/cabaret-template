@@ -6,7 +6,7 @@ const RS_CONDITION_CONSTANT := preload("res://scripts/resources/qb/conditions/rs
 const RS_CONDITION_EVENT_NAME := preload("res://scripts/resources/qb/conditions/rs_condition_event_name.gd")
 const RS_CONDITION_COMPOSITE := preload("res://scripts/resources/qb/conditions/rs_condition_composite.gd")
 
-const I_CONDITION := preload("res://scripts/interfaces/i_condition.gd")
+const I_CONDITION := preload("res://scripts/core/interfaces/i_condition.gd")
 
 var _rule_utils: Variant = null
 

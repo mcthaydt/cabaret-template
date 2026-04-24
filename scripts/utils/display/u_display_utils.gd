@@ -4,7 +4,7 @@ class_name U_DisplayUtils
 ## Display utility functions for typed display manager access.
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const I_DISPLAY_MANAGER := preload("res://scripts/interfaces/i_display_manager.gd")
+const I_DISPLAY_MANAGER := preload("res://scripts/core/interfaces/i_display_manager.gd")
 
 ## Get the display manager instance via ServiceLocator.
 ##

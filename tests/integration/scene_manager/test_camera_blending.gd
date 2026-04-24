@@ -9,9 +9,9 @@ extends GutTest
 ## Architecture (Phase 12.2): M_CameraManager handles camera blending. M_SceneManager
 ## delegates camera operations to M_CameraManager during transitions.
 
-const M_SceneManager = preload("res://scripts/managers/m_scene_manager.gd")
-const M_SpawnManager = preload("res://scripts/managers/m_spawn_manager.gd")
-const M_CameraManager = preload("res://scripts/managers/m_camera_manager.gd")
+const M_SceneManager = preload("res://scripts/core/managers/m_scene_manager.gd")
+const M_SpawnManager = preload("res://scripts/core/managers/m_spawn_manager.gd")
+const M_CameraManager = preload("res://scripts/core/managers/m_camera_manager.gd")
 const M_StateStore = preload("res://scripts/state/m_state_store.gd")
 const RS_SceneInitialState = preload("res://scripts/resources/state/rs_scene_initial_state.gd")
 const RS_StateStoreSettings = preload("res://scripts/resources/state/rs_state_store_settings.gd")

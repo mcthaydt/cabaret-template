@@ -1,7 +1,7 @@
 extends GutTest
 
-const M_OBJECTIVES_MANAGER := preload("res://scripts/managers/m_objectives_manager.gd")
-const I_STATE_STORE := preload("res://scripts/interfaces/i_state_store.gd")
+const M_OBJECTIVES_MANAGER := preload("res://scripts/core/managers/m_objectives_manager.gd")
+const I_STATE_STORE := preload("res://scripts/core/interfaces/i_state_store.gd")
 const OBJECTIVE_DEFINITION := preload("res://scripts/resources/scene_director/rs_objective_definition.gd")
 const OBJECTIVE_SET := preload("res://scripts/resources/scene_director/rs_objective_set.gd")
 const OBJECTIVES_REDUCER := preload("res://scripts/state/reducers/u_objectives_reducer.gd")

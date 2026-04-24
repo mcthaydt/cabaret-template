@@ -1,5 +1,5 @@
 @icon("res://assets/editor_icons/icn_manager.svg")
-extends "res://scripts/interfaces/i_localization_manager.gd"
+extends "res://scripts/core/interfaces/i_localization_manager.gd"
 class_name M_LocalizationManager
 
 ## Localization Manager - applies locale and font settings from Redux localization slice.
@@ -7,10 +7,10 @@ class_name M_LocalizationManager
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_LOCALIZATION_SELECTORS := preload("res://scripts/state/selectors/u_localization_selectors.gd")
-const U_LOCALIZATION_CATALOG := preload("res://scripts/managers/helpers/localization/u_localization_catalog.gd")
-const U_LOCALIZATION_FONT_APPLIER := preload("res://scripts/managers/helpers/localization/u_localization_font_applier.gd")
-const U_LOCALIZATION_PREVIEW_CONTROLLER := preload("res://scripts/managers/helpers/localization/u_localization_preview_controller.gd")
-const U_LOCALIZATION_ROOT_REGISTRY := preload("res://scripts/managers/helpers/localization/u_localization_root_registry.gd")
+const U_LOCALIZATION_CATALOG := preload("res://scripts/core/managers/helpers/localization/u_localization_catalog.gd")
+const U_LOCALIZATION_FONT_APPLIER := preload("res://scripts/core/managers/helpers/localization/u_localization_font_applier.gd")
+const U_LOCALIZATION_PREVIEW_CONTROLLER := preload("res://scripts/core/managers/helpers/localization/u_localization_preview_controller.gd")
+const U_LOCALIZATION_ROOT_REGISTRY := preload("res://scripts/core/managers/helpers/localization/u_localization_root_registry.gd")
 const U_LOCALIZATION_ACTIONS := preload("res://scripts/state/actions/u_localization_actions.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
 const U_UI_THEME_DEBUG := preload("res://scripts/ui/utils/u_ui_theme_debug.gd")

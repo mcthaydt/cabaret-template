@@ -7,7 +7,7 @@ extends GutTest
 
 const U_VCAM_RUNTIME_SERVICES := preload("res://scripts/ecs/systems/helpers/u_vcam_runtime_services.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const I_STATE_STORE := preload("res://scripts/interfaces/i_state_store.gd")
+const I_STATE_STORE := preload("res://scripts/core/interfaces/i_state_store.gd")
 
 class StubStateStore extends I_StateStore:
 	var _ready_flag: bool = false

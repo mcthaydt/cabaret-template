@@ -1,6 +1,6 @@
 @icon("res://assets/editor_icons/icn_manager.svg")
 class_name M_CameraManager
-extends "res://scripts/interfaces/i_camera_manager.gd"
+extends "res://scripts/core/interfaces/i_camera_manager.gd"
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const DEFAULT_SHAKE_SOURCE := StringName("vfx")

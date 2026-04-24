@@ -1,6 +1,6 @@
 extends GutTest
 
-const VFX_MANAGER_SCRIPT_PATH := "res://scripts/managers/m_vfx_manager.gd"
+const VFX_MANAGER_SCRIPT_PATH := "res://scripts/core/managers/m_vfx_manager.gd"
 
 func _get_manager_source() -> String:
 	return FileAccess.get_file_as_string(VFX_MANAGER_SCRIPT_PATH)

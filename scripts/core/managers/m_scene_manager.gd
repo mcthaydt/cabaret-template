@@ -1,5 +1,5 @@
 @icon("res://assets/editor_icons/icn_manager.svg")
-extends "res://scripts/interfaces/i_scene_manager.gd"
+extends "res://scripts/core/interfaces/i_scene_manager.gd"
 class_name M_SceneManager
 
 ## Scene Manager - Coordinates scene transitions and overlays
@@ -21,15 +21,15 @@ class_name M_SceneManager
 signal transition_visual_complete(scene_id: StringName)
 
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
-const I_CURSOR_MANAGER := preload("res://scripts/interfaces/i_cursor_manager.gd")
-const I_SPAWN_MANAGER := preload("res://scripts/interfaces/i_spawn_manager.gd")
+const I_CURSOR_MANAGER := preload("res://scripts/core/interfaces/i_cursor_manager.gd")
+const I_SPAWN_MANAGER := preload("res://scripts/core/interfaces/i_spawn_manager.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
 const U_UI_REGISTRY := preload("res://scripts/ui/utils/u_ui_registry.gd")
 const U_TRANSITION_FACTORY := preload("res://scripts/scene_management/u_transition_factory.gd")
-const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
+const I_CAMERA_MANAGER := preload("res://scripts/core/interfaces/i_camera_manager.gd")
 const U_SCENE_CACHE := preload("res://scripts/scene_management/helpers/u_scene_cache.gd")
 const U_SCENE_LOADER := preload("res://scripts/scene_management/helpers/u_scene_loader.gd")
 const U_OVERLAY_STACK_MANAGER := preload("res://scripts/scene_management/helpers/u_overlay_stack_manager.gd")

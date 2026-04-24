@@ -8,8 +8,8 @@ class_name U_UISoundPlayer
 ##
 ## Supports per-sound throttling via RS_UISoundDefinition.throttle_ms field.
 
-const I_AUDIO_MANAGER := preload("res://scripts/interfaces/i_audio_manager.gd")
-const U_AUDIO_REGISTRY_LOADER_PATH := "res://scripts/managers/helpers/u_audio_registry_loader.gd"
+const I_AUDIO_MANAGER := preload("res://scripts/core/interfaces/i_audio_manager.gd")
+const U_AUDIO_REGISTRY_LOADER_PATH := "res://scripts/core/managers/helpers/u_audio_registry_loader.gd"
 
 static var _last_play_times: Dictionary = {}  ## sound_id -> timestamp_ms
 static var _registry_initialized: bool = false

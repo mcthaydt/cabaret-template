@@ -11,11 +11,11 @@ extends GutTest
 ## Tests are authored up-front (T162) and currently fail until
 ## implementation work for Phase 9 is complete.
 
-const M_SCENE_MANAGER := preload("res://scripts/managers/m_scene_manager.gd")
-const M_OBJECTIVES_MANAGER := preload("res://scripts/managers/m_objectives_manager.gd")
-const M_RUN_COORDINATOR := preload("res://scripts/managers/m_run_coordinator_manager.gd")
+const M_SCENE_MANAGER := preload("res://scripts/core/managers/m_scene_manager.gd")
+const M_OBJECTIVES_MANAGER := preload("res://scripts/core/managers/m_objectives_manager.gd")
+const M_RUN_COORDINATOR := preload("res://scripts/core/managers/m_run_coordinator_manager.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
-const M_ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
+const M_ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
 const RS_SCENE_INITIAL_STATE := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
@@ -37,7 +37,7 @@ const VICTORY_COMPONENT := preload("res://scripts/ecs/components/c_victory_trigg
 const GAME_EVENT_SYSTEM := preload("res://scripts/ecs/systems/s_game_event_system.gd")
 const VICTORY_HANDLER_SYSTEM := preload("res://scripts/ecs/systems/s_victory_handler_system.gd")
 const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/resources/state/rs_navigation_initial_state.gd")
-const U_SFX_SPAWNER := preload("res://scripts/managers/helpers/u_sfx_spawner.gd")
+const U_SFX_SPAWNER := preload("res://scripts/core/managers/helpers/u_sfx_spawner.gd")
 
 var _root: Node
 var _state_store: M_STATE_STORE

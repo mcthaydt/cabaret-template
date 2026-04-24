@@ -1,6 +1,6 @@
 extends BaseTest
 
-const ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
+const ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
 const DEATH_HANDLER_SYSTEM := preload("res://scripts/ecs/systems/s_death_handler_system.gd")
 
 func before_each() -> void:

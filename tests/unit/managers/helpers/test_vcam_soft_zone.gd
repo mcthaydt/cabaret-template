@@ -1,6 +1,6 @@
 extends GutTest
 
-const SOFT_ZONE_HELPER := preload("res://scripts/managers/helpers/u_vcam_soft_zone.gd")
+const SOFT_ZONE_HELPER := preload("res://scripts/core/managers/helpers/u_vcam_soft_zone.gd")
 const SOFT_ZONE_RESOURCE := preload("res://scripts/resources/display/vcam/rs_vcam_soft_zone.gd")
 
 func _new_soft_zone(

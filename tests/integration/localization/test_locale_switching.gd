@@ -10,8 +10,8 @@ extends BaseTest
 ## - Signpost key resolves through localize() before HUD display
 
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
-const M_LOCALIZATION_MANAGER := preload("res://scripts/managers/m_localization_manager.gd")
-const M_DISPLAY_MANAGER := preload("res://scripts/managers/m_display_manager.gd")
+const M_LOCALIZATION_MANAGER := preload("res://scripts/core/managers/m_localization_manager.gd")
+const M_DISPLAY_MANAGER := preload("res://scripts/core/managers/m_display_manager.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const RS_LOCALIZATION_INITIAL_STATE := preload("res://scripts/resources/state/rs_localization_initial_state.gd")
 const U_LOCALIZATION_ACTIONS := preload("res://scripts/state/actions/u_localization_actions.gd")
@@ -19,7 +19,7 @@ const U_LOCALIZATION_SELECTORS := preload("res://scripts/state/selectors/u_local
 const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
-const U_DISPLAY_UI_THEME_APPLIER := preload("res://scripts/managers/helpers/display/u_display_ui_theme_applier.gd")
+const U_DISPLAY_UI_THEME_APPLIER := preload("res://scripts/core/managers/helpers/display/u_display_ui_theme_applier.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
 
 const LOCALE_ASSERTION_KEY := &"menu.settings.back_to_main"

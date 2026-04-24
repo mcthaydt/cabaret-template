@@ -3,7 +3,7 @@ extends SceneTree
 const ENTITY_COUNT := 100
 const FRAMES_TO_SIMULATE := 120
 
-const ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
+const ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
 const ECS_SYSTEM := preload("res://scripts/ecs/base_ecs_system.gd")
 const ECS_COMPONENT := preload("res://scripts/ecs/base_ecs_component.gd")
 

@@ -1,6 +1,6 @@
 extends GutTest
 
-const M_VFX_MANAGER := preload("res://scripts/managers/m_vfx_manager.gd")
+const M_VFX_MANAGER := preload("res://scripts/core/managers/m_vfx_manager.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const MOCK_CAMERA_MANAGER := preload("res://tests/mocks/mock_camera_manager.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")

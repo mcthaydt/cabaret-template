@@ -15,8 +15,8 @@ const CONDITION_ENTITY_TAG := preload("res://scripts/resources/qb/conditions/rs_
 const EFFECT_SET_FIELD := preload("res://scripts/resources/qb/effects/rs_effect_set_field.gd")
 const SPEED_FOV_RULE := preload("res://resources/qb/camera/cfg_camera_speed_fov_rule.tres")
 
-const I_CONDITION := preload("res://scripts/interfaces/i_condition.gd")
-const I_EFFECT := preload("res://scripts/interfaces/i_effect.gd")
+const I_CONDITION := preload("res://scripts/core/interfaces/i_condition.gd")
+const I_EFFECT := preload("res://scripts/core/interfaces/i_effect.gd")
 
 func before_each() -> void:
 	U_ECSEventBus.reset()

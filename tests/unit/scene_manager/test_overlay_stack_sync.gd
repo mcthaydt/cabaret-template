@@ -2,7 +2,7 @@ extends BaseTest
 
 ## Unit tests for overlay stack/state synchronization on M_SceneManager startup
 
-const M_TIME_MANAGER := preload("res://scripts/managers/m_time_manager.gd")
+const M_TIME_MANAGER := preload("res://scripts/core/managers/m_time_manager.gd")
 
 var _store: M_StateStore
 var _ui_overlay_stack: CanvasLayer

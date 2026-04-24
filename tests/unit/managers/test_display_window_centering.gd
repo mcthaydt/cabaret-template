@@ -69,7 +69,7 @@ func test_display_server_window_ops_has_usable_rect_method() -> void:
 # Integration test: Verify the implementation exists and is callable
 func test_window_applier_uses_usable_rect_in_implementation() -> void:
 	# Read the implementation to verify it uses usable_rect
-	var script_path := "res://scripts/managers/helpers/display/u_display_window_applier.gd"
+	var script_path := "res://scripts/core/managers/helpers/display/u_display_window_applier.gd"
 	var file := FileAccess.open(script_path, FileAccess.READ)
 
 	if file == null:

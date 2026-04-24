@@ -20,7 +20,7 @@ const EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
 const U_GAMEPLAY_SELECTORS := preload("res://scripts/state/selectors/u_gameplay_selectors.gd")
 const U_SCENE_SELECTORS := preload("res://scripts/state/selectors/u_scene_selectors.gd")
 const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
-const U_SFX_SPAWNER := preload("res://scripts/managers/helpers/u_sfx_spawner.gd")
+const U_SFX_SPAWNER := preload("res://scripts/core/managers/helpers/u_sfx_spawner.gd")
 
 ## Queue of SFX requests to be processed in process_tick().
 var requests: Array = []
