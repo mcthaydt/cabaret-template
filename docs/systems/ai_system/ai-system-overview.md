@@ -1,14 +1,46 @@
-# AI System Overview (GOAP / HTN)
+# AI System Overview (Behavior Trees)
 
 **Project**: Cabaret Template (Godot 4.6)
 **Created**: 2026-03-31
-**Last Updated**: 2026-04-11
-**Status**: M15 COMPLETE + Refactor R1-R6 COMPLETE
-**Scope**: Quality-based NPC behavior selection using GOAP goals and HTN task decomposition, powered by QB Rule Manager v2
+**Last Updated**: 2026-04-24
+**Status**: BT runtime migration complete through Cleanup V8 P1.10
+**Scope**: Utility-scored behavior trees for NPC orchestration, powered by typed BT resources and reusable AI actions
 
 ## Summary
 
-The AI system provides data-driven NPC behavior through two complementary paradigms: **GOAP** (Goal-Oriented Action Planning) for goal selection and **HTN** (Hierarchical Task Network) for task decomposition. In the target runtime design, QB v2 rules score candidate goals/behaviors (0.0-1.0), the winner becomes the active behavior, and an HTN planner decomposes compound tasks into executable primitive actions. This will run as an ECS system (`S_AIBehaviorSystem`) consuming `C_AIBrainComponent` data, with behavior definitions authored as `.tres` resources.
+The AI system provides data-driven NPC behavior through utility-scored behavior trees. Each brain points to an `RS_BTNode` root on `RS_AIBrainSettings`; `S_AIBehaviorSystem` evaluates that tree through `U_BTRunner`, assembles runtime context through `U_AIContextAssembler`, and stores per-node runtime state in `C_AIBrainComponent.bt_state_bag`.
+
+Legacy GOAP/HTN goal, task, selector, replanner, and task-runner resources were removed in Cleanup V8 P1.10. QB rule infrastructure remains available for non-AI game logic and for BT condition/scorer resources.
+
+## Current Runtime Contracts
+
+- `S_AIBehaviorSystem` is the canonical BT orchestration system. Keep it orchestration-first: no inline selector/planner/task-runner stacks.
+- Planning, when needed, is isolated to `RS_BTPlanner` and `U_BTPlannerSearch`; world-state assembly is isolated to `U_AIWorldStateBuilder`.
+- Debug throttling/probing composes shared utilities (`U_DebugLogThrottle`, `U_AIRenderProbe`). Do not reintroduce local debug cooldown or render-probe stacks.
+- Treat brain, BT, and action fields as typed runtime contracts: `C_AIBrainComponent.brain_settings: RS_AIBrainSettings`, `RS_AIBrainSettings.root: RS_BTNode`, BT resources under `scripts/resources/bt/` and `scripts/resources/ai/bt/`, and actions implementing `I_AIAction`.
+- Keep AI resource scripts organized under `scripts/resources/ai/brain/`, `scripts/resources/ai/bt/`, and `scripts/resources/ai/actions/`. Do not reintroduce legacy `goals/` or `tasks/` resource folders.
+- Honor `RS_AIBrainSettings.evaluation_interval` with `C_AIBrainComponent.evaluation_timer`. The first evaluation should run immediately when no BT state is running; running BT actions continue ticking every physics frame.
+- `U_AIContextAssembler.build_context(...)` injects the active scene `ecs_manager` so scan/reserve/harvest/deposit/build actions can resolve authored ECS targets.
+- Movement-sensitive actions resolve positions through `U_AIActionPositionResolver` before falling back to entity roots.
+- `RS_BTAction` drives `I_AIAction.start/tick/is_complete`; per-node action state lives in `bt_state_bag`, keyed by BT node instance IDs.
+- `RS_AIActionWait`, `RS_AIActionPublishEvent`, and `RS_AIActionSetField` remain instant/simple action building blocks. `RS_AIActionMoveTo`, `RS_AIActionScan`, and `RS_AIActionAnimate` are the movement/stub action baseline.
+- `S_MoveTargetFollowerSystem` bridges active `C_MoveTargetComponent` payloads into world-space movement vectors. It has no legacy GOAP task-state fallback.
+- `S_MovementSystem` routes AI-authored move vectors through world-space velocity handling while keeping player input camera-relative.
+- `S_InputSystem` updates only player-tagged `C_InputComponent` entities so player input does not clobber AI-authored movement.
+- Demo NPC entities should instance `scenes/prefabs/prefab_demo_npc.tscn`, inherit the shared character stack, use `Player_Body` as the runtime body path, and disable collision on custom CSG visuals.
+- Author durable demo triggers through gameplay flags (`gameplay.ai_demo_flags.*`) rather than transient one-frame input fields.
+- Shared unsupported recovery belongs to `C_SpawnRecoveryComponent` and `S_SpawnRecoverySystem`, not AI brain settings.
+- Player-proximity detection uses `C_DetectionComponent` and `S_AIDetectionSystem`; tag-based detection must skip the detector entity itself.
+- Predator consume loops lock prey identity during move-to-detected and consume that locked target first.
+
+## Pitfalls
+
+- AI placeholders must assign a valid `RS_AIBrainSettings` resource; missing or wrong-type settings abort component registration.
+- BT branches that score from local readiness also need terminal-state gates, or agents can keep selecting obsolete no-op branches.
+- Harvest actions must validate inventory acceptance before decrementing resource-node stock and must clear owned reservations after success or rejection.
+- Acquire/deposit loops must be deficit-driven; filter source scans by the active deficit and cap deposits to outstanding requirements.
+- Move completion radii must be compatible with downstream interaction/consume radii.
+- AI demo flags are gameplay actions (`U_GameplayActions.set_ai_demo_flag`), not navigation actions.
 
 ## Repo Reality Checks
 
