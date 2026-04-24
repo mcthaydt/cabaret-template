@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="RS_BuildSiteSettings" format=3 uid="uid://cxqfekpsxhav1"]
 
-[ext_resource type="Script" uid="uid://d2ykt1b4glcel" path="res://scripts/resources/ai/world/rs_build_site_settings.gd" id="1_0"]
-[ext_resource type="Script" uid="uid://c6phskt0qgs0o" path="res://scripts/resources/ai/world/rs_build_stage.gd" id="2_stage"]
+[ext_resource type="Script" uid="uid://d2ykt1b4glcel" path="res://scripts/demo/resources/ai/world/rs_build_site_settings.gd" id="1_0"]
+[ext_resource type="Script" uid="uid://c6phskt0qgs0o" path="res://scripts/demo/resources/ai/world/rs_build_stage.gd" id="2_stage"]
 
 [sub_resource type="Resource" id="Stage_foundation"]
 script = ExtResource("2_stage")

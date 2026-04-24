@@ -1,6 +1,6 @@
 extends BaseTest
 
-const ACTION_FEED_PATH := "res://scripts/resources/ai/actions/rs_ai_action_feed.gd"
+const ACTION_FEED_PATH := "res://scripts/demo/resources/ai/actions/rs_ai_action_feed.gd"
 const BASE_ECS_ENTITY := preload("res://scripts/ecs/base_ecs_entity.gd")
 const C_DETECTION_COMPONENT := preload("res://scripts/demo/ecs/components/c_detection_component.gd")
 const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")

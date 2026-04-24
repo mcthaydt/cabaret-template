@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="RS_ResourceNodeSettings" format=3 uid="uid://77gej7er2umc"]
 
-[ext_resource type="Script" uid="uid://ccr33o2tn7weu" path="res://scripts/resources/ai/world/rs_resource_node_settings.gd" id="1_0"]
+[ext_resource type="Script" uid="uid://ccr33o2tn7weu" path="res://scripts/demo/resources/ai/world/rs_resource_node_settings.gd" id="1_0"]
 
 [resource]
 script = ExtResource("1_0")

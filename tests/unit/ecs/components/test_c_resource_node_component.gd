@@ -1,7 +1,7 @@
 extends BaseTest
 
 const C_RESOURCE_NODE_COMPONENT := preload("res://scripts/demo/ecs/components/c_resource_node_component.gd")
-const RS_RESOURCE_NODE_SETTINGS := preload("res://scripts/resources/ai/world/rs_resource_node_settings.gd")
+const RS_RESOURCE_NODE_SETTINGS := preload("res://scripts/demo/resources/ai/world/rs_resource_node_settings.gd")
 
 func _instantiate(settings: RS_ResourceNodeSettings = null) -> Variant:
 	var component := C_RESOURCE_NODE_COMPONENT.new()

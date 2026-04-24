@@ -5,7 +5,7 @@ const I_AI_ACTION_PATH := "res://scripts/interfaces/i_ai_action.gd"
 
 const RS_AI_ACTION_PATHS := [
 	"res://scripts/resources/ai/actions/rs_ai_action_animate.gd",
-	"res://scripts/resources/ai/actions/rs_ai_action_feed.gd",
+	"res://scripts/demo/resources/ai/actions/rs_ai_action_feed.gd",
 	"res://scripts/resources/ai/actions/rs_ai_action_flee_from_detected.gd",
 	"res://scripts/resources/ai/actions/rs_ai_action_move_to.gd",
 	"res://scripts/resources/ai/actions/rs_ai_action_move_to_detected.gd",

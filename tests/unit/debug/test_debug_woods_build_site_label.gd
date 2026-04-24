@@ -2,8 +2,8 @@ extends BaseTest
 
 const LABEL_SCRIPT_PATH := "res://scripts/demo/debug/debug_woods_build_site_label.gd"
 const C_BUILD_SITE_COMPONENT := preload("res://scripts/demo/ecs/components/c_build_site_component.gd")
-const RS_BUILD_SITE_SETTINGS := preload("res://scripts/resources/ai/world/rs_build_site_settings.gd")
-const RS_BUILD_STAGE := preload("res://scripts/resources/ai/world/rs_build_stage.gd")
+const RS_BUILD_SITE_SETTINGS := preload("res://scripts/demo/resources/ai/world/rs_build_site_settings.gd")
+const RS_BUILD_STAGE := preload("res://scripts/demo/resources/ai/world/rs_build_stage.gd")
 
 func _load_label_script() -> Script:
 	var script_variant: Variant = load(LABEL_SCRIPT_PATH)

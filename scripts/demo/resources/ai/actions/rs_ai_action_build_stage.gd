@@ -4,7 +4,7 @@ class_name RS_AIActionBuildStage
 
 const C_BUILD_SITE_COMPONENT := preload("res://scripts/demo/ecs/components/c_build_site_component.gd")
 const C_DETECTION_COMPONENT := preload("res://scripts/demo/ecs/components/c_detection_component.gd")
-const RS_BUILD_STAGE := preload("res://scripts/resources/ai/world/rs_build_stage.gd")
+const RS_BUILD_STAGE := preload("res://scripts/demo/resources/ai/world/rs_build_stage.gd")
 
 func start(context: Dictionary, task_state: Dictionary) -> void:
 	task_state[U_AITaskStateKeys.BUILD_ELAPSED] = 0.0

@@ -3,7 +3,7 @@ extends BaseTest
 const ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const S_RESOURCE_REGROW_SYSTEM := preload("res://scripts/demo/ecs/systems/s_resource_regrow_system.gd")
 const C_RESOURCE_NODE_COMPONENT := preload("res://scripts/demo/ecs/components/c_resource_node_component.gd")
-const RS_RESOURCE_NODE_SETTINGS := preload("res://scripts/resources/ai/world/rs_resource_node_settings.gd")
+const RS_RESOURCE_NODE_SETTINGS := preload("res://scripts/demo/resources/ai/world/rs_resource_node_settings.gd")
 
 func _pump() -> void:
 	await get_tree().process_frame
