@@ -36,7 +36,7 @@ Source: `AGENTS.md` (~1 460 lines, 19 top-level sections)
 | 9 | Conventions and Gotchas | 454–518 | 65 | merge | `docs/guides/ARCHITECTURE.md` (New) | — |
 | 10 | Localization Manager Patterns | 519–557 | 39 | merge | `docs/systems/localization_manager/localization-manager-overview.md` (Existing) | — |
 | 11 | Time Manager Patterns | 558–588 | 31 | merge | `docs/systems/time_manager/time-manager-overview.md` (Existing) | — |
-| 12 | Scene Manager Patterns | 589–710 | 122 | merge | `docs/systems/scene_manager/scene-manager-overview.md` (New) | — |
+| 12 | Scene Manager Patterns | 589–710 | 122 | merge | `docs/systems/scene_manager/scene-manager-overview.md` (New) | Complete in P3.3 Commit 11 |
 | 13 | UI Manager Patterns | 711–838 | 128 | merge | `docs/systems/ui_manager/ui-manager-overview.md` (New) | Complete in P3.3 Commit 9 |
 | 14 | Save Manager Patterns | 839–1 032 | 194 | merge | `docs/systems/save_manager/save-manager-overview.md` (Existing) | — |
 | 15 | Audio Manager Patterns | 1 033–1 221 | 189 | merge | `docs/systems/audio_manager/AUDIO_MANAGER_GUIDE.md` (Existing) | — |
@@ -81,14 +81,14 @@ Source: `docs/guides/DEV_PITFALLS.md` (~1 703 lines, 40+ sections)
 | 24 | Save Manager Pitfalls | 507–563 | 57 | merge | `docs/systems/save_manager/save-manager-overview.md` (Existing) | — |
 | 25 | VFX Gating Pitfalls | 564–572 | 9 | merge | `docs/systems/vfx_manager/vfx-manager-overview.md` (Existing) | — |
 | 26 | Dependency Lookup Rule | 573–587 | 15 | merge | `docs/guides/ARCHITECTURE.md` (New) | — |
-| 27 | Scene Transition Pitfalls | 588–604 | 17 | merge | `docs/systems/scene_manager/scene-manager-overview.md` (New) | — |
+| 27 | Scene Transition Pitfalls | 588–604 | 17 | merge | `docs/systems/scene_manager/scene-manager-overview.md` (New) | Complete in P3.3 Commit 11 |
 | 28 | GDScript Language Pitfalls | 605–676 | 72 | move | `docs/guides/pitfalls/GDSCRIPT_4_6.md` (New) | — |
 | 29 | ECS System Pitfalls | 677–682 | 6 | move | `docs/guides/pitfalls/ECS.md` (New) | — |
 | 30 | State Store Integration Pitfalls | 683–697 | 15 | move | `docs/guides/pitfalls/STATE.md` (New) | — |
 | 31 | GUT Testing Pitfalls | 698–797 | 100 | move | `docs/guides/pitfalls/TESTING.md` (New) | Complete in P3.3 Commit 6 |
 | 32 | Headless Test Pitfalls | 798–801 | 4 | move | `docs/guides/pitfalls/TESTING.md` (New) | Complete in P3.3 Commit 6 |
 | 33 | Documentation and Planning Pitfalls | 802–816 | 15 | drop | Content fully covered by AGENTS.md "Start Here" workflow rules and CLAUDE.md | — |
-| 34 | Scene Manager Pitfalls (Phase 2+) incl. Phase 10 sub-section | 817–1 036 | 220 | merge | `docs/systems/scene_manager/scene-manager-overview.md` (New) | — |
+| 34 | Scene Manager Pitfalls (Phase 2+) incl. Phase 10 sub-section | 817–1 036 | 220 | merge | `docs/systems/scene_manager/scene-manager-overview.md` (New) | Complete in P3.3 Commit 11 |
 | 35 | Input System Pitfalls | 1 037–1 085 | 49 | merge | `docs/systems/input_manager/input-manager-overview.md` (New) | — |
 | 36 | vCam Integration Pitfalls | 1 086–1 116 | 31 | move | `docs/systems/vcam_manager/vcam-pitfalls.md` (New) | Complete in P3.3 Commit 7 |
 | 37 | UI Manager / Input Manager Boundary | 1 117–1 277 | 161 | move | `docs/systems/ui_manager/ui-pitfalls.md` (New) | Complete in P3.3 Commit 10 |
