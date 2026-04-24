@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="RS_UIMotionPreset" format=3 uid="uid://c5ntn6xp11md1"]
 
-[ext_resource type="Script" uid="uid://bywbkktihcmqf" path="res://scripts/resources/ui/rs_ui_motion_preset.gd" id="1_motion_preset"]
+[ext_resource type="Script" uid="uid://b5a8sejif7dwj" path="res://scripts/resources/ui/rs_ui_motion_preset.gd" id="1_motion_preset"]
 
 [resource]
 script = ExtResource("1_motion_preset")

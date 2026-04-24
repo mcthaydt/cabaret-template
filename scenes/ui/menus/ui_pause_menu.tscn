@@ -1,9 +1,9 @@
 [gd_scene format=3 uid="uid://bvgn7w8x2k3hy"]
 
-[ext_resource type="Script" uid="uid://db8augq3w5iis" path="res://scripts/ui/menus/ui_pause_menu.gd" id="1_pause_menu_script"]
+[ext_resource type="Script" uid="uid://5heebqo3s7yf" path="res://scripts/ui/menus/ui_pause_menu.gd" id="1_pause_menu_script"]
 [ext_resource type="Resource" uid="uid://b72010a71rlh7" path="res://resources/ui/motions/cfg_motion_fade_slide.tres" id="2_motion_set"]
-[ext_resource type="Script" uid="uid://cqmehd04ipxyj" path="res://scripts/ui/helpers/u_localization_root.gd" id="localization_root"]
-[ext_resource type="Script" uid="uid://c83wafdxdso8p" path="res://scripts/ui/helpers/u_ui_scale_root.gd" id="ui_scale_root"]
+[ext_resource type="Script" uid="uid://cvi7rh32jhp6d" path="res://scripts/ui/helpers/u_localization_root.gd" id="localization_root"]
+[ext_resource type="Script" uid="uid://dfg7i5kfpjwg1" path="res://scripts/ui/helpers/u_ui_scale_root.gd" id="ui_scale_root"]
 
 [node name="PauseMenu" type="Control" unique_id=1662645066]
 process_mode = 3

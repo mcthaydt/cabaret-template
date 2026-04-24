@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://bbq72nhhlq7bc"]
 
-[ext_resource type="Script" uid="uid://detd2l75ews08" path="res://scripts/ui/hud/ui_mobile_controls.gd" id="1"]
-[ext_resource type="Script" uid="uid://cqmehd04ipxyj" path="res://scripts/ui/helpers/u_localization_root.gd" id="localization_root"]
-[ext_resource type="Script" uid="uid://c83wafdxdso8p" path="res://scripts/ui/helpers/u_ui_scale_root.gd" id="ui_scale_root"]
+[ext_resource type="Script" uid="uid://dx26075digr7f" path="res://scripts/ui/hud/ui_mobile_controls.gd" id="1"]
+[ext_resource type="Script" uid="uid://cvi7rh32jhp6d" path="res://scripts/ui/helpers/u_localization_root.gd" id="localization_root"]
+[ext_resource type="Script" uid="uid://dfg7i5kfpjwg1" path="res://scripts/ui/helpers/u_ui_scale_root.gd" id="ui_scale_root"]
 
 [node name="MobileControls" type="CanvasLayer" unique_id=1745358577]
 process_mode = 3

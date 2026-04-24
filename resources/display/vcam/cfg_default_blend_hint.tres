@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="RS_VCamBlendHint" format=3 uid="uid://bt6j3uwuawu6k"]
 
-[ext_resource type="Script" uid="uid://j5cv5b54s2f2" path="res://scripts/resources/display/vcam/rs_vcam_blend_hint.gd" id="1_fvev0"]
+[ext_resource type="Script" uid="uid://dr4q1p55wg3xn" path="res://scripts/resources/display/vcam/rs_vcam_blend_hint.gd" id="1_fvev0"]
 
 [resource]
 script = ExtResource("1_fvev0")

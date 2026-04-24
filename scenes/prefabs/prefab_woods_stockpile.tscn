@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://8ktr2mhk2d3x"]
 
-[ext_resource type="Script" uid="uid://cjbonelk4ugtf" path="res://scripts/ecs/components/c_inventory_component.gd" id="1_inventory"]
+[ext_resource type="Script" uid="uid://qrl8xlxp2hue" path="res://scripts/ecs/components/c_inventory_component.gd" id="1_inventory"]
 [ext_resource type="Resource" uid="uid://8igrwp730iko" path="res://resources/base_settings/ai_woods/cfg_inventory_stockpile.tres" id="2_stockpile_settings"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_stockpile"]

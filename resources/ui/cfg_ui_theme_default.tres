@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="RS_UIThemeConfig" format=3 uid="uid://cprpow5sc3rj4"]
 
-[ext_resource type="Script" uid="uid://dodn7h0orxo37" path="res://scripts/resources/ui/rs_ui_theme_config.gd" id="1_ui_theme_config"]
+[ext_resource type="Script" uid="uid://cwax1m7omyybw" path="res://scripts/resources/ui/rs_ui_theme_config.gd" id="1_ui_theme_config"]
 
 [resource]
 script = ExtResource("1_ui_theme_config")

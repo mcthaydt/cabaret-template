@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://bbw7r0gg2jdbf" path="res://scripts/resources/qb/conditions/rs_condition_redux_field.gd" id="1_t5nab"]
 [ext_resource type="Script" uid="uid://y3hog88by51c" path="res://scripts/resources/qb/effects/rs_effect_set_context_value.gd" id="2_8xliq"]
 [ext_resource type="Script" uid="uid://dhp1tdn8axoos" path="res://scripts/interfaces/i_effect.gd" id="3_5nkae"]
-[ext_resource type="Script" uid="uid://c8xlq1ey2pepv" path="res://scripts/resources/qb/rs_rule.gd" id="3_pugwh"]
+[ext_resource type="Script" uid="uid://bj3ax75uhg755" path="res://scripts/resources/qb/rs_rule.gd" id="3_pugwh"]
 
 [sub_resource type="Resource" id="Resource_5nkae"]
 script = ExtResource("1_t5nab")

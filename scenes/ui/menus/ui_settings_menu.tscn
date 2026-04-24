@@ -1,9 +1,9 @@
 [gd_scene format=3 uid="uid://ddn5pq0hy1ou6"]
 
-[ext_resource type="Script" uid="uid://dnt7vw1x370bc" path="res://scripts/ui/menus/ui_settings_menu.gd" id="1_settings_menu_script"]
+[ext_resource type="Script" uid="uid://b6uyi5q6xe4kd" path="res://scripts/ui/menus/ui_settings_menu.gd" id="1_settings_menu_script"]
 [ext_resource type="Resource" uid="uid://b72010a71rlh7" path="res://resources/ui/motions/cfg_motion_fade_slide.tres" id="2_motion_set"]
-[ext_resource type="Script" uid="uid://cqmehd04ipxyj" path="res://scripts/ui/helpers/u_localization_root.gd" id="localization_root"]
-[ext_resource type="Script" uid="uid://c83wafdxdso8p" path="res://scripts/ui/helpers/u_ui_scale_root.gd" id="ui_scale_root"]
+[ext_resource type="Script" uid="uid://cvi7rh32jhp6d" path="res://scripts/ui/helpers/u_localization_root.gd" id="localization_root"]
+[ext_resource type="Script" uid="uid://dfg7i5kfpjwg1" path="res://scripts/ui/helpers/u_ui_scale_root.gd" id="ui_scale_root"]
 
 [node name="SettingsMenu" type="Control" unique_id=327220458]
 layout_mode = 3

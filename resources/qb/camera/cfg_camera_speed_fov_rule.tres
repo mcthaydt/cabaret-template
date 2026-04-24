@@ -2,9 +2,9 @@
 
 [ext_resource type="Script" uid="uid://d3ig84jkjjkpv" path="res://scripts/resources/qb/conditions/rs_condition_component_field.gd" id="1_65x2n"]
 [ext_resource type="Script" uid="uid://c3bnu5ue4okdf" path="res://scripts/interfaces/i_condition.gd" id="1_xajrh"]
-[ext_resource type="Script" uid="uid://baf360oqwp7v5" path="res://scripts/resources/qb/effects/rs_effect_set_field.gd" id="2_j3wwh"]
+[ext_resource type="Script" uid="uid://dos132ufjpwdl" path="res://scripts/resources/qb/effects/rs_effect_set_field.gd" id="2_j3wwh"]
 [ext_resource type="Script" uid="uid://dhp1tdn8axoos" path="res://scripts/interfaces/i_effect.gd" id="3_30sre"]
-[ext_resource type="Script" uid="uid://c8xlq1ey2pepv" path="res://scripts/resources/qb/rs_rule.gd" id="3_iw607"]
+[ext_resource type="Script" uid="uid://bj3ax75uhg755" path="res://scripts/resources/qb/rs_rule.gd" id="3_iw607"]
 
 [sub_resource type="Resource" id="Resource_q4qj4"]
 script = ExtResource("1_65x2n")

@@ -1,8 +1,8 @@
 [gd_resource type="Resource" script_class="RS_ObjectiveDefinition" format=3 uid="uid://b2tqdtxcmwnyj"]
 
 [ext_resource type="Script" uid="uid://c01hdmwtkd014" path="res://scripts/resources/qb/conditions/rs_condition_event_payload.gd" id="1_event_payload"]
-[ext_resource type="Script" uid="uid://d1pyjxgvw256f" path="res://scripts/resources/scene_director/rs_objective_definition.gd" id="2_8mdsu"]
-[ext_resource type="Script" uid="uid://b0lcjld33hohy" path="res://scripts/resources/qb/effects/rs_effect_dispatch_action.gd" id="3_dispatch_action"]
+[ext_resource type="Script" uid="uid://bc1wlj6bjtqwx" path="res://scripts/resources/scene_director/rs_objective_definition.gd" id="2_8mdsu"]
+[ext_resource type="Script" uid="uid://dujqn0eogmhvl" path="res://scripts/resources/qb/effects/rs_effect_dispatch_action.gd" id="3_dispatch_action"]
 [ext_resource type="Script" uid="uid://c3bnu5ue4okdf" path="res://scripts/interfaces/i_condition.gd" id="4_icond"]
 [ext_resource type="Script" uid="uid://dhp1tdn8axoos" path="res://scripts/interfaces/i_effect.gd" id="5_ieffect"]
 

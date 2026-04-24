@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://br4tmv5mjampv"]
 
-[ext_resource type="Script" uid="uid://drlgrcjveyq6e" path="res://scripts/ecs/components/c_build_site_component.gd" id="1_build_site"]
+[ext_resource type="Script" uid="uid://bhcp120i1yahk" path="res://scripts/ecs/components/c_build_site_component.gd" id="1_build_site"]
 [ext_resource type="Resource" uid="uid://cxqfekpsxhav1" path="res://resources/base_settings/ai_woods/cfg_build_site_house.tres" id="2_build_settings"]
 [ext_resource type="PackedScene" uid="uid://bhrug6ke0o5xa" path="res://scenes/debug/debug_woods_build_site_label.tscn" id="3_debug_label"]
 

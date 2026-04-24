@@ -1,8 +1,8 @@
 [gd_resource type="Resource" script_class="RS_Rule" format=3 uid="uid://bp17itpxgt63y"]
 
-[ext_resource type="Script" uid="uid://cgk1j4fpq4c8" path="res://scripts/resources/qb/effects/rs_effect_publish_event.gd" id="1_8r2r6"]
+[ext_resource type="Script" uid="uid://crt7h26t5gi6l" path="res://scripts/resources/qb/effects/rs_effect_publish_event.gd" id="1_8r2r6"]
 [ext_resource type="Script" uid="uid://c3bnu5ue4okdf" path="res://scripts/interfaces/i_condition.gd" id="1_w8lhg"]
-[ext_resource type="Script" uid="uid://c8xlq1ey2pepv" path="res://scripts/resources/qb/rs_rule.gd" id="2_j3wtx"]
+[ext_resource type="Script" uid="uid://bj3ax75uhg755" path="res://scripts/resources/qb/rs_rule.gd" id="2_j3wtx"]
 [ext_resource type="Script" uid="uid://dhp1tdn8axoos" path="res://scripts/interfaces/i_effect.gd" id="3_fj70h"]
 [ext_resource type="Script" uid="uid://bkrf6emw8eq0d" path="res://scripts/resources/qb/conditions/rs_condition_event_name.gd" id="3_rm11j"]
 

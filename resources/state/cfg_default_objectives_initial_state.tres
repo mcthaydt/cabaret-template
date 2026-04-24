@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="RS_ObjectivesInitialState" format=3 uid="uid://xn3e3t3x7lad"]
 
-[ext_resource type="Script" uid="uid://b8q83d6hk820m" path="res://scripts/resources/state/rs_objectives_initial_state.gd" id="1_objectives_state"]
+[ext_resource type="Script" uid="uid://ciosg7rsgstm" path="res://scripts/resources/state/rs_objectives_initial_state.gd" id="1_objectives_state"]
 
 [resource]
 script = ExtResource("1_objectives_state")
