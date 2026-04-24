@@ -834,6 +834,10 @@ Root `AGENTS.md` stays at repo root as the thin routing entry point.
   - Migrated character lighting resource, blend math, zone controller, material applier, manager runtime, scene authoring, and pitfall guidance into the dedicated lighting manager overview.
   - Replaced migrated `AGENTS.md` and `DEV_PITFALLS.md` sections with routing pointers.
   - Verification: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passed (`83/83`).
+- [x] **Commit 9** — `docs/systems/ui_manager/ui-manager-overview.md` (AGENTS §7b, §7c, §13).
+  - Migrated UI navigation state/action, registry, base class, theme pipeline, motion pipeline, and settings-panel guidance into the dedicated UI manager overview.
+  - Replaced migrated `AGENTS.md` sections with routing pointers.
+  - Verification: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passed (`83/83`).
 - [ ] **Remaining commits** — Continue section-by-section per inventory plan. One commit per destination file where practical. Update cross-references.
 - [ ] **Final AGENTS commit** — Shrink `AGENTS.md` to a routing index (~100 lines target, 150 hard cap — matches P3 Verification).
 - [ ] **Final pitfalls commit** — Delete `DEV_PITFALLS.md` once contents fully redistributed.

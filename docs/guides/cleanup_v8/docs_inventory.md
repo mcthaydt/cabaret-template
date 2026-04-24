@@ -28,8 +28,8 @@ Source: `AGENTS.md` (~1 460 lines, 19 top-level sections)
 | 6f | ECS Guidelines — testing with DI | 250–265 | 16 | merge | `docs/guides/pitfalls/TESTING.md` (New) | Complete in P3.3 Commit 6 |
 | 6g | ECS Guidelines — manager / entities | 266–279 | 14 | move | `docs/systems/ecs/ecs_architecture.md` (Existing) | — |
 | 7 | Scene Organization — root/gameplay scene patterns | 280–304 | 25 | merge | `docs/guides/SCENE_ORGANIZATION_GUIDE.md` (Existing) | — |
-| 7b | Scene Organization — UI Theme Pipeline | 305–320 | 16 | merge | `docs/systems/ui_manager/ui-manager-overview.md` (New) | — |
-| 7c | Scene Organization — UI Motion Pipeline | 321–344 | 24 | merge | `docs/systems/ui_manager/ui-manager-overview.md` (New) | — |
+| 7b | Scene Organization — UI Theme Pipeline | 305–320 | 16 | merge | `docs/systems/ui_manager/ui-manager-overview.md` (New) | Complete in P3.3 Commit 9 |
+| 7c | Scene Organization — UI Motion Pipeline | 321–344 | 24 | merge | `docs/systems/ui_manager/ui-manager-overview.md` (New) | Complete in P3.3 Commit 9 |
 | 7d | Scene Organization — Interactable Controllers | 345–362 | 18 | merge | `docs/guides/SCENE_ORGANIZATION_GUIDE.md` (Existing) | — |
 | 7e | Scene Organization — Character Lighting | 363–403 | 41 | merge | `docs/systems/lighting_manager/lighting-manager-overview.md` (New) | Complete in P3.3 Commit 8 |
 | 8 | Naming Conventions Quick Reference | 404–452 | 49 | merge | `docs/guides/STYLE_GUIDE.md` (Existing) | — |
@@ -37,7 +37,7 @@ Source: `AGENTS.md` (~1 460 lines, 19 top-level sections)
 | 10 | Localization Manager Patterns | 519–557 | 39 | merge | `docs/systems/localization_manager/localization-manager-overview.md` (Existing) | — |
 | 11 | Time Manager Patterns | 558–588 | 31 | merge | `docs/systems/time_manager/time-manager-overview.md` (Existing) | — |
 | 12 | Scene Manager Patterns | 589–710 | 122 | merge | `docs/systems/scene_manager/scene-manager-overview.md` (New) | — |
-| 13 | UI Manager Patterns | 711–838 | 128 | merge | `docs/systems/ui_manager/ui-manager-overview.md` (New) | — |
+| 13 | UI Manager Patterns | 711–838 | 128 | merge | `docs/systems/ui_manager/ui-manager-overview.md` (New) | Complete in P3.3 Commit 9 |
 | 14 | Save Manager Patterns | 839–1 032 | 194 | merge | `docs/systems/save_manager/save-manager-overview.md` (Existing) | — |
 | 15 | Audio Manager Patterns | 1 033–1 221 | 189 | merge | `docs/systems/audio_manager/AUDIO_MANAGER_GUIDE.md` (Existing) | — |
 | 16 | Display Manager Patterns | 1 222–1 415 | 194 | merge | `docs/systems/display_manager/display-manager-overview.md` (Existing) | — |
