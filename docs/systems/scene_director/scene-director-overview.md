@@ -23,6 +23,24 @@ Three systems, using v2 QB typed resources for condition/effect evaluation:
 
 3. **Scene Manager refactor** -- Strip victory/game-flow logic from `M_SceneManager`, making it a pure scene loader/transition coordinator. Victory transitions become objective-driven via `M_ObjectivesManager` publishing events that `M_SceneManager` subscribes to.
 
+## Current Runtime Contracts
+
+- `M_ObjectivesManager` is event-driven, not tick-driven. It evaluates active objectives only when subscribed milestone events or relevant gameplay actions fire.
+- Conditions execute with `condition.evaluate(context)` and pass when score is greater than `0.0`. Effects execute with `effect.execute(context)` after objective completion.
+- Objective context is `{"state_store": _store, "redux_state": _store.get_state()}` plus optional `"event_payload"` for event-driven checks.
+- Objective status transitions dispatch through `U_ObjectivesActions`; event log entries dispatch through `U_ObjectiveEventLog.create_entry(...)`.
+- Dependents activate only when `U_ObjectiveGraph.get_ready_dependents(...)` reports all prerequisites completed.
+- Victory objectives dispatch `U_GameplayActions.trigger_victory_routing(...)` through Redux. `M_SceneManager` reacts to `ACTION_TRIGGER_VICTORY_ROUTING`; legacy ECS-bus victory routing is removed.
+- Endgame Continue dispatches `U_RunActions.reset_run(&"retry")`. `M_RunCoordinatorManager` owns reset ordering: gameplay progress reset, interaction unblock, objectives reset, then navigation retry.
+- Reset-path service lookups type-cast to `I_ObjectivesManager`; do not add duck-typing guards around `reset_for_new_run`.
+- Scene-director beats may publish `signpost_message` events with localization-key payloads for HUD/mobile signpost consumers.
+- `RS_BeatDefinition` supports `next_beat_id`, `next_beat_id_on_failure`, `parallel_beat_ids`, and `parallel_join_beat_id`. Validate beat arrays with `U_BeatGraph.validate(...)` before runner start.
+- Parallel beat support is single-hop fork/join. Lane beats must not define their own `parallel_beat_ids`.
+
+## Pitfalls
+
+- `gameplay/reset_progress` is not an objectives reset. Retry/Continue flows must route through `run/reset` so objectives are rebuilt and root objectives re-arm.
+
 ---
 
 ## Core Concepts
