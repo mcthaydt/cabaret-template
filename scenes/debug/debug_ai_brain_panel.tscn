@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://dpcaa0ldjb3n0"]
 
-[ext_resource type="Script" uid="uid://bjayrurmdgy6s" path="res://scripts/demo/debug/debug_ai_brain_panel.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://dcaiewbe5rteq" path="res://scripts/demo/debug/debug_ai_brain_panel.gd" id="1_script"]
 
 [node name="DebugAIBrainPanel" type="Control" unique_id=1957488385]
 layout_mode = 3

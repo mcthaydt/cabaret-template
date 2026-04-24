@@ -8,7 +8,7 @@
 [ext_resource type="Script" uid="uid://d2g2cuucagm84" path="res://scripts/core/resources/ai/bt/rs_bt_action.gd" id="6_bt_action"]
 [ext_resource type="Script" uid="uid://7f34nsha3emc" path="res://scripts/core/resources/ai/actions/rs_ai_action_flee_from_detected.gd" id="7_action_flee_detected"]
 [ext_resource type="Script" uid="uid://cxpr5abl5uj1l" path="res://scripts/core/resources/ai/actions/rs_ai_action_wait.gd" id="8_action_wait"]
-[ext_resource type="Script" uid="uid://bbhhmjoagtyx3" path="res://scripts/demo/resources/ai/actions/rs_ai_action_feed.gd" id="9_action_feed"]
+[ext_resource type="Script" uid="uid://c253rsimi5566" path="res://scripts/demo/resources/ai/actions/rs_ai_action_feed.gd" id="9_action_feed"]
 [ext_resource type="Script" uid="uid://djr6lb4lv2cxv" path="res://scripts/core/resources/ai/actions/rs_ai_action_wander.gd" id="10_action_wander"]
 [ext_resource type="Script" uid="uid://n0lsv2efoykg" path="res://scripts/core/resources/bt/rs_bt_node.gd" id="11_bt_node"]
 [ext_resource type="Script" uid="uid://ckmnsfbxfbeen" path="res://scripts/core/resources/ai/bt/scorers/rs_ai_scorer_condition.gd" id="12_ai_scorer_condition"]

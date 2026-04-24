@@ -1,14 +1,3 @@
-[gd_resource type="Resource" script_class="RS_CharacterLightZoneConfig" format=3 uid="uid://5wk0u8qgkwo1"]
-
-[ext_resource type="Script" uid="uid://bxw2e402ui2f8" path="res://scripts/demo/resources/demo/lighting/rs_character_light_zone_config.gd" id="1"]
-[ext_resource type="Resource" uid="uid://ywrvvja85gkp" path="res://resources/demo/lighting/profiles/cfg_character_lighting_profile_bar_warm.tres" id="2"]
+[gd_resource type="Resource" format=3 uid="uid://5wk0u8qgkwo1"]
 
 [resource]
-script = ExtResource("1")
-shape_type = 1
-zone_id = &"bar_warm"
-cylinder_radius = 6.6
-cylinder_height = 7.0
-falloff = 0.78
-priority = 11
-profile = ExtResource("2")

@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://ulajqu65rdw6"]
 
-[ext_resource type="Script" uid="uid://c4phri2epmcxw" path="res://scripts/demo/debug/debug_woods_agent_label.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://bv6fnfy3g4vcq" path="res://scripts/demo/debug/debug_woods_agent_label.gd" id="1_script"]
 
 [node name="DebugWoodsAgentLabel" type="Label3D" unique_id=1712617365]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 0)

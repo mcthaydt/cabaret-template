@@ -55,8 +55,8 @@
 [ext_resource type="Script" uid="uid://c1vg0nn41f77u" path="res://scripts/core/scene_management/sp_spawn_point.gd" id="50_spawn_point"]
 [ext_resource type="Resource" uid="uid://d3fqw081d4sgl" path="res://resources/spawn_metadata/cfg_sp_base.tres" id="51_base_spawn_meta"]
 [ext_resource type="Script" uid="uid://cas8xr0c0ly7b" path="res://scripts/core/ecs/systems/s_vcam_system.gd" id="52_vcam_system"]
-[ext_resource type="Script" uid="uid://cxemqvnjcd4qm" path="res://scripts/demo/ecs/systems/s_ai_behavior_system.gd" id="53_ai_behavior_system"]
-[ext_resource type="Script" uid="uid://ce63ayt3nfe71" path="res://scripts/demo/ecs/systems/s_move_target_follower_system.gd" id="54_move_target_follower_system"]
+[ext_resource type="Script" uid="uid://dtssad2lt1l7e" path="res://scripts/demo/ecs/systems/s_ai_behavior_system.gd" id="53_ai_behavior_system"]
+[ext_resource type="Script" uid="uid://dwarsnlm0slqa" path="res://scripts/demo/ecs/systems/s_move_target_follower_system.gd" id="54_move_target_follower_system"]
 [ext_resource type="Script" uid="uid://b2huwk7mlhlvv" path="res://scripts/core/ecs/systems/s_spawn_recovery_system.gd" id="67_ai_spawn_recovery_system"]
 [ext_resource type="Resource" uid="uid://dudc2c1cvyyb5" path="res://resources/base_settings/gameplay/cfg_camera_state_config_default.tres" id="68_camera_state_config"]
 
