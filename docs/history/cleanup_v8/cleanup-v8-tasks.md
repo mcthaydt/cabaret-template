@@ -1,9 +1,9 @@
 # Cross-System Cleanup V8 — Tasks Checklist
 
 **Branch**: `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch. Subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred. Matches continuation prompt.
-**Status**: Phase 1 complete — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 complete (`26289494`, `fffa2e55`, `7de2a6cf`, `c1d7b0fb`, `a2766455`, `2aacb999` + remediation `91c094c0`..`e416469c`); P1.9b complete (`348802ca`, `b2c67185`, `7a96c4b0`, `d2644cf3`, `0bb07870`, `085c428d`, `73a66510`, `cd2afbcf`, `94d4b7c6` + 2026-04-22 verification follow-through); P1.10 BT-only legacy cleanup complete (`43035ad6`, `6a30f13c` + 2026-04-23 docs hygiene follow-through). Phase 2 complete through P2.4 (`28702b95`) with style recheck passing (`83/83`). Phase 3 complete as of 2026-04-23: P3.0–P3.4 + P3.6 landed, and the P3.5 framework deliverable (dir + `README.md` + `TEMPLATE.md` + `test_extension_recipe_structure`) shipped; the 18 individual extension recipes still ship at the tail of their owning phase (Phases 1/4/5), so overall P3 Verification closes only once those recipe commits land. Style recheck now `86/86` after `test_adr_structure` + `test_extension_recipe_structure` were added. Phase 4: P4.1–P4.2 complete; P4.3 complete (`0dba3719`..`ed8e5de0` — all scripts moved to scripts/core/ or scripts/demo/, core→demo import violations eliminated, stale dirs removed, full suite 4587/4595 green); P4.4 enforcement test already in style suite (`test_core_scripts_never_import_from_demo` 87/87). P4 Verification open only on delete-demo build test.
+**Status**: Phase 1 complete — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 complete (`26289494`, `fffa2e55`, `7de2a6cf`, `c1d7b0fb`, `a2766455`, `2aacb999` + remediation `91c094c0`..`e416469c`); P1.9b complete (`348802ca`, `b2c67185`, `7a96c4b0`, `d2644cf3`, `0bb07870`, `085c428d`, `73a66510`, `cd2afbcf`, `94d4b7c6` + 2026-04-22 verification follow-through); P1.10 BT-only legacy cleanup complete (`43035ad6`, `6a30f13c` + 2026-04-23 docs hygiene follow-through). Phase 2 complete through P2.4 (`28702b95`) with style recheck passing (`83/83`). Phase 3 complete as of 2026-04-23: P3.0–P3.4 + P3.6 landed, and the P3.5 framework deliverable (dir + `README.md` + `TEMPLATE.md` + `test_extension_recipe_structure`) shipped; the 18 individual extension recipes still ship at the tail of their owning phase (Phases 1/4/5), so overall P3 Verification closes only once those recipe commits land. Style recheck now `86/86` after `test_adr_structure` + `test_extension_recipe_structure` were added. Phase 4: P4.1–P4.2 complete; P4.3 complete (`0dba3719`..`ed8e5de0` — all scripts moved to scripts/core/ or scripts/demo/, core→demo import violations eliminated, stale dirs removed, full suite 4587/4595 green); P4.4 enforcement test already in style suite (`test_core_scripts_never_import_from_demo` 87/87). P4 Verification complete — all three checks green (2026-04-24).
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred.
-**Scope**: Five independent phases. Phase 1 is the largest (AI rewrite) and must complete before Phases 2–5, because Phases 4–5 depend on a stable AI architecture to decide what is "core template" vs "demo content."
+**Scope**: Six phases. Phase 1 is the largest (AI rewrite) and must complete before Phases 2–5, because Phases 4–5 depend on a stable AI architecture to decide what is "core template" vs "demo content." Phase 6 (fluent builders) can proceed after Phase 4 completes.
 
 **Relationship to cleanup-v7.2**: This is a successor plan, not a replacement. V7.2 addressed architectural weaknesses inside existing systems. V8 addresses structural/organizational debt surfaced while working on the AI forest: the planner stack is overbuilt, debug/perf code is scattered across managers, `AGENTS.md` is sprawling, template-vs-demo content is entangled, and temp scenes are piling up.
 
@@ -11,15 +11,16 @@
 
 ## Purpose
 
-Five unrelated cleanups bundled because they share an outcome: **make the template LLM-friendly, modular, and ship-ready as a reusable base.**
+Six phases bundled because they share an outcome: **make the template LLM-friendly, modular, and ship-ready as a reusable base.**
 
 1. **Phase 1 — AI rewrite.** Replace the GOAP + HTN stack with utility-scored behavior trees. Plan file: `~/.claude/plans/whats-a-better-approach-snoopy-candle.md`. ~940 LOC of planning infrastructure serves behaviors that are, in practice, priority-ordered condition checks → fixed 2–4 step action sequences. No compound task has multiple decomposition methods. Every behavior-add touches 4 layers across two planning vocabularies, which is exactly where LLMs struggle.
 2. **Phase 2 — Debug/perf extraction.** Managers and ECS systems have accumulated in-line debug logging and perf probes (e.g., mobile camera perf probes documented in `DEV_PITFALLS.md`). Consolidate through the existing `U_DebugLogThrottle` / `U_PerfProbe` utilities so production code paths stop carrying inspection logic. `U_PerfProbe` already exists at `scripts/utils/debug/u_perf_probe.gd` and is in use; Phase 2 extends adoption and forbids bare `print()` in managers/systems.
 3. **Phase 3 — Docs split.** `AGENTS.md` has grown into a single mega-doc with overlap against `DEV_PITFALLS.md`. Split by audience and concern so LLMs (and humans) can load just the section they need.
 4. **Phase 4 — Template vs demo separation.** Forest AI (wolf/deer/rabbit), sentry/drone/prism agents, and any demo-only scenes are entangled with core template code under `scripts/` and `resources/`. Reorganize into `template/` (core) and `demo/` (examples) so consumers can delete the demo tree without breaking the template.
 5. **Phase 5 — Base scene reset.** Multiple temp / fake scenes exist under `scenes/`. Define one canonical base scene, migrate the real demo content to it, delete the rest.
+6. **Phase 6 — LLM-first fluent builders.** All configuration is currently authored as `.tres` resource files via Godot's inspector — hostile to LLM co-pilots (multiple turns, hallucinated ExtResource IDs, unreadable git diffs). Introduce GDScript builder APIs for BT trees, scene registry, input profiles, and QB rules. Each builder provides a programmatic alternative that an LLM can write in a single 20-line script. Migrate all existing `.tres` configuration to builder scripts.
 
-Phases 2–5 are independent of each other and can be reordered, but all depend on Phase 1.
+Phases 2–5 are independent of each other and can be reordered, but all depend on Phase 1. Phase 6 depends on Phase 4 (template/demo split).
 
 ---
 
@@ -30,8 +31,9 @@ Phases 2–5 are independent of each other and can be reordered, but all depend 
 - **Phase 3** can run in parallel with Phase 2 (pure docs).
 - **Phase 4** must come after Phase 1 (the AI split is the largest template-vs-demo decision).
 - **Phase 5** should come last — scene cleanup is easier once code is organized.
+- **Phase 6** depends on Phase 4 (builders must respect the core/demo directory split). Can proceed in parallel with Phase 5.
 
-**Cross-milestone integration**: Full test suite after each phase. The Phase 1 → Phase 4 chain is the highest-risk path.
+**Cross-milestone integration**: Full test suite after each phase. The Phase 1 → Phase 4 → Phase 6 chain is the highest-risk path.
 
 ---
 
@@ -1310,7 +1312,7 @@ resources/
 
 **P4 Verification**:
 - [x] Full test suite green after each move commit.
-- [ ] Deleting `scripts/demo/` and `resources/demo/` leaves a building (if non-functional-without-content) template.
+- [x] Deleting `scripts/demo/` and `resources/demo/` leaves a building (if non-functional-without-content) template. (Verified 2026-04-24: zero core script parse errors without demo; only demo scene resource-load failures, which are expected.)
 - [x] Core import boundary enforcement green (87/87 style tests, `test_core_scripts_never_import_from_demo` passing).
 
 ---
