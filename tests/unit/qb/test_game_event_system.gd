@@ -1,6 +1,6 @@
 extends BaseTest
 
-const GAME_EVENT_SYSTEM := preload("res://scripts/ecs/systems/s_game_event_system.gd")
+const GAME_EVENT_SYSTEM := preload("res://scripts/core/ecs/systems/s_game_event_system.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")
 
@@ -15,8 +15,8 @@ const EFFECT_PUBLISH_EVENT := preload("res://scripts/core/resources/qb/effects/r
 const I_CONDITION := preload("res://scripts/core/interfaces/i_condition.gd")
 const I_EFFECT := preload("res://scripts/core/interfaces/i_effect.gd")
 
-const C_CHECKPOINT_COMPONENT := preload("res://scripts/ecs/components/c_checkpoint_component.gd")
-const C_VICTORY_TRIGGER_COMPONENT := preload("res://scripts/ecs/components/c_victory_trigger_component.gd")
+const C_CHECKPOINT_COMPONENT := preload("res://scripts/core/ecs/components/c_checkpoint_component.gd")
+const C_VICTORY_TRIGGER_COMPONENT := preload("res://scripts/core/ecs/components/c_victory_trigger_component.gd")
 
 const EVENT_CUSTOM_RULE_TRIGGER := StringName("custom_rule_trigger")
 const EVENT_CUSTOM_FORWARD_SOURCE := StringName("custom_forward_source")

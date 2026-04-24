@@ -4,9 +4,9 @@ const S_NEEDS_SYSTEM_PATH := "res://scripts/demo/ecs/systems/s_needs_system.gd"
 const C_NEEDS_COMPONENT_PATH := "res://scripts/demo/ecs/components/c_needs_component.gd"
 const RS_NEEDS_SETTINGS_PATH := "res://scripts/core/resources/ecs/rs_needs_settings.gd"
 
-const BASE_ECS_SYSTEM := preload("res://scripts/ecs/base_ecs_system.gd")
-const BASE_ECS_ENTITY := preload("res://scripts/ecs/base_ecs_entity.gd")
-const BASE_ECS_COMPONENT := preload("res://scripts/ecs/base_ecs_component.gd")
+const BASE_ECS_SYSTEM := preload("res://scripts/core/ecs/base_ecs_system.gd")
+const BASE_ECS_ENTITY := preload("res://scripts/core/ecs/base_ecs_entity.gd")
+const BASE_ECS_COMPONENT := preload("res://scripts/core/ecs/base_ecs_component.gd")
 const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")
 
 func _load_required_script(path: String) -> Script:

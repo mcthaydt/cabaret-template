@@ -1,7 +1,7 @@
 extends RefCounted
 class_name U_AIActionPositionResolver
 
-const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
+const C_MOVEMENT_COMPONENT := preload("res://scripts/core/ecs/components/c_movement_component.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 
 static func resolve_actor_position(context: Dictionary) -> Variant:

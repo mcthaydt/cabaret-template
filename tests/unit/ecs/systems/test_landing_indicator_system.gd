@@ -1,10 +1,10 @@
 extends BaseTest
 
 const ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
-const LandingIndicatorComponentScript := preload("res://scripts/ecs/components/c_landing_indicator_component.gd")
-const LandingIndicatorSystemScript := preload("res://scripts/ecs/systems/s_landing_indicator_system.gd")
-const ALIGN_COMPONENT := preload("res://scripts/ecs/components/c_align_with_surface_component.gd")
-const ALIGN_SYSTEM := preload("res://scripts/ecs/systems/s_align_with_surface_system.gd")
+const LandingIndicatorComponentScript := preload("res://scripts/core/ecs/components/c_landing_indicator_component.gd")
+const LandingIndicatorSystemScript := preload("res://scripts/core/ecs/systems/s_landing_indicator_system.gd")
+const ALIGN_COMPONENT := preload("res://scripts/core/ecs/components/c_align_with_surface_component.gd")
+const ALIGN_SYSTEM := preload("res://scripts/core/ecs/systems/s_align_with_surface_system.gd")
 
 class FakeSpaceState extends Object:
 	var has_hit: bool = false

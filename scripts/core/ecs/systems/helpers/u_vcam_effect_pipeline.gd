@@ -1,14 +1,14 @@
 extends RefCounted
 class_name U_VCamEffectPipeline
 
-const U_VCAM_LOOK_INPUT := preload("res://scripts/ecs/systems/helpers/u_vcam_look_input.gd")
-const U_VCAM_ORBIT_EFFECTS := preload("res://scripts/ecs/systems/helpers/u_vcam_orbit_effects.gd")
-const U_VCAM_RESPONSE_SMOOTHER := preload("res://scripts/ecs/systems/helpers/u_vcam_response_smoother.gd")
-const U_VCAM_LANDING_IMPACT := preload("res://scripts/ecs/systems/helpers/u_vcam_landing_impact.gd")
-const U_VCAM_DEBUG := preload("res://scripts/ecs/systems/helpers/u_vcam_debug.gd")
-const U_VCAM_RUNTIME_CONTEXT := preload("res://scripts/ecs/systems/helpers/u_vcam_runtime_context.gd")
-const U_VCAM_RUNTIME_SERVICES := preload("res://scripts/ecs/systems/helpers/u_vcam_runtime_services.gd")
-const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component.gd")
+const U_VCAM_LOOK_INPUT := preload("res://scripts/core/ecs/systems/helpers/u_vcam_look_input.gd")
+const U_VCAM_ORBIT_EFFECTS := preload("res://scripts/core/ecs/systems/helpers/u_vcam_orbit_effects.gd")
+const U_VCAM_RESPONSE_SMOOTHER := preload("res://scripts/core/ecs/systems/helpers/u_vcam_response_smoother.gd")
+const U_VCAM_LANDING_IMPACT := preload("res://scripts/core/ecs/systems/helpers/u_vcam_landing_impact.gd")
+const U_VCAM_DEBUG := preload("res://scripts/core/ecs/systems/helpers/u_vcam_debug.gd")
+const U_VCAM_RUNTIME_CONTEXT := preload("res://scripts/core/ecs/systems/helpers/u_vcam_runtime_context.gd")
+const U_VCAM_RUNTIME_SERVICES := preload("res://scripts/core/ecs/systems/helpers/u_vcam_runtime_services.gd")
+const C_VCAM_COMPONENT := preload("res://scripts/core/ecs/components/c_vcam_component.gd")
 
 const DEFAULT_LOOK_RELEASE_YAW_DAMPING: float = 10.0
 const DEFAULT_LOOK_RELEASE_PITCH_DAMPING: float = 12.0

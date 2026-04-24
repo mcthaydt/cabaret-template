@@ -1,10 +1,10 @@
 extends BaseTest
 
 const ECS_MANAGER = preload("res://scripts/core/managers/m_ecs_manager.gd")
-const JumpComponentScript = preload("res://scripts/ecs/components/c_jump_component.gd")
-const InputComponentScript = preload("res://scripts/ecs/components/c_input_component.gd")
-const JumpSystemScript = preload("res://scripts/ecs/systems/s_jump_system.gd")
-const FloatingComponentScript = preload("res://scripts/ecs/components/c_floating_component.gd")
+const JumpComponentScript = preload("res://scripts/core/ecs/components/c_jump_component.gd")
+const InputComponentScript = preload("res://scripts/core/ecs/components/c_input_component.gd")
+const JumpSystemScript = preload("res://scripts/core/ecs/systems/s_jump_system.gd")
+const FloatingComponentScript = preload("res://scripts/core/ecs/components/c_floating_component.gd")
 const EventBus := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
 const ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 

@@ -1,6 +1,6 @@
 extends BaseTest
 
-const VICTORY_HANDLER_SYSTEM := preload("res://scripts/ecs/systems/s_victory_handler_system.gd")
+const VICTORY_HANDLER_SYSTEM := preload("res://scripts/core/ecs/systems/s_victory_handler_system.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")
 

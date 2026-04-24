@@ -23,11 +23,11 @@ const U_INPUT_ACTIONS := preload("res://scripts/core/state/actions/u_input_actio
 const U_ECS_EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
 
 const M_ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
-const S_VCAM_SYSTEM := preload("res://scripts/ecs/systems/s_vcam_system.gd")
+const S_VCAM_SYSTEM := preload("res://scripts/core/ecs/systems/s_vcam_system.gd")
 const M_VCAM_MANAGER := preload("res://scripts/core/managers/m_vcam_manager.gd")
 const MOCK_CAMERA_MANAGER := preload("res://tests/mocks/mock_camera_manager.gd")
-const BASE_ECS_ENTITY := preload("res://scripts/ecs/base_ecs_entity.gd")
-const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component.gd")
+const BASE_ECS_ENTITY := preload("res://scripts/core/ecs/base_ecs_entity.gd")
+const C_VCAM_COMPONENT := preload("res://scripts/core/ecs/components/c_vcam_component.gd")
 const RS_VCAM_MODE_ORBIT := preload("res://scripts/core/resources/display/vcam/rs_vcam_mode_orbit.gd")
 const RS_VCAM_BLEND_HINT := preload("res://scripts/core/resources/display/vcam/rs_vcam_blend_hint.gd")
 

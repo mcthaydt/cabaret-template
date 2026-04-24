@@ -2,7 +2,7 @@
 extends "res://scripts/core/resources/interactions/rs_interaction_config.gd"
 class_name RS_DoorInteractionConfig
 
-const C_SCENE_TRIGGER_COMPONENT := preload("res://scripts/ecs/components/c_scene_trigger_component.gd")
+const C_SCENE_TRIGGER_COMPONENT := preload("res://scripts/core/ecs/components/c_scene_trigger_component.gd")
 
 @export var door_id: StringName = StringName("")
 @export var target_scene_id: StringName = StringName("")

@@ -1,7 +1,7 @@
 extends BaseTest
 
-const C_ROOM_FADE_GROUP_COMPONENT := preload("res://scripts/ecs/components/c_room_fade_group_component.gd")
-const BASE_ECS_COMPONENT := preload("res://scripts/ecs/base_ecs_component.gd")
+const C_ROOM_FADE_GROUP_COMPONENT := preload("res://scripts/core/ecs/components/c_room_fade_group_component.gd")
+const BASE_ECS_COMPONENT := preload("res://scripts/core/ecs/base_ecs_component.gd")
 const RS_ROOM_FADE_SETTINGS := preload("res://scripts/core/resources/display/vcam/rs_room_fade_settings.gd")
 
 func test_group_tag_export_exists_with_empty_default() -> void:

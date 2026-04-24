@@ -2,11 +2,11 @@ extends BaseTest
 
 const ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
-const CHARACTER_STATE_SYSTEM := preload("res://scripts/ecs/systems/s_character_state_system.gd")
-const MOVEMENT_SYSTEM := preload("res://scripts/ecs/systems/s_movement_system.gd")
-const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/ecs/components/c_character_state_component.gd")
-const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
-const C_INPUT_COMPONENT := preload("res://scripts/ecs/components/c_input_component.gd")
+const CHARACTER_STATE_SYSTEM := preload("res://scripts/core/ecs/systems/s_character_state_system.gd")
+const MOVEMENT_SYSTEM := preload("res://scripts/core/ecs/systems/s_movement_system.gd")
+const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/core/ecs/components/c_character_state_component.gd")
+const C_MOVEMENT_COMPONENT := preload("res://scripts/core/ecs/components/c_movement_component.gd")
+const C_INPUT_COMPONENT := preload("res://scripts/core/ecs/components/c_input_component.gd")
 const RS_MOVEMENT_SETTINGS := preload("res://scripts/core/resources/ecs/rs_movement_settings.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
 

@@ -1,7 +1,7 @@
 extends BaseTest
 
 const ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
-const PARTICLE_SYSTEM := preload("res://scripts/ecs/systems/s_landing_particles_system.gd")
+const PARTICLE_SYSTEM := preload("res://scripts/core/ecs/systems/s_landing_particles_system.gd")
 const SETTINGS := preload("res://scripts/core/resources/ecs/rs_landing_particles_settings.gd")
 const EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
 

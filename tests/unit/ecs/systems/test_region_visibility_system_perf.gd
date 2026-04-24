@@ -3,13 +3,13 @@ extends BaseTest
 # Performance regression tests for S_RegionVisibilitySystem.
 # Validates that redundant _is_supported_target checks are eliminated.
 
-const REGION_VISIBILITY_SYSTEM_PATH := "res://scripts/ecs/systems/s_region_visibility_system.gd"
+const REGION_VISIBILITY_SYSTEM_PATH := "res://scripts/core/ecs/systems/s_region_visibility_system.gd"
 const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")
 const MOCK_CAMERA_MANAGER := preload("res://tests/mocks/mock_camera_manager.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
-const BASE_ECS_ENTITY := preload("res://scripts/ecs/base_ecs_entity.gd")
+const BASE_ECS_ENTITY := preload("res://scripts/core/ecs/base_ecs_entity.gd")
 const C_REGION_VISIBILITY_COMPONENT := preload(
-	"res://scripts/ecs/components/c_region_visibility_component.gd"
+	"res://scripts/core/ecs/components/c_region_visibility_component.gd"
 )
 
 

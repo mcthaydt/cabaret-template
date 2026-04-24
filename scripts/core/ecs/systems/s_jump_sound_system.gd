@@ -1,28 +1,35 @@
 @icon("res://assets/editor_icons/icn_system.svg")
-extends "res://scripts/ecs/base_event_sfx_system.gd"
-class_name S_CheckpointSoundSystem
+extends "res://scripts/core/ecs/base_event_sfx_system.gd"
+class_name S_JumpSoundSystem
 
-## Checkpoint Sound System (Phase 6 - Refactored)
+## Jump Sound System (Phase 6 - Refactored)
 ##
-## Plays checkpoint activation sounds using base class helpers.
-## Position is now resolved in S_CheckpointHandlerSystem and included in event payload,
-## eliminating O(n) find_child() traversal.
+## Plays jump sounds using base class helpers with pause/transition blocking.
 
-const SETTINGS_TYPE := preload("res://scripts/core/resources/ecs/rs_checkpoint_sound_settings.gd")
+const SETTINGS_TYPE := preload("res://scripts/core/resources/ecs/rs_jump_sound_settings.gd")
 
 @export var settings: SETTINGS_TYPE
 
 var _last_play_time: float = -INF
 
+## Alias for EventSFXSystem.requests to maintain backward compatibility
+var play_requests: Array:
+	get:
+		return requests
+
 func get_phase() -> BaseECSSystem.SystemPhase:
 	return BaseECSSystem.SystemPhase.VFX
 
 func get_event_name() -> StringName:
-	return StringName("checkpoint_activated")
+	return StringName("entity_jumped")
 
 func create_request_from_payload(payload: Dictionary) -> Dictionary:
 	return {
+		"entity": payload.get("entity", null),
 		"position": payload.get("position", Vector3.ZERO),
+		"jump_time": payload.get("jump_time", 0.0),
+		"jump_force": payload.get("jump_force", 0.0),
+		"supported": payload.get("supported", false),
 	}
 
 func _get_audio_stream() -> AudioStream:

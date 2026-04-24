@@ -4,10 +4,10 @@ extends GutTest
 ## C_CheckpointComponent -> S_GameEventSystem -> S_CheckpointHandlerSystem
 
 const M_ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
-const S_GAME_EVENT_SYSTEM := preload("res://scripts/ecs/systems/s_game_event_system.gd")
-const S_CHECKPOINT_HANDLER_SYSTEM := preload("res://scripts/ecs/systems/s_checkpoint_handler_system.gd")
-const C_CHECKPOINT_COMPONENT := preload("res://scripts/ecs/components/c_checkpoint_component.gd")
-const C_PLAYER_TAG := preload("res://scripts/ecs/components/c_player_tag_component.gd")
+const S_GAME_EVENT_SYSTEM := preload("res://scripts/core/ecs/systems/s_game_event_system.gd")
+const S_CHECKPOINT_HANDLER_SYSTEM := preload("res://scripts/core/ecs/systems/s_checkpoint_handler_system.gd")
+const C_CHECKPOINT_COMPONENT := preload("res://scripts/core/ecs/components/c_checkpoint_component.gd")
+const C_PLAYER_TAG := preload("res://scripts/core/ecs/components/c_player_tag_component.gd")
 const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
 const RS_GAMEPLAY_INITIAL := preload("res://scripts/core/resources/state/rs_gameplay_initial_state.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/core/resources/state/rs_state_store_settings.gd")

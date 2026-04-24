@@ -16,7 +16,7 @@ class_name S_GravitySystem
 
 const MOVEMENT_TYPE := StringName("C_MovementComponent")
 const FLOATING_TYPE := StringName("C_FloatingComponent")
-const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/ecs/components/c_character_state_component.gd")
+const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/core/ecs/components/c_character_state_component.gd")
 const CHARACTER_STATE_TYPE := C_CHARACTER_STATE_COMPONENT.COMPONENT_TYPE
 const U_DEBUG_LOG_THROTTLE := preload("res://scripts/utils/debug/u_debug_log_throttle.gd")
 

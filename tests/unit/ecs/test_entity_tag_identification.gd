@@ -5,7 +5,7 @@ extends BaseTest
 
 const ENTITY_LOOKUP_PATH := "res://scripts/utils/ecs/u_entity_lookup.gd"
 const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")
-const BASE_ECS_ENTITY := preload("res://scripts/ecs/base_ecs_entity.gd")
+const BASE_ECS_ENTITY := preload("res://scripts/core/ecs/base_ecs_entity.gd")
 
 var _lookup_script: Script = null
 

@@ -9,7 +9,7 @@ class_name S_HealthSystem
 ## U_ECSEventBus events emitted by components instead of direct signals.
 
 const COMPONENT_TYPE := StringName("C_HealthComponent")
-const DEATH_HANDLER_SYSTEM_SCRIPT := preload("res://scripts/ecs/systems/s_death_handler_system.gd")
+const DEATH_HANDLER_SYSTEM_SCRIPT := preload("res://scripts/core/ecs/systems/s_death_handler_system.gd")
 
 ## Injected state store (for testing)
 ## If set, system uses this instead of U_StateUtils.get_store()

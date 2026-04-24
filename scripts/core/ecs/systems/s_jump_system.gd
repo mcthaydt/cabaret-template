@@ -9,9 +9,9 @@ const INPUT_TYPE := StringName("C_InputComponent")
 const FLOATING_TYPE := StringName("C_FloatingComponent")
 const EVENT_ENTITY_JUMPED := StringName("entity_jumped")
 const EVENT_ENTITY_LANDED := StringName("entity_landed")
-const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/ecs/components/c_character_state_component.gd")
+const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/core/ecs/components/c_character_state_component.gd")
 const CHARACTER_STATE_TYPE := C_CHARACTER_STATE_COMPONENT.COMPONENT_TYPE
-const C_SPAWN_STATE_COMPONENT := preload("res://scripts/ecs/components/c_spawn_state_component.gd")
+const C_SPAWN_STATE_COMPONENT := preload("res://scripts/core/ecs/components/c_spawn_state_component.gd")
 const SPAWN_STATE_TYPE := C_SPAWN_STATE_COMPONENT.COMPONENT_TYPE
 
 ## Injected state store (for testing)

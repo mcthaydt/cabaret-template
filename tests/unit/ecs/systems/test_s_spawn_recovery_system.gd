@@ -1,16 +1,16 @@
 extends BaseTest
 
-const S_SPAWN_RECOVERY_SYSTEM_PATH := "res://scripts/ecs/systems/s_spawn_recovery_system.gd"
-const C_SPAWN_RECOVERY_COMPONENT_PATH := "res://scripts/ecs/components/c_spawn_recovery_component.gd"
+const S_SPAWN_RECOVERY_SYSTEM_PATH := "res://scripts/core/ecs/systems/s_spawn_recovery_system.gd"
+const C_SPAWN_RECOVERY_COMPONENT_PATH := "res://scripts/core/ecs/components/c_spawn_recovery_component.gd"
 const RS_SPAWN_RECOVERY_SETTINGS_PATH := "res://scripts/core/resources/ecs/rs_spawn_recovery_settings.gd"
 
-const BASE_ECS_SYSTEM := preload("res://scripts/ecs/base_ecs_system.gd")
+const BASE_ECS_SYSTEM := preload("res://scripts/core/ecs/base_ecs_system.gd")
 const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")
-const BASE_ECS_ENTITY := preload("res://scripts/ecs/base_ecs_entity.gd")
+const BASE_ECS_ENTITY := preload("res://scripts/core/ecs/base_ecs_entity.gd")
 const C_AI_BRAIN_COMPONENT := preload("res://scripts/demo/ecs/components/c_ai_brain_component.gd")
-const C_FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")
-const C_INPUT_COMPONENT := preload("res://scripts/ecs/components/c_input_component.gd")
-const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
+const C_FLOATING_COMPONENT := preload("res://scripts/core/ecs/components/c_floating_component.gd")
+const C_INPUT_COMPONENT := preload("res://scripts/core/ecs/components/c_input_component.gd")
+const C_MOVEMENT_COMPONENT := preload("res://scripts/core/ecs/components/c_movement_component.gd")
 const RS_AI_BRAIN_SETTINGS := preload("res://scripts/core/resources/ai/brain/rs_ai_brain_settings.gd")
 const RS_FLOATING_SETTINGS := preload("res://scripts/core/resources/ecs/rs_floating_settings.gd")
 const RS_MOVEMENT_SETTINGS := preload("res://scripts/core/resources/ecs/rs_movement_settings.gd")

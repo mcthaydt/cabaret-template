@@ -3,7 +3,7 @@ extends GutTest
 ## Unit tests for S_SpawnParticlesSystem (Phase 12.4)
 
 const M_ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
-const S_SPAWN_PARTICLES := preload("res://scripts/ecs/systems/s_spawn_particles_system.gd")
+const S_SPAWN_PARTICLES := preload("res://scripts/core/ecs/systems/s_spawn_particles_system.gd")
 const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/core/resources/state/rs_state_store_settings.gd")
 const RS_VFX_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_vfx_initial_state.gd")

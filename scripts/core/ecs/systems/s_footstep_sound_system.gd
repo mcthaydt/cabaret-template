@@ -15,7 +15,7 @@ class_name S_FootstepSoundSystem
 
 const SETTINGS_TYPE := preload("res://scripts/core/resources/ecs/rs_footstep_sound_settings.gd")
 const SFX_SPAWNER := preload("res://scripts/core/managers/helpers/u_sfx_spawner.gd")
-const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/ecs/components/c_character_state_component.gd")
+const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/core/ecs/components/c_character_state_component.gd")
 const CHARACTER_STATE_TYPE := C_CHARACTER_STATE_COMPONENT.COMPONENT_TYPE
 const SURFACE_DETECTOR_TYPE := StringName("C_SurfaceDetectorComponent")
 const FLOATING_TYPE := StringName("C_FloatingComponent")

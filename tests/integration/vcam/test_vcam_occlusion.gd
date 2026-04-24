@@ -21,7 +21,7 @@ const U_VCAM_SILHOUETTE_HELPER := preload("res://scripts/core/managers/helpers/u
 const M_VCAM_MANAGER := preload("res://scripts/core/managers/m_vcam_manager.gd")
 const M_VFX_MANAGER := preload("res://scripts/core/managers/m_vfx_manager.gd")
 const MOCK_CAMERA_MANAGER := preload("res://tests/mocks/mock_camera_manager.gd")
-const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component.gd")
+const C_VCAM_COMPONENT := preload("res://scripts/core/ecs/components/c_vcam_component.gd")
 const RS_VCAM_MODE_ORBIT := preload("res://scripts/core/resources/display/vcam/rs_vcam_mode_orbit.gd")
 
 func before_each() -> void:

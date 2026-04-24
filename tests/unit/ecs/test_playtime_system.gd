@@ -1,6 +1,6 @@
 extends BaseTest
 
-const S_PLAYTIME_SYSTEM := preload("res://scripts/ecs/systems/s_playtime_system.gd")
+const S_PLAYTIME_SYSTEM := preload("res://scripts/core/ecs/systems/s_playtime_system.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
 

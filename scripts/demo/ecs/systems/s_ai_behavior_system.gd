@@ -2,7 +2,7 @@
 extends BaseECSSystem
 class_name S_AIBehaviorSystem
 
-const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
+const C_MOVEMENT_COMPONENT := preload("res://scripts/core/ecs/components/c_movement_component.gd")
 const C_DETECTION_COMPONENT := preload("res://scripts/demo/ecs/components/c_detection_component.gd")
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
 const U_BT_RUNNER := preload("res://scripts/utils/bt/u_bt_runner.gd")

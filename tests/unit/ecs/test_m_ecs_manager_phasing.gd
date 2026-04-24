@@ -3,7 +3,7 @@ extends BaseTest
 ## Tests for SystemPhase enum and phase-aware system ordering in M_ECSManager.
 
 const ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
-const BASE_SYSTEM := preload("res://scripts/ecs/base_ecs_system.gd")
+const BASE_SYSTEM := preload("res://scripts/core/ecs/base_ecs_system.gd")
 
 ## Inner class: a test system that logs its label on process_tick
 ## and declares a configurable phase and priority.

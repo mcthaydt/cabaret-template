@@ -51,30 +51,30 @@ func _source_contains(path: String, search: String) -> bool:
 
 
 func test_rotation_continuity_no_private_get_node_instance_id() -> void:
-	assert_false(_source_contains("res://scripts/ecs/systems/helpers/u_vcam_rotation_continuity.gd", "func _get_node_instance_id("),
+	assert_false(_source_contains("res://scripts/core/ecs/systems/helpers/u_vcam_rotation_continuity.gd", "func _get_node_instance_id("),
 		"U_VCamRotationContinuity should not have private _get_node_instance_id (use U_VCamUtils)")
 
 
 func test_look_spring_no_private_get_node_instance_id() -> void:
-	assert_false(_source_contains("res://scripts/ecs/systems/helpers/u_vcam_look_spring.gd", "func _get_node_instance_id("),
+	assert_false(_source_contains("res://scripts/core/ecs/systems/helpers/u_vcam_look_spring.gd", "func _get_node_instance_id("),
 		"U_VCamLookSpring should not have private _get_node_instance_id (use U_VCamUtils)")
 
 
 func test_debug_no_private_get_node_instance_id() -> void:
-	assert_false(_source_contains("res://scripts/ecs/systems/helpers/u_vcam_debug.gd", "func _get_node_instance_id("),
+	assert_false(_source_contains("res://scripts/core/ecs/systems/helpers/u_vcam_debug.gd", "func _get_node_instance_id("),
 		"U_VCamDebug should not have private _get_node_instance_id (use U_VCamUtils)")
 
 
 func test_look_ahead_no_private_call_apply_position_offset() -> void:
-	assert_false(_source_contains("res://scripts/ecs/systems/helpers/u_vcam_look_ahead.gd", "func _call_apply_position_offset("),
+	assert_false(_source_contains("res://scripts/core/ecs/systems/helpers/u_vcam_look_ahead.gd", "func _call_apply_position_offset("),
 		"U_VCamLookAhead should not have private _call_apply_position_offset (use U_VCamUtils)")
 
 
 func test_ground_anchor_no_private_call_apply_position_offset() -> void:
-	assert_false(_source_contains("res://scripts/ecs/systems/helpers/u_vcam_ground_anchor.gd", "func _call_apply_position_offset("),
+	assert_false(_source_contains("res://scripts/core/ecs/systems/helpers/u_vcam_ground_anchor.gd", "func _call_apply_position_offset("),
 		"U_VCamGroundAnchor should not have private _call_apply_position_offset (use U_VCamUtils)")
 
 
 func test_soft_zone_applier_no_private_call_apply_position_offset() -> void:
-	assert_false(_source_contains("res://scripts/ecs/systems/helpers/u_vcam_soft_zone_applier.gd", "func _call_apply_position_offset("),
+	assert_false(_source_contains("res://scripts/core/ecs/systems/helpers/u_vcam_soft_zone_applier.gd", "func _call_apply_position_offset("),
 		"U_VCamSoftZoneApplier should not have private _call_apply_position_offset (use U_VCamUtils)")

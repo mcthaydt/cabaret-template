@@ -6,9 +6,9 @@ class_name U_VCamRotation
 ##   U_VCamOrbitCentering — orbit "look behind" centering animation
 ##   U_VCamLookSpring — 2nd-order spring dynamics + release damping + debug
 
-const U_VCAM_ROTATION_CONTINUITY := preload("res://scripts/ecs/systems/helpers/u_vcam_rotation_continuity.gd")
-const U_VCAM_ORBIT_CENTERING := preload("res://scripts/ecs/systems/helpers/u_vcam_orbit_centering.gd")
-const U_VCAM_LOOK_SPRING := preload("res://scripts/ecs/systems/helpers/u_vcam_look_spring.gd")
+const U_VCAM_ROTATION_CONTINUITY := preload("res://scripts/core/ecs/systems/helpers/u_vcam_rotation_continuity.gd")
+const U_VCAM_ORBIT_CENTERING := preload("res://scripts/core/ecs/systems/helpers/u_vcam_orbit_centering.gd")
+const U_VCAM_LOOK_SPRING := preload("res://scripts/core/ecs/systems/helpers/u_vcam_look_spring.gd")
 
 var _continuity_helper := U_VCAM_ROTATION_CONTINUITY.new()
 var _orbit_centering_helper := U_VCAM_ORBIT_CENTERING.new()

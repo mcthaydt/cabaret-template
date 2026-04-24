@@ -1,7 +1,7 @@
 extends BaseTest
 
 const ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
-const EVENT_SFX_SYSTEM := preload("res://scripts/ecs/base_event_sfx_system.gd")
+const EVENT_SFX_SYSTEM := preload("res://scripts/core/ecs/base_event_sfx_system.gd")
 const EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
 const SFX_SYSTEM_STUB := preload("res://tests/test_doubles/ecs/event_sfx_system_stub.gd")
 

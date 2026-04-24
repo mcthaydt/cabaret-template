@@ -1,13 +1,13 @@
 @icon("res://assets/editor_icons/icn_system.svg")
-extends "res://scripts/ecs/base_event_sfx_system.gd"
-class_name S_VictorySoundSystem
+extends "res://scripts/core/ecs/base_event_sfx_system.gd"
+class_name S_DeathSoundSystem
 
-## Victory Sound System (Phase 6 - Refactored)
+## Death Sound System (Phase 6 - Refactored)
 ##
-## Plays victory sounds using base class helpers with pause/transition blocking.
+## Plays death sounds using base class helpers with pause/transition blocking.
+## Resolves entity position from entity_id.
 
-const SETTINGS_TYPE := preload("res://scripts/core/resources/ecs/rs_victory_sound_settings.gd")
-const U_ECS_EVENT_NAMES := preload("res://scripts/core/events/ecs/u_ecs_event_names.gd")
+const SETTINGS_TYPE := preload("res://scripts/core/resources/ecs/rs_death_sound_settings.gd")
 
 @export var settings: SETTINGS_TYPE
 
@@ -17,20 +17,15 @@ func get_phase() -> BaseECSSystem.SystemPhase:
 	return BaseECSSystem.SystemPhase.VFX
 
 func get_event_name() -> StringName:
-	return U_ECS_EVENT_NAMES.EVENT_VICTORY_TRIGGERED
+	return StringName("entity_death")
 
 func create_request_from_payload(payload: Dictionary) -> Dictionary:
-	var position := Vector3.ZERO
-	var body := payload.get("body") as Node3D
-	if body != null and is_instance_valid(body):
-		position = body.global_position
-	else:
-		var position_variant: Variant = payload.get("position", Vector3.ZERO)
-		if position_variant is Vector3:
-			position = position_variant
+	var is_dead_variant: Variant = payload.get("is_dead", false)
+	if not bool(is_dead_variant):
+		return {}
 
 	return {
-		"position": position,
+		"entity_id": payload.get("entity_id", StringName("")),
 	}
 
 func _get_audio_stream() -> AudioStream:
@@ -48,6 +43,10 @@ func process_tick(__delta: float) -> void:
 		return
 
 	var stream := _get_audio_stream()
+	var manager := get_manager()
+	if manager == null:
+		manager = ECS_UTILS.get_manager(self)
+
 	var min_interval: float = max(settings.min_interval, 0.0)
 	var now: float = ECS_UTILS.get_current_time()
 
@@ -59,7 +58,19 @@ func process_tick(__delta: float) -> void:
 		if request == null:
 			continue
 
-		var position := _extract_position(request)
+		var entity_id_variant: Variant = request.get("entity_id", StringName(""))
+		var entity_id := entity_id_variant as StringName
+		if entity_id == StringName(""):
+			continue
+
+		var position := Vector3.ZERO
+		var typed_manager := manager as I_ECSManager
+		if typed_manager != null:
+			var entity := typed_manager.get_entity_by_id(entity_id) as Node
+			var entity_3d := entity as Node3D
+			if entity_3d != null and is_instance_valid(entity_3d):
+				position = entity_3d.global_position
+
 		var pitch_scale := _calculate_pitch(settings.pitch_variation)
 
 		_spawn_sfx({

@@ -3,8 +3,8 @@ extends BaseTest
 # F8 Phase 1 Decomposition tests — test that S_VCamSystem has been decomposed
 # and pipeline logic extracted to U_VCamPipelineBuilder.
 
-const S_VCAM_SYSTEM_SCRIPT := "res://scripts/ecs/systems/s_vcam_system.gd"
-const PIPELINE_BUILDER_SCRIPT := "res://scripts/ecs/systems/helpers/u_vcam_pipeline_builder.gd"
+const S_VCAM_SYSTEM_SCRIPT := "res://scripts/core/ecs/systems/s_vcam_system.gd"
+const PIPELINE_BUILDER_SCRIPT := "res://scripts/core/ecs/systems/helpers/u_vcam_pipeline_builder.gd"
 
 
 func _load_script(path: String) -> Script:

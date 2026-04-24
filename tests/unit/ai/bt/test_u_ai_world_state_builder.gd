@@ -2,10 +2,10 @@ extends GutTest
 
 const U_AI_WORLD_STATE_BUILDER_PATH := "res://scripts/utils/ai/u_ai_world_state_builder.gd"
 const C_AI_BRAIN_COMPONENT := preload("res://scripts/demo/ecs/components/c_ai_brain_component.gd")
-const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
+const C_MOVEMENT_COMPONENT := preload("res://scripts/core/ecs/components/c_movement_component.gd")
 const C_DETECTION_COMPONENT := preload("res://scripts/demo/ecs/components/c_detection_component.gd")
 const C_NEEDS_COMPONENT := preload("res://scripts/demo/ecs/components/c_needs_component.gd")
-const C_HEALTH_COMPONENT := preload("res://scripts/ecs/components/c_health_component.gd")
+const C_HEALTH_COMPONENT := preload("res://scripts/core/ecs/components/c_health_component.gd")
 
 class EntityQueryStub extends RefCounted:
 	var entity: Node = null

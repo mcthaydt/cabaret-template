@@ -12,7 +12,7 @@ const RS_VCAM_BLEND_HINT_SCRIPT := preload("res://scripts/core/resources/display
 const U_VCAM_COLLISION_DETECTOR := preload("res://scripts/core/managers/helpers/u_vcam_collision_detector.gd")
 const U_VCAM_BLEND_MANAGER := preload("res://scripts/core/managers/helpers/u_vcam_blend_manager.gd")
 const C_ROOM_FADE_GROUP_COMPONENT_SCRIPT := preload(
-	"res://scripts/ecs/components/c_room_fade_group_component.gd"
+	"res://scripts/core/ecs/components/c_room_fade_group_component.gd"
 )
 
 const VCAM_OCCLUSION_COLLISION_MASK: int = 1 << 5

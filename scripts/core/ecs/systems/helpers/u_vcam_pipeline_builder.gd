@@ -3,13 +3,13 @@ class_name U_VCamPipelineBuilder
 ## Orchestrates vCam pipeline stages: prepare + evaluate via decomposed helpers.
 
 const U_VCAM_MODE_EVALUATOR := preload("res://scripts/core/managers/helpers/u_vcam_mode_evaluator.gd")
-const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component.gd")
-const U_VCAM_EFFECT_PIPELINE := preload("res://scripts/ecs/systems/helpers/u_vcam_effect_pipeline.gd")
-const U_VCAM_LOOK_INPUT := preload("res://scripts/ecs/systems/helpers/u_vcam_look_input.gd")
-const U_VCAM_ROTATION := preload("res://scripts/ecs/systems/helpers/u_vcam_rotation.gd")
-const U_VCAM_DEBUG := preload("res://scripts/ecs/systems/helpers/u_vcam_debug.gd")
-const U_VCAM_RUNTIME_SERVICES := preload("res://scripts/ecs/systems/helpers/u_vcam_runtime_services.gd")
-const U_VCAM_RUNTIME_STATE := preload("res://scripts/ecs/systems/helpers/u_vcam_runtime_state.gd")
+const C_VCAM_COMPONENT := preload("res://scripts/core/ecs/components/c_vcam_component.gd")
+const U_VCAM_EFFECT_PIPELINE := preload("res://scripts/core/ecs/systems/helpers/u_vcam_effect_pipeline.gd")
+const U_VCAM_LOOK_INPUT := preload("res://scripts/core/ecs/systems/helpers/u_vcam_look_input.gd")
+const U_VCAM_ROTATION := preload("res://scripts/core/ecs/systems/helpers/u_vcam_rotation.gd")
+const U_VCAM_DEBUG := preload("res://scripts/core/ecs/systems/helpers/u_vcam_debug.gd")
+const U_VCAM_RUNTIME_SERVICES := preload("res://scripts/core/ecs/systems/helpers/u_vcam_runtime_services.gd")
+const U_VCAM_RUNTIME_STATE := preload("res://scripts/core/ecs/systems/helpers/u_vcam_runtime_state.gd")
 
 var _effect_pipeline_helper: U_VCamEffectPipeline = null
 var _look_input_helper: U_VCamLookInput = null

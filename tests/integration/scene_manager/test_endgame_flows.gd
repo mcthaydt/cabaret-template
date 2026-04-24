@@ -27,15 +27,15 @@ const U_GAMEPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_gameplay
 const U_SCENE_REGISTRY := preload("res://scripts/core/scene_management/u_scene_registry.gd")
 const U_STATE_HANDOFF := preload("res://scripts/core/state/utils/u_state_handoff.gd")
 
-const PLAYER_TAG_COMPONENT := preload("res://scripts/ecs/components/c_player_tag_component.gd")
-const HEALTH_COMPONENT := preload("res://scripts/ecs/components/c_health_component.gd")
-const HEALTH_SYSTEM := preload("res://scripts/ecs/systems/s_health_system.gd")
-const DEATH_HANDLER_SYSTEM := preload("res://scripts/ecs/systems/s_death_handler_system.gd")
+const PLAYER_TAG_COMPONENT := preload("res://scripts/core/ecs/components/c_player_tag_component.gd")
+const HEALTH_COMPONENT := preload("res://scripts/core/ecs/components/c_health_component.gd")
+const HEALTH_SYSTEM := preload("res://scripts/core/ecs/systems/s_health_system.gd")
+const DEATH_HANDLER_SYSTEM := preload("res://scripts/core/ecs/systems/s_death_handler_system.gd")
 const HEALTH_SETTINGS_RESOURCE := preload("res://resources/base_settings/gameplay/cfg_health_settings.tres")
 
-const VICTORY_COMPONENT := preload("res://scripts/ecs/components/c_victory_trigger_component.gd")
-const GAME_EVENT_SYSTEM := preload("res://scripts/ecs/systems/s_game_event_system.gd")
-const VICTORY_HANDLER_SYSTEM := preload("res://scripts/ecs/systems/s_victory_handler_system.gd")
+const VICTORY_COMPONENT := preload("res://scripts/core/ecs/components/c_victory_trigger_component.gd")
+const GAME_EVENT_SYSTEM := preload("res://scripts/core/ecs/systems/s_game_event_system.gd")
+const VICTORY_HANDLER_SYSTEM := preload("res://scripts/core/ecs/systems/s_victory_handler_system.gd")
 const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_navigation_initial_state.gd")
 const U_SFX_SPAWNER := preload("res://scripts/core/managers/helpers/u_sfx_spawner.gd")
 

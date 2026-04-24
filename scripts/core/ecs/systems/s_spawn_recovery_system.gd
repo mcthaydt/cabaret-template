@@ -2,12 +2,11 @@
 extends BaseECSSystem
 class_name S_SpawnRecoverySystem
 
-const C_SPAWN_RECOVERY_COMPONENT := preload("res://scripts/ecs/components/c_spawn_recovery_component.gd")
-const C_FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")
-const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
-const C_INPUT_COMPONENT := preload("res://scripts/ecs/components/c_input_component.gd")
-const C_AI_BRAIN_COMPONENT := preload("res://scripts/demo/ecs/components/c_ai_brain_component.gd")
-const C_PLAYER_TAG_COMPONENT := preload("res://scripts/ecs/components/c_player_tag_component.gd")
+const C_SPAWN_RECOVERY_COMPONENT := preload("res://scripts/core/ecs/components/c_spawn_recovery_component.gd")
+const C_FLOATING_COMPONENT := preload("res://scripts/core/ecs/components/c_floating_component.gd")
+const C_MOVEMENT_COMPONENT := preload("res://scripts/core/ecs/components/c_movement_component.gd")
+const C_INPUT_COMPONENT := preload("res://scripts/core/ecs/components/c_input_component.gd")
+const C_PLAYER_TAG_COMPONENT := preload("res://scripts/core/ecs/components/c_player_tag_component.gd")
 const RS_SPAWN_RECOVERY_SETTINGS := preload("res://scripts/core/resources/ecs/rs_spawn_recovery_settings.gd")
 const I_SPAWN_MANAGER := preload("res://scripts/core/interfaces/i_spawn_manager.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
@@ -17,7 +16,7 @@ const RECOVERY_TYPE := C_SPAWN_RECOVERY_COMPONENT.COMPONENT_TYPE
 const FLOATING_TYPE := C_FLOATING_COMPONENT.COMPONENT_TYPE
 const MOVEMENT_TYPE := C_MOVEMENT_COMPONENT.COMPONENT_TYPE
 const INPUT_TYPE := C_INPUT_COMPONENT.COMPONENT_TYPE
-const AI_BRAIN_TYPE := C_AI_BRAIN_COMPONENT.COMPONENT_TYPE
+const AI_BRAIN_TYPE := StringName("C_AIBrainComponent")
 const PLAYER_TAG_TYPE := C_PLAYER_TAG_COMPONENT.COMPONENT_TYPE
 
 @export var debug_spawn_recovery_logging: bool = false
@@ -144,7 +143,7 @@ func process_tick(delta: float) -> void:
 		if body != null:
 			body.velocity = Vector3.ZERO
 
-		var brain := entity_query.get_component(AI_BRAIN_TYPE) as C_AIBrainComponent
+		var brain: Object = entity_query.get_component(AI_BRAIN_TYPE)
 		_clear_ai_runtime_state(brain)
 
 		_unsupported_since_by_entity.erase(entity_id)
@@ -255,7 +254,7 @@ func _prune_dictionary(runtime_map: Dictionary, seen_entities: Dictionary) -> vo
 			continue
 		runtime_map.erase(key_variant)
 
-func _clear_ai_runtime_state(brain: C_AIBrainComponent) -> void:
+func _clear_ai_runtime_state(brain: Object) -> void:
 	if brain == null:
 		return
 

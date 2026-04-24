@@ -2,11 +2,11 @@
 extends BaseECSSystem
 class_name S_CameraStateSystem
 
-const U_CAMERA_STATE_RULE_APPLIER := preload("res://scripts/ecs/systems/helpers/u_camera_state_rule_applier.gd")
+const U_CAMERA_STATE_RULE_APPLIER := preload("res://scripts/core/ecs/systems/helpers/u_camera_state_rule_applier.gd")
 const RSRuleContext := preload("res://scripts/core/resources/ecs/rs_rule_context.gd")
 const U_VCAM_SELECTORS := preload("res://scripts/core/state/selectors/u_vcam_selectors.gd")
-const C_CAMERA_STATE_COMPONENT := preload("res://scripts/ecs/components/c_camera_state_component.gd")
-const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
+const C_CAMERA_STATE_COMPONENT := preload("res://scripts/core/ecs/components/c_camera_state_component.gd")
+const C_MOVEMENT_COMPONENT := preload("res://scripts/core/ecs/components/c_movement_component.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/core/interfaces/i_camera_manager.gd")
 const U_RULE_EVALUATOR := preload("res://scripts/utils/ecs/u_rule_evaluator.gd")
 const U_RULE_UTILS := preload("res://scripts/utils/ecs/u_rule_utils.gd")

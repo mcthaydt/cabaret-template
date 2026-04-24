@@ -3,8 +3,8 @@ extends BaseTest
 ## Tests for entity ID and tagging system (Phase 6 - T063)
 
 const ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
-const ECS_ENTITY := preload("res://scripts/ecs/base_ecs_entity.gd")
-const ECS_COMPONENT := preload("res://scripts/ecs/base_ecs_component.gd")
+const ECS_ENTITY := preload("res://scripts/core/ecs/base_ecs_entity.gd")
+const ECS_COMPONENT := preload("res://scripts/core/ecs/base_ecs_component.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
 

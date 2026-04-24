@@ -1,6 +1,6 @@
 extends GutTest
 
-const U_VCAM_RESPONSE_SMOOTHER := preload("res://scripts/ecs/systems/helpers/u_vcam_response_smoother.gd")
+const U_VCAM_RESPONSE_SMOOTHER := preload("res://scripts/core/ecs/systems/helpers/u_vcam_response_smoother.gd")
 const RS_VCAM_MODE_ORBIT := preload("res://scripts/core/resources/display/vcam/rs_vcam_mode_orbit.gd")
 const RS_VCAM_RESPONSE := preload("res://scripts/core/resources/display/vcam/rs_vcam_response.gd")
 

@@ -11,9 +11,9 @@ const M_SPAWN_MANAGER := preload("res://scripts/core/managers/m_spawn_manager.gd
 const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
 const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_gameplay_initial_state.gd")
 const U_SCENE_LOADER := preload("res://scripts/core/scene_management/helpers/u_scene_loader.gd")
-const C_FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")
+const C_FLOATING_COMPONENT := preload("res://scripts/core/ecs/components/c_floating_component.gd")
 const RS_FLOATING_SETTINGS := preload("res://scripts/core/resources/ecs/rs_floating_settings.gd")
-const C_SPAWN_STATE_COMPONENT := preload("res://scripts/ecs/components/c_spawn_state_component.gd")
+const C_SPAWN_STATE_COMPONENT := preload("res://scripts/core/ecs/components/c_spawn_state_component.gd")
 
 var spawn_manager: M_SPAWN_MANAGER
 var state_store: M_STATE_STORE

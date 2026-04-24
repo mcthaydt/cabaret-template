@@ -1,7 +1,7 @@
 extends BaseTest
 
 const ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
-const FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")
+const FLOATING_COMPONENT := preload("res://scripts/core/ecs/components/c_floating_component.gd")
 const ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 
 func _add_manager() -> M_ECSManager:

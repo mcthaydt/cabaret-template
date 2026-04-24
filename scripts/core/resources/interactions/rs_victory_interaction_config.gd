@@ -2,7 +2,7 @@
 extends "res://scripts/core/resources/interactions/rs_interaction_config.gd"
 class_name RS_VictoryInteractionConfig
 
-const C_VICTORY_TRIGGER_COMPONENT := preload("res://scripts/ecs/components/c_victory_trigger_component.gd")
+const C_VICTORY_TRIGGER_COMPONENT := preload("res://scripts/core/ecs/components/c_victory_trigger_component.gd")
 
 @export var objective_id: StringName = StringName("")
 @export var visibility_objective_id: StringName = StringName("")

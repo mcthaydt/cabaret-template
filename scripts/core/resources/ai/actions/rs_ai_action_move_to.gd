@@ -2,7 +2,7 @@
 extends I_AIAction
 class_name RS_AIActionMoveTo
 
-const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
+const C_MOVEMENT_COMPONENT := preload("res://scripts/core/ecs/components/c_movement_component.gd")
 const MOVE_TARGET_COMPONENT_TYPE := StringName("C_MoveTargetComponent")
 
 @export_group("Target")

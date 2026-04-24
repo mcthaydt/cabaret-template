@@ -1,8 +1,8 @@
 extends BaseTest
 
 const ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
-const SCREEN_SHAKE_PUBLISHER := preload("res://scripts/ecs/systems/s_screen_shake_publisher_system.gd")
-const DAMAGE_FLASH_PUBLISHER := preload("res://scripts/ecs/systems/s_damage_flash_publisher_system.gd")
+const SCREEN_SHAKE_PUBLISHER := preload("res://scripts/core/ecs/systems/s_screen_shake_publisher_system.gd")
+const DAMAGE_FLASH_PUBLISHER := preload("res://scripts/core/ecs/systems/s_damage_flash_publisher_system.gd")
 const VFX_MANAGER := preload("res://scripts/core/managers/m_vfx_manager.gd")
 const STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/core/resources/state/rs_state_store_settings.gd")

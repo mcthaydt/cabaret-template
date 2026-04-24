@@ -7,11 +7,11 @@ class_name S_InputSystem
 
 const INPUT_TYPE := StringName("C_InputComponent")
 const GAMEPAD_TYPE := StringName("C_GamepadComponent")
-const C_PLAYER_TAG_COMPONENT := preload("res://scripts/ecs/components/c_player_tag_component.gd")
+const C_PLAYER_TAG_COMPONENT := preload("res://scripts/core/ecs/components/c_player_tag_component.gd")
 const PLAYER_TAG_TYPE := C_PLAYER_TAG_COMPONENT.COMPONENT_TYPE
 const ACTION_MOVE_STRENGTH := StringName("move")
 const ACTION_LOOK_STRENGTH := StringName("look")
-const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/ecs/components/c_character_state_component.gd")
+const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/core/ecs/components/c_character_state_component.gd")
 const CHARACTER_STATE_TYPE := C_CHARACTER_STATE_COMPONENT.COMPONENT_TYPE
 const U_DEBUG_LOG_THROTTLE := preload("res://scripts/utils/debug/u_debug_log_throttle.gd")
 

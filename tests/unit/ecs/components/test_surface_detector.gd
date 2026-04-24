@@ -3,8 +3,8 @@ extends GutTest
 # Test suite for C_SurfaceDetectorComponent
 # Tests surface detection via raycast and explicit surface providers
 
-const C_SURFACE_DETECTOR_SCRIPT := preload("res://scripts/ecs/components/c_surface_detector_component.gd")
-const C_SURFACE_TYPE_COMPONENT := preload("res://scripts/ecs/components/c_surface_type_component.gd")
+const C_SURFACE_DETECTOR_SCRIPT := preload("res://scripts/core/ecs/components/c_surface_detector_component.gd")
+const C_SURFACE_TYPE_COMPONENT := preload("res://scripts/core/ecs/components/c_surface_type_component.gd")
 
 var detector: C_SurfaceDetectorComponent
 var character_body: CharacterBody3D  # CharacterBody3D for the detector to attach to

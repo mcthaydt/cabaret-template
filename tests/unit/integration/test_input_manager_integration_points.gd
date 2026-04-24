@@ -8,10 +8,10 @@ const DEFAULT_SETTINGS_STATE := preload("res://resources/state/cfg_default_setti
 const U_STATE_HANDOFF := preload("res://scripts/core/state/utils/u_state_handoff.gd")
 const M_ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
 const M_INPUT_DEVICE_MANAGER := preload("res://scripts/core/managers/m_input_device_manager.gd")
-const S_INPUT_SYSTEM := preload("res://scripts/ecs/systems/s_input_system.gd")
-const C_INPUT_COMPONENT := preload("res://scripts/ecs/components/c_input_component.gd")
-const C_PLAYER_TAG_COMPONENT := preload("res://scripts/ecs/components/c_player_tag_component.gd")
-const ECSEntity := preload("res://scripts/ecs/base_ecs_entity.gd")
+const S_INPUT_SYSTEM := preload("res://scripts/core/ecs/systems/s_input_system.gd")
+const C_INPUT_COMPONENT := preload("res://scripts/core/ecs/components/c_input_component.gd")
+const C_PLAYER_TAG_COMPONENT := preload("res://scripts/core/ecs/components/c_player_tag_component.gd")
+const ECSEntity := preload("res://scripts/core/ecs/base_ecs_entity.gd")
 
 func before_each() -> void:
 	U_STATE_HANDOFF.clear_all()

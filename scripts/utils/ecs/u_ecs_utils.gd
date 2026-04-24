@@ -3,7 +3,7 @@ extends RefCounted
 class_name U_ECSUtils
 
 const ECS_MANAGER_SERVICE := StringName("ecs_manager")
-const ECS_ENTITY_SCRIPT := preload("res://scripts/ecs/base_ecs_entity.gd")
+const ECS_ENTITY_SCRIPT := preload("res://scripts/core/ecs/base_ecs_entity.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const I_ECS_ENTITY := preload("res://scripts/core/interfaces/i_ecs_entity.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/core/interfaces/i_camera_manager.gd")

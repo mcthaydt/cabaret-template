@@ -1,8 +1,8 @@
 extends BaseTest
 
 const ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
-const FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")
-const FLOATING_SYSTEM := preload("res://scripts/ecs/systems/s_floating_system.gd")
+const FLOATING_COMPONENT := preload("res://scripts/core/ecs/components/c_floating_component.gd")
+const FLOATING_SYSTEM := preload("res://scripts/core/ecs/systems/s_floating_system.gd")
 
 class FakeBody extends CharacterBody3D:
 	func _init() -> void:

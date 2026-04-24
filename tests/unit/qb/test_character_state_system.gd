@@ -1,6 +1,6 @@
 extends BaseTest
 
-const CHARACTER_STATE_SYSTEM := preload("res://scripts/ecs/systems/s_character_state_system.gd")
+const CHARACTER_STATE_SYSTEM := preload("res://scripts/core/ecs/systems/s_character_state_system.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")
 
@@ -14,12 +14,12 @@ const EFFECT_DISPATCH_ACTION := preload("res://scripts/core/resources/qb/effects
 const I_CONDITION := preload("res://scripts/core/interfaces/i_condition.gd")
 const I_EFFECT := preload("res://scripts/core/interfaces/i_effect.gd")
 
-const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/ecs/components/c_character_state_component.gd")
-const C_FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")
-const C_HEALTH_COMPONENT := preload("res://scripts/ecs/components/c_health_component.gd")
-const C_INPUT_COMPONENT := preload("res://scripts/ecs/components/c_input_component.gd")
-const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
-const C_SPAWN_STATE_COMPONENT := preload("res://scripts/ecs/components/c_spawn_state_component.gd")
+const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/core/ecs/components/c_character_state_component.gd")
+const C_FLOATING_COMPONENT := preload("res://scripts/core/ecs/components/c_floating_component.gd")
+const C_HEALTH_COMPONENT := preload("res://scripts/core/ecs/components/c_health_component.gd")
+const C_INPUT_COMPONENT := preload("res://scripts/core/ecs/components/c_input_component.gd")
+const C_MOVEMENT_COMPONENT := preload("res://scripts/core/ecs/components/c_movement_component.gd")
+const C_SPAWN_STATE_COMPONENT := preload("res://scripts/core/ecs/components/c_spawn_state_component.gd")
 
 func before_each() -> void:
 	U_ECSEventBus.reset()

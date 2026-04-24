@@ -1,9 +1,9 @@
 extends BaseTest
 
 const C_REGION_VISIBILITY_COMPONENT := preload(
-	"res://scripts/ecs/components/c_region_visibility_component.gd"
+	"res://scripts/core/ecs/components/c_region_visibility_component.gd"
 )
-const BASE_ECS_COMPONENT := preload("res://scripts/ecs/base_ecs_component.gd")
+const BASE_ECS_COMPONENT := preload("res://scripts/core/ecs/base_ecs_component.gd")
 const RS_REGION_VISIBILITY_SETTINGS := preload(
 	"res://scripts/core/resources/display/vcam/rs_region_visibility_settings.gd"
 )

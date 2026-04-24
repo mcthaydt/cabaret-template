@@ -4,12 +4,12 @@ class_name S_CharacterStateSystem
 
 const RSRuleContext := preload("res://scripts/core/resources/ecs/rs_rule_context.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
-const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/ecs/components/c_character_state_component.gd")
-const C_FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")
-const C_HEALTH_COMPONENT := preload("res://scripts/ecs/components/c_health_component.gd")
-const C_INPUT_COMPONENT := preload("res://scripts/ecs/components/c_input_component.gd")
-const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
-const C_SPAWN_STATE_COMPONENT := preload("res://scripts/ecs/components/c_spawn_state_component.gd")
+const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/core/ecs/components/c_character_state_component.gd")
+const C_FLOATING_COMPONENT := preload("res://scripts/core/ecs/components/c_floating_component.gd")
+const C_HEALTH_COMPONENT := preload("res://scripts/core/ecs/components/c_health_component.gd")
+const C_INPUT_COMPONENT := preload("res://scripts/core/ecs/components/c_input_component.gd")
+const C_MOVEMENT_COMPONENT := preload("res://scripts/core/ecs/components/c_movement_component.gd")
+const C_SPAWN_STATE_COMPONENT := preload("res://scripts/core/ecs/components/c_spawn_state_component.gd")
 const U_RULE_EVALUATOR := preload("res://scripts/utils/ecs/u_rule_evaluator.gd")
 const U_RULE_UTILS := preload("res://scripts/utils/ecs/u_rule_utils.gd")
 

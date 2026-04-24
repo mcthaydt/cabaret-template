@@ -2,7 +2,6 @@ extends GutTest
 
 const GD_DIRECTORIES := [
 	"res://scripts/gameplay",
-	"res://scripts/ecs",
 	"res://scripts/core",
 	"res://scripts/demo",
 	"res://scripts/utils",
@@ -148,14 +147,14 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/core/resources/ai/bt": ["rs_"],
 	"res://scripts/core/resources/ai/bt/scorers": ["rs_"],
 	"res://scripts/core/managers/helpers": ["u_"],
-	"res://scripts/ecs/systems": ["s_", "base_"], # s_*_system.gd plus base system scripts
-	"res://scripts/ecs/systems/helpers": ["u_"], # vCam/system helper utilities
-	"res://scripts/ecs/components": ["c_"],
-	"res://scripts/ecs/resources": ["rs_"],
+	"res://scripts/core/ecs/systems": ["s_", "base_"], # s_*_system.gd plus base system scripts
+	"res://scripts/core/ecs/systems/helpers": ["u_"], # vCam/system helper utilities
+	"res://scripts/core/ecs/components": ["c_"],
+	"res://scripts/core/ecs/resources": ["rs_"],
 	"res://scripts/core/events/ecs": ["evn_", "base_", "u_"], # evn_ for typed events, base_ for BaseECSEvent, u_ for ECS event bus/names
 	"res://scripts/core/events/state": ["u_"], # u_state_event_bus.gd
-	"res://scripts/ecs": ["base_", "u_"], # base_ecs_*.gd files, base_event_vfx_system.gd, u_entity_query.gd
-	"res://scripts/ecs/markers": ["marker_"],
+	"res://scripts/core/ecs": ["base_", "u_"], # base_ecs_*.gd files, base_event_vfx_system.gd, u_entity_query.gd
+	"res://scripts/core/ecs/markers": ["marker_"],
 	"res://scripts/core/state/actions": ["u_"],
 	"res://scripts/core/state/reducers": ["u_"],
 	"res://scripts/core/state/selectors": ["u_"],
@@ -597,7 +596,7 @@ func test_vcam_debug_logging_not_enabled_in_authored_scenes() -> void:
 func test_ai_move_target_magic_strings_not_used_in_ai_scripts() -> void:
 	var violations: Array[String] = []
 	_collect_gd_literal_occurrences("res://scripts/core/resources/ai", "\"ai_move_target\"", violations)
-	_collect_gd_literal_occurrences("res://scripts/ecs/systems", "\"ai_move_target\"", violations, "s_ai_")
+	_collect_gd_literal_occurrences("res://scripts/core/ecs/systems", "\"ai_move_target\"", violations, "s_ai_")
 
 	var message := "AI scripts should not use bare \"ai_move_target\" string literals"
 	if violations.size() > 0:
@@ -683,9 +682,9 @@ func test_bt_planner_scripts_stay_within_loc_caps() -> void:
 
 func test_ecs_system_filenames_do_not_include_demo_marker() -> void:
 	var violations: Array[String] = []
-	_collect_gd_filename_substring_violations("res://scripts/ecs/systems", "_demo_", violations)
+	_collect_gd_filename_substring_violations("res://scripts/core/ecs/systems", "_demo_", violations)
 
-	var message := "ECS system scripts under scripts/ecs/systems must not include '_demo_' in filename"
+	var message := "ECS system scripts under scripts/core/ecs/systems must not include '_demo_' in filename"
 	if violations.size() > 0:
 		message += ":\n" + "\n".join(violations)
 	assert_eq(violations.size(), 0, message)
@@ -832,7 +831,7 @@ func test_vcam_collision_detector_has_no_bare_print_calls() -> void:
 	)
 
 func test_victory_handler_system_has_no_bare_print_calls() -> void:
-	var victory_handler_path := "res://scripts/ecs/systems/s_victory_handler_system.gd"
+	var victory_handler_path := "res://scripts/core/ecs/systems/s_victory_handler_system.gd"
 	var file := FileAccess.open(victory_handler_path, FileAccess.READ)
 	assert_not_null(file, "Unable to open %s" % victory_handler_path)
 	if file == null:
@@ -846,7 +845,7 @@ func test_victory_handler_system_has_no_bare_print_calls() -> void:
 	)
 
 func test_spawn_recovery_system_has_no_bare_print_calls() -> void:
-	var spawn_recovery_path := "res://scripts/ecs/systems/s_spawn_recovery_system.gd"
+	var spawn_recovery_path := "res://scripts/core/ecs/systems/s_spawn_recovery_system.gd"
 	var file := FileAccess.open(spawn_recovery_path, FileAccess.READ)
 	assert_not_null(file, "Unable to open %s" % spawn_recovery_path)
 	if file == null:
@@ -860,7 +859,7 @@ func test_spawn_recovery_system_has_no_bare_print_calls() -> void:
 	)
 
 func test_gravity_system_has_no_bare_print_calls() -> void:
-	var gravity_system_path := "res://scripts/ecs/systems/s_gravity_system.gd"
+	var gravity_system_path := "res://scripts/core/ecs/systems/s_gravity_system.gd"
 	var file := FileAccess.open(gravity_system_path, FileAccess.READ)
 	assert_not_null(file, "Unable to open %s" % gravity_system_path)
 	if file == null:
@@ -881,13 +880,13 @@ func test_detection_system_has_no_direct_print_calls() -> void:
 
 func test_floating_system_has_no_direct_print_calls() -> void:
 	_assert_file_has_no_direct_print_calls(
-		"res://scripts/ecs/systems/s_floating_system.gd",
+		"res://scripts/core/ecs/systems/s_floating_system.gd",
 		"s_floating_system.gd"
 	)
 
 func test_input_system_has_no_direct_print_calls() -> void:
 	_assert_file_has_no_direct_print_calls(
-		"res://scripts/ecs/systems/s_input_system.gd",
+		"res://scripts/core/ecs/systems/s_input_system.gd",
 		"s_input_system.gd"
 	)
 
@@ -899,39 +898,39 @@ func test_move_target_follower_system_has_no_direct_print_calls() -> void:
 
 func test_movement_system_has_no_direct_print_calls() -> void:
 	_assert_file_has_no_direct_print_calls(
-		"res://scripts/ecs/systems/s_movement_system.gd",
+		"res://scripts/core/ecs/systems/s_movement_system.gd",
 		"s_movement_system.gd"
 	)
 
 func test_rotate_to_input_system_has_no_direct_print_calls() -> void:
 	_assert_file_has_no_direct_print_calls(
-		"res://scripts/ecs/systems/s_rotate_to_input_system.gd",
+		"res://scripts/core/ecs/systems/s_rotate_to_input_system.gd",
 		"s_rotate_to_input_system.gd"
 	)
 
 func test_vcam_debug_helper_has_no_direct_print_calls() -> void:
 	_assert_file_has_no_direct_print_calls(
-		"res://scripts/ecs/systems/helpers/u_vcam_debug.gd",
+		"res://scripts/core/ecs/systems/helpers/u_vcam_debug.gd",
 		"u_vcam_debug.gd"
 	)
 
 func test_vcam_look_input_helper_has_no_direct_print_calls() -> void:
 	_assert_file_has_no_direct_print_calls(
-		"res://scripts/ecs/systems/helpers/u_vcam_look_input.gd",
+		"res://scripts/core/ecs/systems/helpers/u_vcam_look_input.gd",
 		"u_vcam_look_input.gd"
 	)
 
 func test_vcam_look_spring_helper_has_no_direct_print_calls() -> void:
 	_assert_file_has_no_direct_print_calls(
-		"res://scripts/ecs/systems/helpers/u_vcam_look_spring.gd",
+		"res://scripts/core/ecs/systems/helpers/u_vcam_look_spring.gd",
 		"u_vcam_look_spring.gd"
 	)
 
 func test_rule_systems_do_not_define_local_rule_pipeline_helpers() -> void:
 	var context_builders: Array[String] = [
-		"res://scripts/ecs/systems/s_camera_state_system.gd",
-		"res://scripts/ecs/systems/s_character_state_system.gd",
-		"res://scripts/ecs/systems/s_game_event_system.gd",
+		"res://scripts/core/ecs/systems/s_camera_state_system.gd",
+		"res://scripts/core/ecs/systems/s_character_state_system.gd",
+		"res://scripts/core/ecs/systems/s_game_event_system.gd",
 		"res://scripts/core/managers/m_objectives_manager.gd",
 		"res://scripts/core/managers/m_scene_director_manager.gd",
 	]
@@ -980,11 +979,11 @@ func _assert_file_has_no_direct_print_calls(path: String, label: String) -> void
 
 func test_rule_systems_and_helpers_do_not_duplicate_property_readers() -> void:
 	var affected_files: Array[String] = [
-		"res://scripts/ecs/systems/s_camera_state_system.gd",
-		"res://scripts/ecs/systems/s_character_state_system.gd",
-		"res://scripts/ecs/systems/s_game_event_system.gd",
-		"res://scripts/ecs/systems/helpers/u_vcam_runtime_context.gd",
-		"res://scripts/ecs/systems/helpers/u_vcam_landing_impact.gd",
+		"res://scripts/core/ecs/systems/s_camera_state_system.gd",
+		"res://scripts/core/ecs/systems/s_character_state_system.gd",
+		"res://scripts/core/ecs/systems/s_game_event_system.gd",
+		"res://scripts/core/ecs/systems/helpers/u_vcam_runtime_context.gd",
+		"res://scripts/core/ecs/systems/helpers/u_vcam_landing_impact.gd",
 		"res://scripts/utils/qb/u_rule_validator.gd",
 		"res://scripts/utils/qb/u_rule_scorer.gd",
 		"res://scripts/utils/qb/u_rule_selector.gd",
@@ -1024,9 +1023,9 @@ func test_rule_systems_and_helpers_do_not_duplicate_property_readers() -> void:
 
 func test_rule_systems_do_not_use_bare_string_context_keys() -> void:
 	var context_builders: Array[String] = [
-		"res://scripts/ecs/systems/s_camera_state_system.gd",
-		"res://scripts/ecs/systems/s_character_state_system.gd",
-		"res://scripts/ecs/systems/s_game_event_system.gd",
+		"res://scripts/core/ecs/systems/s_camera_state_system.gd",
+		"res://scripts/core/ecs/systems/s_character_state_system.gd",
+		"res://scripts/core/ecs/systems/s_game_event_system.gd",
 		"res://scripts/core/managers/m_objectives_manager.gd",
 		"res://scripts/core/managers/m_scene_director_manager.gd",
 	]
@@ -1107,23 +1106,23 @@ func test_migrated_files_do_not_duplicate_dependency_resolution_pattern() -> voi
 	# contain the old inline cache→export→ServiceLocator pattern in their
 	# _resolve_* methods. The shared utility is the single source of truth.
 	var affected_files: Array[String] = [
-		"res://scripts/ecs/systems/s_camera_state_system.gd",
-		"res://scripts/ecs/systems/s_character_state_system.gd",
-		"res://scripts/ecs/systems/s_game_event_system.gd",
+		"res://scripts/core/ecs/systems/s_camera_state_system.gd",
+		"res://scripts/core/ecs/systems/s_character_state_system.gd",
+		"res://scripts/core/ecs/systems/s_game_event_system.gd",
 		"res://scripts/demo/ecs/systems/s_ai_detection_system.gd",
 		"res://scripts/demo/ecs/systems/s_ai_behavior_system.gd",
-		"res://scripts/ecs/systems/s_wall_visibility_system.gd",
-		"res://scripts/ecs/systems/s_region_visibility_system.gd",
+		"res://scripts/core/ecs/systems/s_wall_visibility_system.gd",
+		"res://scripts/core/ecs/systems/s_region_visibility_system.gd",
 		"res://scripts/demo/gameplay/s_demo_alarm_relay_system.gd",
 		"res://scripts/core/managers/m_vcam_manager.gd",
 		"res://scripts/core/managers/m_character_lighting_manager.gd",
 		"res://scripts/core/managers/m_run_coordinator_manager.gd",
 		"res://scripts/gameplay/inter_victory_zone.gd",
 		"res://scripts/demo/gameplay/inter_ai_demo_guard_barrier.gd",
-		"res://scripts/ecs/systems/helpers/u_vcam_runtime_services.gd",
+		"res://scripts/core/ecs/systems/helpers/u_vcam_runtime_services.gd",
 		"res://scripts/gameplay/inter_character_light_zone.gd",
 		"res://scripts/demo/gameplay/inter_ai_demo_flag_zone.gd",
-		"res://scripts/ecs/base_event_sfx_system.gd",
+		"res://scripts/core/ecs/base_event_sfx_system.gd",
 		"res://scripts/core/ui/menus/ui_splash_screen.gd",
 		"res://scripts/core/ui/hud/ui_virtual_button.gd",
 		"res://scripts/core/ui/base/base_panel.gd",
@@ -1163,10 +1162,10 @@ func test_ecs_systems_do_not_define_local_get_frame_state_snapshot() -> void:
 	# Systems that have been migrated to use BaseECSSystem.get_frame_state_snapshot()
 	# should not define their own _get_frame_state_snapshot method.
 	var migrated_files: Array[String] = [
-		"res://scripts/ecs/systems/s_camera_state_system.gd",
-		"res://scripts/ecs/systems/s_character_state_system.gd",
-		"res://scripts/ecs/systems/s_vcam_system.gd",
-		"res://scripts/ecs/systems/s_wall_visibility_system.gd",
+		"res://scripts/core/ecs/systems/s_camera_state_system.gd",
+		"res://scripts/core/ecs/systems/s_character_state_system.gd",
+		"res://scripts/core/ecs/systems/s_vcam_system.gd",
+		"res://scripts/core/ecs/systems/s_wall_visibility_system.gd",
 		"res://scripts/demo/ecs/systems/s_ai_behavior_system.gd",
 	]
 	var forbidden_pattern: String = "func _get_frame_state_snapshot"
@@ -1578,7 +1577,7 @@ func _collect_gd_forbidden_token_violations(
 
 func test_resolve_state_store_naming_consistent() -> void:
 	var gd_dirs: Array[String] = [
-		"res://scripts/ecs",
+		"res://scripts/core/ecs",
 		"res://scripts/core/managers",
 		"res://scripts/gameplay",
 		"res://scripts/demo",
@@ -1619,11 +1618,11 @@ func test_objectives_state_access_uses_selectors() -> void:
 		"res://scripts/core/state/reducers/u_objectives_reducer.gd",
 		"res://scripts/core/managers/helpers/u_save_migration_engine.gd",
 		"res://scripts/utils/scene_director/u_objectives_debug_tracer.gd",
-		"res://scripts/ecs/systems/s_victory_handler_system.gd",
+		"res://scripts/core/ecs/systems/s_victory_handler_system.gd",
 		"res://scripts/core/ui/menus/ui_victory.gd",
 	]
 	var production_dirs: Array[String] = [
-		"res://scripts/ecs",
+		"res://scripts/core/ecs",
 		"res://scripts/state",
 		"res://scripts/ui",
 		"res://scripts/core/managers",
@@ -1687,20 +1686,20 @@ func test_all_production_files_use_selectors_for_state_access() -> void:
 		# Decomposed helpers carry the same per-vcam dict pattern.
 		# u_vcam_look_input uses "state" for look-input smoothing state.
 		# Renaming these local vars is a larger refactor deferred beyond C11.
-		"res://scripts/ecs/systems/helpers/u_vcam_orbit_effects.gd",
-		"res://scripts/ecs/systems/helpers/u_vcam_rotation.gd",
-		"res://scripts/ecs/systems/helpers/u_vcam_look_spring.gd",
-		"res://scripts/ecs/systems/helpers/u_vcam_orbit_centering.gd",
-		"res://scripts/ecs/systems/helpers/u_vcam_look_ahead.gd",
-		"res://scripts/ecs/systems/helpers/u_vcam_ground_anchor.gd",
-		"res://scripts/ecs/systems/helpers/u_vcam_soft_zone_applier.gd",
-		"res://scripts/ecs/systems/helpers/u_vcam_look_input.gd",
+		"res://scripts/core/ecs/systems/helpers/u_vcam_orbit_effects.gd",
+		"res://scripts/core/ecs/systems/helpers/u_vcam_rotation.gd",
+		"res://scripts/core/ecs/systems/helpers/u_vcam_look_spring.gd",
+		"res://scripts/core/ecs/systems/helpers/u_vcam_orbit_centering.gd",
+		"res://scripts/core/ecs/systems/helpers/u_vcam_look_ahead.gd",
+		"res://scripts/core/ecs/systems/helpers/u_vcam_ground_anchor.gd",
+		"res://scripts/core/ecs/systems/helpers/u_vcam_soft_zone_applier.gd",
+		"res://scripts/core/ecs/systems/helpers/u_vcam_look_input.gd",
 		# Generic serializer: uses state.get(slice_name, null) with a variable key (not a string literal).
 		"res://scripts/utils/u_global_settings_serialization.gd",
 		# Deferred — not in C11 scope; will be migrated post-C11:
-		"res://scripts/ecs/systems/s_jump_system.gd",
-		"res://scripts/ecs/systems/s_playtime_system.gd",
-		"res://scripts/ecs/components/c_scene_trigger_component.gd",
+		"res://scripts/core/ecs/systems/s_jump_system.gd",
+		"res://scripts/core/ecs/systems/s_playtime_system.gd",
+		"res://scripts/core/ecs/components/c_scene_trigger_component.gd",
 		"res://scripts/gameplay/inter_endgame_goal_zone.gd",
 		"res://scripts/core/ui/hud/ui_hud_controller.gd",
 		"res://scripts/core/ui/hud/ui_mobile_controls.gd",
@@ -1711,7 +1710,7 @@ func test_all_production_files_use_selectors_for_state_access() -> void:
 		"res://scripts/utils/scene_director/u_objectives_debug_tracer.gd",
 	]
 	var production_dirs: Array[String] = [
-		"res://scripts/ecs",
+		"res://scripts/core/ecs",
 		"res://scripts/gameplay",
 		"res://scripts/core/ui",
 		"res://scripts/core/managers",
@@ -1884,7 +1883,7 @@ func test_no_state_mutation_outside_store() -> void:
 		"res://scripts/core/state/m_state_store.gd",
 	]
 	var production_dirs: Array[String] = [
-		"res://scripts/ecs",
+		"res://scripts/core/ecs",
 		"res://scripts/gameplay",
 		"res://scripts/ui",
 		"res://scripts/core/managers",
@@ -2224,13 +2223,13 @@ func _count_method_lines(path: String, method_name: String) -> int:
 
 
 func test_s_vcam_system_stays_under_400_lines() -> void:
-	var line_count: int = _count_file_lines("res://scripts/ecs/systems/s_vcam_system.gd")
+	var line_count: int = _count_file_lines("res://scripts/core/ecs/systems/s_vcam_system.gd")
 	assert_lt(line_count, 400,
 		"S_VCamSystem should stay under 400 lines (current=%d)." % line_count)
 
 
 func test_s_camera_state_system_stays_under_400_lines() -> void:
-	var line_count: int = _count_file_lines("res://scripts/ecs/systems/s_camera_state_system.gd")
+	var line_count: int = _count_file_lines("res://scripts/core/ecs/systems/s_camera_state_system.gd")
 	assert_lt(line_count, 400,
 		"S_CameraStateSystem should stay under 400 lines (current=%d)." % line_count)
 
@@ -2238,19 +2237,19 @@ func test_s_camera_state_system_stays_under_400_lines() -> void:
 func test_s_wall_visibility_system_stays_under_1200_lines() -> void:
 	# C5 decomposed wall visibility; the remaining size is in private methods
 	# that C5 chose not to extract (target architecture). F8 targets VCam/CameraState only.
-	var line_count: int = _count_file_lines("res://scripts/ecs/systems/s_wall_visibility_system.gd")
+	var line_count: int = _count_file_lines("res://scripts/core/ecs/systems/s_wall_visibility_system.gd")
 	assert_lt(line_count, 1200,
 		"S_WallVisibilitySystem should stay under 1200 lines (current=%d)." % line_count)
 
 
 func test_vcam_system_process_tick_under_80_lines() -> void:
-	var method_lines: int = _count_method_lines("res://scripts/ecs/systems/s_vcam_system.gd", "process_tick")
+	var method_lines: int = _count_method_lines("res://scripts/core/ecs/systems/s_vcam_system.gd", "process_tick")
 	assert_lt(method_lines, 80,
 		"S_VCamSystem.process_tick should stay under 80 lines (current=%d)." % method_lines)
 
 
 func test_camera_state_system_process_tick_under_80_lines() -> void:
-	var method_lines: int = _count_method_lines("res://scripts/ecs/systems/s_camera_state_system.gd", "process_tick")
+	var method_lines: int = _count_method_lines("res://scripts/core/ecs/systems/s_camera_state_system.gd", "process_tick")
 	assert_lt(method_lines, 80,
 		"S_CameraStateSystem.process_tick should stay under 80 lines (current=%d)." % method_lines)
 
@@ -2258,10 +2257,10 @@ func test_camera_state_system_process_tick_under_80_lines() -> void:
 func test_all_ecs_system_helpers_under_400_lines() -> void:
 	# u_vcam_response_smoother.gd (468 lines) is exempt — coherent 2nd-order dynamics lifecycle
 	var exempt_files: Array[String] = [
-		"res://scripts/ecs/systems/helpers/u_vcam_response_smoother.gd",  # 468 lines - coherent 2nd-order dynamics lifecycle
-		"res://scripts/ecs/systems/helpers/u_vcam_look_spring.gd",  # 405 lines - 2nd-order spring + release damping (Phase 0 decomposition)
+		"res://scripts/core/ecs/systems/helpers/u_vcam_response_smoother.gd",  # 468 lines - coherent 2nd-order dynamics lifecycle
+		"res://scripts/core/ecs/systems/helpers/u_vcam_look_spring.gd",  # 405 lines - 2nd-order spring + release damping (Phase 0 decomposition)
 	]
-	var helper_dir := "res://scripts/ecs/systems/helpers"
+	var helper_dir := "res://scripts/core/ecs/systems/helpers"
 	var dir := DirAccess.open(helper_dir)
 	assert_not_null(dir, "Should be able to open helpers directory")
 	if dir == null:
@@ -2291,7 +2290,7 @@ func test_all_ecs_system_helpers_under_400_lines() -> void:
 
 
 func test_vcam_system_has_no_evaluate_and_submit() -> void:
-	var file := FileAccess.open("res://scripts/ecs/systems/s_vcam_system.gd", FileAccess.READ)
+	var file := FileAccess.open("res://scripts/core/ecs/systems/s_vcam_system.gd", FileAccess.READ)
 	assert_not_null(file, "Should open s_vcam_system.gd")
 	if file == null:
 		return
@@ -2301,7 +2300,7 @@ func test_vcam_system_has_no_evaluate_and_submit() -> void:
 		"S_VCamSystem should not have dead _evaluate_and_submit method")
 
 func test_vcam_system_has_no_step_orbit_release_axis() -> void:
-	var file := FileAccess.open("res://scripts/ecs/systems/s_vcam_system.gd", FileAccess.READ)
+	var file := FileAccess.open("res://scripts/core/ecs/systems/s_vcam_system.gd", FileAccess.READ)
 	assert_not_null(file, "Should open s_vcam_system.gd")
 	if file == null:
 		return
@@ -2311,7 +2310,7 @@ func test_vcam_system_has_no_step_orbit_release_axis() -> void:
 		"S_VCamSystem should not have dead _step_orbit_release_axis method")
 
 func test_vcam_system_has_no_resolve_orbit_center_target_yaw() -> void:
-	var file := FileAccess.open("res://scripts/ecs/systems/s_vcam_system.gd", FileAccess.READ)
+	var file := FileAccess.open("res://scripts/core/ecs/systems/s_vcam_system.gd", FileAccess.READ)
 	assert_not_null(file, "Should open s_vcam_system.gd")
 	if file == null:
 		return
@@ -2321,7 +2320,7 @@ func test_vcam_system_has_no_resolve_orbit_center_target_yaw() -> void:
 		"S_VCamSystem should not have dead _resolve_orbit_center_target_yaw method")
 
 func test_vcam_system_has_no_apply_vcam_effect_pipeline() -> void:
-	var file := FileAccess.open("res://scripts/ecs/systems/s_vcam_system.gd", FileAccess.READ)
+	var file := FileAccess.open("res://scripts/core/ecs/systems/s_vcam_system.gd", FileAccess.READ)
 	assert_not_null(file, "Should open s_vcam_system.gd")
 	if file == null:
 		return
@@ -2331,7 +2330,7 @@ func test_vcam_system_has_no_apply_vcam_effect_pipeline() -> void:
 		"S_VCamSystem should not have dead _apply_vcam_effect_pipeline method")
 
 func test_vcam_system_has_no_resolve_state_store() -> void:
-	var file := FileAccess.open("res://scripts/ecs/systems/s_vcam_system.gd", FileAccess.READ)
+	var file := FileAccess.open("res://scripts/core/ecs/systems/s_vcam_system.gd", FileAccess.READ)
 	assert_not_null(file, "Should open s_vcam_system.gd")
 	if file == null:
 		return
@@ -2341,7 +2340,7 @@ func test_vcam_system_has_no_resolve_state_store() -> void:
 		"S_VCamSystem should not have dead _resolve_state_store method")
 
 func test_vcam_system_has_no_update_runtime_rotation() -> void:
-	var file := FileAccess.open("res://scripts/ecs/systems/s_vcam_system.gd", FileAccess.READ)
+	var file := FileAccess.open("res://scripts/core/ecs/systems/s_vcam_system.gd", FileAccess.READ)
 	assert_not_null(file, "Should open s_vcam_system.gd")
 	if file == null:
 		return
@@ -2351,7 +2350,7 @@ func test_vcam_system_has_no_update_runtime_rotation() -> void:
 		"S_VCamSystem should not have dead _update_runtime_rotation method")
 
 func test_vcam_system_has_no_resolve_runtime_rotation_for_evaluation() -> void:
-	var file := FileAccess.open("res://scripts/ecs/systems/s_vcam_system.gd", FileAccess.READ)
+	var file := FileAccess.open("res://scripts/core/ecs/systems/s_vcam_system.gd", FileAccess.READ)
 	assert_not_null(file, "Should open s_vcam_system.gd")
 	if file == null:
 		return
@@ -2362,9 +2361,9 @@ func test_vcam_system_has_no_resolve_runtime_rotation_for_evaluation() -> void:
 
 func test_all_ecs_systems_declare_explicit_phase() -> void:
 	var violations: Array[String] = []
-	var dir := DirAccess.open("res://scripts/ecs/systems/")
+	var dir := DirAccess.open("res://scripts/core/ecs/systems/")
 	if dir == null:
-		push_error("Cannot open scripts/ecs/systems/ directory")
+		push_error("Cannot open scripts/core/ecs/systems/ directory")
 		assert_false(true, "Directory access failed")
 		return
 	dir.include_navigational = false
@@ -2374,7 +2373,7 @@ func test_all_ecs_systems_declare_explicit_phase() -> void:
 		if not filename.ends_with(".gd") or not filename.begins_with("s_"):
 			filename = dir.get_next()
 			continue
-		var file_path := "res://scripts/ecs/systems/" + filename
+		var file_path := "res://scripts/core/ecs/systems/" + filename
 		var file := FileAccess.open(file_path, FileAccess.READ)
 		if file == null:
 			violations.append("%s: cannot open file" % filename)
@@ -2440,7 +2439,7 @@ func test_simple_settings_overlays_under_15_lines() -> void:
 func test_managers_and_ecs_systems_have_no_bare_print_calls() -> void:
 	var roots: Array[String] = [
 		"res://scripts/core/managers",
-		"res://scripts/ecs/systems",
+		"res://scripts/core/ecs/systems",
 	]
 	var violations: Array[String] = []
 	for root in roots:

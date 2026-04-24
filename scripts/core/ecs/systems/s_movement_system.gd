@@ -7,11 +7,10 @@ class_name S_MovementSystem
 const MOVEMENT_TYPE := StringName("C_MovementComponent")
 const INPUT_TYPE := StringName("C_InputComponent")
 const FLOATING_TYPE := StringName("C_FloatingComponent")
-const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/ecs/components/c_character_state_component.gd")
+const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/core/ecs/components/c_character_state_component.gd")
 const CHARACTER_STATE_TYPE := C_CHARACTER_STATE_COMPONENT.COMPONENT_TYPE
-const C_AI_BRAIN_COMPONENT := preload("res://scripts/demo/ecs/components/c_ai_brain_component.gd")
-const AI_BRAIN_TYPE := C_AI_BRAIN_COMPONENT.COMPONENT_TYPE
-const C_SPAWN_STATE_COMPONENT := preload("res://scripts/ecs/components/c_spawn_state_component.gd")
+const AI_BRAIN_TYPE := StringName("C_AIBrainComponent")
+const C_SPAWN_STATE_COMPONENT := preload("res://scripts/core/ecs/components/c_spawn_state_component.gd")
 const SPAWN_STATE_TYPE := C_SPAWN_STATE_COMPONENT.COMPONENT_TYPE
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
 const U_PERF_PROBE := preload("res://scripts/utils/debug/u_perf_probe.gd")

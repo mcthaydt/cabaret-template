@@ -19,13 +19,13 @@ const U_INPUT_ACTIONS := preload("res://scripts/core/state/actions/u_input_actio
 const U_NAVIGATION_ACTIONS := preload("res://scripts/core/state/actions/u_navigation_actions.gd")
 
 const M_ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
-const S_TOUCHSCREEN_SYSTEM := preload("res://scripts/ecs/systems/s_touchscreen_system.gd")
-const S_INPUT_SYSTEM := preload("res://scripts/ecs/systems/s_input_system.gd")
-const S_VCAM_SYSTEM := preload("res://scripts/ecs/systems/s_vcam_system.gd")
+const S_TOUCHSCREEN_SYSTEM := preload("res://scripts/core/ecs/systems/s_touchscreen_system.gd")
+const S_INPUT_SYSTEM := preload("res://scripts/core/ecs/systems/s_input_system.gd")
+const S_VCAM_SYSTEM := preload("res://scripts/core/ecs/systems/s_vcam_system.gd")
 const I_VCAM_MANAGER := preload("res://scripts/core/interfaces/i_vcam_manager.gd")
-const BASE_ECS_ENTITY := preload("res://scripts/ecs/base_ecs_entity.gd")
-const C_INPUT_COMPONENT := preload("res://scripts/ecs/components/c_input_component.gd")
-const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component.gd")
+const BASE_ECS_ENTITY := preload("res://scripts/core/ecs/base_ecs_entity.gd")
+const C_INPUT_COMPONENT := preload("res://scripts/core/ecs/components/c_input_component.gd")
+const C_VCAM_COMPONENT := preload("res://scripts/core/ecs/components/c_vcam_component.gd")
 const RS_VCAM_MODE_ORBIT := preload("res://scripts/core/resources/display/vcam/rs_vcam_mode_orbit.gd")
 
 class VCamManagerStub extends I_VCamManager:

@@ -1,6 +1,6 @@
 extends GutTest
 
-const U_VCAM_ROTATION := preload("res://scripts/ecs/systems/helpers/u_vcam_rotation.gd")
+const U_VCAM_ROTATION := preload("res://scripts/core/ecs/systems/helpers/u_vcam_rotation.gd")
 const RS_VCAM_MODE_ORBIT := preload("res://scripts/core/resources/display/vcam/rs_vcam_mode_orbit.gd")
 
 class RotationComponentStub extends RefCounted:

@@ -4,10 +4,10 @@ const SCENE_PATH := "res://scenes/gameplay/gameplay_interior_a.tscn"
 const POWER_CORE_SCENE_PATH := "res://scenes/gameplay/gameplay_power_core.tscn"
 const TEMPLATE_SCENE_PATH := "res://scenes/templates/tmpl_base_scene.tscn"
 const C_ROOM_FADE_GROUP_COMPONENT_SCRIPT := preload(
-	"res://scripts/ecs/components/c_room_fade_group_component.gd"
+	"res://scripts/core/ecs/components/c_room_fade_group_component.gd"
 )
-const S_WALL_VISIBILITY_SYSTEM_SCRIPT := preload("res://scripts/ecs/systems/s_wall_visibility_system.gd")
-const BASE_ECS_ENTITY_SCRIPT := preload("res://scripts/ecs/base_ecs_entity.gd")
+const S_WALL_VISIBILITY_SYSTEM_SCRIPT := preload("res://scripts/core/ecs/systems/s_wall_visibility_system.gd")
+const BASE_ECS_ENTITY_SCRIPT := preload("res://scripts/core/ecs/base_ecs_entity.gd")
 
 func test_gameplay_interior_room_fade_targets_have_single_group_ownership() -> void:
 	var packed_scene := load(SCENE_PATH) as PackedScene

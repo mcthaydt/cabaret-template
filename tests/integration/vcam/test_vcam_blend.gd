@@ -19,7 +19,7 @@ const U_ECS_EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.
 
 const M_VCAM_MANAGER := preload("res://scripts/core/managers/m_vcam_manager.gd")
 const MOCK_CAMERA_MANAGER := preload("res://tests/mocks/mock_camera_manager.gd")
-const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component.gd")
+const C_VCAM_COMPONENT := preload("res://scripts/core/ecs/components/c_vcam_component.gd")
 const RS_VCAM_MODE_ORBIT := preload("res://scripts/core/resources/display/vcam/rs_vcam_mode_orbit.gd")
 const RS_VCAM_BLEND_HINT := preload("res://scripts/core/resources/display/vcam/rs_vcam_blend_hint.gd")
 

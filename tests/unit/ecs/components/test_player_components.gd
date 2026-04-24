@@ -1,10 +1,10 @@
 extends BaseTest
 
 const ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
-const MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
-const JUMP_COMPONENT := preload("res://scripts/ecs/components/c_jump_component.gd")
-const INPUT_COMPONENT := preload("res://scripts/ecs/components/c_input_component.gd")
-const ROTATE_COMPONENT := preload("res://scripts/ecs/components/c_rotate_to_input_component.gd")
+const MOVEMENT_COMPONENT := preload("res://scripts/core/ecs/components/c_movement_component.gd")
+const JUMP_COMPONENT := preload("res://scripts/core/ecs/components/c_jump_component.gd")
+const INPUT_COMPONENT := preload("res://scripts/core/ecs/components/c_input_component.gd")
+const ROTATE_COMPONENT := preload("res://scripts/core/ecs/components/c_rotate_to_input_component.gd")
 
 func _add_manager() -> M_ECSManager:
 	var manager: M_ECSManager = ECS_MANAGER.new()

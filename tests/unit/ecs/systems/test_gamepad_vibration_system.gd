@@ -188,7 +188,7 @@ func _pump() -> void:
 	await get_tree().process_frame
 
 func _make_player_body() -> Node3D:
-	var base_entity := preload("res://scripts/ecs/base_ecs_entity.gd").new()
+	var base_entity := preload("res://scripts/core/ecs/base_ecs_entity.gd").new()
 	base_entity.name = "E_Player"
 	add_child_autofree(base_entity)
 	var body := Node3D.new()

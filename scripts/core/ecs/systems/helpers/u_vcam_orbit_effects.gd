@@ -9,9 +9,9 @@ class_name U_VCamOrbitEffects
 ## Also owns follow-target speed sampling and position-smoothing bypass state,
 ## which are consumed by the response smoother via the effect pipeline.
 
-const U_VCAM_LOOK_AHEAD := preload("res://scripts/ecs/systems/helpers/u_vcam_look_ahead.gd")
-const U_VCAM_GROUND_ANCHOR := preload("res://scripts/ecs/systems/helpers/u_vcam_ground_anchor.gd")
-const U_VCAM_SOFT_ZONE_APPLIER := preload("res://scripts/ecs/systems/helpers/u_vcam_soft_zone_applier.gd")
+const U_VCAM_LOOK_AHEAD := preload("res://scripts/core/ecs/systems/helpers/u_vcam_look_ahead.gd")
+const U_VCAM_GROUND_ANCHOR := preload("res://scripts/core/ecs/systems/helpers/u_vcam_ground_anchor.gd")
+const U_VCAM_SOFT_ZONE_APPLIER := preload("res://scripts/core/ecs/systems/helpers/u_vcam_soft_zone_applier.gd")
 
 const DEFAULT_ORBIT_LOOK_BYPASS_ENABLE_SPEED: float = 0.15
 const DEFAULT_ORBIT_LOOK_BYPASS_DISABLE_SPEED: float = 0.3

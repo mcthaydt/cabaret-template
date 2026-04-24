@@ -3,8 +3,8 @@ extends BaseTest
 const S_AI_BEHAVIOR_SYSTEM_PATH := "res://scripts/demo/ecs/systems/s_ai_behavior_system.gd"
 const GUIDE_PRISM_BT_BRAIN_PATH := "res://resources/ai/guide_prism/cfg_guide_brain.tres"
 
-const BASE_ECS_SYSTEM := preload("res://scripts/ecs/base_ecs_system.gd")
-const BASE_ECS_ENTITY := preload("res://scripts/ecs/base_ecs_entity.gd")
+const BASE_ECS_SYSTEM := preload("res://scripts/core/ecs/base_ecs_system.gd")
+const BASE_ECS_ENTITY := preload("res://scripts/core/ecs/base_ecs_entity.gd")
 const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
@@ -13,7 +13,7 @@ const U_ECS_EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.
 
 const C_AI_BRAIN_COMPONENT := preload("res://scripts/demo/ecs/components/c_ai_brain_component.gd")
 const C_MOVE_TARGET_COMPONENT := preload("res://scripts/demo/ecs/components/c_move_target_component.gd")
-const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
+const C_MOVEMENT_COMPONENT := preload("res://scripts/core/ecs/components/c_movement_component.gd")
 
 const RS_MOVEMENT_SETTINGS := preload("res://scripts/core/resources/ecs/rs_movement_settings.gd")
 const RS_AI_BRAIN_SETTINGS := preload("res://scripts/core/resources/ai/brain/rs_ai_brain_settings.gd")

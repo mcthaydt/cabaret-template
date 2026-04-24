@@ -1,7 +1,7 @@
 extends BaseTest
 
 const S_DEMO_ALARM_RELAY_SYSTEM_PATH := "res://scripts/demo/gameplay/s_demo_alarm_relay_system.gd"
-const BASE_ECS_SYSTEM := preload("res://scripts/ecs/base_ecs_system.gd")
+const BASE_ECS_SYSTEM := preload("res://scripts/core/ecs/base_ecs_system.gd")
 const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_gameplay_actions.gd")

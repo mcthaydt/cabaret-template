@@ -3,12 +3,12 @@ extends BaseTest
 # C5 Decomposition tests — test extracted methods independently.
 # These methods are extracted from process_tick to decompose the god method.
 
-const WALL_VISIBILITY_SYSTEM_PATH := "res://scripts/ecs/systems/s_wall_visibility_system.gd"
+const WALL_VISIBILITY_SYSTEM_PATH := "res://scripts/core/ecs/systems/s_wall_visibility_system.gd"
 const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")
 const MOCK_CAMERA_MANAGER := preload("res://tests/mocks/mock_camera_manager.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
-const BASE_ECS_ENTITY := preload("res://scripts/ecs/base_ecs_entity.gd")
-const C_ROOM_FADE_GROUP_COMPONENT := preload("res://scripts/ecs/components/c_room_fade_group_component.gd")
+const BASE_ECS_ENTITY := preload("res://scripts/core/ecs/base_ecs_entity.gd")
+const C_ROOM_FADE_GROUP_COMPONENT := preload("res://scripts/core/ecs/components/c_room_fade_group_component.gd")
 
 
 class WallVisibilityApplierStub extends RefCounted:

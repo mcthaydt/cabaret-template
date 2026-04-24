@@ -27,7 +27,7 @@ const RS_StateStoreSettings = preload("res://scripts/core/resources/state/rs_sta
 const U_SceneRegistry = preload("res://scripts/core/scene_management/u_scene_registry.gd")
 const U_SceneActions = preload("res://scripts/core/state/actions/u_scene_actions.gd")
 const U_NavigationActions = preload("res://scripts/core/state/actions/u_navigation_actions.gd")
-const C_SceneTriggerComponent = preload("res://scripts/ecs/components/c_scene_trigger_component.gd")
+const C_SceneTriggerComponent = preload("res://scripts/core/ecs/components/c_scene_trigger_component.gd")
 
 var _root_scene: Node
 var _manager: M_SceneManager

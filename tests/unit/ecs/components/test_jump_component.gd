@@ -1,6 +1,6 @@
 extends BaseTest
 
-const JumpComponentScript = preload("res://scripts/ecs/components/c_jump_component.gd")
+const JumpComponentScript = preload("res://scripts/core/ecs/components/c_jump_component.gd")
 const JumpSettingsScript = preload("res://scripts/core/resources/ecs/rs_jump_settings.gd")
 const ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 

@@ -1,13 +1,14 @@
 @icon("res://assets/editor_icons/icn_system.svg")
-extends "res://scripts/ecs/base_event_sfx_system.gd"
-class_name S_LandingSoundSystem
+extends "res://scripts/core/ecs/base_event_sfx_system.gd"
+class_name S_CheckpointSoundSystem
 
-## Landing Sound System (Phase 6 - Refactored)
+## Checkpoint Sound System (Phase 6 - Refactored)
 ##
-## Plays landing sounds using base class helpers with pause/transition blocking.
-## Volume scales with fall speed (5-30 units).
+## Plays checkpoint activation sounds using base class helpers.
+## Position is now resolved in S_CheckpointHandlerSystem and included in event payload,
+## eliminating O(n) find_child() traversal.
 
-const SETTINGS_TYPE := preload("res://scripts/core/resources/ecs/rs_landing_sound_settings.gd")
+const SETTINGS_TYPE := preload("res://scripts/core/resources/ecs/rs_checkpoint_sound_settings.gd")
 
 @export var settings: SETTINGS_TYPE
 
@@ -17,19 +18,11 @@ func get_phase() -> BaseECSSystem.SystemPhase:
 	return BaseECSSystem.SystemPhase.VFX
 
 func get_event_name() -> StringName:
-	return StringName("entity_landed")
+	return StringName("checkpoint_activated")
 
 func create_request_from_payload(payload: Dictionary) -> Dictionary:
-	var fall_speed := 0.0
-	if payload.has("fall_speed"):
-		fall_speed = float(payload.get("fall_speed", 0.0))
-	else:
-		var vertical_velocity_variant: Variant = payload.get("vertical_velocity", 0.0)
-		fall_speed = abs(float(vertical_velocity_variant))
-
 	return {
 		"position": payload.get("position", Vector3.ZERO),
-		"fall_speed": fall_speed,
 	}
 
 func _get_audio_stream() -> AudioStream:
@@ -58,28 +51,16 @@ func process_tick(__delta: float) -> void:
 		if request == null:
 			continue
 
-		var fall_speed_variant: Variant = request.get("fall_speed", 0.0)
-		var fall_speed: float = float(fall_speed_variant)
-		if fall_speed <= 5.0:
-			continue
-
-		var volume_adjustment := _remap_clamped(fall_speed, 5.0, 30.0, -6.0, 0.0)
 		var position := _extract_position(request)
 		var pitch_scale := _calculate_pitch(settings.pitch_variation)
 
 		_spawn_sfx({
 			"audio_stream": stream,
 			"position": position,
-			"volume_db": settings.volume_db + volume_adjustment,
+			"volume_db": settings.volume_db,
 			"pitch_scale": pitch_scale,
 			"bus": "SFX",
 		})
 		_last_play_time = now
 
 	requests.clear()
-
-func _remap_clamped(value: float, in_min: float, in_max: float, out_min: float, out_max: float) -> float:
-	if is_equal_approx(in_min, in_max):
-		return out_min
-	var t := clampf((value - in_min) / (in_max - in_min), 0.0, 1.0)
-	return lerpf(out_min, out_max, t)

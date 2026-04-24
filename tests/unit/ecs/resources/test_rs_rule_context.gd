@@ -1,6 +1,6 @@
 extends GutTest
 
-const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/ecs/components/c_character_state_component.gd")
+const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/core/ecs/components/c_character_state_component.gd")
 
 # RSRuleContext is the class under test.
 
