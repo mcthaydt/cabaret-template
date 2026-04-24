@@ -952,6 +952,14 @@ EXCLUSIONS:
 - Never keep Godot’s auto-suffixed names (e.g., `Main2`, `Main3`). If a duplicate occurs, rename back to the canonical name.
 - Use marker scripts and custom icons to convey role; do not encode context via numeric suffixes.
 
+## Resource Hygiene
+
+- `.gd` files under `scripts/` and gameplay/unit tests use tab indentation. The style suite fails on leading spaces.
+- Trigger configuration resources (`RS_SceneTriggerSettings` derivatives) must include `script = ExtResource(...)`.
+- Duplicate shared `.tres` files before customizing per-scene values, or rely on controller auto-duplication.
+- Avoid `Resource.new()` fallback allocation in hot-path config resolvers. Use canonical default config instances under `resources/base_settings/**/cfg_*_config_default.tres` and scene exports where possible.
+- New production categories must update this guide and style enforcement together.
+
 ---
 
 ## Scene Node Naming (Non-script markers)
