@@ -30,6 +30,5 @@ Use the existing `scenes/templates/tmpl_base_scene.tscn` as the canonical base s
 
 ## References
 
-- `docs/guides/cleanup_v8/cleanup-v8-tasks.md`
+- `docs/history/cleanup_v8/cleanup-v8-tasks.md`
 - `docs/guides/SCENE_ORGANIZATION_GUIDE.md`
-

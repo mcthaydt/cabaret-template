@@ -2,11 +2,11 @@
 
 ## Overview
 
-Implements `docs/guides/cleanup_v8/cleanup-v8-tasks.md` in phase order with TDD discipline. V8 is the follow-up to V7.2, addressing structural/organizational debt rather than internal architectural issues.
+Implements `docs/history/cleanup_v8/cleanup-v8-tasks.md` in phase order with TDD discipline. V8 is the follow-up to V7.2, addressing structural/organizational debt rather than internal architectural issues.
 
 **Branch**: `cleanup-v8` (off `main`, after `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch; subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred.
-**Status**: Phase 1 complete. P1.1–P1.10 complete. Phase 2 complete through P2.4 (`28702b95`) with style guard green. Phase 3 in progress: P3.0 docs-tree reorg complete; P3.1 inventory complete (`fce9f326`); P3.2 target structure confirmed (`afd151f9`); P3.3 complete through final aggregator cleanup; P3.4 ADR/index/structure enforcement complete; P3.5 recipe framework complete. `AGENTS.md` is now a 58-line routing index and `docs/guides/DEV_PITFALLS.md` has been deleted after redistribution.
-**Next Task**: Milestone P3.6 — archive `docs/guides/cleanup_v8/` into `docs/history/cleanup_v8/` after confirming remaining references.
+**Status**: Phase 1 complete. P1.1–P1.10 complete. Phase 2 complete through P2.4 (`28702b95`) with style guard green. Phase 3 complete through P3.6 archive. `AGENTS.md` is now a 58-line routing index and `docs/guides/DEV_PITFALLS.md` has been deleted after redistribution.
+**Next Task**: Phase 4 — Template vs Demo Split.
 **Prerequisite**: V7.2 is complete (commit `e015aff2 "cleanup-v7.2 complete"` landed the F10 verification test). No blockers.
 
 ---
@@ -157,7 +157,7 @@ Five independent phases bundled for a single goal: make the template LLM-friendl
       - Full-suite status is now green.
     - Last full-suite baseline before P1.7 was green on `cleanup-v8` (`tools/run_gut_suite.sh`: 4553 passing / 8 pending / 0 failing).
 - **Phase 2**: COMPLETE through P2.4 (`28702b95`) with style recheck passing (`83/83`).
-- **Phase 3**: IN PROGRESS. P3.0 complete (docs reorg + ADR normalization + path rewrites); P3.1 complete (`fce9f326`, inventory maps 44 DEV_PITFALLS + 19 AGENTS sections); P3.2 complete (`afd151f9`, target structure confirmed with style guard green); P3.3 complete; P3.4 complete; P3.5 framework complete; P3.6 archive remains.
+- **Phase 3**: COMPLETE. P3.0 complete (docs reorg + ADR normalization + path rewrites); P3.1 complete (`fce9f326`, inventory maps 44 DEV_PITFALLS + 19 AGENTS sections); P3.2 complete (`afd151f9`, target structure confirmed with style guard green); P3.3 complete; P3.4 complete; P3.5 framework complete; P3.6 archive complete.
 - **Phase 4**: NOT STARTED. 4 milestones.
 - **Phase 5**: NOT STARTED. 4 milestones.
 
@@ -379,6 +379,6 @@ Test command: `tools/run_gut_suite.sh` (or `-gtest=res://tests/unit/ai/bt/` for 
 
 ## Next Steps
 
-1. Execute P3.6: archive `docs/guides/cleanup_v8/` into `docs/history/cleanup_v8/`.
-2. Update references that should continue pointing at the archived plan.
-3. Run `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` and then full suite if the archive move changes enforced paths.
+1. Start Phase 4 with template-vs-demo classification.
+2. Keep docs/history references archived; new evergreen guidance belongs under `docs/guides/` or `docs/systems/`.
+3. Run `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` after any file move.

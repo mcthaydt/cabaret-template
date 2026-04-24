@@ -53,6 +53,6 @@
 
 ## Active Cleanup V8 Tracking
 
-- Task checklist: `docs/guides/cleanup_v8/cleanup-v8-tasks.md`
-- Continuation prompt: `docs/guides/cleanup_v8/cleanup-v8-continuation-prompt.md`
-- Docs inventory: `docs/guides/cleanup_v8/docs_inventory.md`
+- Archived task checklist: `docs/history/cleanup_v8/cleanup-v8-tasks.md`
+- Archived continuation prompt: `docs/history/cleanup_v8/cleanup-v8-continuation-prompt.md`
+- Archived docs inventory: `docs/history/cleanup_v8/docs_inventory.md`

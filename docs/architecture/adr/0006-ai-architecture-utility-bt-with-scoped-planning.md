@@ -33,7 +33,6 @@ Use utility-scored behavior trees as the primary AI architecture. Each brain own
 
 ## References
 
-- `docs/guides/cleanup_v8/cleanup-v8-tasks.md`
+- `docs/history/cleanup_v8/cleanup-v8-tasks.md`
 - `docs/systems/ai_system/ai-system-overview.md`
 - Cleanup V8 Phase 1 commits
-

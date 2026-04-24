@@ -30,5 +30,4 @@ Separate reusable template code/content from examples with `core` and `demo` own
 
 ## References
 
-- `docs/guides/cleanup_v8/cleanup-v8-tasks.md`
-
+- `docs/history/cleanup_v8/cleanup-v8-tasks.md`

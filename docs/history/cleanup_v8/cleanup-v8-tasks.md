@@ -1161,7 +1161,8 @@ The recipes below each own one subsystem. Written after that subsystem stabilize
 
 Tail of P3, after all other P3 milestones are green. Moves this plan into `docs/history/` now that it's frozen.
 
-- [ ] **Commit 1** — `git mv docs/guides/cleanup_v8 docs/history/cleanup_v8`. Update any remaining references (V8 continuation docs, MEMORY entries if any).
+- [x] **Commit 1** — `git mv docs/guides/cleanup_v8 docs/history/cleanup_v8`. Update any remaining references (V8 continuation docs, MEMORY entries if any).
+  - Completion notes: archived the V8 task checklist, continuation prompt, docs inventory, and debug/perf audit under `docs/history/cleanup_v8/`; updated AGENTS and ADR references to the archived paths.
 
 ---
 
