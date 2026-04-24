@@ -12,16 +12,16 @@ extends BaseTest
 ## - Display settings persist across handoff and save/load
 
 const M_DISPLAY_MANAGER := preload("res://scripts/core/managers/m_display_manager.gd")
-const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
+const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/core/resources/state/rs_state_store_settings.gd")
 const RS_DISPLAY_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_display_initial_state.gd")
 const MOCK_WINDOW_OPS := preload("res://tests/mocks/mock_window_ops.gd")
 
-const U_DISPLAY_ACTIONS := preload("res://scripts/state/actions/u_display_actions.gd")
-const U_DISPLAY_SELECTORS := preload("res://scripts/state/selectors/u_display_selectors.gd")
-const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
+const U_DISPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_display_actions.gd")
+const U_DISPLAY_SELECTORS := preload("res://scripts/core/state/selectors/u_display_selectors.gd")
+const U_NAVIGATION_ACTIONS := preload("res://scripts/core/state/actions/u_navigation_actions.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
+const U_STATE_HANDOFF := preload("res://scripts/core/state/utils/u_state_handoff.gd")
 
 const DISPLAY_SETTINGS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/settings/ui_display_settings_overlay.tscn")
 const POST_PROCESS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/ui_post_process_overlay.tscn")

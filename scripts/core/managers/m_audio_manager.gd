@@ -8,10 +8,10 @@ class_name M_AudioManager
 ## Redux audio slice.
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_AUDIO_SELECTORS := preload("res://scripts/state/selectors/u_audio_selectors.gd")
-const U_SCENE_SELECTORS := preload("res://scripts/state/selectors/u_scene_selectors.gd")
-const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
-const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
+const U_AUDIO_SELECTORS := preload("res://scripts/core/state/selectors/u_audio_selectors.gd")
+const U_SCENE_SELECTORS := preload("res://scripts/core/state/selectors/u_scene_selectors.gd")
+const U_SCENE_ACTIONS := preload("res://scripts/core/state/actions/u_scene_actions.gd")
+const U_NAVIGATION_ACTIONS := preload("res://scripts/core/state/actions/u_navigation_actions.gd")
 const U_SFX_SPAWNER := preload("res://scripts/core/managers/helpers/u_sfx_spawner.gd")
 const U_AUDIO_REGISTRY_LOADER := preload("res://scripts/core/managers/helpers/u_audio_registry_loader.gd")
 const U_AUDIO_BUS_CONSTANTS := preload("res://scripts/core/managers/helpers/u_audio_bus_constants.gd")

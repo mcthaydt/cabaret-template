@@ -9,12 +9,12 @@ extends GutTest
 ## Tests follow TDD discipline: written BEFORE implementation validation.
 
 const M_SceneManager = preload("res://scripts/core/managers/m_scene_manager.gd")
-const M_StateStore = preload("res://scripts/state/m_state_store.gd")
+const M_StateStore = preload("res://scripts/core/state/m_state_store.gd")
 const RS_SceneInitialState = preload("res://scripts/core/resources/state/rs_scene_initial_state.gd")
 const RS_GameplayInitialState = preload("res://scripts/core/resources/state/rs_gameplay_initial_state.gd")
 const RS_StateStoreSettings = preload("res://scripts/core/resources/state/rs_state_store_settings.gd")
-const U_SceneRegistry = preload("res://scripts/scene_management/u_scene_registry.gd")
-const U_GameplayActions = preload("res://scripts/state/actions/u_gameplay_actions.gd")
+const U_SceneRegistry = preload("res://scripts/core/scene_management/u_scene_registry.gd")
+const U_GameplayActions = preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
 
 var _root_scene: Node
 var _manager: M_SceneManager

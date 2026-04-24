@@ -2,7 +2,7 @@
 extends Resource
 class_name RS_SettingsInitialState
 
-const INPUT_REDUCER := preload("res://scripts/state/reducers/u_input_reducer.gd")
+const INPUT_REDUCER := preload("res://scripts/core/state/reducers/u_input_reducer.gd")
 
 ## Initial state for the settings slice
 ##

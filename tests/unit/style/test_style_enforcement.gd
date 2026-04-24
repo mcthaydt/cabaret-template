@@ -3,13 +3,10 @@ extends GutTest
 const GD_DIRECTORIES := [
 	"res://scripts/gameplay",
 	"res://scripts/ecs",
-	"res://scripts/state",
 	"res://scripts/ui",
 	"res://scripts/core",
 	"res://scripts/demo",
 	"res://scripts/utils",
-	"res://scripts/input",
-	"res://scripts/scene_management",
 	"res://scripts/core/events",
 	"res://scripts/core/scene_structure",
 	"res://scripts/core/resources/qb",
@@ -141,8 +138,8 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/demo/resources/lighting": ["rs_"], # Demo lighting resources
 	"res://scripts/demo/utils/ai": ["u_"],
 	"res://scripts/utils": ["u_"],
-	"res://scripts/input": ["u_", "i_"],
-	"res://scripts/input/sources": [""], # Wildcard: validated by suffix rule (see test_input_source_scripts_follow_suffix_rule)
+	"res://scripts/core/input": ["u_", "i_"],
+	"res://scripts/core/input/sources": [""], # Wildcard: validated by suffix rule (see test_input_source_scripts_follow_suffix_rule)
 	"res://scripts/core/resources/input": ["rs_"],
 	"res://scripts/core/resources/interactions": ["rs_"],
 	"res://scripts/core/resources/lighting": ["rs_"], # Character lighting resources
@@ -160,9 +157,9 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/core/events/state": ["u_"], # u_state_event_bus.gd
 	"res://scripts/ecs": ["base_", "u_"], # base_ecs_*.gd files, base_event_vfx_system.gd, u_entity_query.gd
 	"res://scripts/ecs/markers": ["marker_"],
-	"res://scripts/state/actions": ["u_"],
-	"res://scripts/state/reducers": ["u_"],
-	"res://scripts/state/selectors": ["u_"],
+	"res://scripts/core/state/actions": ["u_"],
+	"res://scripts/core/state/reducers": ["u_"],
+	"res://scripts/core/state/selectors": ["u_"],
 	"res://scripts/core/resources/state": ["rs_"], # State initial state resources
 	"res://scripts/core/resources/qb": ["rs_"], # QB base condition/effect/rule resources
 	"res://scripts/core/resources/qb/conditions": ["rs_"], # QB condition resources
@@ -174,7 +171,7 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/core/resources/ai": ["rs_"], # AI resources
 	"res://scripts/core/resources/ai/actions": ["rs_"], # AI action resources
 	"res://scripts/debug": ["debug_"], # Debug utility scripts
-	"res://scripts/state": ["u_", "m_"], # m_state_store.gd is in root
+	"res://scripts/core/state": ["u_", "m_"], # m_state_store.gd is in root
 	"res://scripts/core/resources/ui": ["rs_"], # UI screen definitions
 	"res://scripts/ui/base": ["base_"], # base_*.gd UI base classes
 	"res://scripts/ui/settings": ["ui_", "base_"], # ui_ for overlays, base_ for shared overlay base
@@ -183,10 +180,10 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/gameplay/helpers": ["u_"], # gameplay helper utilities
 	"res://scripts/gameplay": ["e_", "inter_", "base_", "triggered_", "s_"], # e_ for entities, inter_ for interactable controllers, base_ for base controllers, triggered_ for special controllers, s_ for gameplay-scoped ECS systems
 	"res://scripts/core/scene_structure": ["marker_"], # marker_*.gd organizational scripts
-	"res://scripts/scene_management/transitions": ["trans_", "base_"], # transition effects
+	"res://scripts/core/scene_management/transitions": ["trans_", "base_"], # transition effects
 	"res://scripts/core/resources/scene_management": ["rs_"], # scene registry resources
-	"res://scripts/scene_management/handlers": ["h_"], # Scene type handlers (Phase 10B-3)
-	"res://scripts/scene_management": ["u_", "sp_"], # u_scene_registry.gd, u_transition_factory.gd, sp_spawn_point.gd
+	"res://scripts/core/scene_management/handlers": ["h_"], # Scene type handlers (Phase 10B-3)
+	"res://scripts/core/scene_management": ["u_", "sp_"], # u_scene_registry.gd, u_transition_factory.gd, sp_spawn_point.gd
 	"res://scripts/core/events": ["base_"], # base_event_bus.gd
 }
 
@@ -310,7 +307,7 @@ func test_scripts_follow_prefix_conventions() -> void:
 func test_input_source_scripts_follow_suffix_rule() -> void:
 	var violations: Array[String] = []
 
-	_check_script_suffix_directory("res://scripts/input/sources", "_source.gd", violations)
+	_check_script_suffix_directory("res://scripts/core/input/sources", "_source.gd", violations)
 
 	var message := "Input sources must follow documented naming patterns"
 	if violations.size() > 0:
@@ -1619,8 +1616,8 @@ func _check_for_method_definition(dir_path: String, method_signature: String, vi
 ## C7: No direct state.get("objectives", {}) outside selectors and reducers in production code.
 func test_objectives_state_access_uses_selectors() -> void:
 	var allowed_files: Array[String] = [
-		"res://scripts/state/selectors/u_objectives_selectors.gd",
-		"res://scripts/state/reducers/u_objectives_reducer.gd",
+		"res://scripts/core/state/selectors/u_objectives_selectors.gd",
+		"res://scripts/core/state/reducers/u_objectives_reducer.gd",
 		"res://scripts/core/managers/helpers/u_save_migration_engine.gd",
 		"res://scripts/utils/scene_director/u_objectives_debug_tracer.gd",
 		"res://scripts/ecs/systems/s_victory_handler_system.gd",
@@ -1660,7 +1657,7 @@ func test_managers_use_selectors_for_state_access() -> void:
 	# - m_state_store.gd: The state store itself owns the state dict
 	# - u_save_migration_engine.gd: Operates on save file data, not live Redux state
 	var allowed_files: Array[String] = [
-		"res://scripts/state/m_state_store.gd",
+		"res://scripts/core/state/m_state_store.gd",
 		"res://scripts/core/managers/helpers/u_save_migration_engine.gd",
 	]
 	var manager_dirs: Array[String] = [
@@ -1684,7 +1681,7 @@ func test_managers_use_selectors_for_state_access() -> void:
 func test_all_production_files_use_selectors_for_state_access() -> void:
 	var allowed_files: Array[String] = [
 		# Core exemptions: own the state dict or operate on save data
-		"res://scripts/state/m_state_store.gd",
+		"res://scripts/core/state/m_state_store.gd",
 		"res://scripts/core/managers/helpers/u_save_migration_engine.gd",
 		# False positives: files that use local dict variables named "state" (not Redux state)
 		# u_vcam_orbit_effects and u_vcam_rotation use "state" for per-vcam internal tracking dicts.
@@ -1720,8 +1717,8 @@ func test_all_production_files_use_selectors_for_state_access() -> void:
 		"res://scripts/ui",
 		"res://scripts/core/managers",
 		"res://scripts/scene_management",
+		"res://scripts/core/scene_management",
 		"res://scripts/utils",
-		"res://scripts/core",
 		"res://scripts/demo",
 	]
 	var violations: Array[String] = []
@@ -1885,7 +1882,7 @@ func test_post_process_overlay_colorrect_creation_only_via_pipeline() -> void:
 ## invariant-annotated direct-mutation paths for bulk load/restore.
 func test_no_state_mutation_outside_store() -> void:
 	var allowed_files: Array[String] = [
-		"res://scripts/state/m_state_store.gd",
+		"res://scripts/core/state/m_state_store.gd",
 	]
 	var production_dirs: Array[String] = [
 		"res://scripts/ecs",

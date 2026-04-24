@@ -1,7 +1,7 @@
 extends GutTest
 
-const SCENE_DIRECTOR_ACTIONS := preload("res://scripts/state/actions/u_scene_director_actions.gd")
-const SCENE_DIRECTOR_REDUCER := preload("res://scripts/state/reducers/u_scene_director_reducer.gd")
+const SCENE_DIRECTOR_ACTIONS := preload("res://scripts/core/state/actions/u_scene_director_actions.gd")
+const SCENE_DIRECTOR_REDUCER := preload("res://scripts/core/state/reducers/u_scene_director_reducer.gd")
 const OBJECTIVES_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_objectives_initial_state.gd")
 const SCENE_DIRECTOR_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_scene_director_initial_state.gd")
 

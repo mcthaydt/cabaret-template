@@ -1,6 +1,6 @@
 extends GutTest
 
-const Trans_LoadingScreen = preload("res://scripts/scene_management/transitions/trans_loading_screen.gd")
+const Trans_LoadingScreen = preload("res://scripts/core/scene_management/transitions/trans_loading_screen.gd")
 const U_TransitionTestHelpers = preload("res://tests/helpers/u_transition_test_helpers.gd")
 
 var _overlay: CanvasLayer

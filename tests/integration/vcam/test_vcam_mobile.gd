@@ -3,7 +3,7 @@ extends BaseTest
 const MOBILE_CONTROLS_SCENE := preload("res://scenes/ui/hud/ui_mobile_controls.tscn")
 const TOUCHSCREEN_SETTINGS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/ui_touchscreen_settings_overlay.tscn")
 
-const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
+const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/core/resources/state/rs_state_store_settings.gd")
 const RS_BOOT_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_boot_initial_state.gd")
 const RS_MENU_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_menu_initial_state.gd")
@@ -14,9 +14,9 @@ const RS_SCENE_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_s
 const RS_DEBUG_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_debug_initial_state.gd")
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
-const U_INPUT_ACTIONS := preload("res://scripts/state/actions/u_input_actions.gd")
-const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
+const U_STATE_HANDOFF := preload("res://scripts/core/state/utils/u_state_handoff.gd")
+const U_INPUT_ACTIONS := preload("res://scripts/core/state/actions/u_input_actions.gd")
+const U_NAVIGATION_ACTIONS := preload("res://scripts/core/state/actions/u_navigation_actions.gd")
 
 const M_ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
 const S_TOUCHSCREEN_SYSTEM := preload("res://scripts/ecs/systems/s_touchscreen_system.gd")

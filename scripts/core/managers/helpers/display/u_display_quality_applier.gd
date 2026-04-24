@@ -5,7 +5,7 @@ class_name U_DisplayQualityApplier
 ## On mobile, enforces a performance floor regardless of user settings.
 
 const U_DISPLAY_OPTION_CATALOG := preload("res://scripts/utils/display/u_display_option_catalog.gd")
-const U_DISPLAY_SELECTORS := preload("res://scripts/state/selectors/u_display_selectors.gd")
+const U_DISPLAY_SELECTORS := preload("res://scripts/core/state/selectors/u_display_selectors.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")
 

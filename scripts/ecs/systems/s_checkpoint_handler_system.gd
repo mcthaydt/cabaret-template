@@ -2,8 +2,8 @@
 extends BaseECSSystem
 class_name S_CheckpointHandlerSystem
 
-const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
-const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
+const U_GAMEPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
+const U_STATE_UTILS := preload("res://scripts/core/state/utils/u_state_utils.gd")
 
 ## Injected state store (for testing)
 ## If set, system uses this instead of U_StateUtils.get_store()

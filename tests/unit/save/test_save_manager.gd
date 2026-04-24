@@ -2,8 +2,8 @@ extends BaseTest
 
 const M_SAVE_MANAGER := preload("res://scripts/core/managers/m_save_manager.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
-const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
-const U_SAVE_ACTIONS := preload("res://scripts/state/actions/u_save_actions.gd")
+const U_STATE_HANDOFF := preload("res://scripts/core/state/utils/u_state_handoff.gd")
+const U_SAVE_ACTIONS := preload("res://scripts/core/state/actions/u_save_actions.gd")
 const U_SAVE_TEST_UTILS := preload("res://tests/unit/save/u_save_test_utils.gd")
 const U_SAVE_FILE_IO := preload("res://scripts/core/managers/helpers/u_save_file_io.gd")
 
@@ -799,7 +799,7 @@ func test_load_from_slot_sets_and_clears_is_loading_lock() -> void:
 	assert_true(_save_manager.call("_is_loading_locked"), "_is_loading should stay true during transition")
 
 	# Simulate transition completion by dispatching the action
-	const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
+	const U_SCENE_ACTIONS := preload("res://scripts/core/state/actions/u_scene_actions.gd")
 	_mock_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
 
 	# Now lock should be cleared
@@ -855,7 +855,7 @@ func test_load_from_slot_lock_clears_only_for_matching_scene() -> void:
 	assert_true(_save_manager.call("_is_loading_locked"), "Lock should be set")
 
 	# Dispatch transition_completed for WRONG scene
-	const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
+	const U_SCENE_ACTIONS := preload("res://scripts/core/state/actions/u_scene_actions.gd")
 	_mock_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("interior_house")))
 
 	# Lock should STILL be set (wrong scene)

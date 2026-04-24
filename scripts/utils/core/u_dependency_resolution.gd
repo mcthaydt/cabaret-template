@@ -12,7 +12,7 @@ class_name U_DependencyResolution
 ##   _state_store = U_DependencyResolution.resolve_state_store(_state_store, state_store, self) as I_StateStore
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
+const U_STATE_UTILS := preload("res://scripts/core/state/utils/u_state_utils.gd")
 
 ## Resolves a service using the standard 3-step dependency resolution pattern:
 ## 1. Check cached value (private cache, already resolved)

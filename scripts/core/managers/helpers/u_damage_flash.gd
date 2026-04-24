@@ -3,7 +3,7 @@ extends RefCounted
 
 const FADE_DURATION := 0.4
 const MAX_ALPHA := 0.3
-const U_TWEEN_MANAGER := preload("res://scripts/scene_management/u_tween_manager.gd")
+const U_TWEEN_MANAGER := preload("res://scripts/core/scene_management/u_tween_manager.gd")
 
 var _flash_rect: ColorRect
 var _tween: Tween

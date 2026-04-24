@@ -6,7 +6,7 @@ extends GutTest
 ## and M_CameraManager during scene transitions.
 
 const M_CAMERA_MANAGER := preload("res://scripts/core/managers/m_camera_manager.gd")
-const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
+const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
 const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_gameplay_initial_state.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 

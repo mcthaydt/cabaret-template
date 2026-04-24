@@ -53,7 +53,7 @@
 [ext_resource type="Script" uid="uid://b8r23xdb7nfxv" path="res://scripts/core/managers/m_ecs_manager.gd" id="51_qvu0d"]
 [ext_resource type="Script" uid="uid://bdp7886fufa8v" path="res://scripts/core/scene_structure/marker_entities_group.gd" id="52_hynq2"]
 [ext_resource type="Script" uid="uid://bxuh4wr37jbss" path="res://scripts/core/scene_structure/marker_spawn_points_group.gd" id="53_xgymr"]
-[ext_resource type="Script" uid="uid://c1vg0nn41f77u" path="res://scripts/scene_management/sp_spawn_point.gd" id="54_5nj3c"]
+[ext_resource type="Script" uid="uid://c1vg0nn41f77u" path="res://scripts/core/scene_management/sp_spawn_point.gd" id="54_5nj3c"]
 [ext_resource type="Resource" uid="uid://bsyk32fi3mvu3" path="res://resources/spawn_metadata/cfg_sp_interior_a.tres" id="55_x3b4u"]
 [ext_resource type="Script" uid="uid://dr2u7w3ufadya" path="res://scripts/gameplay/inter_hazard_zone.gd" id="56_lj6cy"]
 [ext_resource type="Resource" uid="uid://clhnj5hf0m0pa" path="res://resources/interactions/hazards/cfg_hazard_death_zone.tres" id="57_eropg"]

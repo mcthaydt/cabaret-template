@@ -8,8 +8,8 @@ class_name M_ScreenshotCacheManager
 ## gameplay thumbnail instead of a paused UI screenshot.
 
 const U_SCREENSHOT_CAPTURE := preload("res://scripts/core/managers/helpers/u_screenshot_capture.gd")
-const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
+const U_NAVIGATION_ACTIONS := preload("res://scripts/core/state/actions/u_navigation_actions.gd")
+const U_NAVIGATION_SELECTORS := preload("res://scripts/core/state/selectors/u_navigation_selectors.gd")
 
 var _state_store: I_StateStore = null
 var _cached_image: Image = null

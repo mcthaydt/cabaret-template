@@ -1,8 +1,8 @@
 extends RefCounted
 class_name U_VCamRuntimeState
 
-const U_INPUT_SELECTORS := preload("res://scripts/state/selectors/u_input_selectors.gd")
-const U_VCAM_ACTIONS := preload("res://scripts/state/actions/u_vcam_actions.gd")
+const U_INPUT_SELECTORS := preload("res://scripts/core/state/selectors/u_input_selectors.gd")
+const U_VCAM_ACTIONS := preload("res://scripts/core/state/actions/u_vcam_actions.gd")
 const I_VCAM_MANAGER := preload("res://scripts/core/interfaces/i_vcam_manager.gd")
 
 var _last_active_target_valid: bool = true

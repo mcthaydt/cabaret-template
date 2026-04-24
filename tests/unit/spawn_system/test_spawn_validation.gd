@@ -5,9 +5,9 @@ extends GutTest
 ## Tests edge cases, error handling, and validation for spawn operations.
 
 const M_SPAWN_MANAGER := preload("res://scripts/core/managers/m_spawn_manager.gd")
-const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
+const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
 const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_gameplay_initial_state.gd")
-const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+const U_GAMEPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
 const BASE_ECS_ENTITY := preload("res://scripts/ecs/base_ecs_entity.gd")
 
 var spawn_manager: M_SPAWN_MANAGER

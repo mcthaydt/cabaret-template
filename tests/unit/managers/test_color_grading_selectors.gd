@@ -8,7 +8,7 @@ extends GutTest
 ## - get_color_grading_settings() returns only color_grading_* keys
 ## - Selectors handle missing/malformed display slice gracefully
 
-const U_COLOR_GRADING_SELECTORS := preload("res://scripts/state/selectors/u_color_grading_selectors.gd")
+const U_COLOR_GRADING_SELECTORS := preload("res://scripts/core/state/selectors/u_color_grading_selectors.gd")
 
 
 # --- Default value tests ---

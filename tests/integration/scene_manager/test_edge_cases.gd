@@ -16,7 +16,7 @@ extends GutTest
 ## - T191: Unsaved progress auto-save
 
 const M_SceneManager = preload("res://scripts/core/managers/m_scene_manager.gd")
-const M_StateStore = preload("res://scripts/state/m_state_store.gd")
+const M_StateStore = preload("res://scripts/core/state/m_state_store.gd")
 const M_CursorManager = preload("res://scripts/core/managers/m_cursor_manager.gd")
 const RS_SceneInitialState = preload("res://scripts/core/resources/state/rs_scene_initial_state.gd")
 const RS_NavigationInitialState = preload("res://scripts/core/resources/state/rs_navigation_initial_state.gd")
@@ -24,9 +24,9 @@ const RS_BootInitialState = preload("res://scripts/core/resources/state/rs_boot_
 const RS_MenuInitialState = preload("res://scripts/core/resources/state/rs_menu_initial_state.gd")
 const RS_GameplayInitialState = preload("res://scripts/core/resources/state/rs_gameplay_initial_state.gd")
 const RS_StateStoreSettings = preload("res://scripts/core/resources/state/rs_state_store_settings.gd")
-const U_SceneRegistry = preload("res://scripts/scene_management/u_scene_registry.gd")
-const U_SceneActions = preload("res://scripts/state/actions/u_scene_actions.gd")
-const U_NavigationActions = preload("res://scripts/state/actions/u_navigation_actions.gd")
+const U_SceneRegistry = preload("res://scripts/core/scene_management/u_scene_registry.gd")
+const U_SceneActions = preload("res://scripts/core/state/actions/u_scene_actions.gd")
+const U_NavigationActions = preload("res://scripts/core/state/actions/u_navigation_actions.gd")
 const C_SceneTriggerComponent = preload("res://scripts/ecs/components/c_scene_trigger_component.gd")
 
 var _root_scene: Node

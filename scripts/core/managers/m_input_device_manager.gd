@@ -2,7 +2,7 @@
 extends "res://scripts/core/interfaces/i_input_device_manager.gd"
 class_name M_InputDeviceManager
 
-const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
+const U_NAVIGATION_SELECTORS := preload("res://scripts/core/state/selectors/u_navigation_selectors.gd")
 
 
 signal device_changed(device_type: int, device_id: int, timestamp: float)

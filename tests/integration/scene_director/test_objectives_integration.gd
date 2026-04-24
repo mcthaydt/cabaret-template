@@ -2,7 +2,7 @@ extends GutTest
 
 const M_SCENE_MANAGER := preload("res://scripts/core/managers/m_scene_manager.gd")
 const M_OBJECTIVES_MANAGER := preload("res://scripts/core/managers/m_objectives_manager.gd")
-const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
+const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/core/resources/state/rs_state_store_settings.gd")
 const RS_SCENE_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_scene_initial_state.gd")
 const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_gameplay_initial_state.gd")
@@ -15,8 +15,8 @@ const CFG_OBJSET_DEFAULT := preload("res://resources/scene_director/sets/cfg_obj
 const U_SCENE_TEST_HELPERS := preload("res://tests/helpers/u_scene_test_helpers.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
 const U_ECS_EVENT_NAMES := preload("res://scripts/core/events/ecs/u_ecs_event_names.gd")
-const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
-const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
+const U_GAMEPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
+const U_STATE_HANDOFF := preload("res://scripts/core/state/utils/u_state_handoff.gd")
 
 var _root: Node
 var _state_store: M_STATE_STORE

@@ -3,10 +3,10 @@ extends I_RunCoordinator
 class_name M_RunCoordinatorManager
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
-const U_RUN_ACTIONS := preload("res://scripts/state/actions/u_run_actions.gd")
-const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
-const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
+const U_SCENE_REGISTRY := preload("res://scripts/core/scene_management/u_scene_registry.gd")
+const U_RUN_ACTIONS := preload("res://scripts/core/state/actions/u_run_actions.gd")
+const U_GAMEPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
+const U_NAVIGATION_ACTIONS := preload("res://scripts/core/state/actions/u_navigation_actions.gd")
 const U_INTERACT_BLOCKER := preload("res://scripts/utils/u_interact_blocker.gd")
 
 const OBJECTIVES_SERVICE_NAME := StringName("objectives_manager")

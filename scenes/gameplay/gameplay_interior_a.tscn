@@ -56,7 +56,7 @@
 [ext_resource type="Script" uid="uid://cl3h6t7pmdx1b" path="res://scripts/ecs/systems/s_damage_flash_publisher_system.gd" id="30_damage_flash_publisher"]
 [ext_resource type="Script" uid="uid://dm0rocvtywjnh" path="res://scripts/ecs/systems/s_checkpoint_handler_system.gd" id="42_checkpoint_handler_system"]
 [ext_resource type="Script" uid="uid://dr2u7w3ufadya" path="res://scripts/gameplay/inter_hazard_zone.gd" id="44_hazard_controller"]
-[ext_resource type="Script" uid="uid://c1vg0nn41f77u" path="res://scripts/scene_management/sp_spawn_point.gd" id="50_spawn_point"]
+[ext_resource type="Script" uid="uid://c1vg0nn41f77u" path="res://scripts/core/scene_management/sp_spawn_point.gd" id="50_spawn_point"]
 [ext_resource type="Resource" uid="uid://bsyk32fi3mvu3" path="res://resources/spawn_metadata/cfg_sp_interior_a.tres" id="51_interior_a_spawn_meta"]
 [ext_resource type="Script" uid="uid://bob8u843dmbh7" path="res://scripts/core/scene_structure/marker_components_group.gd" id="60_txck2"]
 [ext_resource type="Resource" uid="uid://clhnj5hf0m0pa" path="res://resources/interactions/hazards/cfg_hazard_death_zone.tres" id="61_hazard_config"]

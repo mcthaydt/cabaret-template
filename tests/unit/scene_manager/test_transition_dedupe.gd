@@ -2,7 +2,7 @@ extends GutTest
 
 ## Unit tests for transition queue dedupe behavior
 
-const U_SCENE_TRANSITION_QUEUE := preload("res://scripts/scene_management/helpers/u_scene_transition_queue.gd")
+const U_SCENE_TRANSITION_QUEUE := preload("res://scripts/core/scene_management/helpers/u_scene_transition_queue.gd")
 
 var _manager: M_SceneManager
 var _store: M_StateStore

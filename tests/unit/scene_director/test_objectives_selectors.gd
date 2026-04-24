@@ -1,6 +1,6 @@
 extends GutTest
 
-const OBJECTIVES_SELECTORS := preload("res://scripts/state/selectors/u_objectives_selectors.gd")
+const OBJECTIVES_SELECTORS := preload("res://scripts/core/state/selectors/u_objectives_selectors.gd")
 
 func test_get_objective_status_returns_status() -> void:
 	var state := _make_state(

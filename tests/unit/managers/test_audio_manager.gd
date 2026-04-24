@@ -3,7 +3,7 @@ extends GutTest
 # Test suite for M_AudioManager scaffolding, bus layout, and music (Audio Phases 1-2)
 
 const M_AUDIO_MANAGER := preload("res://scripts/core/managers/m_audio_manager.gd")
-const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
+const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/core/resources/state/rs_state_store_settings.gd")
 const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_gameplay_initial_state.gd")
 const RS_SETTINGS_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_settings_initial_state.gd")
@@ -11,9 +11,9 @@ const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/core/resources/state
 const RS_AUDIO_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_audio_initial_state.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_AUDIO_SERIALIZATION := preload("res://scripts/utils/u_audio_serialization.gd")
-const U_AUDIO_ACTIONS := preload("res://scripts/state/actions/u_audio_actions.gd")
-const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
-const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
+const U_AUDIO_ACTIONS := preload("res://scripts/core/state/actions/u_audio_actions.gd")
+const U_SCENE_ACTIONS := preload("res://scripts/core/state/actions/u_scene_actions.gd")
+const U_NAVIGATION_ACTIONS := preload("res://scripts/core/state/actions/u_navigation_actions.gd")
 const U_SFX_SPAWNER := preload("res://scripts/core/managers/helpers/u_sfx_spawner.gd")
 const U_AUDIO_TEST_HELPERS := preload("res://tests/helpers/u_audio_test_helpers.gd")
 

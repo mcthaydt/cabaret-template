@@ -15,9 +15,9 @@ class_name S_PlaytimeSystem
 ## - Dispatches whole seconds only via increment_playtime action
 ## - Carries sub-second remainder across frames
 
-const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
-const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
-const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
+const U_GAMEPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
+const U_STATE_UTILS := preload("res://scripts/core/state/utils/u_state_utils.gd")
+const U_NAVIGATION_SELECTORS := preload("res://scripts/core/state/selectors/u_navigation_selectors.gd")
 
 ## Injected state store (for testing)
 ## If set, system uses this instead of U_StateUtils.get_store()

@@ -4,7 +4,7 @@ class_name MockSaveManager
 ## Mock Save Manager for autosave scheduler tests
 ## Tracks autosave requests without actually performing saves
 
-const U_SAVE_ACTIONS := preload("res://scripts/state/actions/u_save_actions.gd")
+const U_SAVE_ACTIONS := preload("res://scripts/core/state/actions/u_save_actions.gd")
 
 const SLOT_AUTOSAVE := StringName("autosave")
 

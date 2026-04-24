@@ -14,7 +14,7 @@ const PLACEHOLDER_TEXTURE_PATH: String = "res://resources/ui/tex_save_slot_place
 const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
-const U_SAVE_ACTIONS := preload("res://scripts/state/actions/u_save_actions.gd")
+const U_SAVE_ACTIONS := preload("res://scripts/core/state/actions/u_save_actions.gd")
 const MONTH_KEYS: Array[StringName] = [
 	&"date.month.jan",
 	&"date.month.feb",

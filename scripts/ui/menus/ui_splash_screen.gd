@@ -9,9 +9,9 @@ class_name UI_SplashScreen
 ## so it's cached by the time the player reaches the main menu.
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_LOCALIZATION_SELECTORS := preload("res://scripts/state/selectors/u_localization_selectors.gd")
-const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
-const U_DEBUG_SELECTORS := preload("res://scripts/state/selectors/u_debug_selectors.gd")
+const U_LOCALIZATION_SELECTORS := preload("res://scripts/core/state/selectors/u_localization_selectors.gd")
+const U_SCENE_REGISTRY := preload("res://scripts/core/scene_management/u_scene_registry.gd")
+const U_DEBUG_SELECTORS := preload("res://scripts/core/state/selectors/u_debug_selectors.gd")
 
 enum Phase { CRISPY_CABARET, GODOT_ENGINE, DONE }
 
@@ -139,7 +139,7 @@ func _transition_to_next_scene() -> void:
 			next_scene = StringName("language_selector")
 	# Update navigation state so the reconciler doesn't conflict
 	if store != null:
-		var nav_actions_script: GDScript = preload("res://scripts/state/actions/u_navigation_actions.gd")
+		var nav_actions_script: GDScript = preload("res://scripts/core/state/actions/u_navigation_actions.gd")
 		var shell := StringName("main_menu") if next_scene == StringName("main_menu") else StringName("boot")
 		store.dispatch(nav_actions_script.set_shell(shell, next_scene))
 	if scene_manager.has_method("transition_to_scene"):

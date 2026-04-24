@@ -2,7 +2,7 @@ extends GutTest
 
 ## Tests for GameplayReducer pure functions
 
-const StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
+const StateHandoff := preload("res://scripts/core/state/utils/u_state_handoff.gd")
 
 func before_each() -> void:
 	U_StateEventBus.reset()

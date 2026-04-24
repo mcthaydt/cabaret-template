@@ -1,6 +1,6 @@
 extends GutTest
 
-const U_TIME_SELECTORS := preload("res://scripts/state/selectors/u_time_selectors.gd")
+const U_TIME_SELECTORS := preload("res://scripts/core/state/selectors/u_time_selectors.gd")
 
 func test_selectors_return_values_from_time_slice() -> void:
 	var state := {

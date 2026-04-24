@@ -12,9 +12,9 @@ extends BaseTest
 ## - File structure is valid JSON
 
 const M_SAVE_MANAGER := preload("res://scripts/core/managers/m_save_manager.gd")
-const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
-const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
-const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
+const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
+const U_STATE_HANDOFF := preload("res://scripts/core/state/utils/u_state_handoff.gd")
+const U_SCENE_ACTIONS := preload("res://scripts/core/state/actions/u_scene_actions.gd")
 const RS_SCENE_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_scene_initial_state.gd")
 const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_gameplay_initial_state.gd")
 
@@ -249,7 +249,7 @@ func test_autosave_triggers_on_checkpoint() -> void:
 	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
 
 	# Set navigation shell to "gameplay" (required for autosave to trigger)
-	const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
+	const U_NAVIGATION_ACTIONS := preload("res://scripts/core/state/actions/u_navigation_actions.gd")
 	_state_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("gameplay"), StringName("gameplay_base")))
 
 	await get_tree().physics_frame
@@ -308,7 +308,7 @@ func test_manual_slots_independent_from_autosave() -> void:
 	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
 
 	# Reset health to 100 (avoids pollution issues from previous tests)
-	const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+	const U_GAMEPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
 	_state_store.dispatch(U_GAMEPLAY_ACTIONS.reset_after_death())
 	await get_tree().physics_frame
 
@@ -377,7 +377,7 @@ func test_comprehensive_state_roundtrip() -> void:
 
 	# Initialize comprehensive state
 	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
-	const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+	const U_GAMEPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
 	_state_store.dispatch(U_GAMEPLAY_ACTIONS.take_damage("", 25.0))  # Empty string for player damage
 	_state_store.dispatch(U_GAMEPLAY_ACTIONS.set_last_checkpoint(StringName("sp_checkpoint_1")))
 	_state_store.dispatch(U_GAMEPLAY_ACTIONS.set_target_spawn_point(StringName("sp_checkpoint_1")))
@@ -445,7 +445,7 @@ func test_autosave_cooldown_prevents_spam() -> void:
 	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
 
 	# Set navigation shell to "gameplay"
-	const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
+	const U_NAVIGATION_ACTIONS := preload("res://scripts/core/state/actions/u_navigation_actions.gd")
 	_state_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("gameplay"), StringName("gameplay_base")))
 
 	await get_tree().physics_frame
@@ -531,7 +531,7 @@ func test_autosave_triggers_on_scene_transition() -> void:
 	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
 
 	# Set navigation shell to "gameplay" (required for autosave to trigger)
-	const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
+	const U_NAVIGATION_ACTIONS := preload("res://scripts/core/state/actions/u_navigation_actions.gd")
 	_state_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("gameplay"), StringName("gameplay_base")))
 
 	await get_tree().physics_frame
@@ -586,7 +586,7 @@ func test_autosave_triggers_on_area_completion() -> void:
 	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
 
 	# Set navigation shell to "gameplay" (required for autosave to trigger)
-	const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
+	const U_NAVIGATION_ACTIONS := preload("res://scripts/core/state/actions/u_navigation_actions.gd")
 	_state_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("gameplay"), StringName("gameplay_base")))
 
 	await get_tree().physics_frame
@@ -597,7 +597,7 @@ func test_autosave_triggers_on_area_completion() -> void:
 		DirAccess.remove_absolute(autosave_path)
 
 	# Dispatch area completion action (this should NOT trigger autosave anymore)
-	const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+	const U_GAMEPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
 	_state_store.dispatch(U_GAMEPLAY_ACTIONS.mark_area_complete(StringName("test_area")))
 
 	# Wait for autosave scheduler to process action
@@ -709,7 +709,7 @@ func test_manual_save_overwrites_with_timestamp_update() -> void:
 	await get_tree().create_timer(1.5).timeout
 
 	# Modify state slightly
-	const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+	const U_GAMEPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
 	_state_store.dispatch(U_GAMEPLAY_ACTIONS.increment_playtime(10))
 	await get_tree().physics_frame
 
@@ -802,7 +802,7 @@ func test_load_restores_gameplay_state() -> void:
 	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
 
 	# Reset gameplay state to ensure clean start (prevent pollution from previous tests)
-	const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+	const U_GAMEPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
 	_state_store.dispatch(U_GAMEPLAY_ACTIONS.reset_progress())
 	await get_tree().physics_frame
 
@@ -878,7 +878,7 @@ func test_load_restores_playtime() -> void:
 	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
 
 	# Get baseline playtime (may have accumulated from previous tests)
-	const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+	const U_GAMEPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
 	await get_tree().physics_frame
 	var state_baseline: Dictionary = _state_store.get_state()
 	var baseline_playtime: int = state_baseline.get("gameplay", {}).get("playtime_seconds", 0)
@@ -987,7 +987,7 @@ func test_rapid_save_load_save_maintains_integrity() -> void:
 
 	# Initialize scene state
 	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
-	const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+	const U_GAMEPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
 	_state_store.dispatch(U_GAMEPLAY_ACTIONS.reset_progress())
 	await get_tree().physics_frame
 
@@ -1087,11 +1087,11 @@ func test_autosave_blocked_during_death() -> void:
 	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
 
 	# Set navigation shell to "gameplay"
-	const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
+	const U_NAVIGATION_ACTIONS := preload("res://scripts/core/state/actions/u_navigation_actions.gd")
 	_state_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("gameplay"), StringName("gameplay_base")))
 
 	# Set death_in_progress to true (simulating death state)
-	const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+	const U_GAMEPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
 	_state_store.dispatch(U_GAMEPLAY_ACTIONS.set_death_in_progress(true))
 	await get_tree().physics_frame
 

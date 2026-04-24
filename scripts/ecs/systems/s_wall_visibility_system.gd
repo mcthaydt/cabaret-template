@@ -2,12 +2,12 @@
 extends BaseECSSystem
 class_name S_WallVisibilitySystem
 
-const U_VCAM_SELECTORS := preload("res://scripts/state/selectors/u_vcam_selectors.gd")
+const U_VCAM_SELECTORS := preload("res://scripts/core/state/selectors/u_vcam_selectors.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/core/interfaces/i_camera_manager.gd")
 const I_StateStore := preload("res://scripts/core/interfaces/i_state_store.gd")
 const RS_ROOM_FADE_SETTINGS_SCRIPT := preload("res://scripts/core/resources/display/vcam/rs_room_fade_settings.gd")
 const U_WALL_VISIBILITY_MATERIAL_APPLIER := preload("res://scripts/utils/lighting/u_wall_visibility_material_applier.gd")
-const U_ENTITY_SELECTORS := preload("res://scripts/state/selectors/u_entity_selectors.gd")
+const U_ENTITY_SELECTORS := preload("res://scripts/core/state/selectors/u_entity_selectors.gd")
 const U_PERF_PROBE := preload("res://scripts/utils/debug/u_perf_probe.gd")
 const U_PERF_FADE_BYPASS := preload("res://scripts/utils/debug/u_perf_fade_bypass.gd")
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/utils/display/u_mobile_platform_detector.gd")

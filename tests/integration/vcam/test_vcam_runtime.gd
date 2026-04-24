@@ -2,7 +2,7 @@ extends BaseTest
 
 const ROOT_SCENE := preload("res://scenes/root.tscn")
 
-const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
+const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/core/resources/state/rs_state_store_settings.gd")
 const RS_BOOT_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_boot_initial_state.gd")
 const RS_MENU_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_menu_initial_state.gd")
@@ -16,9 +16,9 @@ const RS_AUDIO_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_a
 const RS_DISPLAY_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_display_initial_state.gd")
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
+const U_STATE_HANDOFF := preload("res://scripts/core/state/utils/u_state_handoff.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
-const U_VCAM_SELECTORS := preload("res://scripts/state/selectors/u_vcam_selectors.gd")
+const U_VCAM_SELECTORS := preload("res://scripts/core/state/selectors/u_vcam_selectors.gd")
 
 const M_ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
 const S_VCAM_SYSTEM := preload("res://scripts/ecs/systems/s_vcam_system.gd")

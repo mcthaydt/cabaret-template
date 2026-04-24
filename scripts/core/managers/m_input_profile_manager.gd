@@ -2,9 +2,9 @@
 extends "res://scripts/core/interfaces/i_input_profile_manager.gd"
 class_name M_InputProfileManager
 
-const U_SETTINGS_SELECTORS := preload("res://scripts/state/selectors/u_settings_selectors.gd")
-const U_GAMEPLAY_SELECTORS := preload("res://scripts/state/selectors/u_gameplay_selectors.gd")
-const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
+const U_SETTINGS_SELECTORS := preload("res://scripts/core/state/selectors/u_settings_selectors.gd")
+const U_GAMEPLAY_SELECTORS := preload("res://scripts/core/state/selectors/u_gameplay_selectors.gd")
+const U_NAVIGATION_SELECTORS := preload("res://scripts/core/state/selectors/u_navigation_selectors.gd")
 
 
 signal profile_switched(profile_id: String)

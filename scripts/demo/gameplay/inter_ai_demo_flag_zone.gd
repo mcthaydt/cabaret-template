@@ -2,7 +2,7 @@ extends Area3D
 class_name Inter_AIDemoFlagZone
 
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
-const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+const U_GAMEPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
 
 const PLAYER_TAG_COMPONENT := StringName("C_PlayerTagComponent")
 const SIGNPOST_MESSAGE_EVENT := StringName("signpost_message")

@@ -3,9 +3,9 @@ extends GutTest
 ## Integration test: spawn_at_last_spawn falls back from missing checkpoint to sp_default and clears target_spawn_point
 
 const M_SPAWN_MANAGER := preload("res://scripts/core/managers/m_spawn_manager.gd")
-const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
+const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
 const RS_GAMEPLAY_INITIAL := preload("res://scripts/core/resources/state/rs_gameplay_initial_state.gd")
-const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+const U_GAMEPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
 
 var _spawn: M_SpawnManager
 var _store: M_StateStore

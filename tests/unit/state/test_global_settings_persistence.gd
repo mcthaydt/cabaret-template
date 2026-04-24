@@ -1,6 +1,6 @@
 extends GutTest
 
-const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
+const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/core/resources/state/rs_state_store_settings.gd")
 const RS_BOOT_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_boot_initial_state.gd")
 const RS_MENU_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_menu_initial_state.gd")
@@ -13,17 +13,17 @@ const RS_VFX_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_vfx
 const RS_AUDIO_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_audio_initial_state.gd")
 const RS_DISPLAY_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_display_initial_state.gd")
 
-const U_DISPLAY_SELECTORS := preload("res://scripts/state/selectors/u_display_selectors.gd")
-const U_DISPLAY_ACTIONS := preload("res://scripts/state/actions/u_display_actions.gd")
-const U_ACTION_REGISTRY := preload("res://scripts/state/utils/u_action_registry.gd")
-const U_AUDIO_SELECTORS := preload("res://scripts/state/selectors/u_audio_selectors.gd")
-const U_VFX_SELECTORS := preload("res://scripts/state/selectors/u_vfx_selectors.gd")
-const U_INPUT_SELECTORS := preload("res://scripts/state/selectors/u_input_selectors.gd")
+const U_DISPLAY_SELECTORS := preload("res://scripts/core/state/selectors/u_display_selectors.gd")
+const U_DISPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_display_actions.gd")
+const U_ACTION_REGISTRY := preload("res://scripts/core/state/utils/u_action_registry.gd")
+const U_AUDIO_SELECTORS := preload("res://scripts/core/state/selectors/u_audio_selectors.gd")
+const U_VFX_SELECTORS := preload("res://scripts/core/state/selectors/u_vfx_selectors.gd")
+const U_INPUT_SELECTORS := preload("res://scripts/core/state/selectors/u_input_selectors.gd")
 
 const U_GLOBAL_SETTINGS_SERIALIZATION := preload("res://scripts/utils/u_global_settings_serialization.gd")
 const U_AUDIO_SERIALIZATION := preload("res://scripts/utils/u_audio_serialization.gd")
 const U_INPUT_SERIALIZATION := preload("res://scripts/utils/input/u_input_serialization.gd")
-const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
+const U_STATE_HANDOFF := preload("res://scripts/core/state/utils/u_state_handoff.gd")
 
 const GLOBAL_SETTINGS_PATH := "user://global_settings.json"
 const GLOBAL_SETTINGS_BACKUP := "user://global_settings.json.backup"

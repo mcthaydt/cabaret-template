@@ -2,7 +2,7 @@ extends GutTest
 
 ## Tests for navigation slice reducer, selectors, and initial state
 
-const StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
+const StateHandoff := preload("res://scripts/core/state/utils/u_state_handoff.gd")
 
 var _store
 

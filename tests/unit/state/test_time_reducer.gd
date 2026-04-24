@@ -1,7 +1,7 @@
 extends GutTest
 
-const U_TIME_ACTIONS := preload("res://scripts/state/actions/u_time_actions.gd")
-const U_TIME_REDUCER := preload("res://scripts/state/reducers/u_time_reducer.gd")
+const U_TIME_ACTIONS := preload("res://scripts/core/state/actions/u_time_actions.gd")
+const U_TIME_REDUCER := preload("res://scripts/core/state/reducers/u_time_reducer.gd")
 
 func test_update_pause_state_updates_pause_fields() -> void:
 	var state := _make_time_state()

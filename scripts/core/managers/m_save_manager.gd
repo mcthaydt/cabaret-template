@@ -18,15 +18,15 @@ class_name M_SaveManager
 ## - M_SceneManager: Scene transitions during load
 
 const I_SCENE_MANAGER := preload("res://scripts/core/interfaces/i_scene_manager.gd")
-const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
-const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
-const U_GAMEPLAY_SELECTORS := preload("res://scripts/state/selectors/u_gameplay_selectors.gd")
-const U_SCENE_SELECTORS := preload("res://scripts/state/selectors/u_scene_selectors.gd")
+const U_STATE_HANDOFF := preload("res://scripts/core/state/utils/u_state_handoff.gd")
+const U_SCENE_ACTIONS := preload("res://scripts/core/state/actions/u_scene_actions.gd")
+const U_GAMEPLAY_SELECTORS := preload("res://scripts/core/state/selectors/u_gameplay_selectors.gd")
+const U_SCENE_SELECTORS := preload("res://scripts/core/state/selectors/u_scene_selectors.gd")
 const U_SAVE_FILE_IO := preload("res://scripts/core/managers/helpers/u_save_file_io.gd")
 const U_SAVE_MIGRATION_ENGINE := preload("res://scripts/core/managers/helpers/u_save_migration_engine.gd")
 const U_SCREENSHOT_CAPTURE := preload("res://scripts/core/managers/helpers/u_screenshot_capture.gd")
 const U_SAVE_VALIDATOR := preload("res://scripts/utils/u_save_validator.gd")
-const U_SAVE_ACTIONS := preload("res://scripts/state/actions/u_save_actions.gd")
+const U_SAVE_ACTIONS := preload("res://scripts/core/state/actions/u_save_actions.gd")
 
 ## Save file format version
 const SAVE_VERSION := 1

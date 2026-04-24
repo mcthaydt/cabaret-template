@@ -14,7 +14,7 @@ const U_VCAM_MODE_EVALUATOR := preload("res://scripts/core/managers/helpers/u_vc
 const U_VCAM_LOOK_INPUT := preload("res://scripts/ecs/systems/helpers/u_vcam_look_input.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
 const U_ECS_EVENT_NAMES := preload("res://scripts/core/events/ecs/u_ecs_event_names.gd")
-const U_VCAM_ACTIONS := preload("res://scripts/state/actions/u_vcam_actions.gd")
+const U_VCAM_ACTIONS := preload("res://scripts/core/state/actions/u_vcam_actions.gd")
 
 class VCamManagerStub extends I_VCamManager:
 	var active_vcam_id: StringName = StringName("")

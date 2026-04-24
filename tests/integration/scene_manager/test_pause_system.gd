@@ -11,13 +11,13 @@ extends GutTest
 ## - Resume functionality
 
 const M_SCENE_MANAGER := preload("res://scripts/core/managers/m_scene_manager.gd")
-const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
+const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
 const M_CURSOR_MANAGER := preload("res://scripts/core/managers/m_cursor_manager.gd")
 const S_PAUSE_SYSTEM := preload("res://scripts/core/managers/m_time_manager.gd")
-const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
+const U_SCENE_REGISTRY := preload("res://scripts/core/scene_management/u_scene_registry.gd")
 const RS_SCENE_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_scene_initial_state.gd")
 const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_navigation_initial_state.gd")
-const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
+const U_NAVIGATION_ACTIONS := preload("res://scripts/core/state/actions/u_navigation_actions.gd")
 
 var _root_node: Node
 var _state_store: M_STATE_STORE

@@ -1,15 +1,15 @@
 extends GutTest
 
 const M_SCENE_DIRECTOR := preload("res://scripts/core/managers/m_scene_director_manager.gd")
-const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
+const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/core/resources/state/rs_state_store_settings.gd")
 const CFG_DIRECTIVE_GAMEPLAY_BASE := preload("res://resources/scene_director/directives/cfg_directive_gameplay_base.tres")
 const RS_SCENE_DIRECTIVE := preload("res://scripts/core/resources/scene_director/rs_scene_directive.gd")
 const RS_BEAT_DEFINITION := preload("res://scripts/core/resources/scene_director/rs_beat_definition.gd")
 const EFFECT_PUBLISH_EVENT := preload("res://scripts/core/resources/qb/effects/rs_effect_publish_event.gd")
-const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
-const U_SCENE_DIRECTOR_ACTIONS := preload("res://scripts/state/actions/u_scene_director_actions.gd")
-const U_SCENE_DIRECTOR_SELECTORS := preload("res://scripts/state/selectors/u_scene_director_selectors.gd")
+const U_SCENE_ACTIONS := preload("res://scripts/core/state/actions/u_scene_actions.gd")
+const U_SCENE_DIRECTOR_ACTIONS := preload("res://scripts/core/state/actions/u_scene_director_actions.gd")
+const U_SCENE_DIRECTOR_SELECTORS := preload("res://scripts/core/state/selectors/u_scene_director_selectors.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
 
 const EVENT_BEAT_ONE := StringName("scene_director_intro_beat_1")

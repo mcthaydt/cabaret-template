@@ -4,7 +4,7 @@ class_name M_UIInputHandler
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const I_SCENE_MANAGER := preload("res://scripts/core/interfaces/i_scene_manager.gd")
-const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
+const U_NAVIGATION_SELECTORS := preload("res://scripts/core/state/selectors/u_navigation_selectors.gd")
 
 ## Thin UI input handler for context-based navigation routing
 ##

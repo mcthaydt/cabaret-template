@@ -6,12 +6,12 @@ class_name M_LocalizationManager
 ## Uses Theme resources for font cascade (Godot's theme inheritance).
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_LOCALIZATION_SELECTORS := preload("res://scripts/state/selectors/u_localization_selectors.gd")
+const U_LOCALIZATION_SELECTORS := preload("res://scripts/core/state/selectors/u_localization_selectors.gd")
 const U_LOCALIZATION_CATALOG := preload("res://scripts/core/managers/helpers/localization/u_localization_catalog.gd")
 const U_LOCALIZATION_FONT_APPLIER := preload("res://scripts/core/managers/helpers/localization/u_localization_font_applier.gd")
 const U_LOCALIZATION_PREVIEW_CONTROLLER := preload("res://scripts/core/managers/helpers/localization/u_localization_preview_controller.gd")
 const U_LOCALIZATION_ROOT_REGISTRY := preload("res://scripts/core/managers/helpers/localization/u_localization_root_registry.gd")
-const U_LOCALIZATION_ACTIONS := preload("res://scripts/state/actions/u_localization_actions.gd")
+const U_LOCALIZATION_ACTIONS := preload("res://scripts/core/state/actions/u_localization_actions.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
 const U_UI_THEME_DEBUG := preload("res://scripts/ui/utils/u_ui_theme_debug.gd")
 

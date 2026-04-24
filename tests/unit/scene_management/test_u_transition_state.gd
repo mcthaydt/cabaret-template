@@ -1,6 +1,6 @@
 extends GutTest
 
-const U_TransitionState = preload("res://scripts/scene_management/helpers/u_transition_state.gd")
+const U_TransitionState = preload("res://scripts/core/scene_management/helpers/u_transition_state.gd")
 
 
 func test_defaults() -> void:

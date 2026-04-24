@@ -22,10 +22,10 @@ class_name U_AutosaveScheduler
 ## - CRITICAL: always trigger
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
-const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
-const U_GAMEPLAY_SELECTORS := preload("res://scripts/state/selectors/u_gameplay_selectors.gd")
-const U_SCENE_SELECTORS := preload("res://scripts/state/selectors/u_scene_selectors.gd")
+const U_SCENE_REGISTRY := preload("res://scripts/core/scene_management/u_scene_registry.gd")
+const U_NAVIGATION_SELECTORS := preload("res://scripts/core/state/selectors/u_navigation_selectors.gd")
+const U_GAMEPLAY_SELECTORS := preload("res://scripts/core/state/selectors/u_gameplay_selectors.gd")
+const U_SCENE_SELECTORS := preload("res://scripts/core/state/selectors/u_scene_selectors.gd")
 
 enum Priority {
 	NORMAL = 0,

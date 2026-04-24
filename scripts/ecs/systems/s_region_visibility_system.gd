@@ -2,7 +2,7 @@
 extends BaseECSSystem
 class_name S_RegionVisibilitySystem
 
-const U_VCAM_SELECTORS := preload("res://scripts/state/selectors/u_vcam_selectors.gd")
+const U_VCAM_SELECTORS := preload("res://scripts/core/state/selectors/u_vcam_selectors.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/core/interfaces/i_camera_manager.gd")
 const I_StateStore := preload("res://scripts/core/interfaces/i_state_store.gd")
 const RS_REGION_VISIBILITY_SETTINGS_SCRIPT := preload(
@@ -11,7 +11,7 @@ const RS_REGION_VISIBILITY_SETTINGS_SCRIPT := preload(
 const U_ROOM_FADE_MATERIAL_APPLIER := preload(
 	"res://scripts/utils/lighting/u_room_fade_material_applier.gd"
 )
-const U_ENTITY_SELECTORS := preload("res://scripts/state/selectors/u_entity_selectors.gd")
+const U_ENTITY_SELECTORS := preload("res://scripts/core/state/selectors/u_entity_selectors.gd")
 const DEFAULT_REGION_VISIBILITY_SETTINGS := preload(
 	"res://resources/display/vcam/cfg_default_region_visibility.tres"
 )

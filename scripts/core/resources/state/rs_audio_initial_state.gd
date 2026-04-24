@@ -7,7 +7,7 @@ class_name RS_AudioInitialState
 ## Defines default audio settings. M_StateStore merges these values with reducer
 ## defaults to create the initial audio slice state.
 
-const U_AUDIO_REDUCER := preload("res://scripts/state/reducers/u_audio_reducer.gd")
+const U_AUDIO_REDUCER := preload("res://scripts/core/state/reducers/u_audio_reducer.gd")
 
 @export_group("Volumes")
 @export_range(0.0, 1.0, 0.01) var master_volume: float = 1.0

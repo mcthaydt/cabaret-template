@@ -9,16 +9,16 @@ extends BaseTest
 ## - Settings persist to global settings file and restore across sessions
 
 const M_AUDIO_MANAGER := preload("res://scripts/core/managers/m_audio_manager.gd")
-const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
+const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/core/resources/state/rs_state_store_settings.gd")
 const RS_AUDIO_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_audio_initial_state.gd")
 const RS_DISPLAY_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_display_initial_state.gd")
 
-const U_AUDIO_ACTIONS := preload("res://scripts/state/actions/u_audio_actions.gd")
-const U_AUDIO_SELECTORS := preload("res://scripts/state/selectors/u_audio_selectors.gd")
+const U_AUDIO_ACTIONS := preload("res://scripts/core/state/actions/u_audio_actions.gd")
+const U_AUDIO_SELECTORS := preload("res://scripts/core/state/selectors/u_audio_selectors.gd")
 const U_GLOBAL_SETTINGS_SERIALIZATION := preload("res://scripts/utils/u_global_settings_serialization.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
+const U_STATE_HANDOFF := preload("res://scripts/core/state/utils/u_state_handoff.gd")
 const U_AUDIO_TEST_HELPERS := preload("res://tests/helpers/u_audio_test_helpers.gd")
 
 const AUDIO_SETTINGS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/settings/ui_audio_settings_overlay.tscn")

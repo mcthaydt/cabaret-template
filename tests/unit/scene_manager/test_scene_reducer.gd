@@ -5,8 +5,8 @@ extends GutTest
 ## Tests Redux reducer for scene state slice.
 ## Tests follow TDD discipline: written BEFORE implementation.
 
-const U_SceneReducer = preload("res://scripts/state/reducers/u_scene_reducer.gd")
-const U_SceneActions = preload("res://scripts/state/actions/u_scene_actions.gd")
+const U_SceneReducer = preload("res://scripts/core/state/reducers/u_scene_reducer.gd")
+const U_SceneActions = preload("res://scripts/core/state/actions/u_scene_actions.gd")
 
 ## Test initial state structure
 func test_initial_state_has_required_fields() -> void:

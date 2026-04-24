@@ -3,8 +3,8 @@ extends I_SceneDirector
 class_name M_SceneDirectorManager
 
 const U_ECS_EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
-const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
-const U_SCENE_DIRECTOR_ACTIONS := preload("res://scripts/state/actions/u_scene_director_actions.gd")
+const U_SCENE_ACTIONS := preload("res://scripts/core/state/actions/u_scene_actions.gd")
+const U_SCENE_DIRECTOR_ACTIONS := preload("res://scripts/core/state/actions/u_scene_director_actions.gd")
 const U_BEAT_RUNNER := preload("res://scripts/utils/scene_director/u_beat_runner.gd")
 const U_BEAT_GRAPH := preload("res://scripts/utils/scene_director/u_beat_graph.gd")
 const RS_BEAT_DEFINITION := preload("res://scripts/core/resources/scene_director/rs_beat_definition.gd")

@@ -3,9 +3,9 @@ extends "res://scripts/core/interfaces/i_vcam_manager.gd"
 class_name M_VCamManager
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_VCAM_ACTIONS := preload("res://scripts/state/actions/u_vcam_actions.gd")
-const U_VFX_SELECTORS := preload("res://scripts/state/selectors/u_vfx_selectors.gd")
-const U_ENTITY_SELECTORS := preload("res://scripts/state/selectors/u_entity_selectors.gd")
+const U_VCAM_ACTIONS := preload("res://scripts/core/state/actions/u_vcam_actions.gd")
+const U_VFX_SELECTORS := preload("res://scripts/core/state/selectors/u_vfx_selectors.gd")
+const U_ENTITY_SELECTORS := preload("res://scripts/core/state/selectors/u_entity_selectors.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/core/interfaces/i_camera_manager.gd")
 const I_ECS_MANAGER := preload("res://scripts/core/interfaces/i_ecs_manager.gd")
 const RS_VCAM_BLEND_HINT_SCRIPT := preload("res://scripts/core/resources/display/vcam/rs_vcam_blend_hint.gd")

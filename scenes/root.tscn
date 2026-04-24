@@ -5,7 +5,7 @@
 [ext_resource type="Resource" uid="uid://b26lupnu6qot0" path="res://resources/state/cfg_default_menu_initial_state.tres" id="3_menu_state"]
 [ext_resource type="Resource" uid="uid://dw7q8jxqvhgwf" path="res://resources/state/cfg_default_state_store_settings.tres" id="4_state_settings"]
 [ext_resource type="Resource" uid="uid://com8t6o2gcr03" path="res://resources/state/cfg_default_scene_initial_state.tres" id="5_scene_state"]
-[ext_resource type="Script" uid="uid://ce5xuxv7ko1pk" path="res://scripts/state/m_state_store.gd" id="6_state_store"]
+[ext_resource type="Script" uid="uid://ce5xuxv7ko1pk" path="res://scripts/core/state/m_state_store.gd" id="6_state_store"]
 [ext_resource type="Script" uid="uid://brwv47r8lqkkf" path="res://scripts/core/managers/m_cursor_manager.gd" id="7_cursor"]
 [ext_resource type="Script" uid="uid://dc31pkcyw0kmt" path="res://scripts/core/managers/m_scene_manager.gd" id="8_scene_manager"]
 [ext_resource type="Script" uid="uid://wn8fs28hxufc" path="res://scripts/core/scene_structure/marker_active_scene_container.gd" id="9_active_scene_container"]

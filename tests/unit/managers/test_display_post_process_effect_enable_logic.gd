@@ -3,7 +3,7 @@ extends GutTest
 # TDD: Test post-processing effect enable logic (H1 - simplified unit test)
 # Verifies that the applier checks individual toggles before enabling effects
 
-const U_DISPLAY_SELECTORS := preload("res://scripts/state/selectors/u_display_selectors.gd")
+const U_DISPLAY_SELECTORS := preload("res://scripts/core/state/selectors/u_display_selectors.gd")
 
 # Test that selectors properly read individual effect toggles
 func test_film_grain_selector_returns_false_by_default() -> void:
@@ -36,7 +36,7 @@ func test_dither_selector_returns_true_when_enabled() -> void:
 
 # Test that default state includes all toggle fields
 func test_default_display_state_includes_effect_toggles() -> void:
-	const U_DISPLAY_REDUCER := preload("res://scripts/state/reducers/u_display_reducer.gd")
+	const U_DISPLAY_REDUCER := preload("res://scripts/core/state/reducers/u_display_reducer.gd")
 	var default_state := U_DISPLAY_REDUCER.get_default_display_state()
 
 	assert_true(
@@ -50,8 +50,8 @@ func test_default_display_state_includes_effect_toggles() -> void:
 
 # Test reducer handles individual toggle actions
 func test_reducer_handles_film_grain_toggle() -> void:
-	const U_DISPLAY_ACTIONS := preload("res://scripts/state/actions/u_display_actions.gd")
-	const U_DISPLAY_REDUCER := preload("res://scripts/state/reducers/u_display_reducer.gd")
+	const U_DISPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_display_actions.gd")
+	const U_DISPLAY_REDUCER := preload("res://scripts/core/state/reducers/u_display_reducer.gd")
 
 	var state := {"film_grain_enabled": false}
 	var action := U_DISPLAY_ACTIONS.set_film_grain_enabled(true)
@@ -66,8 +66,8 @@ func test_reducer_handles_film_grain_toggle() -> void:
 		)
 
 func test_reducer_handles_dither_toggle() -> void:
-	const U_DISPLAY_ACTIONS := preload("res://scripts/state/actions/u_display_actions.gd")
-	const U_DISPLAY_REDUCER := preload("res://scripts/state/reducers/u_display_reducer.gd")
+	const U_DISPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_display_actions.gd")
+	const U_DISPLAY_REDUCER := preload("res://scripts/core/state/reducers/u_display_reducer.gd")
 
 	var state := {"dither_enabled": false}
 	var action := U_DISPLAY_ACTIONS.set_dither_enabled(true)
@@ -96,7 +96,7 @@ func test_scanlines_selector_returns_true_when_enabled() -> void:
 	)
 
 func test_default_display_state_includes_scanlines_toggle() -> void:
-	const U_DISPLAY_REDUCER := preload("res://scripts/state/reducers/u_display_reducer.gd")
+	const U_DISPLAY_REDUCER := preload("res://scripts/core/state/reducers/u_display_reducer.gd")
 	var default_state := U_DISPLAY_REDUCER.get_default_display_state()
 	assert_true(
 		default_state.has("scanlines_enabled"),
@@ -104,8 +104,8 @@ func test_default_display_state_includes_scanlines_toggle() -> void:
 	)
 
 func test_reducer_handles_scanlines_toggle() -> void:
-	const U_DISPLAY_ACTIONS := preload("res://scripts/state/actions/u_display_actions.gd")
-	const U_DISPLAY_REDUCER := preload("res://scripts/state/reducers/u_display_reducer.gd")
+	const U_DISPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_display_actions.gd")
+	const U_DISPLAY_REDUCER := preload("res://scripts/core/state/reducers/u_display_reducer.gd")
 
 	var state := {"scanlines_enabled": false}
 	var action := U_DISPLAY_ACTIONS.set_scanlines_enabled(true)

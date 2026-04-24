@@ -1,6 +1,6 @@
 extends GutTest
 
-const U_TIME_ACTIONS := preload("res://scripts/state/actions/u_time_actions.gd")
+const U_TIME_ACTIONS := preload("res://scripts/core/state/actions/u_time_actions.gd")
 
 func test_update_pause_state_builds_expected_payload() -> void:
 	var channels: Array = [StringName("cutscene")]

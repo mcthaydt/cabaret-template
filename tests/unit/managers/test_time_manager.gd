@@ -6,8 +6,8 @@ const U_WORLD_CLOCK := preload("res://scripts/core/managers/helpers/time/u_world
 const M_TIME_MANAGER := preload("res://scripts/core/managers/m_time_manager.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_TIME_ACTIONS := preload("res://scripts/state/actions/u_time_actions.gd")
-const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+const U_TIME_ACTIONS := preload("res://scripts/core/state/actions/u_time_actions.gd")
+const U_GAMEPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
 
 var _time_manager: Node = null
 var _store: Node = null

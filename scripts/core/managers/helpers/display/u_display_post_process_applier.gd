@@ -4,7 +4,7 @@ class_name U_DisplayPostProcessApplier
 ## Applies post-process settings to the display overlay.
 ## Uses a grain + dither shader for post-processing effects (one screen texture sample).
 
-const U_DISPLAY_SELECTORS := preload("res://scripts/state/selectors/u_display_selectors.gd")
+const U_DISPLAY_SELECTORS := preload("res://scripts/core/state/selectors/u_display_selectors.gd")
 const U_DISPLAY_OPTION_CATALOG := preload("res://scripts/utils/display/u_display_option_catalog.gd")
 const U_POST_PROCESS_LAYER := preload("res://scripts/core/managers/helpers/display/u_post_process_layer.gd")
 const POST_PROCESS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/ui_post_process_overlay.tscn")

@@ -1,7 +1,7 @@
 extends RefCounted
 class_name U_AudioSerialization
 
-const U_AUDIO_REDUCER := preload("res://scripts/state/reducers/u_audio_reducer.gd")
+const U_AUDIO_REDUCER := preload("res://scripts/core/state/reducers/u_audio_reducer.gd")
 
 const SAVE_PATH := "user://audio_settings.json"
 const BACKUP_PATH := "user://audio_settings.json.backup"

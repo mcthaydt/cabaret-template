@@ -1,7 +1,7 @@
 extends BaseTest
 
 const ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
-const STATE_STORE := preload("res://scripts/state/m_state_store.gd")
+const STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
 const STATE_STORE_SETTINGS := preload("res://scripts/core/resources/state/rs_state_store_settings.gd")
 const GAMEPLAY_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_gameplay_initial_state.gd")
 const GAME_EVENT_SYSTEM := preload("res://scripts/ecs/systems/s_game_event_system.gd")

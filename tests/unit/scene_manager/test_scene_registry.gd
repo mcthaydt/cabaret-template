@@ -5,8 +5,8 @@ extends GutTest
 ## Tests scene metadata management and door pairing validation.
 ## Tests follow TDD discipline: written BEFORE implementation.
 
-const U_SceneRegistry = preload("res://scripts/scene_management/u_scene_registry.gd")
-const U_SceneRegistryLoader = preload("res://scripts/scene_management/helpers/u_scene_registry_loader.gd")
+const U_SceneRegistry = preload("res://scripts/core/scene_management/u_scene_registry.gd")
+const U_SceneRegistryLoader = preload("res://scripts/core/scene_management/helpers/u_scene_registry_loader.gd")
 
 func before_each() -> void:
 	# U_SceneRegistry is static, no setup needed

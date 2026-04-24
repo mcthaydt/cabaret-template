@@ -7,7 +7,7 @@ const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme
 const RS_UI_MOTION_SET := preload("res://scripts/core/resources/ui/rs_ui_motion_set.gd")
 const RS_UI_MOTION_PRESET := preload("res://scripts/core/resources/ui/rs_ui_motion_preset.gd")
 const U_UI_MOTION := preload("res://scripts/ui/utils/u_ui_motion.gd")
-const U_SAVE_ACTIONS := preload("res://scripts/state/actions/u_save_actions.gd")
+const U_SAVE_ACTIONS := preload("res://scripts/core/state/actions/u_save_actions.gd")
 
 @export var checkpoint_toast_motion_set: Resource = preload("res://resources/ui/motions/cfg_motion_hud_checkpoint_toast.tres")
 @export var signpost_fade_in_preset: Resource = preload("res://resources/ui/motions/cfg_motion_hud_signpost_fade_in.tres")
