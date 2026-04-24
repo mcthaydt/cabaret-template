@@ -55,5 +55,5 @@ Group lookup remains a fallback in some areas for backward compatibility and tes
 ## References
 
 - `scripts/core/u_service_locator.gd`
-- `scripts/root.gd`
+- `scripts/core/root.gd`
 - `scenes/root.tscn`

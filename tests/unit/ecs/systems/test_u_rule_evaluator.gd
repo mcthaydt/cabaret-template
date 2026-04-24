@@ -5,7 +5,7 @@ const RULE_RESOURCE := preload("res://scripts/resources/qb/rs_rule.gd")
 const I_CONDITION := preload("res://scripts/interfaces/i_condition.gd")
 const I_EFFECT := preload("res://scripts/interfaces/i_effect.gd")
 const CONDITION_CONSTANT := preload("res://scripts/resources/qb/conditions/rs_condition_constant.gd")
-const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
+const U_ECS_EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
 
 class ProbeEffect extends RS_BaseEffect:
 	var execute_calls: int = 0

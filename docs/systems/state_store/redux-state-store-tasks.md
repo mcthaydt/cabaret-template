@@ -101,8 +101,8 @@ This is a Godot 4.5 project with the following structure:
 **If successful**: Unified event system from the start, cleaner architecture
 **If fails**: Switch to Option B after 1 day (use rollback tasks below)
 
-- [N/A] T014 [Phase0-A] Read existing `scripts/events/ecs/u_ecs_event_bus.gd` to understand current API
-- [N/A] T015 [Phase0-A] Create backup: Copy `scripts/events/ecs/u_ecs_event_bus.gd` to `scripts/events/ecs/u_ecs_event_bus.gd.backup`
+- [N/A] T014 [Phase0-A] Read existing `scripts/core/events/ecs/u_ecs_event_bus.gd` to understand current API
+- [N/A] T015 [Phase0-A] Create backup: Copy `scripts/core/events/ecs/u_ecs_event_bus.gd` to `scripts/core/events/ecs/u_ecs_event_bus.gd.backup`
 - [N/A] T016 [Phase0-A] Create new `scripts/event_bus.gd` with namespace support ("ecs/*", "state/*" prefixes)
 - [N/A] T017 [Phase0-A] Implement backward-compatible publish/subscribe in `scripts/event_bus.gd`
 - [N/A] T018 [Phase0-A] Add `reset()` method to `scripts/event_bus.gd` for test isolation (clears all subscriptions)
@@ -118,7 +118,7 @@ This is a Godot 4.5 project with the following structure:
 
 **Execute these if switching from Option A to Option B mid-refactor:**
 
-- [N/A] T026 [Phase0-A-Rollback] Restore backup: `mv scripts/events/ecs/u_ecs_event_bus.gd.backup scripts/events/ecs/u_ecs_event_bus.gd`
+- [N/A] T026 [Phase0-A-Rollback] Restore backup: `mv scripts/core/events/ecs/u_ecs_event_bus.gd.backup scripts/core/events/ecs/u_ecs_event_bus.gd`
 - [N/A] T027 [Phase0-A-Rollback] Delete incomplete event_bus.gd: `rm scripts/event_bus.gd`
 - [N/A] T028 [Phase0-A-Rollback] (No autoloads) — not applicable
 - [N/A] T029 [Phase0-A-Rollback] Revert any modified files: `git restore scripts/ tests/`
@@ -1504,9 +1504,9 @@ From PRD, feature is complete when:
 
 **Approach**: Add a shared abstract base and two concrete buses (ECS + State) without breaking existing ECS API
 
-- [x] T026C [Phase0-C] Create directory `scripts/events/`
-- [x] T027C [Phase0-C] Create `scripts/events/base_event_bus.gd` (abstract) with subscribe/unsubscribe/publish/reset/history and defensive payload duplication
-- [x] T028C [Phase0-C] Create `scripts/events/state/u_state_event_bus.gd` that extends base and exposes static API delegating to a private instance
-- [x] T029C [Phase0-C] Update `scripts/events/ecs/u_ecs_event_bus.gd` to extend base and delegate its static API to a private instance (no external API changes)
+- [x] T026C [Phase0-C] Create directory `scripts/core/events/`
+- [x] T027C [Phase0-C] Create `scripts/core/events/base_event_bus.gd` (abstract) with subscribe/unsubscribe/publish/reset/history and defensive payload duplication
+- [x] T028C [Phase0-C] Create `scripts/core/events/state/u_state_event_bus.gd` that extends base and exposes static API delegating to a private instance
+- [x] T029C [Phase0-C] Update `scripts/core/events/ecs/u_ecs_event_bus.gd` to extend base and delegate its static API to a private instance (no external API changes)
 - [x] T030C [Phase0-C] 📝 TEST: Add `tests/unit/state/test_state_event_bus.gd` to verify isolation and reset behavior
 - [x] T031C [Phase0-C] Commit Phase 0C: "Add BaseEventBus and U_StateEventBus; delegate U_ECSEventBus to base"

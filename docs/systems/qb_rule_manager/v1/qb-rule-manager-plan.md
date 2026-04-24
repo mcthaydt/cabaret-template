@@ -260,7 +260,7 @@ class_name S_DeathHandlerSystem extends BaseECSSystem
 
 ### 4A: Event Name Centralization
 
-Add to `scripts/events/ecs/u_ecs_event_names.gd`:
+Add to `scripts/core/events/ecs/u_ecs_event_names.gd`:
 ```
 EVENT_CHECKPOINT_ZONE_ENTERED, EVENT_CHECKPOINT_ACTIVATED,
 EVENT_CHECKPOINT_ACTIVATION_REQUESTED,
@@ -396,7 +396,7 @@ scripts/ecs/systems/s_input_system.gd            -- Read brain data for pause (k
 scripts/ecs/systems/s_footstep_sound_system.gd   -- Read brain data for pause (can remove @export state_store entirely)
 scripts/ecs/systems/s_floating_system.gd         -- Read brain data for freeze
 scripts/ecs/systems/s_damage_system.gd           -- Centralize event name constants only
-scripts/events/ecs/u_ecs_event_names.gd          -- Add new event constants
+scripts/core/events/ecs/u_ecs_event_names.gd          -- Add new event constants
 scenes/templates/tmpl_character.tscn             -- Add C_CharacterStateComponent
 scenes/prefabs/prefab_player.tscn                -- Add C_CharacterStateComponent
 scenes/gameplay/*.tscn (5 scenes)                -- Add rule managers + handler systems
@@ -435,8 +435,8 @@ tests/integration/qb/test_qb_brain_data_pipeline.gd
 | `scripts/ecs/systems/s_checkpoint_handler_system.gd` | Active checkpoint execution path (legacy checkpoint system removed) |
 | `scripts/ecs/systems/s_victory_handler_system.gd` | Active victory execution path (legacy victory system removed) |
 | `scripts/ecs/systems/s_damage_system.gd` | Stays as-is, centralize event names only |
-| `scripts/events/ecs/u_ecs_event_names.gd` | Centralize event constants |
-| `scripts/events/ecs/u_ecs_event_bus.gd` | Event subscription for rule triggers |
+| `scripts/core/events/ecs/u_ecs_event_names.gd` | Centralize event constants |
+| `scripts/core/events/ecs/u_ecs_event_bus.gd` | Event subscription for rule triggers |
 | `scripts/interfaces/i_state_store.gd` | DI interface for store access |
 | `scripts/managers/m_camera_manager.gd` | Camera rules integrate with (not replace) |
 | `scenes/templates/tmpl_character.tscn` | Add C_CharacterStateComponent |

@@ -302,7 +302,7 @@ Phase 5 completion notes (2026-02-25):
   - call `objectives_manager.reset_for_new_run(&"default_progression")` when available
   - dispatch `navigation/retry(&"alleyway")`
   - ignore re-entrant reset requests while one is in-flight
-- [x] T7.9: Registered `M_RunCoordinator` in `scenes/root.tscn` + `scripts/root.gd` ServiceLocator wiring/dependencies.
+- [x] T7.9: Registered `M_RunCoordinator` in `scenes/root.tscn` + `scripts/core/root.gd` ServiceLocator wiring/dependencies.
 - [x] T7.10: Updated `UI_Victory` Continue flow to dispatch `U_RunActions.reset_run(...)` (contract path) instead of direct gameplay/navigation reset chaining.
 
 ### 7D: Test Coverage Updates (TDD)

@@ -8,8 +8,8 @@ const GAME_EVENT_SYSTEM := preload("res://scripts/ecs/systems/s_game_event_syste
 const CHECKPOINT_HANDLER_SYSTEM := preload("res://scripts/ecs/systems/s_checkpoint_handler_system.gd")
 const CHECKPOINT_COMPONENT := preload("res://scripts/ecs/components/c_checkpoint_component.gd")
 const PLAYER_TAG_COMPONENT := preload("res://scripts/ecs/components/c_player_tag_component.gd")
-const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
-const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
+const U_ECS_EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
+const U_ECS_EVENT_NAMES := preload("res://scripts/core/events/ecs/u_ecs_event_names.gd")
 
 func before_each() -> void:
 	U_ECS_EVENT_BUS.reset()

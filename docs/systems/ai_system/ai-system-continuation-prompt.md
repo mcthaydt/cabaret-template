@@ -750,7 +750,7 @@ Study these for utility and event patterns:
 - `scripts/utils/qb/u_rule_selector.gd` — Winner selection API.
 - `scripts/utils/qb/u_rule_state_tracker.gd` — Cooldowns, salience, one-shot gating.
 - `scripts/utils/qb/u_path_resolver.gd` — Dot-path traversal for condition evaluation.
-- `scripts/events/ecs/u_ecs_event_bus.gd` — Event publishing for RS_AIActionPublishEvent.
+- `scripts/core/events/ecs/u_ecs_event_bus.gd` — Event publishing for RS_AIActionPublishEvent.
 
 ### 4. Execute AI System Refactor Tasks in Order
 

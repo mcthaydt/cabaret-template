@@ -21,10 +21,10 @@ This recipe does **not** cover:
 
 ## Canonical Example
 
-- Typed event: `scripts/events/ecs/evn_health_changed.gd` (`Evn_HealthChanged`)
-- Event names: `scripts/events/ecs/u_ecs_event_names.gd`
-- Event bus: `scripts/events/ecs/u_ecs_event_bus.gd`
-- Base event bus: `scripts/events/base_event_bus.gd` (`BaseEventBus`)
+- Typed event: `scripts/core/events/ecs/evn_health_changed.gd` (`Evn_HealthChanged`)
+- Event names: `scripts/core/events/ecs/u_ecs_event_names.gd`
+- Event bus: `scripts/core/events/ecs/u_ecs_event_bus.gd`
+- Base event bus: `scripts/core/events/base_event_bus.gd` (`BaseEventBus`)
 - Subscription pattern: `scripts/ecs/systems/s_victory_handler_system.gd`
 
 ## Vocabulary
@@ -49,7 +49,7 @@ Event naming: typed classes `Evn_<PascalCase>` → snake_case (`Evn_HealthChange
 
 ### Adding a new typed event
 
-1. Create `scripts/events/ecs/evn_<snake_case>.gd`: extend `BaseECSEvent`, `class_name Evn_<PascalCase>`, declare domain fields, implement `_init()` setting all fields + `timestamp` via `U_ECS_UTILS.get_current_time()` + building `_payload`.
+1. Create `scripts/core/events/ecs/evn_<snake_case>.gd`: extend `BaseECSEvent`, `class_name Evn_<PascalCase>`, declare domain fields, implement `_init()` setting all fields + `timestamp` via `U_ECS_UTILS.get_current_time()` + building `_payload`.
 2. Add event name constant to `U_ECSEventNames`.
 3. Publish: `U_ECSEventBus.publish_typed(Evn_<Name>.new(...))`.
 4. Subscribers receive identical Dictionary format regardless of typed vs StringName publishing.

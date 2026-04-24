@@ -67,7 +67,7 @@ Completion note (2026-03-05): Implemented 0A-0C in commit `b372980d` and validat
 - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true`
 
 Follow-up note (2026-03-06): Fixed unified-theme lifecycle regression caused by shared `root.gd` usage in gameplay scenes.
-- Root cause: gameplay scene roots also use `scripts/root.gd`; unconditional `_exit_tree()` cleanup cleared `U_UIThemeBuilder.active_config`, causing later UI screens to render default gray styles.
+- Root cause: gameplay scene roots also use `scripts/core/root.gd`; unconditional `_exit_tree()` cleanup cleared `U_UIThemeBuilder.active_config`, causing later UI screens to render default gray styles.
 - Fix: guard theme-config teardown so only the persistent app root (has `Managers/M_StateStore`) clears `U_UIThemeBuilder.active_config`.
 - Added regression coverage: `tests/unit/ui/test_root_ui_theme_lifecycle.gd`.
 - Validation:

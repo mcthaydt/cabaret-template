@@ -20,7 +20,7 @@ This recipe does **not** cover:
 
 - Simple manager: `scripts/managers/m_cursor_manager.gd` (73 lines — minimal full pattern)
 - Interface: `scripts/interfaces/i_cursor_manager.gd`
-- Registration: `scripts/root.gd` (`_register_if_exists()`)
+- Registration: `scripts/core/root.gd` (`_register_if_exists()`)
 - Service locator: `scripts/core/u_service_locator.gd`
 
 ## Vocabulary

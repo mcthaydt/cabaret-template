@@ -231,10 +231,10 @@ Before starting implementation:
 **Status**: Implemented in commit b7fb729
 
 **Completed**:
-1. ✅ Created directory `scripts/events/`
-2. ✅ Created `scripts/events/base_event_bus.gd` (abstract base with shared logic)
-3. ✅ Created `scripts/events/state/u_state_event_bus.gd` (state domain bus extending base)
-4. ✅ Updated `scripts/events/ecs/u_ecs_event_bus.gd` to extend base (preserves existing API)
+1. ✅ Created directory `scripts/core/events/`
+2. ✅ Created `scripts/core/events/base_event_bus.gd` (abstract base with shared logic)
+3. ✅ Created `scripts/core/events/state/u_state_event_bus.gd` (state domain bus extending base)
+4. ✅ Updated `scripts/core/events/ecs/u_ecs_event_bus.gd` to extend base (preserves existing API)
 5. ✅ Added tests for state bus isolation and reset behavior (7/7 passing)
 6. ✅ Committed Phase 0C
 

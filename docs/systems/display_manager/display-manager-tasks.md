@@ -232,7 +232,7 @@ Before starting Phase 0, verify:
 - [x] **Task 1B.3**: Add manager to main scene
   - Add M_DisplayManager node to `scenes/root.tscn` under Managers/
   - Position after M_AudioManager
-  - Update `scripts/root.gd`:
+  - Update `scripts/core/root.gd`:
     - Add: `_register_if_exists(managers_node, "M_DisplayManager", StringName("display_manager"))`
     - Display manager depends on state_store (register after state_store is ready)
   - Notes: Completed 2026-02-01 (added M_DisplayManager node + root registration)
@@ -844,7 +844,7 @@ Before starting Phase 0, verify:
 | `scripts/state/utils/u_state_slice_manager.gd` | Add U_DISPLAY_REDUCER const, display_initial_state as 12th param, register display slice after audio |
 | `scripts/state/u_action_registry.gd` | Register all 19 U_DisplayActions action types |
 | `scenes/root.tscn` | Add M_DisplayManager node under Managers/, assign cfg_display_initial_state.tres |
-| `scripts/root.gd` | Register M_DisplayManager with ServiceLocator via `_register_if_exists()` |
+| `scripts/core/root.gd` | Register M_DisplayManager with ServiceLocator via `_register_if_exists()` |
 | `scripts/ui/helpers/u_ui_scale_root.gd` | Helper node to register UI roots for scaling |
 | `scenes/ui/menus/*.tscn` | Add UIScaleRoot helper node |
 | `scenes/ui/overlays/*.tscn` | Add UIScaleRoot helper node |

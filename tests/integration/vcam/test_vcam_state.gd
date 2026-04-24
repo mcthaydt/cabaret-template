@@ -20,7 +20,7 @@ const U_VCAM_ACTIONS := preload("res://scripts/state/actions/u_vcam_actions.gd")
 const U_VCAM_SELECTORS := preload("res://scripts/state/selectors/u_vcam_selectors.gd")
 const U_VFX_ACTIONS := preload("res://scripts/state/actions/u_vfx_actions.gd")
 const U_INPUT_ACTIONS := preload("res://scripts/state/actions/u_input_actions.gd")
-const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
+const U_ECS_EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
 
 const M_ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const S_VCAM_SYSTEM := preload("res://scripts/ecs/systems/s_vcam_system.gd")

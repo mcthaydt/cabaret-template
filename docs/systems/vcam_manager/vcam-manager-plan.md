@@ -225,7 +225,7 @@ func to_dictionary() -> Dictionary:
 
 **ECS Event Constants**
 
-Extend `scripts/events/ecs/u_ecs_event_names.gd` with vCam lifecycle event constants:
+Extend `scripts/core/events/ecs/u_ecs_event_names.gd` with vCam lifecycle event constants:
 
 - `EVENT_VCAM_ACTIVE_CHANGED` — published when active vCam selection changes
 - `EVENT_VCAM_BLEND_STARTED` — published when a vCam-to-vCam blend begins
@@ -752,7 +752,7 @@ This requires modifying `S_CameraStateSystem._build_camera_context()` to read fr
 
 - `scripts/managers/m_vcam_manager.gd`
 - `scripts/managers/m_vfx_manager.gd`
-- `scripts/events/ecs/u_ecs_event_names.gd`
+- `scripts/core/events/ecs/u_ecs_event_names.gd`
 - `tests/unit/managers/test_vcam_manager.gd`
 
 **Behavior**

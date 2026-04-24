@@ -10,8 +10,8 @@ const GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_action
 const NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const OBJECTIVE_EVENT_LOG := preload("res://scripts/utils/scene_director/u_objective_event_log.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
-const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
+const U_ECS_EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
+const U_ECS_EVENT_NAMES := preload("res://scripts/core/events/ecs/u_ecs_event_names.gd")
 const ACTION_SET_TEST_FLAG := StringName("tests/objectives/set_test_flag")
 
 class ObjectivesStoreStub extends I_STATE_STORE:

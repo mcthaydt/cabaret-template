@@ -974,7 +974,7 @@
 - Completed Phase 0D:
   - Added `scripts/state/actions/u_vcam_actions.gd` with 8 registered action creators (`set_active_runtime`, blend lifecycle, silhouette count, target validity, recovery reason, `update_fov_zone`).
   - Added `scripts/state/reducers/u_vcam_reducer.gd` with full state-default merge + action handling (`blend_progress` clamp, silhouette non-negative clamp, unknown action unchanged-state return).
-  - Added vCam ECS event constants to `scripts/events/ecs/u_ecs_event_names.gd` (`EVENT_VCAM_ACTIVE_CHANGED`, `EVENT_VCAM_BLEND_STARTED`, `EVENT_VCAM_BLEND_COMPLETED`, `EVENT_VCAM_RECOVERY`).
+  - Added vCam ECS event constants to `scripts/core/events/ecs/u_ecs_event_names.gd` (`EVENT_VCAM_ACTIVE_CHANGED`, `EVENT_VCAM_BLEND_STARTED`, `EVENT_VCAM_BLEND_COMPLETED`, `EVENT_VCAM_RECOVERY`).
   - Added new tests `tests/unit/state/test_vcam_actions.gd` (8) and `tests/unit/state/test_vcam_reducer.gd` (13).
 - Completed Phase 0E:
   - Added `scripts/state/selectors/u_vcam_selectors.gd` and `tests/unit/state/test_vcam_selectors.gd` (23 tests) for null-safe vCam runtime/selector access.
@@ -1047,7 +1047,7 @@
   - Extended ECS manager interface/mocks with `get_entities_by_tag(...)` / `get_entities_by_tags(...)` for typed target-resolution queries in systems/tests.
 - Completed Phase 6B:
   - Added `M_VCamManager` node to `scenes/root.tscn`.
-  - Updated `scripts/root.gd` ServiceLocator bootstrap to register `vcam_manager` and declare `vcam_manager -> {state_store, camera_manager}` dependencies.
+  - Updated `scripts/core/root.gd` ServiceLocator bootstrap to register `vcam_manager` and declare `vcam_manager -> {state_store, camera_manager}` dependencies.
   - Added `S_VCamSystem` to `scenes/templates/tmpl_base_scene.tscn` and gameplay scene system trees (`scenes/gameplay/gameplay_base.tscn`, `scenes/gameplay/gameplay_bar.tscn`, `scenes/gameplay/gameplay_alleyway.tscn`) under `Systems/Core` with `execution_priority = 100` (after movement, before feedback).
   - Added default `C_VCamComponent` to `scenes/templates/tmpl_camera.tscn` with `cfg_default_orbit.tres` plus default soft-zone/blend/response resources and `follow_target_entity_id = &"player"`.
 - Completed Phase 6A2:
@@ -1252,7 +1252,7 @@
 - Path-follow helpers for `use_path` stay scene-local in the gameplay world; do not parent them under the persistent root manager.
 - Stale test paths were corrected (`test_u_input_reducer.gd`, `test_input_system.gd`, `tests/integration/camera_system/test_camera_manager.gd`).
 - ECS Event Bus integration added: `M_VCamManager` publishes lifecycle events (`EVENT_VCAM_ACTIVE_CHANGED`, `EVENT_VCAM_BLEND_STARTED`, `EVENT_VCAM_BLEND_COMPLETED`, `EVENT_VCAM_RECOVERY`) through `U_ECSEventBus` so `S_GameEventSystem`, `S_CameraStateSystem`, and QB rules can subscribe to vCam state changes.
-- vCam event constants are now added to `scripts/events/ecs/u_ecs_event_names.gd` following existing `EVENT_*` pattern.
+- vCam event constants are now added to `scripts/core/events/ecs/u_ecs_event_names.gd` following existing `EVENT_*` pattern.
 - Entity-based target resolution added: `C_VCamComponent` supports `follow_target_entity_id` and `follow_target_tag` exports as fallbacks when NodePath is empty. `S_VCamSystem` resolves targets via `M_ECSManager.get_entity_by_id()` / `get_entities_by_tag()`, leveraging the existing `BaseECSEntity` ID/tag system. Multiple tag matches resolve to the first valid ECS-registration-order match and emit a debug warning.
 - QB rule context enrichment: `S_CameraStateSystem._build_camera_context()` is extended with `vcam_active_mode`, `vcam_is_blending`, `vcam_active_vcam_id` so camera rules can condition on vCam state using standard `RS_ConditionContextField`.
 - Per-phase doc cadence is now explicit and mandatory: update continuation prompt + tasks after each phase, and update AGENTS/DEV_PITFALLS when new stable contracts or pitfalls appear.
@@ -1308,8 +1308,8 @@
 - `scripts/input/u_input_map_bootstrapper.gd`
 - `scripts/ecs/systems/s_camera_state_system.gd` (QB rule context, FOV composition, shake trauma)
 - `scripts/ecs/components/c_camera_state_component.gd` (base_fov, target_fov, shake_trauma API)
-- `scripts/events/ecs/u_ecs_event_bus.gd` (event subscription/publish pattern)
-- `scripts/events/ecs/u_ecs_event_names.gd` (event constant pattern — vCam events added here)
+- `scripts/core/events/ecs/u_ecs_event_bus.gd` (event subscription/publish pattern)
+- `scripts/core/events/ecs/u_ecs_event_names.gd` (event constant pattern — vCam events added here)
 - `scripts/utils/qb/u_rule_scorer.gd` (QB rule scoring for camera rules)
 - `scripts/state/utils/u_state_slice_manager.gd`
 - `scripts/utils/u_global_settings_serialization.gd`

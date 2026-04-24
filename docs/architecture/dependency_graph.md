@@ -29,13 +29,13 @@ The root scene persists across the whole session. Manager ordering in the scene 
 19. `M_RunCoordinatorManager`
 20. `M_SceneDirectorManager`
 
-`scripts/root.gd` registers the persistent manager services, root-level containers, and viewport nodes into `U_ServiceLocator`, then validates declared dependencies. `M_ScreenshotCacheManager` self-registers as `screenshot_cache`.
+`scripts/core/root.gd` registers the persistent manager services, root-level containers, and viewport nodes into `U_ServiceLocator`, then validates declared dependencies. `M_ScreenshotCacheManager` self-registers as `screenshot_cache`.
 
 ---
 
 ## Service Locator Services
 
-`scripts/root.gd` registers these manager services:
+`scripts/core/root.gd` registers these manager services:
 
 - `state_store` -> `M_StateStore`
 - `cursor_manager` -> `M_CursorManager`

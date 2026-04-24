@@ -22,9 +22,9 @@ The ECS event bus (`U_ECSEventBus`) provides a publish/subscribe infrastructure 
 
 ### Event Bus Infrastructure
 
-- **Location**: `scripts/events/ecs/u_ecs_event_bus.gd`
-- **Base**: `scripts/events/base_event_bus.gd`
-- **Event Classes**: `scripts/events/ecs/evn_*.gd`
+- **Location**: `scripts/core/events/ecs/u_ecs_event_bus.gd`
+- **Base**: `scripts/core/events/base_event_bus.gd`
+- **Event Classes**: `scripts/core/events/ecs/evn_*.gd`
 
 ### Event Flow
 
@@ -83,7 +83,7 @@ Event stored in rolling history buffer (1000 events)
 
 ### Base Class: BaseECSEvent
 
-**Location**: `scripts/events/ecs/base_ecs_event.gd`
+**Location**: `scripts/core/events/ecs/base_ecs_event.gd`
 
 All typed events extend `BaseECSEvent`:
 
@@ -100,7 +100,7 @@ func get_payload() -> Dictionary:
 
 ### Evn_HealthChanged
 
-**File**: `scripts/events/ecs/evn_health_changed.gd`
+**File**: `scripts/core/events/ecs/evn_health_changed.gd`
 **Publisher**: `C_HealthComponent`
 **Published When**: Health changes (damage/heal)
 
@@ -125,7 +125,7 @@ U_ECSEventBus.publish_typed(event)
 
 ### Evn_EntityDeath
 
-**File**: `scripts/events/ecs/evn_entity_death.gd`
+**File**: `scripts/core/events/ecs/evn_entity_death.gd`
 **Publisher**: `C_HealthComponent`
 **Published When**: Entity health reaches 0
 
@@ -143,7 +143,7 @@ var is_dead: bool      # Always true
 
 ### Evn_VictoryTriggered
 
-**File**: `scripts/events/ecs/evn_victory_triggered.gd`
+**File**: `scripts/core/events/ecs/evn_victory_triggered.gd`
 **Publisher**: `C_VictoryTriggerComponent`
 **Published When**: Player enters victory zone
 
@@ -160,7 +160,7 @@ var body: Node3D
 
 ### Evn_CheckpointActivated
 
-**File**: `scripts/events/ecs/evn_checkpoint_activated.gd`
+**File**: `scripts/core/events/ecs/evn_checkpoint_activated.gd`
 **Publisher**: `S_CheckpointHandlerSystem`
 **Published When**: Player activates checkpoint
 
@@ -396,7 +396,7 @@ func _on_entity_death(event: Dictionary) -> void:
 **Step 1**: Create typed event class:
 
 ```gdscript
-# scripts/events/ecs/evn_my_event.gd
+# scripts/core/events/ecs/evn_my_event.gd
 extends BaseECSEvent
 class_name Evn_MyEvent
 

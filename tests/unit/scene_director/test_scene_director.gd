@@ -7,7 +7,7 @@ const U_SCENE_DIRECTOR_ACTIONS := preload("res://scripts/state/actions/u_scene_d
 const U_SCENE_DIRECTOR_REDUCER := preload("res://scripts/state/reducers/u_scene_director_reducer.gd")
 const U_SCENE_DIRECTOR_SELECTORS := preload("res://scripts/state/selectors/u_scene_director_selectors.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
+const U_ECS_EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
 const RS_SCENE_DIRECTIVE := preload("res://scripts/resources/scene_director/rs_scene_directive.gd")
 const RS_BEAT_DEFINITION := preload("res://scripts/resources/scene_director/rs_beat_definition.gd")
 

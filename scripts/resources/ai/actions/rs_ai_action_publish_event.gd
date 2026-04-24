@@ -2,7 +2,7 @@
 extends I_AIAction
 class_name RS_AIActionPublishEvent
 
-const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
+const U_ECS_EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
 
 @export var event_name: StringName
 @export var payload: Dictionary = {}

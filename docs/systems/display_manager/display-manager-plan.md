@@ -18,7 +18,7 @@ Before implementation, study these reference files:
 - `scripts/managers/m_audio_manager.gd` - Hash-based optimization, preview mode, store discovery
 - `scripts/state/utils/u_state_slice_manager.gd` - Slice registration pattern
 - `scripts/state/m_state_store.gd` - Export pattern, initialize_slices call
-- `scripts/root.gd` - ServiceLocator registration
+- `scripts/core/root.gd` - ServiceLocator registration
 
 ---
 
@@ -498,7 +498,7 @@ static func get_display_manager() -> M_DisplayManager:
 - Add M_DisplayManager node under Managers/
 - Position after M_AudioManager, before UI managers
 
-**2. `scripts/root.gd`**:
+**2. `scripts/core/root.gd`**:
 ```gdscript
 # Add to _register_managers() or equivalent:
 _register_if_exists(managers_node, "M_DisplayManager", StringName("display_manager"))

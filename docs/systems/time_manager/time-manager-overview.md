@@ -14,7 +14,7 @@ Current implementation state (2026-02-18): All phases are complete (core refacto
 
 ## Repo Reality Checks
 
-- Main scene is `scenes/root.tscn`; service registration bootstrapped by `scripts/root.gd` via `U_ServiceLocator`.
+- Main scene is `scenes/root.tscn`; service registration bootstrapped by `scripts/core/root.gd` via `U_ServiceLocator`.
 - `M_TimeManager` is live at `scripts/managers/m_time_manager.gd`, registered as both `"time_manager"` and backward-compatible `"pause_manager"` in ServiceLocator.
 - Pause state is derived from `scene.scene_stack` size AND `UIOverlayStack` child count (OR logic). Engine pause applied via `get_tree().paused`.
 - `M_TimeManager` coordinates cursor state with `M_CursorManager` based on pause state AND scene type.
@@ -385,7 +385,7 @@ tests/unit/managers/
 1. Create `U_PauseSystem` (extends `RefCounted`) — channel dict, `request_pause`, `release_pause`, `compute_is_paused`, `get_active_channels`, `derive_pause_from_overlay_state(overlay_count)`.
 2. Create `M_TimeManager` — port ALL logic from `m_pause_manager.gd`: store subscription, `_process()` overlay resync loop, cursor coordination, `pause_state_changed` signal. Owns `U_PauseSystem` instance. Calls `get_tree().paused = _pause_system.compute_is_paused()`. `process_mode = PROCESS_MODE_ALWAYS`.
 3. Create `I_TimeManager` (extends `Node`) — minimal interface: `is_paused()`, `request_pause()`, `release_pause()`, `get_scaled_delta()`, `get_world_time()`.
-4. Update `scripts/root.gd` — change `_register_if_exists(managers_node, "M_PauseManager", ...)` to `M_TimeManager`. Register the same node under BOTH `"time_manager"` AND `"pause_manager"`. Update dependency registrations accordingly.
+4. Update `scripts/core/root.gd` — change `_register_if_exists(managers_node, "M_PauseManager", ...)` to `M_TimeManager`. Register the same node under BOTH `"time_manager"` AND `"pause_manager"`. Update dependency registrations accordingly.
 5. Update `scenes/root.tscn` — rename node from `M_PauseManager` to `M_TimeManager`; swap script to `m_time_manager.gd`.
 6. Update `test_style_enforcement.gd`:
    - Line 67: remove `# m_ for M_PauseManager` exception from ECS systems prefix map (delete `"m_"` from that entry).

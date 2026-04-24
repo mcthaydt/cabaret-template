@@ -25,7 +25,7 @@ Before implementation, study these reference files:
 - `scripts/state/actions/u_gameplay_actions.gd` — Action creator pattern with `_static_init()` registration
 - `scripts/state/reducers/u_audio_reducer.gd` — Reducer pattern with `_with_values()` helper
 - `scripts/interfaces/i_state_store.gd` — Interface pattern (extends Node, push_error stubs)
-- `scripts/root.gd` — ServiceLocator bootstrap with `_register_if_exists()`
+- `scripts/core/root.gd` — ServiceLocator bootstrap with `_register_if_exists()`
 
 ---
 
@@ -293,7 +293,7 @@ func is_daytime() -> bool: return true
 
 **Files to modify**:
 
-**1. `scripts/root.gd`**:
+**1. `scripts/core/root.gd`**:
 
 ```gdscript
 # Change line 31:

@@ -420,7 +420,7 @@ resources/state/                              # NEW DIRECTORY (.tres files)
 └── default_state_store_settings.tres
 
 scripts/
-scripts/events/                               # NEW DIRECTORY (shared infra)
+scripts/core/events/                               # NEW DIRECTORY (shared infra)
 └── base_event_bus.gd                         # Abstract base class for event buses
 
 scripts/state/
@@ -460,9 +460,9 @@ Implement the chosen option from Prerequisites step 4. Recommended: Option C (Du
 **Objective (Option C)**: Share logic via abstract base while isolating ECS and state domains.
 
 **Files**:
-- `scripts/events/base_event_bus.gd` — abstract base class
-- `scripts/events/state/u_state_event_bus.gd` — state domain bus with static delegates
-- `scripts/events/ecs/u_ecs_event_bus.gd` — update to extend base and delegate statics internally
+- `scripts/core/events/base_event_bus.gd` — abstract base class
+- `scripts/core/events/state/u_state_event_bus.gd` — state domain bus with static delegates
+- `scripts/core/events/ecs/u_ecs_event_bus.gd` — update to extend base and delegate statics internally
 
 **Changes**:
 1. Implement subscribe/unsubscribe/publish/reset/history in base

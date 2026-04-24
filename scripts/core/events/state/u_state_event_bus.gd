@@ -7,7 +7,7 @@ class_name U_StateEventBus
 ## separate from ECS event domain. Uses static API delegating to
 ## private instance for clean separation.
 
-const EVENT_BUS_BASE := preload("res://scripts/events/base_event_bus.gd")
+const EVENT_BUS_BASE := preload("res://scripts/core/events/base_event_bus.gd")
 
 static var _instance: BaseEventBus = null
 

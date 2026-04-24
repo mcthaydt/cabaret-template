@@ -32,7 +32,7 @@ This plan addresses issues identified in the VFX Manager system, organized into 
 
 ### New Event Classes
 
-**File**: `scripts/events/ecs/evn_screen_shake_request.gd`
+**File**: `scripts/core/events/ecs/evn_screen_shake_request.gd`
 ```gdscript
 extends BaseECSEvent
 class_name Evn_ScreenShakeRequest
@@ -61,7 +61,7 @@ func _init(p_entity_id: StringName, p_trauma_amount: float, p_source: StringName
 	}
 ```
 
-**File**: `scripts/events/ecs/evn_damage_flash_request.gd`
+**File**: `scripts/core/events/ecs/evn_damage_flash_request.gd`
 ```gdscript
 extends BaseECSEvent
 class_name Evn_DamageFlashRequest
@@ -103,8 +103,8 @@ class_name S_ScreenShakePublisherSystem
 ## Subscribes to: health_changed, entity_landed, entity_death
 ## Publishes: screen_shake_request
 
-const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
-const Evn_ScreenShakeRequest := preload("res://scripts/events/ecs/evn_screen_shake_request.gd")
+const U_ECS_EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
+const Evn_ScreenShakeRequest := preload("res://scripts/core/events/ecs/evn_screen_shake_request.gd")
 
 ## Magic numbers (Phase 4 will move to RS_ScreenShakeTuning)
 const DAMAGE_MIN_TRAUMA := 0.3
@@ -195,8 +195,8 @@ class_name S_DamageFlashPublisherSystem
 ## Subscribes to: health_changed, entity_death
 ## Publishes: damage_flash_request
 
-const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
-const Evn_DamageFlashRequest := preload("res://scripts/events/ecs/evn_damage_flash_request.gd")
+const U_ECS_EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
+const Evn_DamageFlashRequest := preload("res://scripts/core/events/ecs/evn_damage_flash_request.gd")
 
 var _unsubscribe_health: Callable
 var _unsubscribe_death: Callable
@@ -283,7 +283,7 @@ Add publisher systems to `scenes/gameplay/gameplay_base.tscn` under Systems node
 
 **Goal**: Centralize registration and add explicit dependency declarations.
 
-### Changes to `scripts/root.gd`
+### Changes to `scripts/core/root.gd`
 
 Add VFX manager to service registration (after camera_manager):
 ```gdscript
@@ -611,7 +611,7 @@ _camera_manager.apply_shake_offset(shake_result.offset, shake_result.rotation)
 
 ### New Constants File
 
-**File**: `scripts/events/ecs/u_ecs_event_names.gd`
+**File**: `scripts/core/events/ecs/u_ecs_event_names.gd`
 
 ```gdscript
 class_name U_ECSEventNames

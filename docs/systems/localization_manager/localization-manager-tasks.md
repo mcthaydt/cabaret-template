@@ -22,7 +22,7 @@ Before starting Phase 0, verify:
   - `scripts/managers/m_audio_manager.gd` (hash-based optimization, store discovery)
   - `scripts/managers/m_display_manager.gd` (most recent implementation)
   - `scripts/state/m_state_store.gd` (export pattern, initialize_slices call)
-  - `scripts/root.gd` (ServiceLocator registration, lines 28–41)
+  - `scripts/core/root.gd` (ServiceLocator registration, lines 28–41)
   - `scripts/state/actions/u_audio_actions.gd` (_static_init() action registry pattern)
 
 ---
@@ -312,7 +312,7 @@ Before starting Phase 0, verify:
 
 - [x] **Task 1B.3**: Add manager to root scene
   - Add `M_LocalizationManager` node to `scenes/root.tscn` under `Managers/` after `M_DisplayManager`
-  - Update `scripts/root.gd`: add `_register_if_exists(managers_node, "M_LocalizationManager", StringName("localization_manager"))`
+  - Update `scripts/core/root.gd`: add `_register_if_exists(managers_node, "M_LocalizationManager", StringName("localization_manager"))`
 
 ---
 
@@ -781,7 +781,7 @@ patterns from the audio/display/VFX tabs and do not require additional test cove
 | `scripts/utils/u_global_settings_serialization.gd` | Update 4 methods: is_global_settings_action(), build_settings_from_state(), _prepare_save_payload(), _sanitize_loaded_settings() | 0D |
 | `scripts/state/utils/u_global_settings_applier.gd` | Add _apply_localization() — dispatches localization actions from loaded settings. **Without this, settings save but never restore.** | 0D |
 | `scenes/root.tscn` | Assign cfg_localization_initial_state.tres to M_StateStore; add M_LocalizationManager node (Phase 1); change M_SceneManager.initial_scene_id to `"language_selector"` (Phase 0.5) | 0D, 0.5, 1 |
-| `scripts/root.gd` | Register M_LocalizationManager with ServiceLocator via `_register_if_exists()` | 1B |
+| `scripts/core/root.gd` | Register M_LocalizationManager with ServiceLocator via `_register_if_exists()` | 1B |
 | `scripts/scene_management/u_scene_registry.gd` | Register `language_selector` scene (SceneType.MENU, preload priority 10) | 0.5C |
 | `scripts/ui/hud/ui_hud_controller.gd` | Wrap signpost message through U_LocalizationUtils.tr(); add localization to _on_slice_updated() filter | 4A |
 | `scripts/ui/utils/u_ui_registry.gd` | Add LOCALIZATION_SETTINGS_OVERLAY preload + _register_definition() call | 5A |

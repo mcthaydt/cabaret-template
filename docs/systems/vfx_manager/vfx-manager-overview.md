@@ -39,7 +39,7 @@ The VFX Manager is a persistent orchestration layer for screen-level visual effe
 ## Repo Reality Checks
 
 - Main scene is `scenes/root.tscn` (there is no `scenes/main.tscn` in this repo).
-- Service registration is bootstrapped by `scripts/root.gd` using `U_ServiceLocator` (`res://scripts/core/u_service_locator.gd`).
+- Service registration is bootstrapped by `scripts/core/root.gd` using `U_ServiceLocator` (`res://scripts/core/u_service_locator.gd`).
 - `M_CameraManager` supports both camera blending and screen shake via `apply_shake_offset(offset: Vector2, rotation: float)` (active scene camera, or TransitionCamera during blends).
 - Gameplay camera orchestration contracts (`apply_main_camera_transform`, `is_blend_active`, fixed-anchor strategy) are documented in `docs/vcam_manager/*` and are out of scope for this VFX overview.
 - Tests should use real `U_ECSEventBus` and call `U_ECSEventBus.reset()` in `before_each()` to prevent subscription leaks.

@@ -12,8 +12,8 @@ const GD_DIRECTORIES := [
 	"res://scripts/utils",
 	"res://scripts/input",
 	"res://scripts/scene_management",
-	"res://scripts/events",
-	"res://scripts/scene_structure",
+	"res://scripts/core/events",
+	"res://scripts/core/scene_structure",
 	"res://scripts/resources/qb",
 	"res://scripts/resources/qb/conditions",
 	"res://scripts/resources/qb/effects",
@@ -153,8 +153,8 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/ecs/systems/helpers": ["u_"], # vCam/system helper utilities
 	"res://scripts/ecs/components": ["c_"],
 	"res://scripts/ecs/resources": ["rs_"],
-	"res://scripts/events/ecs": ["evn_", "base_", "u_"], # evn_ for typed events, base_ for BaseECSEvent, u_ for ECS event bus/names
-	"res://scripts/events/state": ["u_"], # u_state_event_bus.gd
+	"res://scripts/core/events/ecs": ["evn_", "base_", "u_"], # evn_ for typed events, base_ for BaseECSEvent, u_ for ECS event bus/names
+	"res://scripts/core/events/state": ["u_"], # u_state_event_bus.gd
 	"res://scripts/ecs": ["base_", "u_"], # base_ecs_*.gd files, base_event_vfx_system.gd, u_entity_query.gd
 	"res://scripts/ecs/markers": ["marker_"],
 	"res://scripts/state/actions": ["u_"],
@@ -179,12 +179,12 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/ui": ["ui_", "u_"], # ui_ for controllers, u_ for utilities
 	"res://scripts/gameplay/helpers": ["u_"], # gameplay helper utilities
 	"res://scripts/gameplay": ["e_", "inter_", "base_", "triggered_", "s_"], # e_ for entities, inter_ for interactable controllers, base_ for base controllers, triggered_ for special controllers, s_ for gameplay-scoped ECS systems
-	"res://scripts/scene_structure": ["marker_"], # marker_*.gd organizational scripts
+	"res://scripts/core/scene_structure": ["marker_"], # marker_*.gd organizational scripts
 	"res://scripts/scene_management/transitions": ["trans_", "base_"], # transition effects
 	"res://scripts/resources/scene_management": ["rs_"], # scene registry resources
 	"res://scripts/scene_management/handlers": ["h_"], # Scene type handlers (Phase 10B-3)
 	"res://scripts/scene_management": ["u_", "sp_"], # u_scene_registry.gd, u_transition_factory.gd, sp_spawn_point.gd
-	"res://scripts/events": ["base_"], # base_event_bus.gd
+	"res://scripts/core/events": ["base_"], # base_event_bus.gd
 }
 
 func test_gd_files_use_tab_indentation() -> void:
@@ -1633,8 +1633,8 @@ func test_objectives_state_access_uses_selectors() -> void:
 		"res://scripts/utils",
 		"res://scripts/input",
 		"res://scripts/scene_management",
-		"res://scripts/events",
-		"res://scripts/scene_structure",
+		"res://scripts/core/events",
+		"res://scripts/core/scene_structure",
 		"res://scripts/resources",
 		"res://scripts/gameplay",
 		"res://scripts/demo",
@@ -1894,8 +1894,8 @@ func test_no_state_mutation_outside_store() -> void:
 		"res://scripts/core",
 		"res://scripts/state",
 		"res://scripts/input",
-		"res://scripts/events",
-		"res://scripts/scene_structure",
+		"res://scripts/core/events",
+		"res://scripts/core/scene_structure",
 		"res://scripts/interfaces",
 		"res://scripts/resources",
 		"res://scripts/debug",
@@ -2389,7 +2389,7 @@ func test_all_ecs_systems_declare_explicit_phase() -> void:
 	assert_eq(violations.size(), 0, "Every S_* system must declare get_phase(): %s" % [violations])
 
 func test_base_event_bus_publish_does_not_duplicate_subscriber_list() -> void:
-	var file_path := "res://scripts/events/base_event_bus.gd"
+	var file_path := "res://scripts/core/events/base_event_bus.gd"
 	var file := FileAccess.open(file_path, FileAccess.READ)
 	if file == null:
 		push_error("Cannot open %s" % file_path)

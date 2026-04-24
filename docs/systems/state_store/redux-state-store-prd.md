@@ -27,9 +27,9 @@ Production state now contains only real fields used by actual game systems. See 
 ### Event Bus Integration
 We use an abstract base with two concrete buses (no autoload changes, no breaking changes):
 
-- `scripts/events/base_event_bus.gd` (abstract) — shared implementation for subscribe/publish/history
-- `scripts/events/ecs/u_ecs_event_bus.gd` (concrete) — ECS‑domain bus, preserves current public API
-- `scripts/events/state/u_state_event_bus.gd` (concrete) — State‑domain bus, used only by state store and its tests
+- `scripts/core/events/base_event_bus.gd` (abstract) — shared implementation for subscribe/publish/history
+- `scripts/core/events/ecs/u_ecs_event_bus.gd` (concrete) — ECS‑domain bus, preserves current public API
+- `scripts/core/events/state/u_state_event_bus.gd` (concrete) — State‑domain bus, used only by state store and its tests
 
 This isolates subscribers and histories between ECS and State, while sharing one implementation. If a single bus is later preferred, namespaced events remain a viable alternative, but dual‑bus avoids cross‑domain coupling.
 
@@ -110,8 +110,8 @@ This feature will create the following new files:
 
 ### Core State System
 - `scripts/state/m_state_store.gd` - Central state store manager
-- `scripts/events/base_event_bus.gd` - Abstract base for event buses
-- `scripts/events/state/u_state_event_bus.gd` - Concrete state store event bus (uses base)
+- `scripts/core/events/base_event_bus.gd` - Abstract base for event buses
+- `scripts/core/events/state/u_state_event_bus.gd` - Concrete state store event bus (uses base)
 
 ### Action Creators (Utilities)
 - `scripts/state/actions/u_gameplay_actions.gd` - Gameplay action creators

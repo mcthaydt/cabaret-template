@@ -29,7 +29,7 @@ The Display Manager handles visual post-processing effects, graphics quality set
 ## Repo Reality Checks
 
 - Main scene is `scenes/root.tscn` (there is no `scenes/main.tscn` in this repo).
-- Service registration is bootstrapped by `scripts/root.gd` using `U_ServiceLocator` (`res://scripts/core/u_service_locator.gd`).
+- Service registration is bootstrapped by `scripts/core/root.gd` using `U_ServiceLocator` (`res://scripts/core/u_service_locator.gd`).
 - WorldEnvironment node exists in gameplay scenes; Display Manager uses separate post-processing overlay.
 - Viewport is fixed 960x600 internal resolution; window size presets scale output only.
 - Color blind palettes use Theme Resources (`RS_UIColorPalette`), not runtime shader-based recoloring.

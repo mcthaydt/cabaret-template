@@ -17,7 +17,7 @@ const RS_DISPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_disp
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
-const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
+const U_ECS_EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
 const U_VCAM_SELECTORS := preload("res://scripts/state/selectors/u_vcam_selectors.gd")
 
 const M_ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")

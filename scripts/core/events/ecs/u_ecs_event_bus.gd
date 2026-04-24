@@ -6,8 +6,8 @@ class_name U_ECSEventBus
 ## Provides isolated event infrastructure for ECS systems and components,
 ## separate from state store event domain. Delegates to EventBusBase instance.
 
-const EVENT_BUS_BASE := preload("res://scripts/events/base_event_bus.gd")
-const BASE_ECS_EVENT := preload("res://scripts/events/ecs/base_ecs_event.gd")
+const EVENT_BUS_BASE := preload("res://scripts/core/events/base_event_bus.gd")
+const BASE_ECS_EVENT := preload("res://scripts/core/events/ecs/base_ecs_event.gd")
 
 static var _instance: BaseEventBus = null
 

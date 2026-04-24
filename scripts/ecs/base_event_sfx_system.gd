@@ -16,7 +16,7 @@ class_name BaseEventSFXSystem
 ## - create_request_from_payload(payload: Dictionary) -> Dictionary
 ## - _get_audio_stream() -> AudioStream (optional, returns null by default)
 
-const EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
+const EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
 const U_GAMEPLAY_SELECTORS := preload("res://scripts/state/selectors/u_gameplay_selectors.gd")
 const U_SCENE_SELECTORS := preload("res://scripts/state/selectors/u_scene_selectors.gd")
 const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")

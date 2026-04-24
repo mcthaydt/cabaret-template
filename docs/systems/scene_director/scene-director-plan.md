@@ -333,7 +333,7 @@ Create scene directives:
 ### 7D: UI + Root Wiring
 
 - Update `UI_Victory` Continue to dispatch `U_RunActions.reset_run(...)` instead of direct reset/navigation chaining
-- Register `M_RunCoordinator` in `scenes/root.tscn` and `scripts/root.gd` ServiceLocator dependency wiring
+- Register `M_RunCoordinator` in `scenes/root.tscn` and `scripts/core/root.gd` ServiceLocator dependency wiring
 
 ### 7E: Test Coverage
 
@@ -463,8 +463,8 @@ resources/scene_director/directives/cfg_directive_gameplay_base.tres
 ```
 scripts/state/utils/u_state_slice_manager.gd    -- Add 2 new slices (objectives, scene_director)
 scripts/state/m_state_store.gd                   -- Add @export for new initial state resources
-scripts/root.gd                                  -- Register 2 new managers + dependencies
-scripts/events/ecs/u_ecs_event_names.gd          -- Add objective/directive event constants
+scripts/core/root.gd                                  -- Register 2 new managers + dependencies
+scripts/core/events/ecs/u_ecs_event_names.gd          -- Add objective/directive event constants
 scripts/managers/m_scene_manager.gd              -- Remove victory handling, add objective_victory subscription
 scenes/root.tscn                                 -- Add M_ObjectivesManager + M_SceneDirector nodes
 scripts/ui/menus/ui_victory.gd                   -- Continue now dispatches run/reset contract action
@@ -505,8 +505,8 @@ tests/unit/scene_director/test_beat_graph.gd
 | `scripts/managers/m_scene_manager.gd` | Remove victory handling (~20 lines), add objective_victory subscription |
 | `scripts/state/utils/u_state_slice_manager.gd` | Add objectives + scene_director slices |
 | `scripts/state/m_state_store.gd` | Add @export for objectives + scene_director initial state |
-| `scripts/root.gd` | Register M_ObjectivesManager + M_SceneDirector with ServiceLocator |
-| `scripts/events/ecs/u_ecs_event_names.gd` | Add objective/directive event constants |
+| `scripts/core/root.gd` | Register M_ObjectivesManager + M_SceneDirector with ServiceLocator |
+| `scripts/core/events/ecs/u_ecs_event_names.gd` | Add objective/directive event constants |
 | `scripts/resources/qb/rs_base_condition.gd` | Base class for typed conditions (v2) |
 | `scripts/resources/qb/rs_base_effect.gd` | Base class for typed effects (v2) |
 | `scenes/root.tscn` | Add M_ObjectivesManager + M_SceneDirector nodes |

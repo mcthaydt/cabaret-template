@@ -63,7 +63,7 @@ Common contracts:
 
 Root/theme lifecycle:
 
-- `scripts/root.gd` sets `U_UIThemeBuilder.active_config` on enter/ready.
+- `scripts/core/root.gd` sets `U_UIThemeBuilder.active_config` on enter/ready.
 - Only the persistent app root (`Managers/M_StateStore` present) clears the active config on exit.
 - Non-persistent gameplay roots must not clear global theme config.
 - `U_DisplayUIThemeApplier` stores active palette state and rebuilds registered UI roots through `U_UIThemeBuilder` in unified mode.

@@ -206,8 +206,8 @@
     - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_main_menu.gd -gtest=res://tests/unit/managers/test_display_manager.gd -gtest=res://tests/unit/managers/test_localization_manager.gd` → 64/64 passing
     - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` → 13/13 passing
 - **2026-03-06: Theme lifecycle regression hardening**
-  - Root cause: gameplay scenes also attach `scripts/root.gd`; unloading gameplay roots ran `_exit_tree()` and cleared `U_UIThemeBuilder.active_config`, so later menu screens could render default gray chrome.
-  - Fix: `scripts/root.gd` now clears `U_UIThemeBuilder.active_config` only for the persistent app root (detected via `Managers/M_StateStore`).
+  - Root cause: gameplay scenes also attach `scripts/core/root.gd`; unloading gameplay roots ran `_exit_tree()` and cleared `U_UIThemeBuilder.active_config`, so later menu screens could render default gray chrome.
+  - Fix: `scripts/core/root.gd` now clears `U_UIThemeBuilder.active_config` only for the persistent app root (detected via `Managers/M_StateStore`).
   - Added regression tests: `tests/unit/ui/test_root_ui_theme_lifecycle.gd` (`non_persistent_root_exit_does_not_clear_active_theme_config`, `persistent_root_exit_clears_active_theme_config`).
   - Validation:
     - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_root_ui_theme_lifecycle.gd` → 2/2 passing

@@ -28,7 +28,7 @@ Before implementation, study these reference files:
 - `scripts/managers/m_display_manager.gd` — same pattern, most recent implementation
 - `scripts/state/utils/u_state_slice_manager.gd` — slice registration pattern; localization is the 13th parameter
 - `scripts/state/m_state_store.gd` — export pattern, `_initialize_slices()` call
-- `scripts/root.gd` — ServiceLocator registration (lines 28–41)
+- `scripts/core/root.gd` — ServiceLocator registration (lines 28–41)
 - `scripts/state/actions/u_audio_actions.gd` — `_static_init()` action registry pattern
 
 ---
@@ -416,7 +416,7 @@ func _on_slice_updated(slice_name: StringName, _slice_data: Dictionary) -> void:
 
 - Add `M_LocalizationManager` node under `Managers/` after `M_DisplayManager`.
 
-**2. `scripts/root.gd`**:
+**2. `scripts/core/root.gd`**:
 
 ```gdscript
 # In the manager registration block (around lines 28-41):

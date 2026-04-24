@@ -2,7 +2,7 @@
 extends "res://scripts/resources/qb/rs_base_effect.gd"
 class_name RS_EffectPublishEvent
 
-const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
+const U_ECS_EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
 const U_RuleUtils := preload("res://scripts/utils/ecs/u_rule_utils.gd")
 
 @export var event_name: StringName

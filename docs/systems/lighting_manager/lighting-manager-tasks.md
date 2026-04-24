@@ -44,7 +44,7 @@
   - `scripts/demo/resources/lighting/rs_character_light_zone_config.gd`
 - [x] LM005 Create shader stub `assets/shaders/sh_character_zone_lighting.gdshader`
 - [x] LM006 Add manager node `M_CharacterLightingManager` under root `Managers` in `scenes/root.tscn`
-- [x] LM007 Register ServiceLocator key in `scripts/root.gd` (`character_lighting_manager`)
+- [x] LM007 Register ServiceLocator key in `scripts/core/root.gd` (`character_lighting_manager`)
 - [x] LM064 Update `docs/guides/STYLE_GUIDE.md` with lighting category naming conventions and locked shader filename guidance
 - [x] LM065 Update `tests/unit/style/test_style_enforcement.gd` prefix rules to include `scripts/resources/lighting` and enforce `rs_` pattern
 - [x] LM008 Run style enforcement: `tools/run_gut_suite.sh -gdir=res://tests/unit/style`

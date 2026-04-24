@@ -392,7 +392,7 @@ func get_all_components() -> Dictionary:
 #### 2. U_ECSEventBus
 
 ```gdscript
-# scripts/events/ecs/u_ecs_event_bus.gd
+# scripts/core/events/ecs/u_ecs_event_bus.gd
 # Purely static class (NOT a Node, NOT in scene tree)
 class_name U_ECSEventBus
 

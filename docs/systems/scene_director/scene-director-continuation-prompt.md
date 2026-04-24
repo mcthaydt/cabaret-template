@@ -100,8 +100,8 @@ You are implementing a Scene Director and Objectives Manager for a Godot 4.6 ECS
 ### Files to modify:
 - `scripts/state/utils/u_state_slice_manager.gd` -- add objectives + scene_director slices
 - `scripts/state/m_state_store.gd` -- add @export for objectives + scene_director initial state
-- `scripts/root.gd` -- register M_ObjectivesManager + M_RunCoordinator + M_SceneDirector with ServiceLocator (keys: `"objectives_manager"`, `"run_coordinator"`, `"scene_director"`)
-- `scripts/events/ecs/u_ecs_event_names.gd` -- add objective/directive event constants
+- `scripts/core/root.gd` -- register M_ObjectivesManager + M_RunCoordinator + M_SceneDirector with ServiceLocator (keys: `"objectives_manager"`, `"run_coordinator"`, `"scene_director"`)
+- `scripts/core/events/ecs/u_ecs_event_names.gd` -- add objective/directive event constants
 - `scripts/managers/m_scene_manager.gd` -- remove victory handling, add objective_victory subscription
 - `scenes/root.tscn` -- add M_ObjectivesManager + M_SceneDirector nodes
 - `AGENTS.md` -- keep Quick How-Tos service list aligned with `root.gd` registrations (`"objectives_manager"`, `"run_coordinator"`, `"scene_director"`, etc.)

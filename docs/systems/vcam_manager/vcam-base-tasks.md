@@ -263,7 +263,7 @@ Before starting Phase 0, verify:
   - Completion note (2026-03-10): Added `U_VCamActions` constants, registry registration in `_static_init()`, and immediate action creators for runtime/blend/silhouette/target/recovery/FOV-zone updates.
 
 - [x] **Task 0D.2a**: Add vCam event constants to U_ECSEventNames
-  - Modify `scripts/events/ecs/u_ecs_event_names.gd`
+  - Modify `scripts/core/events/ecs/u_ecs_event_names.gd`
   - Add `EVENT_VCAM_ACTIVE_CHANGED := &"vcam_active_changed"`
   - Add `EVENT_VCAM_BLEND_STARTED := &"vcam_blend_started"`
   - Add `EVENT_VCAM_BLEND_COMPLETED := &"vcam_blend_completed"`
@@ -919,8 +919,8 @@ Before starting Phase 0, verify:
 
 - [x] **Task 6B.1**: Wire M_VCamManager to root scene
   - Modify `scenes/root.tscn`: add `M_VCamManager` under `Managers`
-  - Modify `scripts/root.gd`: register via `_register_if_exists()`
-  - Completion note (2026-03-10): Added `M_VCamManager` to `scenes/root.tscn`, registered `vcam_manager` service in `scripts/root.gd`, and declared `vcam_manager -> {state_store, camera_manager}` service dependencies.
+  - Modify `scripts/core/root.gd`: register via `_register_if_exists()`
+  - Completion note (2026-03-10): Added `M_VCamManager` to `scenes/root.tscn`, registered `vcam_manager` service in `scripts/core/root.gd`, and declared `vcam_manager -> {state_store, camera_manager}` service dependencies.
 
 - [x] **Task 6B.2**: Wire S_VCamSystem to gameplay scenes
   - Modify `scenes/templates/tmpl_base_scene.tscn`: add `S_VCamSystem` under `Systems/Core`
@@ -1332,7 +1332,7 @@ Completion note (March 22, 2026): Manual blend validation checklist passed acros
 > **Context:** Silhouette rendering routes through `M_VFXManager` (detection stays in vCam). This follows the existing VFX event-request pattern (`U_ScreenShake`, damage flash, etc.) so silhouette lifecycle inherits player gating and transition blocking.
 
 - [x] **Task 10B2.1**: Add `EVENT_SILHOUETTE_UPDATE_REQUEST` event constant
-  - Modify `scripts/events/ecs/u_ecs_event_names.gd`: add `EVENT_SILHOUETTE_UPDATE_REQUEST := &"silhouette_update_request"`
+  - Modify `scripts/core/events/ecs/u_ecs_event_names.gd`: add `EVENT_SILHOUETTE_UPDATE_REQUEST := &"silhouette_update_request"`
   - Payload: `{entity_id: StringName, occluders: Array[GeometryInstance3D], enabled: bool}`
   - Completion note (March 15, 2026): Added `EVENT_SILHOUETTE_UPDATE_REQUEST` to `U_ECSEventNames` for vCam→VFX silhouette routing.
 

@@ -10,7 +10,7 @@ const EFFECT_PUBLISH_EVENT := preload("res://scripts/resources/qb/effects/rs_eff
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_SCENE_DIRECTOR_ACTIONS := preload("res://scripts/state/actions/u_scene_director_actions.gd")
 const U_SCENE_DIRECTOR_SELECTORS := preload("res://scripts/state/selectors/u_scene_director_selectors.gd")
-const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
+const U_ECS_EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
 
 const EVENT_BEAT_ONE := StringName("scene_director_intro_beat_1")
 const EVENT_BEAT_TWO := StringName("scene_director_intro_beat_2")

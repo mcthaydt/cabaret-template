@@ -159,7 +159,7 @@ Root (Node) [root.gd]
 - `TransitionOverlay` and `LoadingOverlay` are dedicated to visual transitions.
 - `MobileControls` provides device‑aware virtual controls and must follow Input/UI Manager patterns.
 
-**ServiceLocator container registration contract (`scripts/root.gd`):**
+**ServiceLocator container registration contract (`scripts/core/root.gd`):**
 - `hud_layer` -> `HUDLayer`
 - `ui_overlay_stack` -> `UIOverlayStack`
 - `transition_overlay` -> `TransitionOverlay`
@@ -319,22 +319,22 @@ Marker scripts provide visual organization in the Godot editor via custom `@icon
 
 | Script | Purpose | Icon | Location |
 |--------|---------|------|----------|
-| `marker_scene_objects_group.gd` | Static geometry group | `scene_objects.svg` | `scripts/scene_structure/` |
-| `marker_environment_group.gd` | Lighting/environment group | `environment.svg` | `scripts/scene_structure/` |
-| `marker_systems_group.gd` | Systems container | `system.svg` | `scripts/scene_structure/` |
-| `marker_systems_core_group.gd` | Core systems group | `systems_core.svg` | `scripts/scene_structure/` |
-| `marker_systems_physics_group.gd` | Physics systems group | `systems_physics.svg` | `scripts/scene_structure/` |
-| `marker_systems_movement_group.gd` | Movement systems group | `systems_movement.svg` | `scripts/scene_structure/` |
-| `marker_systems_feedback_group.gd` | Feedback systems group | `systems_feedback.svg` | `scripts/scene_structure/` |
-| `marker_managers_group.gd` | Managers group | `manager.svg` | `scripts/scene_structure/` |
-| `marker_entities_group.gd` | Entities group | `entities.svg` | `scripts/scene_structure/` |
-| `marker_components_group.gd` | Components group (within entities) | `component.svg` | `scripts/scene_structure/` |
+| `marker_scene_objects_group.gd` | Static geometry group | `scene_objects.svg` | `scripts/core/scene_structure/` |
+| `marker_environment_group.gd` | Lighting/environment group | `environment.svg` | `scripts/core/scene_structure/` |
+| `marker_systems_group.gd` | Systems container | `system.svg` | `scripts/core/scene_structure/` |
+| `marker_systems_core_group.gd` | Core systems group | `systems_core.svg` | `scripts/core/scene_structure/` |
+| `marker_systems_physics_group.gd` | Physics systems group | `systems_physics.svg` | `scripts/core/scene_structure/` |
+| `marker_systems_movement_group.gd` | Movement systems group | `systems_movement.svg` | `scripts/core/scene_structure/` |
+| `marker_systems_feedback_group.gd` | Feedback systems group | `systems_feedback.svg` | `scripts/core/scene_structure/` |
+| `marker_managers_group.gd` | Managers group | `manager.svg` | `scripts/core/scene_structure/` |
+| `marker_entities_group.gd` | Entities group | `entities.svg` | `scripts/core/scene_structure/` |
+| `marker_components_group.gd` | Components group (within entities) | `component.svg` | `scripts/core/scene_structure/` |
 
 ### Creating New Marker Scripts
 
 When adding new organizational groups:
 
-1. Create a new `.gd` file in `scripts/scene_structure/`
+1. Create a new `.gd` file in `scripts/core/scene_structure/`
 2. Use this template:
 
 ```gdscript
@@ -482,7 +482,7 @@ Consider adding a new system category when:
 - The category is stable (not experimental)
 
 **Process:**
-1. Create new marker script in `scripts/scene_structure/`
+1. Create new marker script in `scripts/core/scene_structure/`
 2. Create matching icon in `resources/editor_icons/`
 3. Update this guide with new category documentation
 4. Update existing scenes to use new category

@@ -97,7 +97,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 ### Implementation
 
 - [x] **T1.6**: Create `Evn_ScreenShakeRequest` event class
-  - Location: `scripts/events/ecs/evn_screen_shake_request.gd`
+  - Location: `scripts/core/events/ecs/evn_screen_shake_request.gd`
   - Extends: `BaseECSEvent`
   - Class name: `Evn_ScreenShakeRequest`
   - Fields:
@@ -110,7 +110,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
   - Tests GREEN ✅
 
 - [x] **T1.7**: Create `Evn_DamageFlashRequest` event class
-  - Location: `scripts/events/ecs/evn_damage_flash_request.gd`
+  - Location: `scripts/core/events/ecs/evn_damage_flash_request.gd`
   - Extends: `BaseECSEvent`
   - Class name: `Evn_DamageFlashRequest`
   - Fields:
@@ -233,7 +233,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
   - Tests GREEN ✅
 
 - [x] **T1.10b**: Create event name constants file
-  - Location: `scripts/events/ecs/u_ecs_event_names.gd`
+  - Location: `scripts/core/events/ecs/u_ecs_event_names.gd`
   - Class name: `U_ECSEventNames`
   - Extends: `RefCounted`
   - Add constants:
@@ -342,7 +342,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
   - Tests GREEN ✅
 
 - [x] **T2.3**: Update `root.gd` to register VFX Manager with ServiceLocator
-  - Location: `scripts/root.gd`
+  - Location: `scripts/core/root.gd`
   - Find `_register_services()` or equivalent
   - After camera_manager registration, add:
     ```gdscript

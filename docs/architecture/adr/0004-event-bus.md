@@ -17,9 +17,9 @@ Signals can work, but wiring signals across unrelated nodes tends to create scen
 
 Use an event bus abstraction with domain separation:
 
-- Shared implementation: `scripts/events/base_event_bus.gd`
-- ECS-domain bus: `scripts/events/ecs/u_ecs_event_bus.gd`
-- State-domain bus: `scripts/events/state/u_state_event_bus.gd` (used by state store/tests)
+- Shared implementation: `scripts/core/events/base_event_bus.gd`
+- ECS-domain bus: `scripts/core/events/ecs/u_ecs_event_bus.gd`
+- State-domain bus: `scripts/core/events/state/u_state_event_bus.gd` (used by state store/tests)
 
 Events use a small standard payload shape (`{event_name, payload, time}`), and some flows also publish typed event objects (`Evn_*`).
 
@@ -44,7 +44,7 @@ Events use a small standard payload shape (`{event_name, payload, time}`), and s
 ## References
 
 - `docs/ecs/ecs_architecture.md`
-- `scripts/events/base_event_bus.gd`
-- `scripts/events/ecs/u_ecs_event_bus.gd`
-- `scripts/events/state/u_state_event_bus.gd`
+- `scripts/core/events/base_event_bus.gd`
+- `scripts/core/events/ecs/u_ecs_event_bus.gd`
+- `scripts/core/events/state/u_state_event_bus.gd`
 

@@ -147,7 +147,7 @@ Completion notes: Implemented pause/freeze gating migration to `C_CharacterState
 
 ### 4A: Event Name Centralization (prerequisite)
 
-- [x] T4.1: Add checkpoint/victory/damage event name constants to `scripts/events/ecs/u_ecs_event_names.gd` (EVENT_CHECKPOINT_ZONE_ENTERED, EVENT_CHECKPOINT_ACTIVATED, EVENT_CHECKPOINT_ACTIVATION_REQUESTED, EVENT_VICTORY_TRIGGERED, EVENT_VICTORY_EXECUTION_REQUESTED, EVENT_DAMAGE_ZONE_ENTERED, EVENT_DAMAGE_ZONE_EXITED)
+- [x] T4.1: Add checkpoint/victory/damage event name constants to `scripts/core/events/ecs/u_ecs_event_names.gd` (EVENT_CHECKPOINT_ZONE_ENTERED, EVENT_CHECKPOINT_ACTIVATED, EVENT_CHECKPOINT_ACTIVATION_REQUESTED, EVENT_VICTORY_TRIGGERED, EVENT_VICTORY_EXECUTION_REQUESTED, EVENT_DAMAGE_ZONE_ENTERED, EVENT_DAMAGE_ZONE_EXITED)
 - [x] T4.2: Update S_CheckpointSystem to use centralized constants from U_ECSEventNames
 - [x] T4.3: Update S_VictorySystem to use centralized constants from U_ECSEventNames
 - [x] T4.4: Update S_DamageSystem to use centralized constants from U_ECSEventNames

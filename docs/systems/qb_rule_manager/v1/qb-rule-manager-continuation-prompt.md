@@ -121,8 +121,8 @@ Phases R1-R6 are complete (zero behavioral changes): shared variant helpers, bas
 - `scripts/ecs/systems/s_checkpoint_handler_system.gd` -- owns checkpoint activation, state dispatch, and `_resolve_spawn_point_position()`
 - `scripts/ecs/systems/s_victory_handler_system.gd` -- owns victory validation/execution; prerequisite lives in `@export var required_final_area: String = "bar"` with subscription priority `10`
 - `scripts/ecs/systems/s_damage_system.gd` -- stays as-is, centralize event names only
-- `scripts/events/ecs/u_ecs_event_names.gd` -- centralize event constants
-- `scripts/events/ecs/u_ecs_event_bus.gd` -- event bus for rule triggers
+- `scripts/core/events/ecs/u_ecs_event_names.gd` -- centralize event constants
+- `scripts/core/events/ecs/u_ecs_event_bus.gd` -- event bus for rule triggers
 - `scripts/interfaces/i_state_store.gd` -- DI interface for store access
 - `tests/mocks/` -- MockStateStore, MockECSManager for testing
 

@@ -625,7 +625,7 @@ class_name BaseEventSFXSystem
 
 ## Base class for SFX systems that respond to ECS events (mirrors BaseEventVFXSystem)
 
-const EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
+const EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
 
 ## Queue of sound requests to be processed in process_tick()
 var requests: Array = []
@@ -1665,7 +1665,7 @@ func _update_volume_label(label: Label, value: float) -> void:
 **Deliverables**:
 1. `scripts/managers/m_audio_manager.gd`
 2. Update `scenes/root.tscn` - Add M_AudioManager
-3. Update `scripts/root.gd` - ServiceLocator registration (Root bootstrap)
+3. Update `scripts/core/root.gd` - ServiceLocator registration (Root bootstrap)
 4. `tests/unit/managers/test_audio_manager.gd` (30 tests)
 
 **Commit 1**: Manager scaffolding + bus layout creation
@@ -2117,7 +2117,7 @@ tests/integration/audio/
 - Add `M_AudioManager` node under `Managers` group
 - Position after M_StateStore in tree
 
-**3. scripts/root.gd**:
+**3. scripts/core/root.gd**:
 - Add ServiceLocator registration:
   ```gdscript
   var audio_manager := get_node("Managers/M_AudioManager") as M_AudioManager

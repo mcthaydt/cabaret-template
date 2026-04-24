@@ -7,7 +7,7 @@ class_name S_VictorySoundSystem
 ## Plays victory sounds using base class helpers with pause/transition blocking.
 
 const SETTINGS_TYPE := preload("res://scripts/resources/ecs/rs_victory_sound_settings.gd")
-const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
+const U_ECS_EVENT_NAMES := preload("res://scripts/core/events/ecs/u_ecs_event_names.gd")
 
 @export var settings: SETTINGS_TYPE
 

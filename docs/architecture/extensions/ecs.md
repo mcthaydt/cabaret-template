@@ -26,9 +26,9 @@ This recipe does **not** cover:
 
 - Component: `scripts/ecs/components/c_health_component.gd`
 - System: `scripts/ecs/systems/s_health_system.gd`
-- Typed event: `scripts/events/ecs/evn_health_changed.gd`
-- Event names: `scripts/events/ecs/u_ecs_event_names.gd`
-- Event bus: `scripts/events/ecs/u_ecs_event_bus.gd`
+- Typed event: `scripts/core/events/ecs/evn_health_changed.gd`
+- Event names: `scripts/core/events/ecs/u_ecs_event_names.gd`
+- Event bus: `scripts/core/events/ecs/u_ecs_event_bus.gd`
 
 ## Vocabulary
 
@@ -68,7 +68,7 @@ Prefix rules: `C_` components, `S_` systems, `E_` entities, `Evn_` typed events,
 
 ### Adding a new typed event
 
-1. Create `scripts/events/ecs/evn_<snake_case>.gd`: extend `BaseECSEvent`, `class_name Evn_<PascalCase>`, declare fields, `_init()` sets all fields + `timestamp` + builds `_payload`.
+1. Create `scripts/core/events/ecs/evn_<snake_case>.gd`: extend `BaseECSEvent`, `class_name Evn_<PascalCase>`, declare fields, `_init()` sets all fields + `timestamp` + builds `_payload`.
 2. Add event name constant to `U_ECSEventNames`.
 3. Publish: `U_ECSEventBus.publish_typed(Evn_<Name>.new(...))`.
 

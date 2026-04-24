@@ -3,7 +3,7 @@ extends BaseECSSystem
 class_name S_CharacterStateSystem
 
 const RSRuleContext := preload("res://scripts/resources/ecs/rs_rule_context.gd")
-const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
+const U_ECS_EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
 const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/ecs/components/c_character_state_component.gd")
 const C_FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")
 const C_HEALTH_COMPONENT := preload("res://scripts/ecs/components/c_health_component.gd")
