@@ -89,7 +89,7 @@ Source: `docs/guides/DEV_PITFALLS.md` (~1 703 lines, 40+ sections)
 | 32 | Headless Test Pitfalls | 798–801 | 4 | move | `docs/guides/pitfalls/TESTING.md` (New) | Complete in P3.3 Commit 6 |
 | 33 | Documentation and Planning Pitfalls | 802–816 | 15 | drop | Content fully covered by AGENTS.md "Start Here" workflow rules and CLAUDE.md | — |
 | 34 | Scene Manager Pitfalls (Phase 2+) incl. Phase 10 sub-section | 817–1 036 | 220 | merge | `docs/systems/scene_manager/scene-manager-overview.md` (New) | Complete in P3.3 Commit 11 |
-| 35 | Input System Pitfalls | 1 037–1 085 | 49 | merge | `docs/systems/input_manager/input-manager-overview.md` (New) | — |
+| 35 | Input System Pitfalls | 1 037–1 085 | 49 | merge | `docs/systems/input_manager/input-manager-overview.md` (New) | Complete in P3.3 Commit 12 |
 | 36 | vCam Integration Pitfalls | 1 086–1 116 | 31 | move | `docs/systems/vcam_manager/vcam-pitfalls.md` (New) | Complete in P3.3 Commit 7 |
 | 37 | UI Manager / Input Manager Boundary | 1 117–1 277 | 161 | move | `docs/systems/ui_manager/ui-pitfalls.md` (New) | Complete in P3.3 Commit 10 |
 | 38 | UI Navigation Pitfalls (second instance) | 1 278–1 351 | 74 | move | `docs/systems/ui_manager/ui-pitfalls.md` (New) | Complete in P3.3 Commit 10 |

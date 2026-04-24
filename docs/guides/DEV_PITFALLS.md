@@ -124,69 +124,7 @@
 
 > Scene Manager transition, overlay, trigger, spawn, camera-blend, cache, and pitfall guidance → `docs/systems/scene_manager/scene-manager-overview.md`
 
-## Input System Pitfalls
-
-- **Avoid clobbering test-driven input state**: In headless tests there is no real keyboard/mouse input, but tests may set `gameplay.move_input`, `look_input`, and `jump_pressed` directly to validate persistence across transitions. If `S_InputSystem` dispatches zeros every frame, it will overwrite these values and break tests. To prevent this, `S_InputSystem` only dispatches when `Input.mouse_mode == Input.MOUSE_MODE_CAPTURED` (i.e., gameplay with cursor locked by `M_CursorManager`). This keeps tests deterministic while preserving correct behavior in real gameplay.
-
-- **Do not gate mobile gamepad input on cursor capture**: On mobile platforms there is no meaningful mouse cursor, so `Input.mouse_mode` is not a reliable signal. Gating `S_InputSystem` on `Input.mouse_mode == Input.MOUSE_MODE_CAPTURED` will silently block Bluetooth gamepad input on mobile while still hiding the touchscreen UI (MobileControls). The fix pattern is: only apply the cursor-capture gate on non-mobile platforms (`if not OS.has_feature("mobile")`), so mobile gamepad input continues to flow even when the virtual controls are hidden.
-
-- **Godot auto-converts touch to mouse events on mobile, causing device type flicker**: On Android/iOS, Godot automatically synthesizes `InputEventMouseButton` and `InputEventMouseMotion` from `InputEventScreenTouch` and `InputEventScreenDrag` for compatibility. If `M_InputDeviceManager` processes both the original touch event AND the emulated mouse event, the device type will flicker between `TOUCHSCREEN` (2) and `KEYBOARD_MOUSE` (0) on every touch, causing UI buttons that are conditionally shown based on device type to hide mid-press and cancel touch events.
-
-  **Problem**: Tapping a button that's only visible when `device_type == TOUCHSCREEN` (like the touchscreen settings button in pause menu):
-  1. Touch begins → `InputEventScreenTouch` → device type set to TOUCHSCREEN → button visible ✓
-  2. Godot emulates mouse → `InputEventMouseButton` → device type set to KEYBOARD_MOUSE → button hidden ✗
-  3. Button becomes invisible mid-touch, Godot cancels the press, `pressed` signal never fires
-  4. Touch ends → `InputEventScreenTouch` → device type back to TOUCHSCREEN → button visible again (but press was already canceled)
-
-  **Symptom**: Button receives `gui_input` events (touch press/release detected) but `pressed` signal never fires. Rapid visibility toggling in logs (visible→hidden→visible) when tapping.
-
-  **Solution**: In `M_InputDeviceManager._input()`, ignore emulated mouse events on mobile platforms:
-  ```gdscript
-  elif event is InputEventMouseButton:
-      var mouse_button := event as InputEventMouseButton
-      if not mouse_button.pressed:
-          return
-      # CRITICAL FIX: Ignore mouse events emulated from touch on mobile
-      # Godot automatically converts touch to mouse for compatibility, but we handle
-      # touch separately. This prevents device type from flickering 2→0→2 on touch.
-      if OS.has_feature("mobile") or OS.has_feature("web"):
-          return
-      _handle_keyboard_mouse_input(mouse_button)
-
-  elif event is InputEventMouseMotion:
-      var mouse_motion := event as InputEventMouseMotion
-      if mouse_motion.relative.length_squared() <= 0.0:
-          return
-      # CRITICAL FIX: Ignore mouse motion emulated from touch on mobile
-      if OS.has_feature("mobile") or OS.has_feature("web"):
-          return
-      _handle_keyboard_mouse_input(mouse_motion)
-  ```
-
-  **Why this works**: On mobile, only `InputEventScreenTouch`/`InputEventScreenDrag` trigger device detection, keeping device type stable at `TOUCHSCREEN`. On desktop, mouse events still work normally (no `mobile` feature flag). Buttons stay visible throughout the entire touch interaction, allowing Godot's button press detection to complete normally.
-
-  **Alternate manifestation**: This same bug can affect ANY UI element that conditionally shows/hides based on `device_type` - not just buttons. If a control becomes invisible during an interaction due to device type flickering, the interaction will be canceled mid-gesture.
-
-- **MobileControls visibility depends on navigation shell**: `MobileControls._update_visibility()` only shows controls when the navigation slice reports `shell == SHELL_GAMEPLAY` (or an empty shell with `force_enable` in very early boot). In tests that construct `M_StateStore` manually, forgetting to wire `navigation_initial_state` (via `RS_NavigationInitialState`) and/or dispatch `U_NavigationActions.start_game(...)` leaves `shell == "main_menu"`, so MobileControls stays hidden even if `device_type == TOUCHSCREEN` and `force_enable == true`. Fix pattern: for touchscreen or MobileControls tests, always provide a navigation slice and move it into gameplay before instantiating MobileControls; in production, let the Scene Manager drive navigation state instead of bypassing it.
-
-- **Pause is the only reserved binding**: `pause/ui_pause/ui_cancel` must keep ESC (keyboard) and Start (gamepad). RS_RebindSettings marks pause as non-rebindable; do not strip ESC/Start from `project.godot` or InputMap initialization when adding new actions. Both bindings are required for UI Manager navigation flows and tests.
-
-- **Mobile emulation flag is for desktop QA only**: Use `--emulate-mobile` to smoke test touchscreen UI on desktop; real device runs remain the source of truth. Do not ship builds with emulation flags enabled, and remember that device detection still relies on `M_InputDeviceManager` even when emulating.
-
-> vCam, QB camera rule, room fade, wall visibility, and camera integration pitfalls → `docs/systems/vcam_manager/vcam-pitfalls.md`
-
-> UI Manager navigation, focus, settings, and UI/Input boundary pitfalls → `docs/systems/ui_manager/ui-pitfalls.md`
-
-> Test coverage status and manual QA limitations → `docs/guides/pitfalls/TESTING.md`
-- **No C-style ternaries**: GDScript 4.5 rejects `condition ? a : b`. Use the native `a if condition else b` form and keep payload normalization readable.
-- **Keep component discovery consistent**: Decoupled components (e.g., `C_MovementComponent`, `C_JumpComponent`, `C_RotateToInputComponent`, `C_AlignWithSurfaceComponent`) now auto-discover their peers, but components that still export NodePaths for scene nodes (landing indicator markers, floating raycasts, etc.) require those paths to be wired. Mixing patterns silently disables behaviour and breaks tests.
-- **Reset support timers after jumps**: When modifying jump logic, remember to clear support/apex timers just like `C_JumpComponent.on_jump_performed()` does. Forgetting this can enable double jumps that tests catch.
-- **Second-order tuning must respect clamped limits**: While tweaking response/damping values, verify they still honour `max_turn_speed_degrees` and `max_speed`. Oversight here reintroduces overshoot regressions covered by rotation/movement tests.
- - **ECS components require an entity root**: `M_ECSManager` associates components to entities by walking ancestors and picking the first node whose name starts with `E_`. If a component is not under such a parent, registration logs `push_error("M_ECSManager: Component <Name> has no entity root ancestor")` and the component is not tracked for entity queries. In tests and scenes, create an entity node (e.g., `var e := Node.new(); e.name = "E_Player"; e.add_child(component)`).
- - **Registration is deferred; yield a frame**: `ECSComponent._ready()` uses `call_deferred("_register_with_manager")`. After adding a manager/component, `await get_tree().process_frame` before asserting on registration (`get_components(...)`) or entity tracking to avoid race conditions.
- - **Required settings block registration**: Components like `C_JumpComponent`, `C_MovementComponent`, `C_FloatingComponent`, and `C_AlignWithSurfaceComponent` validate that their `*Settings` resources are assigned. Missing settings produce a `push_error("<Component> missing settings; assign an <Resource>.")` and skip registration. Wire default `.tres` in scenes, or set `component.settings = RS_*Settings.new()` in tests.
-- **Input.mouse_mode changes may need a frame**: When toggling cursor lock/visibility rapidly (e.g., calling `toggle_cursor()` twice), yield a frame between calls in tests to let `Input.mouse_mode` settle on headless runners. Example: `manager.toggle_cursor(); await get_tree().process_frame; manager.toggle_cursor(); await get_tree().process_frame`.
-- **Camera-relative forward uses negative Z**: Our input vector treats `Vector2.UP` (`y = -1`) as forward. When converting to camera space (see `S_MovementSystem`), multiply the input’s Y by `-1` before combining with `cam_forward`, otherwise forward/backward movement inverts.
+> Input Manager ownership, runtime contracts, and pitfalls → `docs/systems/input_manager/input-manager-overview.md`
 
 > Mobile/touchscreen pitfalls → `docs/guides/pitfalls/MOBILE.md`
 
