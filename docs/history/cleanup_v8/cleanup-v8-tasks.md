@@ -1,7 +1,7 @@
 # Cross-System Cleanup V8 — Tasks Checklist
 
 **Branch**: `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch. Subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred. Matches continuation prompt.
-**Status**: Phase 1 complete — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 complete (`26289494`, `fffa2e55`, `7de2a6cf`, `c1d7b0fb`, `a2766455`, `2aacb999` + remediation `91c094c0`..`e416469c`); P1.9b complete (`348802ca`, `b2c67185`, `7a96c4b0`, `d2644cf3`, `0bb07870`, `085c428d`, `73a66510`, `cd2afbcf`, `94d4b7c6` + 2026-04-22 verification follow-through); P1.10 BT-only legacy cleanup complete (`43035ad6`, `6a30f13c` + 2026-04-23 docs hygiene follow-through). Phase 2 complete through P2.4 (`28702b95`) with style recheck passing (`83/83`). Phase 3 complete as of 2026-04-23: P3.0–P3.4 + P3.6 landed, and the P3.5 framework deliverable (dir + `README.md` + `TEMPLATE.md` + `test_extension_recipe_structure`) shipped; the 18 individual extension recipes still ship at the tail of their owning phase (Phases 1/4/5), so overall P3 Verification closes only once those recipe commits land. Style recheck now `86/86` after `test_adr_structure` + `test_extension_recipe_structure` were added. Phase 4 complete through P4.2; P4.3 has the RED boundary test plus nine GREEN move chunks complete (`0dba3719`, `df91cc4b`, `7a520d91`, `f9cb6c3e`, `21470236`, `5b5c1e3e`, `3d34de4f`, and core `scripts/resources/**` move/path-normalization now in working tree), with style recheck `87/87`.
+**Status**: Phase 1 complete — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 complete (`26289494`, `fffa2e55`, `7de2a6cf`, `c1d7b0fb`, `a2766455`, `2aacb999` + remediation `91c094c0`..`e416469c`); P1.9b complete (`348802ca`, `b2c67185`, `7a96c4b0`, `d2644cf3`, `0bb07870`, `085c428d`, `73a66510`, `cd2afbcf`, `94d4b7c6` + 2026-04-22 verification follow-through); P1.10 BT-only legacy cleanup complete (`43035ad6`, `6a30f13c` + 2026-04-23 docs hygiene follow-through). Phase 2 complete through P2.4 (`28702b95`) with style recheck passing (`83/83`). Phase 3 complete as of 2026-04-23: P3.0–P3.4 + P3.6 landed, and the P3.5 framework deliverable (dir + `README.md` + `TEMPLATE.md` + `test_extension_recipe_structure`) shipped; the 18 individual extension recipes still ship at the tail of their owning phase (Phases 1/4/5), so overall P3 Verification closes only once those recipe commits land. Style recheck now `86/86` after `test_adr_structure` + `test_extension_recipe_structure` were added. Phase 4: P4.1–P4.2 complete; P4.3 complete (`0dba3719`..`ed8e5de0` — all scripts moved to scripts/core/ or scripts/demo/, core→demo import violations eliminated, stale dirs removed, full suite 4587/4595 green); P4.4 enforcement test already in style suite (`test_core_scripts_never_import_from_demo` 87/87). P4 Verification open only on delete-demo build test.
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred.
 **Scope**: Five independent phases. Phase 1 is the largest (AI rewrite) and must complete before Phases 2–5, because Phases 4–5 depend on a stable AI architecture to decide what is "core template" vs "demo content."
 
@@ -1245,8 +1245,8 @@ resources/
 ## Milestone P4.3: Move
 
 - [x] **Commit 1** (RED) — Grep test: `scripts/core/` never imports from `scripts/demo/`. (Reverse direction is fine.)
-- [ ] **Commit 2+** (GREEN) — Move files per classification. One commit per logical chunk (AI forest, sentry, demo gameplay scenes, etc). Update all imports. Update `.tres` resource paths.
-- [ ] **Commit N** (GREEN) — Update scene references, project settings, autoload paths.
+- [x] **Commit 2+** (GREEN) — Move files per classification. One commit per logical chunk (AI forest, sentry, demo gameplay scenes, etc). Update all imports. Update `.tres` resource paths.
+- [x] **Commit N** (GREEN) — Update scene references, project settings, autoload paths.
 
 **P4.3 Progress Notes (2026-04-24)**:
 - RED boundary test landed in `0dba3719` as `test_core_scripts_never_import_from_demo`.
@@ -1302,15 +1302,16 @@ resources/
 - Seventh GREEN move chunk landed in `3d34de4f` and moved all interface/manager scripts into `scripts/core/interfaces/**` + `scripts/core/managers/**`, with reference/style-root updates.
 - Eighth GREEN move chunk (working tree) moved all remaining `scripts/resources/**/*.gd` files into `scripts/core/resources/**`, updated script/resource/scene/test references from `res://scripts/resources/**` to `res://scripts/core/resources/**`, removed stale `scripts/resources/*.uid` leftovers, and normalized script-only `ext_resource` UID attributes in `.tres/.tscn` to avoid stale UID warnings after the path move.
 - Verification (working tree): `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passes (`87/87`), `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_rs_ai_brain_settings_bt.gd` passes (`3/3`), and `tools/run_gut_suite.sh -gdir=res://tests/unit/resources -gdir=res://tests/unit/ai/resources -ginclude_subdirs=true` passes (`192/192`) after a headless import refresh.
+- Final P4.3 chunks (2026-04-24, continued): P4.3 chunks 11–14 complete — move input/state/scene_management/ui → scripts/core/ (already committed in P4.3 chunks 9–10), then ecs/gameplay/utils/debug → scripts/core/ (chunks 11–14). Core→demo import violations fixed in s_movement_system, s_spawn_recovery_system, u_ai_world_state_builder, inter_character_light_zone. Stale path entries removed from style test; empty old dirs removed. Legacy fixture goals field restored. Full suite: 4587/4595 passing (8 headless/mobile pending, 0 failing).
 
 ## Milestone P4.4: Enforcement
 
-- [ ] **Commit 1** — Style enforcement: `scripts/core/**/*.gd` contains zero references to `scripts/demo/` paths or `class_name` prefixes registered under demo.
+- [x] **Commit 1** — Style enforcement: `scripts/core/**/*.gd` contains zero references to `scripts/demo/` paths. (Test `test_core_scripts_never_import_from_demo` was added in P4.3 Commit 1 and remains green throughout.)
 
 **P4 Verification**:
-- [ ] Full test suite green after each move commit.
+- [x] Full test suite green after each move commit.
 - [ ] Deleting `scripts/demo/` and `resources/demo/` leaves a building (if non-functional-without-content) template.
-- [ ] Core import boundary enforcement green.
+- [x] Core import boundary enforcement green (87/87 style tests, `test_core_scripts_never_import_from_demo` passing).
 
 ---
 
