@@ -76,7 +76,7 @@ Source: `docs/guides/DEV_PITFALLS.md` (~1 703 lines, 40+ sections)
 | 19 | vCam OTS Collision Pitfalls | 312–316 | 5 | move | `docs/systems/vcam_manager/vcam-pitfalls.md` (New) | Complete in P3.3 Commit 7 |
 | 20 | vCam Fixed Evaluator Pitfalls | 317–323 | 7 | move | `docs/systems/vcam_manager/vcam-pitfalls.md` (New) | Complete in P3.3 Commit 7 |
 | 21 | Character Lighting Pitfalls | 324–329 | 6 | merge | `docs/systems/lighting_manager/lighting-manager-overview.md` (New) | Complete in P3.3 Commit 8 |
-| 22 | UI Navigation Pitfalls (Gamepad/Joystick) | 330–486 | 157 | move | `docs/systems/ui_manager/ui-pitfalls.md` (New) | — |
+| 22 | UI Navigation Pitfalls (Gamepad/Joystick) | 330–486 | 157 | move | `docs/systems/ui_manager/ui-pitfalls.md` (New) | Complete in P3.3 Commit 10 |
 | 23 | State Store Pitfalls | 487–506 | 20 | move | `docs/guides/pitfalls/STATE.md` (New) | — |
 | 24 | Save Manager Pitfalls | 507–563 | 57 | merge | `docs/systems/save_manager/save-manager-overview.md` (Existing) | — |
 | 25 | VFX Gating Pitfalls | 564–572 | 9 | merge | `docs/systems/vfx_manager/vfx-manager-overview.md` (Existing) | — |
@@ -91,11 +91,11 @@ Source: `docs/guides/DEV_PITFALLS.md` (~1 703 lines, 40+ sections)
 | 34 | Scene Manager Pitfalls (Phase 2+) incl. Phase 10 sub-section | 817–1 036 | 220 | merge | `docs/systems/scene_manager/scene-manager-overview.md` (New) | — |
 | 35 | Input System Pitfalls | 1 037–1 085 | 49 | merge | `docs/systems/input_manager/input-manager-overview.md` (New) | — |
 | 36 | vCam Integration Pitfalls | 1 086–1 116 | 31 | move | `docs/systems/vcam_manager/vcam-pitfalls.md` (New) | Complete in P3.3 Commit 7 |
-| 37 | UI Manager / Input Manager Boundary | 1 117–1 277 | 161 | move | `docs/systems/ui_manager/ui-pitfalls.md` (New) | — |
-| 38 | UI Navigation Pitfalls (second instance) | 1 278–1 351 | 74 | move | `docs/systems/ui_manager/ui-pitfalls.md` (New) | — |
+| 37 | UI Manager / Input Manager Boundary | 1 117–1 277 | 161 | move | `docs/systems/ui_manager/ui-pitfalls.md` (New) | Complete in P3.3 Commit 10 |
+| 38 | UI Navigation Pitfalls (second instance) | 1 278–1 351 | 74 | move | `docs/systems/ui_manager/ui-pitfalls.md` (New) | Complete in P3.3 Commit 10 |
 | 39 | Test Coverage Status | 1 352–1 403 | 52 | move | `docs/guides/pitfalls/TESTING.md` (New) | Complete in P3.3 Commit 6 |
 | 40 | Mobile/Touchscreen Pitfalls | 1 404–1 452 | 49 | move | `docs/guides/pitfalls/MOBILE.md` (New) | — |
-| 41 | Unified Settings Panel Pitfalls | 1 453–1 597 | 145 | move | `docs/systems/ui_manager/ui-pitfalls.md` (New) | — |
+| 41 | Unified Settings Panel Pitfalls | 1 453–1 597 | 145 | move | `docs/systems/ui_manager/ui-pitfalls.md` (New) | Complete in P3.3 Commit 10 |
 | 42 | Display Manager Pitfalls | 1 598–1 665 | 68 | merge | `docs/systems/display_manager/display-manager-overview.md` (Existing) | — |
 | 43 | Style & Resource Hygiene | 1 666–1 671 | 6 | merge | `docs/guides/STYLE_GUIDE.md` (Existing) | — |
 | 44 | AI System Pitfalls (second) | 1 672–1 703 | 32 | merge | `docs/systems/ai_system/ai-system-overview.md` (Existing) | — |

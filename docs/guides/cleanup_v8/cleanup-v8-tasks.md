@@ -838,6 +838,10 @@ Root `AGENTS.md` stays at repo root as the thin routing entry point.
   - Migrated UI navigation state/action, registry, base class, theme pipeline, motion pipeline, and settings-panel guidance into the dedicated UI manager overview.
   - Replaced migrated `AGENTS.md` sections with routing pointers.
   - Verification: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passed (`83/83`).
+- [x] **Commit 10** — `docs/systems/ui_manager/ui-pitfalls.md` (DEV_PITFALLS §22, §37, §38, §41).
+  - Migrated UI navigation, focus, signal-wiring, UI/Input boundary, pause-flow, settings-panel, and tab-navigation pitfalls into the dedicated UI pitfalls file.
+  - Replaced migrated `DEV_PITFALLS.md` sections with routing pointers.
+  - Verification: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passed (`83/83`).
 - [ ] **Remaining commits** — Continue section-by-section per inventory plan. One commit per destination file where practical. Update cross-references.
 - [ ] **Final AGENTS commit** — Shrink `AGENTS.md` to a routing index (~100 lines target, 150 hard cap — matches P3 Verification).
 - [ ] **Final pitfalls commit** — Delete `DEV_PITFALLS.md` once contents fully redistributed.
