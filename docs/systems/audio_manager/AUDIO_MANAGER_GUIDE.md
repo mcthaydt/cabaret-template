@@ -4,6 +4,15 @@
 
 The Audio Manager provides a centralized, resource-driven system for managing all game audio including music, ambient sounds, UI sounds, and 3D sound effects. This guide covers common tasks and best practices.
 
+## Runtime Contracts
+
+- Audio assets use the project asset prefixes: `mus_`, `amb_`, `sfx_`, and `fst_`.
+- Music and ambient playback are registry/resource driven; add new tracks through resource definitions and the registry loader, not hardcoded stream paths in gameplay code.
+- 3D one-shot effects should use `U_SFXSpawner.spawn_3d(...)` or the ECS SFX request pipeline instead of ad hoc `AudioStreamPlayer3D` setup.
+- UI sounds are routed through Audio Manager APIs so settings volume/mute behavior stays centralized.
+- Footstep systems consume ECS movement/body state and audio resources; keep per-surface tuning in resources.
+- Avoid direct `AudioServer` bus mutation outside manager/helper code.
+
 ## Quick Start
 
 ### Access the Audio Manager
