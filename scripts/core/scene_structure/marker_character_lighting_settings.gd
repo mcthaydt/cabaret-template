@@ -2,7 +2,7 @@
 extends Node
 
 ## Scene marker for per-scene character lighting defaults consumed by M_CharacterLightingManager.
-@export var default_profile: RS_CharacterLightingProfile = null
+@export var default_profile: Resource = null
 
 func get_default_profile() -> Resource:
 	return default_profile

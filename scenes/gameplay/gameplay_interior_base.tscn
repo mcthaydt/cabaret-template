@@ -5,7 +5,7 @@
 [ext_resource type="Script" uid="uid://ct15mnvwlf0bc" path="res://scripts/core/scene_structure/marker_environment_group.gd" id="3_ejfwd"]
 [ext_resource type="Script" uid="uid://buvmb10qfbvm5" path="res://scripts/core/scene_structure/marker_lighting_group.gd" id="4_8mc26"]
 [ext_resource type="Script" uid="uid://v1205hibt78y" path="res://scripts/core/scene_structure/marker_character_lighting_settings.gd" id="5_uutxh"]
-[ext_resource type="Resource" uid="uid://dl0w8p663hthp" path="res://resources/lighting/cfg_character_lighting_profile_interior_a.tres" id="6_dgn7s"]
+[ext_resource type="Resource" uid="uid://dl0w8p663hthp" path="res://resources/demo/lighting/cfg_character_lighting_profile_interior_a.tres" id="6_dgn7s"]
 [ext_resource type="Script" uid="uid://gaammkurp23b" path="res://scripts/core/scene_structure/marker_systems_group.gd" id="7_bl6mw"]
 [ext_resource type="Script" uid="uid://cg10jkb2k5551" path="res://scripts/core/scene_structure/marker_systems_core_group.gd" id="8_k4jsb"]
 [ext_resource type="Script" uid="uid://breqdywdxah32" path="res://scripts/core/ecs/systems/s_character_state_system.gd" id="9_eonhh"]

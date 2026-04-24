@@ -77,9 +77,9 @@
 [ext_resource type="Resource" uid="uid://bwspqddgu5kbw" path="res://resources/interactions/endgame/cfg_endgame_goal_exterior.tres" id="66_endgame_config"]
 [ext_resource type="Script" uid="uid://buvmb10qfbvm5" path="res://scripts/core/scene_structure/marker_lighting_group.gd" id="67_lighting_group"]
 [ext_resource type="Script" uid="uid://v1205hibt78y" path="res://scripts/core/scene_structure/marker_character_lighting_settings.gd" id="68_character_lighting_settings_script"]
-[ext_resource type="Resource" uid="uid://cu1ht8hp7ldi3" path="res://resources/lighting/cfg_character_lighting_profile_exterior.tres" id="69_character_lighting_profile"]
+[ext_resource type="Resource" uid="uid://cu1ht8hp7ldi3" path="res://resources/demo/lighting/cfg_character_lighting_profile_exterior.tres" id="69_character_lighting_profile"]
 [ext_resource type="Script" uid="uid://drfbc6b6t44hi" path="res://scripts/demo/gameplay/inter_character_light_zone.gd" id="70_character_light_zone_script"]
-[ext_resource type="Resource" uid="uid://6u8rguj7enh" path="res://resources/lighting/zones/cfg_character_light_zone_goal_glow_exterior.tres" id="71_character_light_zone_goal_config"]
+[ext_resource type="Resource" uid="uid://6u8rguj7enh" path="res://resources/demo/lighting/zones/cfg_character_light_zone_goal_glow_exterior.tres" id="71_character_light_zone_goal_config"]
 [ext_resource type="Script" uid="uid://cas8xr0c0ly7b" path="res://scripts/core/ecs/systems/s_vcam_system.gd" id="72_vcam_system"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]

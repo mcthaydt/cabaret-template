@@ -2,8 +2,8 @@ extends BaseTest
 
 const M_CHARACTER_LIGHTING_MANAGER := preload("res://scripts/core/managers/m_character_lighting_manager.gd")
 const INTER_CHARACTER_LIGHT_ZONE := preload("res://scripts/demo/gameplay/inter_character_light_zone.gd")
-const RS_CHARACTER_LIGHTING_PROFILE := preload("res://scripts/demo/resources/lighting/rs_character_lighting_profile.gd")
-const RS_CHARACTER_LIGHT_ZONE_CONFIG := preload("res://scripts/demo/resources/lighting/rs_character_light_zone_config.gd")
+const RS_CHARACTER_LIGHTING_PROFILE := preload("res://scripts/demo/resources/demo/lighting/rs_character_lighting_profile.gd")
+const RS_CHARACTER_LIGHT_ZONE_CONFIG := preload("res://scripts/demo/resources/demo/lighting/rs_character_light_zone_config.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const I_ECS_MANAGER := preload("res://scripts/core/interfaces/i_ecs_manager.gd")
 const I_SCENE_MANAGER := preload("res://scripts/core/interfaces/i_scene_manager.gd")

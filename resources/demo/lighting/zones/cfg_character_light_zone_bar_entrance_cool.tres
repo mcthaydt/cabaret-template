@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="RS_CharacterLightZoneConfig" format=3 uid="uid://c230upatsnrwh"]
 
-[ext_resource type="Script" uid="uid://bxw2e402ui2f8" path="res://scripts/demo/resources/lighting/rs_character_light_zone_config.gd" id="1"]
-[ext_resource type="Resource" uid="uid://0fifv6jgysgt" path="res://resources/lighting/profiles/cfg_character_lighting_profile_bar_entrance_cool.tres" id="2"]
+[ext_resource type="Script" uid="uid://bxw2e402ui2f8" path="res://scripts/demo/resources/demo/lighting/rs_character_light_zone_config.gd" id="1"]
+[ext_resource type="Resource" uid="uid://0fifv6jgysgt" path="res://resources/demo/lighting/profiles/cfg_character_lighting_profile_bar_entrance_cool.tres" id="2"]
 
 [resource]
 script = ExtResource("1")
