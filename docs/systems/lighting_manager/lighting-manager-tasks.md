@@ -26,8 +26,8 @@
 - `scripts/interfaces/i_character_lighting_manager.gd` (runtime lighting behavior only; no debug methods)
 - `scripts/managers/m_character_lighting_manager.gd`
 - `scripts/gameplay/inter_character_light_zone.gd`
-- `scripts/resources/lighting/rs_character_lighting_profile.gd`
-- `scripts/resources/lighting/rs_character_light_zone_config.gd`
+- `scripts/demo/resources/lighting/rs_character_lighting_profile.gd`
+- `scripts/demo/resources/lighting/rs_character_light_zone_config.gd`
 - `assets/shaders/sh_character_zone_lighting.gdshader`
 
 ---
@@ -40,8 +40,8 @@
 - [x] LM002 Create manager stub `scripts/managers/m_character_lighting_manager.gd`
 - [x] LM003 Create zone controller stub `scripts/gameplay/inter_character_light_zone.gd`
 - [x] LM004 Create resource stubs:
-  - `scripts/resources/lighting/rs_character_lighting_profile.gd`
-  - `scripts/resources/lighting/rs_character_light_zone_config.gd`
+  - `scripts/demo/resources/lighting/rs_character_lighting_profile.gd`
+  - `scripts/demo/resources/lighting/rs_character_light_zone_config.gd`
 - [x] LM005 Create shader stub `assets/shaders/sh_character_zone_lighting.gdshader`
 - [x] LM006 Add manager node `M_CharacterLightingManager` under root `Managers` in `scenes/root.tscn`
 - [x] LM007 Register ServiceLocator key in `scripts/root.gd` (`character_lighting_manager`)

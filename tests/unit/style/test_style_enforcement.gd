@@ -138,6 +138,7 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/demo/debug/utils": ["u_"],
 	"res://scripts/demo/resources/ai/actions": ["rs_"],
 	"res://scripts/demo/resources/ai/world": ["rs_"],
+	"res://scripts/demo/resources/lighting": ["rs_"], # Demo lighting resources
 	"res://scripts/interfaces": ["i_"],
 	"res://scripts/utils": ["u_"],
 	"res://scripts/input": ["u_", "i_"],

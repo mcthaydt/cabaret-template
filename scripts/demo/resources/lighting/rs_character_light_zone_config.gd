@@ -2,7 +2,7 @@
 extends Resource
 class_name RS_CharacterLightZoneConfig
 
-const RS_CHARACTER_LIGHTING_PROFILE := preload("res://scripts/resources/lighting/rs_character_lighting_profile.gd")
+const RS_CHARACTER_LIGHTING_PROFILE := preload("res://scripts/demo/resources/lighting/rs_character_lighting_profile.gd")
 
 enum ShapeType {
 	BOX = 0,

@@ -32,8 +32,8 @@
 - `scripts/interfaces/i_character_lighting_manager.gd` (runtime behavior only; no debug methods)
 - `scripts/managers/m_character_lighting_manager.gd`
 - `scripts/gameplay/inter_character_light_zone.gd`
-- `scripts/resources/lighting/rs_character_lighting_profile.gd`
-- `scripts/resources/lighting/rs_character_light_zone_config.gd`
+- `scripts/demo/resources/lighting/rs_character_lighting_profile.gd`
+- `scripts/demo/resources/lighting/rs_character_light_zone_config.gd`
 - `scripts/utils/lighting/u_character_lighting_material_applier.gd`
 - `assets/shaders/sh_character_zone_lighting.gdshader`
 

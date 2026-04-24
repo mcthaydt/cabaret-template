@@ -24,15 +24,15 @@ Character lighting is the zone-driven character shading pipeline. It replaces ch
 - `scripts/interfaces/i_character_lighting_manager.gd`
 - `scripts/managers/m_character_lighting_manager.gd`
 - `scripts/gameplay/inter_character_light_zone.gd`
-- `scripts/resources/lighting/rs_character_lighting_profile.gd`
-- `scripts/resources/lighting/rs_character_light_zone_config.gd`
+- `scripts/demo/resources/lighting/rs_character_lighting_profile.gd`
+- `scripts/demo/resources/lighting/rs_character_light_zone_config.gd`
 - `scripts/utils/lighting/u_character_lighting_blend_math.gd`
 - `scripts/utils/lighting/u_character_lighting_material_applier.gd`
 - `assets/shaders/sh_character_zone_lighting.gdshader`
 
 ## Resource Contracts
 
-- Lighting resource scripts live under `scripts/resources/lighting/` with `rs_` prefixes.
+- Lighting resource scripts live under `scripts/demo/resources/lighting/` with `rs_` prefixes.
 - `RS_CharacterLightingProfile` is the base data contract. Use `get_resolved_values()` for clamped runtime values (`tint`, `intensity`, `blend_smoothing`) instead of reading raw exports directly in blend code.
 - `RS_CharacterLightZoneConfig` is the zone-side contract. Use `get_resolved_values()` for clamped dimensions/weights and deep-copied `profile` snapshots.
 - Authored resource instances live under:

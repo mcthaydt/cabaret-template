@@ -242,7 +242,7 @@ This matrix documents all allowed filename and class prefixes by category. **Eve
 | **Input Systems** | `s_*_system.gd` | `S_*System` | `s_input_system.gd` → `S_InputSystem`, `s_touchscreen_system.gd` → `S_TouchscreenSystem` |
 | **Input Sources** | `*_source.gd` (in `scripts/input/sources/`) | `*Source` | `keyboard_mouse_source.gd` → `KeyboardMouseSource` |
 | **Input Resources** | `rs_*.gd` (in `scripts/resources/input/`) | `RS_*` | `rs_input_profile.gd` → `RS_InputProfile`, `rs_touchscreen_settings.gd` → `RS_TouchscreenSettings` |
-| **Lighting Resources** | `rs_*.gd` (in `scripts/resources/lighting/`) | `RS_*` | `rs_character_lighting_profile.gd` → `RS_CharacterLightingProfile`, `rs_character_light_zone_config.gd` → `RS_CharacterLightZoneConfig` |
+| **Lighting Resources** | `rs_*.gd` (in `scripts/demo/resources/lighting/`) | `RS_*` | `rs_character_lighting_profile.gd` → `RS_CharacterLightingProfile`, `rs_character_light_zone_config.gd` → `RS_CharacterLightZoneConfig` |
 
 ##### Input Sources
 
