@@ -50,5 +50,12 @@ func test_brain_settings_keeps_evaluation_interval() -> void:
 func test_loading_legacy_goals_resource_pushes_migration_error_with_path() -> void:
 	var resource_variant: Variant = load(LEGACY_BRAIN_RESOURCE_PATH)
 	assert_not_null(resource_variant, "Expected legacy AI brain resource to load for migration check.")
+	if resource_variant == null:
+		return
+	var resource: Resource = resource_variant as Resource
+	# Set the legacy property explicitly rather than relying on the fixture containing
+	# "goals = []" — Godot's ResourceSaver strips unknown properties on resave, so the
+	# fixture file loses the field whenever the editor or update_project_uids touches it.
+	resource.set(&"goals", [])
 	await get_tree().process_frame
 	assert_push_error("cfg_ai_brain_legacy_goals_fixture.tres")

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://7ixmyp5dqfyp"
-path="res://.godot/imported/icn_reducer.svg-7439bb49ece8c179b8b91a7a1d20e44d.ctex"
+path="res://.godot/imported/icn_reducer.svg-fa547c529d7f887977db83a08d277d4d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/editor_icons/icn_reducer.svg"
-dest_files=["res://.godot/imported/icn_reducer.svg-7439bb49ece8c179b8b91a7a1d20e44d.ctex"]
+source_file="res://assets/core/editor_icons/icn_reducer.svg"
+dest_files=["res://.godot/imported/icn_reducer.svg-fa547c529d7f887977db83a08d277d4d.ctex"]
 
 [params]
 

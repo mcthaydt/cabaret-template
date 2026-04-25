@@ -3,7 +3,7 @@ extends GutTest
 const SettingsMenuScene := preload("res://scenes/core/ui/menus/ui_settings_menu.tscn")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
-const MENU_FULLSCREEN_SHADER := preload("res://assets/shaders/sh_menu_fullscreen_shader.gdshader")
+const MENU_FULLSCREEN_SHADER := preload("res://assets/core/shaders/sh_menu_fullscreen_shader.gdshader")
 
 func before_each() -> void:
 	U_StateHandoff.clear_all()

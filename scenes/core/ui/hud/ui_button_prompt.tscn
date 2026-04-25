@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://bq8y7b2npl2g0"]
 
 [ext_resource type="Script" uid="uid://d0hp33q4mifow" path="res://scripts/core/ui/hud/ui_button_prompt.gd" id="1_button_prompt"]
-[ext_resource type="Texture2D" uid="uid://cymd2im13edts" path="res://assets/button_prompts/mobile/button_background.svg" id="2_mobile_button"]
+[ext_resource type="Texture2D" uid="uid://cymd2im13edts" path="res://assets/core/button_prompts/mobile/button_background.svg" id="2_mobile_button"]
 
 [node name="ButtonPrompt" type="HBoxContainer" unique_id=1475440060]
 visible = false

@@ -3,8 +3,8 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://emedu6pq2lwj"
-path.s3tc="res://.godot/imported/tex_texture_06.png-eeec455b76c8d931a3a0bd275778e8f8.s3tc.ctex"
-path.etc2="res://.godot/imported/tex_texture_06.png-eeec455b76c8d931a3a0bd275778e8f8.etc2.ctex"
+path.s3tc="res://.godot/imported/tex_texture_06.png-02e283fece9ce04d560cea05d8f0fa59.s3tc.ctex"
+path.etc2="res://.godot/imported/tex_texture_06.png-02e283fece9ce04d560cea05d8f0fa59.etc2.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
@@ -13,7 +13,7 @@ metadata={
 [deps]
 
 source_file="res://assets/demo/textures/prototype_grids_png/Light/tex_texture_06.png"
-dest_files=["res://.godot/imported/tex_texture_06.png-eeec455b76c8d931a3a0bd275778e8f8.s3tc.ctex", "res://.godot/imported/tex_texture_06.png-eeec455b76c8d931a3a0bd275778e8f8.etc2.ctex"]
+dest_files=["res://.godot/imported/tex_texture_06.png-02e283fece9ce04d560cea05d8f0fa59.s3tc.ctex", "res://.godot/imported/tex_texture_06.png-02e283fece9ce04d560cea05d8f0fa59.etc2.ctex"]
 
 [params]
 

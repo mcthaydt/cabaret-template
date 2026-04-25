@@ -8,7 +8,7 @@ class_name U_DisplayColorGradingApplier
 ## Sharpness is disabled on mobile (5-tap unsharp mask is too expensive on tile-based GPUs)
 ## but the color grading pass itself runs on all platforms.
 
-const COLOR_GRADING_SHADER := preload("res://assets/shaders/sh_color_grading_shader.gdshader")
+const COLOR_GRADING_SHADER := preload("res://assets/core/shaders/sh_color_grading_shader.gdshader")
 const U_CANVAS_LAYERS := preload("res://scripts/core/ui/u_canvas_layers.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/core/utils/display/u_mobile_platform_detector.gd")

@@ -1,7 +1,7 @@
 extends RefCounted
 class_name U_CharacterLightingMaterialApplier
 
-const SH_CHARACTER_ZONE_LIGHTING := preload("res://assets/shaders/sh_character_zone_lighting.gdshader")
+const SH_CHARACTER_ZONE_LIGHTING := preload("res://assets/core/shaders/sh_character_zone_lighting.gdshader")
 
 const PARAM_ALBEDO_TEXTURE := "albedo_texture"
 const PARAM_BASE_TINT := "base_tint"

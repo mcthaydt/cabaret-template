@@ -12,9 +12,9 @@ const FONT_THEME_TYPES: Array[StringName] = [
 	&"PopupMenu", &"TabBar", &"Tree",
 ]
 
-const _DEFAULT_FONT_PATH := "res://assets/fonts/fnt_ui_default.ttf"
-const _DYSLEXIA_FONT_PATH := "res://assets/fonts/fnt_dyslexia.ttf"
-const _CJK_FONT_PATH := "res://assets/fonts/fnt_cjk.otf"
+const _DEFAULT_FONT_PATH := "res://assets/core/fonts/fnt_ui_default.ttf"
+const _DYSLEXIA_FONT_PATH := "res://assets/core/fonts/fnt_dyslexia.ttf"
+const _CJK_FONT_PATH := "res://assets/core/fonts/fnt_cjk.otf"
 
 var _default_font: Font = null
 var _dyslexia_font: Font = null

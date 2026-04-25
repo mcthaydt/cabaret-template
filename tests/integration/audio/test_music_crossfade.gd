@@ -17,10 +17,10 @@ const U_STATE_HANDOFF := preload("res://scripts/core/state/utils/u_state_handoff
 const U_TRANSITION_TEST_HELPERS := preload("res://tests/helpers/u_transition_test_helpers.gd")
 const U_AUDIO_TEST_HELPERS := preload("res://tests/helpers/u_audio_test_helpers.gd")
 
-const STREAM_MAIN_MENU := preload("res://assets/audio/music/mus_main_menu.mp3")
+const STREAM_MAIN_MENU := preload("res://assets/core/audio/music/mus_main_menu.mp3")
 const STREAM_ALLEYWAY := preload("res://assets/demo/audio/music/mus_alleyway.mp3")
 const STREAM_INTERIOR := preload("res://assets/demo/audio/music/mus_interior.mp3")
-const STREAM_PAUSE := preload("res://assets/audio/music/mus_pause.mp3")
+const STREAM_PAUSE := preload("res://assets/core/audio/music/mus_pause.mp3")
 
 var _store: M_StateStore
 var _audio_manager: M_AudioManager

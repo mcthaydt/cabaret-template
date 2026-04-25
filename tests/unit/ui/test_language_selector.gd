@@ -4,7 +4,7 @@ const LanguageSelectorScene := preload("res://scenes/core/ui/menus/ui_language_s
 const MockSceneManagerScript := preload("res://tests/mocks/mock_scene_manager_with_transition.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
-const MENU_FULLSCREEN_SHADER := preload("res://assets/shaders/sh_menu_fullscreen_shader.gdshader")
+const MENU_FULLSCREEN_SHADER := preload("res://assets/core/shaders/sh_menu_fullscreen_shader.gdshader")
 
 
 func before_each() -> void:

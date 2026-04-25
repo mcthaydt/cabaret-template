@@ -1,7 +1,7 @@
 [gd_scene format=4 uid="uid://bxvpqns2proau"]
 
-[ext_resource type="PackedScene" uid="uid://1ns7yxfctr36" path="res://assets/models/mdl_new_character.glb" id="1_glpr6"]
-[ext_resource type="Texture2D" uid="uid://0olap2k7je8t" path="res://assets/textures/tex_new_character.png" id="2_pjoi4"]
+[ext_resource type="PackedScene" uid="uid://1ns7yxfctr36" path="res://assets/core/models/mdl_new_character.glb" id="1_glpr6"]
+[ext_resource type="Texture2D" uid="uid://0olap2k7je8t" path="res://assets/core/textures/tex_new_character.png" id="2_pjoi4"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_an6dg"]
 resource_name = "Material.001"
@@ -47,6 +47,6 @@ shadow_mesh = SubResource("ArrayMesh_fyhdm")
 
 [node name="Character" unique_id=269059755 instance=ExtResource("1_glpr6")]
 
-[node name="part_0000" parent="." index="0" unique_id=1956061285]
+[node name="part_0000" parent="." index="0" unique_id=26090082]
 transform = Transform3D(-1.3113416e-07, -3, -1.3113416e-07, 0, -1.3113416e-07, 3, -3, 1.3113416e-07, 5.7320566e-15, -0.0071066334, 1.9636567, 0.04684797)
 mesh = SubResource("ArrayMesh_ua8td")

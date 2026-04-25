@@ -7,7 +7,7 @@ extends GutTest
 const U_COLOR_GRADING_APPLIER := preload("res://scripts/core/managers/helpers/display/u_display_color_grading_applier.gd")
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/core/utils/display/u_mobile_platform_detector.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const COLOR_GRADING_SHADER := preload("res://assets/shaders/sh_color_grading_shader.gdshader")
+const COLOR_GRADING_SHADER := preload("res://assets/core/shaders/sh_color_grading_shader.gdshader")
 
 var _overlay: Node
 

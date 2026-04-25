@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bnuwfkkw85h1t"]
 
-[ext_resource type="Texture2D" uid="uid://dm23qd3lalkrv" path="res://assets/textures/tex_shadow_blob.png" id="1_shadow_blob"]
+[ext_resource type="Texture2D" uid="uid://dm23qd3lalkrv" path="res://assets/core/textures/tex_shadow_blob.png" id="1_shadow_blob"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_visual"]
 radius = 0.8

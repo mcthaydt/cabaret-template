@@ -190,7 +190,7 @@ func _setup_ui_color_blind_layer() -> void:
 	_ui_color_blind_layer.layer = U_CANVAS_LAYERS.UI_COLOR_BLIND
 
 	# Load the color blind shader
-	var shader: Shader = load("res://assets/shaders/sh_colorblind_daltonize.gdshader")
+	var shader: Shader = load("res://assets/core/shaders/sh_colorblind_daltonize.gdshader")
 	if shader == null:
 		push_error("U_DisplayPostProcessApplier: Failed to load color blind shader")
 		return

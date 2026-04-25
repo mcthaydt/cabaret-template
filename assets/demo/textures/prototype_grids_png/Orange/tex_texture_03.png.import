@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dvu078ft8j3ix"
-path="res://.godot/imported/tex_texture_03.png-77df2ff75c5520c90dd3c917d2c27813.ctex"
+path="res://.godot/imported/tex_texture_03.png-118b13a2611972c835cc920056b12e98.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/demo/textures/prototype_grids_png/Orange/tex_texture_03.png"
-dest_files=["res://.godot/imported/tex_texture_03.png-77df2ff75c5520c90dd3c917d2c27813.ctex"]
+dest_files=["res://.godot/imported/tex_texture_03.png-118b13a2611972c835cc920056b12e98.ctex"]
 
 [params]
 

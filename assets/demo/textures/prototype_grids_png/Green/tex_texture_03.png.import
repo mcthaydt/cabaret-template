@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://yct5l8ud3r4j"
-path="res://.godot/imported/tex_texture_03.png-16af4594bd2e80d9b8c788793325617a.ctex"
+path="res://.godot/imported/tex_texture_03.png-91aacd47f0d40eb71ea8419df44da1b6.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/demo/textures/prototype_grids_png/Green/tex_texture_03.png"
-dest_files=["res://.godot/imported/tex_texture_03.png-16af4594bd2e80d9b8c788793325617a.ctex"]
+dest_files=["res://.godot/imported/tex_texture_03.png-91aacd47f0d40eb71ea8419df44da1b6.ctex"]
 
 [params]
 

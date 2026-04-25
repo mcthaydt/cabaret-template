@@ -7,7 +7,7 @@ const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/core/resources/state/r
 const RS_DOOR_INTERACTION_CONFIG := preload("res://scripts/core/resources/interactions/rs_door_interaction_config.gd")
 const RS_HAZARD_INTERACTION_CONFIG := preload("res://scripts/core/resources/interactions/rs_hazard_interaction_config.gd")
 const RS_SCENE_TRIGGER_SETTINGS := preload("res://scripts/core/resources/ecs/rs_scene_trigger_settings.gd")
-const INTERACTION_HINT_TEXTURE := preload("res://assets/textures/tex_icon.svg")
+const INTERACTION_HINT_TEXTURE := preload("res://assets/core/textures/tex_icon.svg")
 
 ## Minimal stub SceneManager for unit tests
 class TestSceneManager:

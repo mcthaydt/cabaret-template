@@ -2,7 +2,7 @@ extends BaseTest
 
 const RS_SIGNPOST_INTERACTION_CONFIG := preload("res://scripts/core/resources/interactions/rs_signpost_interaction_config.gd")
 const RS_DOOR_INTERACTION_CONFIG := preload("res://scripts/core/resources/interactions/rs_door_interaction_config.gd")
-const INTERACTION_HINT_TEXTURE := preload("res://assets/textures/tex_icon.svg")
+const INTERACTION_HINT_TEXTURE := preload("res://assets/core/textures/tex_icon.svg")
 
 func _pump_frames(count: int = 1) -> void:
 	for _i in count:

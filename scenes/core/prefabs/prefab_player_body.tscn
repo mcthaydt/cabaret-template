@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://bo6mk3wsiqrux"]
 
 [ext_resource type="PackedScene" uid="uid://bxvpqns2proau" path="res://scenes/core/prefabs/prefab_character.tscn" id="1_character"]
-[ext_resource type="Texture2D" uid="uid://dm23qd3lalkrv" path="res://assets/textures/tex_shadow_blob.png" id="2_shadow_blob"]
+[ext_resource type="Texture2D" uid="uid://dm23qd3lalkrv" path="res://assets/core/textures/tex_shadow_blob.png" id="2_shadow_blob"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_direction"]
 

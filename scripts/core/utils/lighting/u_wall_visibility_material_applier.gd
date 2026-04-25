@@ -1,7 +1,7 @@
 extends RefCounted
 class_name U_WallVisibilityMaterialApplier
 
-const SH_WALL_VISIBILITY := preload("res://assets/shaders/sh_wall_visibility.gdshader")
+const SH_WALL_VISIBILITY := preload("res://assets/core/shaders/sh_wall_visibility.gdshader")
 
 const PARAM_CLIP_Y_WORLD := "clip_y_world"
 const PARAM_CLIP_FADE_RANGE := "clip_fade_range"

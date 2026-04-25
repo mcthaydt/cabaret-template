@@ -3,8 +3,8 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b1r5ab5wgdm2q"
-path.s3tc="res://.godot/imported/tex_texture_01.png-ecf42de4db4d25add8937fda7e2394bb.s3tc.ctex"
-path.etc2="res://.godot/imported/tex_texture_01.png-ecf42de4db4d25add8937fda7e2394bb.etc2.ctex"
+path.s3tc="res://.godot/imported/tex_texture_01.png-3fe606df3ac83e237fb521ce195d12ba.s3tc.ctex"
+path.etc2="res://.godot/imported/tex_texture_01.png-3fe606df3ac83e237fb521ce195d12ba.etc2.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
@@ -13,7 +13,7 @@ metadata={
 [deps]
 
 source_file="res://assets/demo/textures/prototype_grids_png/Orange/tex_texture_01.png"
-dest_files=["res://.godot/imported/tex_texture_01.png-ecf42de4db4d25add8937fda7e2394bb.s3tc.ctex", "res://.godot/imported/tex_texture_01.png-ecf42de4db4d25add8937fda7e2394bb.etc2.ctex"]
+dest_files=["res://.godot/imported/tex_texture_01.png-3fe606df3ac83e237fb521ce195d12ba.s3tc.ctex", "res://.godot/imported/tex_texture_01.png-3fe606df3ac83e237fb521ce195d12ba.etc2.ctex"]
 
 [params]
 

@@ -12,8 +12,8 @@ signal joystick_released
 @export var base_texture: Texture2D
 @export var thumb_texture: Texture2D
 
-const DEFAULT_BASE_TEXTURE_PATH := "res://assets/button_prompts/mobile/joystick_base.svg"
-const DEFAULT_THUMB_TEXTURE_PATH := "res://assets/button_prompts/mobile/joystick_thumb.svg"
+const DEFAULT_BASE_TEXTURE_PATH := "res://assets/core/button_prompts/mobile/joystick_base.svg"
+const DEFAULT_THUMB_TEXTURE_PATH := "res://assets/core/button_prompts/mobile/joystick_thumb.svg"
 
 @onready var _base_texture_rect: TextureRect = %BaseTexture
 @onready var _thumb_texture_rect: TextureRect = %ThumbTexture

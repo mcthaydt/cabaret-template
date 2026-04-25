@@ -17,11 +17,11 @@ const U_NAVIGATION_ACTIONS := preload("res://scripts/core/state/actions/u_naviga
 const U_SFX_SPAWNER := preload("res://scripts/core/managers/helpers/u_sfx_spawner.gd")
 const U_AUDIO_TEST_HELPERS := preload("res://tests/helpers/u_audio_test_helpers.gd")
 
-const STREAM_MAIN_MENU := preload("res://assets/audio/music/mus_main_menu.mp3")
+const STREAM_MAIN_MENU := preload("res://assets/core/audio/music/mus_main_menu.mp3")
 const STREAM_ALLEYWAY := preload("res://assets/demo/audio/music/mus_alleyway.mp3")
 const STREAM_INTERIOR := preload("res://assets/demo/audio/music/mus_interior.mp3")
-const STREAM_PAUSE := preload("res://assets/audio/music/mus_pause.mp3")
-const STREAM_CREDITS := preload("res://assets/audio/music/mus_credits.mp3")
+const STREAM_PAUSE := preload("res://assets/core/audio/music/mus_pause.mp3")
+const STREAM_CREDITS := preload("res://assets/core/audio/music/mus_credits.mp3")
 
 var _manager: Node
 var _store: Node

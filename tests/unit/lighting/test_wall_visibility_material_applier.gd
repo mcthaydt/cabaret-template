@@ -1,7 +1,7 @@
 extends BaseTest
 
 const APPLIER_PATH := "res://scripts/core/utils/lighting/u_wall_visibility_material_applier.gd"
-const SH_WALL_VISIBILITY := preload("res://assets/shaders/sh_wall_visibility.gdshader")
+const SH_WALL_VISIBILITY := preload("res://assets/core/shaders/sh_wall_visibility.gdshader")
 
 
 func _applier_script() -> Script:

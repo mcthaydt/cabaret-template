@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://caa62alavkesl" path="res://scripts/core/resources/interactions/rs_signpost_interaction_config.gd" id="1"]
 [ext_resource type="Resource" uid="uid://b2ehbrq1l8yro" path="res://resources/core/triggers/cfg_signpost_cylinder.tres" id="2"]
-[ext_resource type="Texture2D" uid="uid://rb3wysvedbe2" path="res://assets/textures/tex_interaction_v.svg" id="3"]
+[ext_resource type="Texture2D" uid="uid://rb3wysvedbe2" path="res://assets/core/textures/tex_interaction_v.svg" id="3"]
 
 [resource]
 script = ExtResource("1")

@@ -5,7 +5,7 @@ const BASE_INTERACTABLE_CONTROLLER := preload("res://scripts/core/gameplay/base_
 const M_ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
 const C_PLAYER_TAG_COMPONENT := preload("res://scripts/core/ecs/components/c_player_tag_component.gd")
 const I_SCENE_MANAGER := preload("res://scripts/core/interfaces/i_scene_manager.gd")
-const INTERACTION_HINT_TEXTURE := preload("res://assets/textures/tex_icon.svg")
+const INTERACTION_HINT_TEXTURE := preload("res://assets/core/textures/tex_icon.svg")
 
 class TransitioningSceneManager:
 	extends I_SCENE_MANAGER

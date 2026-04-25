@@ -5,35 +5,50 @@ extends GutTest
 
 # Asset directories and their required prefixes
 const ASSET_PREFIX_RULES := {
-	"res://assets/textures": {
+	"res://assets/core/textures": {
 		"prefix": "tex_",
 		"extensions": [".png", ".svg", ".jpg"],
-		"description": "Textures"
+		"description": "Core textures"
 	},
-	"res://assets/models": {
+	"res://assets/core/models": {
 		"prefix": "mdl_",
 		"extensions": [".glb", ".gltf", ".fbx"],
-		"description": "Models"
+		"description": "Core models"
 	},
-	"res://assets/materials": {
+	"res://assets/core/materials": {
 		"prefix": "mat_",
 		"extensions": [".tres", ".res"],
-		"description": "Materials"
+		"description": "Core materials"
 	},
-	"res://assets/shaders": {
+	"res://assets/core/shaders": {
 		"prefix": "sh_",
 		"extensions": [".gdshader", ".gdshader.uid"],
-		"description": "Shaders"
+		"description": "Core shaders"
 	},
-	"res://assets/audio/music": {
+	"res://assets/core/audio/music": {
 		"prefix": "mus_",
 		"extensions": [".mp3", ".ogg", ".wav"],
-		"description": "Music"
+		"description": "Core music"
 	},
 	"res://assets/core/editor_icons": {
 		"prefix": "icn_",
 		"extensions": [".svg", ".png"],
 		"description": "Editor icons"
+	},
+	"res://assets/demo/textures": {
+		"prefix": "tex_",
+		"extensions": [".png", ".svg", ".jpg"],
+		"description": "Demo textures"
+	},
+	"res://assets/demo/models": {
+		"prefix": "mdl_",
+		"extensions": [".glb", ".gltf", ".fbx"],
+		"description": "Demo models"
+	},
+	"res://assets/demo/audio/music": {
+		"prefix": "mus_",
+		"extensions": [".mp3", ".ogg", ".wav"],
+		"description": "Demo music"
 	}
 }
 
