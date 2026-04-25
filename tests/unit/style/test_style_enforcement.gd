@@ -28,7 +28,7 @@ const TRIGGER_RESOURCE_DIRECTORIES := [
 ]
 
 const INTERACTION_RESOURCE_DIRECTORIES := [
-	"res://resources/interactions"
+	"res://resources/core/interactions"
 ]
 
 const TRIGGER_RESOURCE_FILES := [
