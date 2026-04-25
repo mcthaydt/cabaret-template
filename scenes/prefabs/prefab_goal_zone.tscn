@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://bsni7mmk1pdiq" path="res://scripts/core/gameplay/inter_victory_zone.gd" id="1_controller"]
 [ext_resource type="Material" uid="uid://bhnn3psvefgpq" path="res://assets/materials/mat_fade_goal.tres" id="3_fade_material"]
-[ext_resource type="Resource" uid="uid://cc6jf6higq2bl" path="res://resources/interactions/victory/cfg_victory_goal_prefab.tres" id="4_victory_config"]
+[ext_resource type="Resource" uid="uid://cc6jf6higq2bl" path="res://resources/demo/interactions/victory/cfg_victory_goal_prefab.tres" id="4_victory_config"]
 [ext_resource type="Script" uid="uid://drfbc6b6t44hi" path="res://scripts/demo/gameplay/inter_character_light_zone.gd" id="5_character_light_zone_script"]
 [ext_resource type="Resource" uid="uid://bmj2g7cup5e21" path="res://resources/demo/lighting/zones/cfg_character_light_zone_goal_glow_prefab.tres" id="6_character_light_zone_goal_config"]
 

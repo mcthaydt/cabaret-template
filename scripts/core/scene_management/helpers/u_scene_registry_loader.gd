@@ -2,15 +2,15 @@ extends RefCounted
 class_name U_SceneRegistryLoader
 
 const CFG_GAMEPLAY_BASE_ENTRY := preload("res://resources/scene_registry/cfg_gameplay_base_entry.tres")
-const CFG_ALLEYWAY_ENTRY := preload("res://resources/scene_registry/cfg_alleyway_entry.tres")
-const CFG_INTERIOR_HOUSE_ENTRY := preload("res://resources/scene_registry/cfg_interior_house_entry.tres")
-const CFG_INTERIOR_A_ENTRY := preload("res://resources/scene_registry/cfg_interior_a_entry.tres")
-const CFG_BAR_ENTRY := preload("res://resources/scene_registry/cfg_bar_entry.tres")
-const CFG_POWER_CORE_ENTRY := preload("res://resources/scene_registry/cfg_power_core_entry.tres")
-const CFG_COMMS_ARRAY_ENTRY := preload("res://resources/scene_registry/cfg_comms_array_entry.tres")
-const CFG_NAV_NEXUS_ENTRY := preload("res://resources/scene_registry/cfg_nav_nexus_entry.tres")
-const CFG_AI_SHOWCASE_ENTRY := preload("res://resources/scene_registry/cfg_ai_showcase_entry.tres")
-const CFG_AI_WOODS_ENTRY := preload("res://resources/scene_registry/cfg_ai_woods_entry.tres")
+const CFG_ALLEYWAY_ENTRY := preload("res://resources/demo/scene_registry/cfg_alleyway_entry.tres")
+const CFG_INTERIOR_HOUSE_ENTRY := preload("res://resources/demo/scene_registry/cfg_interior_house_entry.tres")
+const CFG_INTERIOR_A_ENTRY := preload("res://resources/demo/scene_registry/cfg_interior_a_entry.tres")
+const CFG_BAR_ENTRY := preload("res://resources/demo/scene_registry/cfg_bar_entry.tres")
+const CFG_POWER_CORE_ENTRY := preload("res://resources/demo/scene_registry/cfg_power_core_entry.tres")
+const CFG_COMMS_ARRAY_ENTRY := preload("res://resources/demo/scene_registry/cfg_comms_array_entry.tres")
+const CFG_NAV_NEXUS_ENTRY := preload("res://resources/demo/scene_registry/cfg_nav_nexus_entry.tres")
+const CFG_AI_SHOWCASE_ENTRY := preload("res://resources/demo/scene_registry/cfg_ai_showcase_entry.tres")
+const CFG_AI_WOODS_ENTRY := preload("res://resources/demo/scene_registry/cfg_ai_woods_entry.tres")
 const CFG_UI_GAME_OVER_ENTRY := preload("res://resources/scene_registry/cfg_ui_game_over_entry.tres")
 const CFG_UI_VICTORY_ENTRY := preload("res://resources/scene_registry/cfg_ui_victory_entry.tres")
 const CFG_UI_CREDITS_ENTRY := preload("res://resources/scene_registry/cfg_ui_credits_entry.tres")
@@ -71,9 +71,18 @@ func load_resource_entries(scenes: Dictionary, register_scene_callable: Callable
 			"res://resources/scene_registry",
 			scenes,
 			register_scene_callable,
-			true,
+			false,
 			false
 		)
+		var demo_result: Dictionary = _load_entries_from_dir(
+			"res://resources/demo/scene_registry",
+			scenes,
+			register_scene_callable,
+			false,
+			false
+		)
+		res_result["loaded"] = int(res_result.get("loaded", 0)) + int(demo_result.get("loaded", 0))
+		res_result["skipped"] = int(res_result.get("skipped", 0)) + int(demo_result.get("skipped", 0))
 		# tests/scene_registry is optional; don't warn if it's missing.
 		test_result = _load_entries_from_dir(
 			"res://tests/scene_registry",

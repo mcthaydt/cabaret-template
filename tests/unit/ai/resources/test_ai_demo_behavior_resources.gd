@@ -2,16 +2,16 @@ extends BaseTest
 
 const RS_AI_BRAIN_SETTINGS := preload("res://scripts/core/resources/ai/brain/rs_ai_brain_settings.gd")
 
-const PATROL_BRAIN_PATH := "res://resources/ai/patrol_drone/cfg_patrol_drone_brain.tres"
-const SENTRY_BRAIN_PATH := "res://resources/ai/sentry/cfg_sentry_brain.tres"
-const GUIDE_BRAIN_PATH := "res://resources/ai/guide_prism/cfg_guide_brain.tres"
+const PATROL_BRAIN_PATH := "res://resources/demo/ai/patrol_drone/cfg_patrol_drone_brain.tres"
+const SENTRY_BRAIN_PATH := "res://resources/demo/ai/sentry/cfg_sentry_brain.tres"
+const GUIDE_BRAIN_PATH := "res://resources/demo/ai/guide_prism/cfg_guide_brain.tres"
 
 const POWER_CORE_SCENE_PATH := "res://scenes/gameplay/gameplay_power_core.tscn"
 const COMMS_ARRAY_SCENE_PATH := "res://scenes/gameplay/gameplay_comms_array.tscn"
 const NAV_NEXUS_SCENE_PATH := "res://scenes/gameplay/gameplay_nav_nexus.tscn"
 const INTER_AI_DEMO_FLAG_ZONE_SCRIPT_PATH := "res://scripts/demo/gameplay/inter_ai_demo_flag_zone.gd"
 const INTER_HAZARD_ZONE_SCRIPT_PATH := "res://scripts/core/gameplay/inter_hazard_zone.gd"
-const NAV_FALL_HAZARD_CONFIG_PATH := "res://resources/interactions/hazards/cfg_hazard_nav_nexus_fall.tres"
+const NAV_FALL_HAZARD_CONFIG_PATH := "res://resources/demo/interactions/hazards/cfg_hazard_nav_nexus_fall.tres"
 
 const BT_UTILITY_SELECTOR_SCRIPT_PATH := "res://scripts/core/resources/bt/rs_bt_utility_selector.gd"
 const BT_SELECTOR_SCRIPT_PATH := "res://scripts/core/resources/bt/rs_bt_selector.gd"

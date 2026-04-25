@@ -8,11 +8,11 @@ const RS_VICTORY_INTERACTION_CONFIG := preload("res://scripts/core/resources/int
 const RS_SIGNPOST_INTERACTION_CONFIG := preload("res://scripts/core/resources/interactions/rs_signpost_interaction_config.gd")
 const RS_ENDGAME_GOAL_INTERACTION_CONFIG := preload("res://scripts/core/resources/interactions/rs_endgame_goal_interaction_config.gd")
 const RS_SCENE_TRIGGER_SETTINGS := preload("res://scripts/core/resources/ecs/rs_scene_trigger_settings.gd")
-const DOOR_HINT_CONFIG_PATH := "res://resources/interactions/doors/cfg_door_exterior_to_bar.tres"
-const DOOR_ALLEYWAY_TO_BAR_HINT_CONFIG_PATH := "res://resources/interactions/doors/cfg_door_alleyway_to_bar.tres"
-const DOOR_BAR_TO_ALLEYWAY_HINT_CONFIG_PATH := "res://resources/interactions/doors/cfg_door_bar_to_alleyway.tres"
-const SIGNPOST_HINT_CONFIG_PATH := "res://resources/interactions/signposts/cfg_signpost_exterior_tutorial.tres"
-const SIGNPOST_BAR_HINT_CONFIG_PATH := "res://resources/interactions/signposts/cfg_signpost_bar_tutorial.tres"
+const DOOR_HINT_CONFIG_PATH := "res://resources/demo/interactions/doors/cfg_door_exterior_to_bar.tres"
+const DOOR_ALLEYWAY_TO_BAR_HINT_CONFIG_PATH := "res://resources/demo/interactions/doors/cfg_door_alleyway_to_bar.tres"
+const DOOR_BAR_TO_ALLEYWAY_HINT_CONFIG_PATH := "res://resources/demo/interactions/doors/cfg_door_bar_to_alleyway.tres"
+const SIGNPOST_HINT_CONFIG_PATH := "res://resources/demo/interactions/signposts/cfg_signpost_exterior_tutorial.tres"
+const SIGNPOST_BAR_HINT_CONFIG_PATH := "res://resources/demo/interactions/signposts/cfg_signpost_bar_tutorial.tres"
 
 const SCENE_PATHS := [
 	"res://scenes/gameplay/gameplay_exterior.tscn",

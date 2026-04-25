@@ -1,6 +1,6 @@
 extends BaseTest
 
-const WOLF_BT_BRAIN_PATH := "res://resources/ai/woods/wolf/cfg_woods_wolf_brain.tres"
+const WOLF_BT_BRAIN_PATH := "res://resources/demo/ai/woods/wolf/cfg_woods_wolf_brain.tres"
 
 const RS_BT_UTILITY_SELECTOR := preload("res://scripts/core/resources/bt/rs_bt_utility_selector.gd")
 const RS_AI_BRAIN_SETTINGS := preload("res://scripts/core/resources/ai/brain/rs_ai_brain_settings.gd")

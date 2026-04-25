@@ -1,7 +1,7 @@
 extends BaseTest
 
-const BUILDER_BT_BRAIN_PATH := "res://resources/ai/woods/builder/cfg_builder_brain.tres"
-const WOODS_BUILD_SITE_SETTINGS_PATH := "res://resources/base_settings/ai_woods/cfg_build_site_house.tres"
+const BUILDER_BT_BRAIN_PATH := "res://resources/demo/ai/woods/builder/cfg_builder_brain.tres"
+const WOODS_BUILD_SITE_SETTINGS_PATH := "res://resources/demo/base_settings/ai_woods/cfg_build_site_house.tres"
 
 const RS_BT_UTILITY_SELECTOR := preload("res://scripts/core/resources/bt/rs_bt_utility_selector.gd")
 const RS_AI_BRAIN_SETTINGS := preload("res://scripts/core/resources/ai/brain/rs_ai_brain_settings.gd")

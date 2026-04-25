@@ -18,7 +18,7 @@ const C_MOVE_TARGET_COMPONENT := preload("res://scripts/demo/ecs/components/c_mo
 const RS_MOVEMENT_SETTINGS := preload("res://scripts/core/resources/ecs/rs_movement_settings.gd")
 const U_AI_TASK_STATE_KEYS := preload("res://scripts/core/utils/ai/u_ai_task_state_keys.gd")
 
-const PATROL_DRONE_BRAIN_SETTINGS := preload("res://resources/ai/patrol_drone/cfg_patrol_drone_brain.tres")
+const PATROL_DRONE_BRAIN_SETTINGS := preload("res://resources/demo/ai/patrol_drone/cfg_patrol_drone_brain.tres")
 
 const WAYPOINT_A := Vector3(-6.0, 1.0, -6.0)
 const WAYPOINT_B := Vector3(6.0, 1.0, -6.0)

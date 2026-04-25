@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://8ktr2mhk2d3x"]
 
 [ext_resource type="Script" uid="uid://dku2qmk4p02q5" path="res://scripts/demo/ecs/components/c_inventory_component.gd" id="1_inventory"]
-[ext_resource type="Resource" uid="uid://8igrwp730iko" path="res://resources/base_settings/ai_woods/cfg_inventory_stockpile.tres" id="2_stockpile_settings"]
+[ext_resource type="Resource" uid="uid://8igrwp730iko" path="res://resources/demo/base_settings/ai_woods/cfg_inventory_stockpile.tres" id="2_stockpile_settings"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_stockpile"]
 shading_mode = 0

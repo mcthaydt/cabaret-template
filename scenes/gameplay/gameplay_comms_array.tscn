@@ -60,7 +60,7 @@
 [ext_resource type="Script" uid="uid://bmks0dvhg1v28" path="res://scripts/demo/gameplay/inter_ai_demo_flag_zone.gd" id="62_ai_demo_flag_zone"]
 [ext_resource type="Script" uid="uid://b2huwk7mlhlvv" path="res://scripts/core/ecs/systems/s_spawn_recovery_system.gd" id="67_ai_spawn_recovery_system"]
 [ext_resource type="PackedScene" uid="uid://cv15bmronxxil" path="res://scenes/prefabs/prefab_demo_npc.tscn" id="69_prefab_npc"]
-[ext_resource type="Resource" uid="uid://b7o33da70w7bq" path="res://resources/ai/sentry/cfg_sentry_brain.tres" id="70_sentry_brain"]
+[ext_resource type="Resource" uid="uid://b7o33da70w7bq" path="res://resources/demo/ai/sentry/cfg_sentry_brain.tres" id="70_sentry_brain"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 2
