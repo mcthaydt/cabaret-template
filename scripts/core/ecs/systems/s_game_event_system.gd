@@ -13,8 +13,8 @@ const TRIGGER_MODE_EVENT := "event"
 const TRIGGER_MODE_BOTH := "both"
 
 const DEFAULT_RULE_DEFINITIONS := [
-	preload("res://resources/qb/game/cfg_checkpoint_rule.tres"),
-	preload("res://resources/qb/game/cfg_victory_rule.tres"),
+	preload("res://resources/core/qb/game/cfg_checkpoint_rule.tres"),
+	preload("res://resources/core/qb/game/cfg_victory_rule.tres"),
 ]
 
 @export var state_store: I_StateStore = null

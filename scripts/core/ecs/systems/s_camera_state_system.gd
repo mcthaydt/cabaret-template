@@ -22,10 +22,10 @@ const TRIGGER_MODE_EVENT := "event"
 const TRIGGER_MODE_BOTH := "both"
 
 const DEFAULT_RULE_DEFINITIONS := [
-	preload("res://resources/qb/camera/cfg_camera_shake_rule.tres"),
-	preload("res://resources/qb/camera/cfg_camera_zone_fov_rule.tres"),
-	preload("res://resources/qb/camera/cfg_camera_speed_fov_rule.tres"),
-	preload("res://resources/qb/camera/cfg_camera_landing_impact_rule.tres"),
+	preload("res://resources/core/qb/camera/cfg_camera_shake_rule.tres"),
+	preload("res://resources/core/qb/camera/cfg_camera_zone_fov_rule.tres"),
+	preload("res://resources/core/qb/camera/cfg_camera_speed_fov_rule.tres"),
+	preload("res://resources/core/qb/camera/cfg_camera_landing_impact_rule.tres"),
 ]
 
 @export var camera_manager: I_CAMERA_MANAGER = null

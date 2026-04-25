@@ -9,16 +9,16 @@ const SUPPORTED_LOCALES: Array[StringName] = [&"en", &"es", &"pt", &"zh_CN", &"j
 
 ## Mobile-safe: const preload list (no runtime file scanning).
 const _LOCALE_RESOURCES: Array[RS_LocaleTranslations] = [
-	preload("res://resources/localization/cfg_locale_en_ui.tres"),
-	preload("res://resources/localization/cfg_locale_en_hud.tres"),
-	preload("res://resources/localization/cfg_locale_es_ui.tres"),
-	preload("res://resources/localization/cfg_locale_es_hud.tres"),
-	preload("res://resources/localization/cfg_locale_pt_ui.tres"),
-	preload("res://resources/localization/cfg_locale_pt_hud.tres"),
-	preload("res://resources/localization/cfg_locale_zh_CN_ui.tres"),
-	preload("res://resources/localization/cfg_locale_zh_CN_hud.tres"),
-	preload("res://resources/localization/cfg_locale_ja_ui.tres"),
-	preload("res://resources/localization/cfg_locale_ja_hud.tres"),
+	preload("res://resources/core/localization/cfg_locale_en_ui.tres"),
+	preload("res://resources/core/localization/cfg_locale_en_hud.tres"),
+	preload("res://resources/core/localization/cfg_locale_es_ui.tres"),
+	preload("res://resources/core/localization/cfg_locale_es_hud.tres"),
+	preload("res://resources/core/localization/cfg_locale_pt_ui.tres"),
+	preload("res://resources/core/localization/cfg_locale_pt_hud.tres"),
+	preload("res://resources/core/localization/cfg_locale_zh_CN_ui.tres"),
+	preload("res://resources/core/localization/cfg_locale_zh_CN_hud.tres"),
+	preload("res://resources/core/localization/cfg_locale_ja_ui.tres"),
+	preload("res://resources/core/localization/cfg_locale_ja_hud.tres"),
 ]
 
 var _locale_resources: Array[RS_LocaleTranslations] = []

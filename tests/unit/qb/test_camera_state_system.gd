@@ -13,7 +13,7 @@ const RULE_RESOURCE := preload("res://scripts/core/resources/qb/rs_rule.gd")
 const CONDITION_CONSTANT := preload("res://scripts/core/resources/qb/conditions/rs_condition_constant.gd")
 const CONDITION_ENTITY_TAG := preload("res://scripts/core/resources/qb/conditions/rs_condition_entity_tag.gd")
 const EFFECT_SET_FIELD := preload("res://scripts/core/resources/qb/effects/rs_effect_set_field.gd")
-const SPEED_FOV_RULE := preload("res://resources/qb/camera/cfg_camera_speed_fov_rule.tres")
+const SPEED_FOV_RULE := preload("res://resources/core/qb/camera/cfg_camera_speed_fov_rule.tres")
 
 const I_CONDITION := preload("res://scripts/core/interfaces/i_condition.gd")
 const I_EFFECT := preload("res://scripts/core/interfaces/i_effect.gd")

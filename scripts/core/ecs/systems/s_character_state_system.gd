@@ -25,11 +25,11 @@ const TRIGGER_MODE_EVENT := "event"
 const TRIGGER_MODE_BOTH := "both"
 
 const DEFAULT_RULE_DEFINITIONS := [
-	preload("res://resources/qb/character/cfg_pause_gate_paused.tres"),
-	preload("res://resources/qb/character/cfg_pause_gate_shell.tres"),
-	preload("res://resources/qb/character/cfg_pause_gate_transitioning.tres"),
-	preload("res://resources/qb/character/cfg_spawn_freeze_rule.tres"),
-	preload("res://resources/qb/character/cfg_death_sync_rule.tres"),
+	preload("res://resources/core/qb/character/cfg_pause_gate_paused.tres"),
+	preload("res://resources/core/qb/character/cfg_pause_gate_shell.tres"),
+	preload("res://resources/core/qb/character/cfg_pause_gate_transitioning.tres"),
+	preload("res://resources/core/qb/character/cfg_spawn_freeze_rule.tres"),
+	preload("res://resources/core/qb/character/cfg_death_sync_rule.tres"),
 ]
 
 @export var state_store: I_StateStore = null
