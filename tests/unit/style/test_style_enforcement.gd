@@ -2553,6 +2553,52 @@ func _collect_demo_imports_in_core(dir_path: String, violations: Array[String]) 
 		entry = dir.get_next()
 	dir.list_dir_end()
 
+func test_core_resources_never_reference_demo() -> void:
+	var violations: Array[String] = []
+	_collect_demo_refs_in_dir("res://resources/core", [".tres"], violations)
+	var message := "resources/core/ must not reference demo/ paths"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+	assert_eq(violations.size(), 0, message)
+
+func test_core_scenes_never_reference_demo() -> void:
+	var violations: Array[String] = []
+	_collect_demo_refs_in_dir("res://scenes/core", [".tscn"], violations)
+	var message := "scenes/core/ must not reference demo/ paths"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+	assert_eq(violations.size(), 0, message)
+
+func _collect_demo_refs_in_dir(dir_path: String, extensions: Array[String], violations: Array[String]) -> void:
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return
+	dir.list_dir_begin()
+	var entry := dir.get_next()
+	while entry != "":
+		var path := "%s/%s" % [dir_path, entry]
+		if dir.current_is_dir():
+			if not entry.begins_with("."):
+				_collect_demo_refs_in_dir(path, extensions, violations)
+		else:
+			var matched := false
+			for ext in extensions:
+				if entry.ends_with(ext):
+					matched = true
+					break
+			if matched:
+				var file := FileAccess.open(path, FileAccess.READ)
+				if file != null:
+					var line_number: int = 0
+					while not file.eof_reached():
+						line_number += 1
+						var line: String = file.get_line()
+						if "res://resources/demo/" in line or "res://scenes/demo/" in line or "res://assets/demo/" in line:
+							violations.append("%s:%d" % [path, line_number])
+					file.close()
+		entry = dir.get_next()
+	dir.list_dir_end()
+
 func _collect_bare_print_calls(dir_path: String, violations: Array[String]) -> void:
 	var dir := DirAccess.open(dir_path)
 	if dir == null:

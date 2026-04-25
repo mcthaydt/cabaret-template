@@ -2,9 +2,7 @@
 
 [ext_resource type="Script" uid="uid://bsni7mmk1pdiq" path="res://scripts/core/gameplay/inter_victory_zone.gd" id="1_controller"]
 [ext_resource type="Material" uid="uid://bhnn3psvefgpq" path="res://assets/materials/mat_fade_goal.tres" id="3_fade_material"]
-[ext_resource type="Resource" uid="uid://cc6jf6higq2bl" path="res://resources/demo/interactions/victory/cfg_victory_goal_prefab.tres" id="4_victory_config"]
-[ext_resource type="Script" uid="uid://dtv4nbgg1ct10" path="res://scripts/demo/gameplay/inter_character_light_zone.gd" id="5_character_light_zone_script"]
-[ext_resource type="Resource" uid="uid://bmj2g7cup5e21" path="res://resources/demo/lighting/zones/cfg_character_light_zone_goal_glow_prefab.tres" id="6_character_light_zone_goal_config"]
+[ext_resource type="Resource" uid="uid://bj5s8vx63yumt" path="res://resources/core/interactions/victory/cfg_victory_default.tres" id="4_victory_config"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_b3ofg"]
 shading_mode = 2
@@ -24,10 +22,6 @@ tags = Array[StringName]([&"objective", &"goal"])
 radius = 0.7910156
 height = 2.0715332
 material = ExtResource("3_fade_material")
-
-[node name="Inter_CharacterLightZone_GoalGlow" type="Node3D" parent="." unique_id=1531355111]
-script = ExtResource("5_character_light_zone_script")
-config = ExtResource("6_character_light_zone_goal_config")
 
 [node name="Sparkles" type="CPUParticles3D" parent="." unique_id=371694099]
 amount = 80
