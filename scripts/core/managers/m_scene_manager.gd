@@ -45,7 +45,7 @@ const U_LOCALIZATION_SELECTORS := preload("res://scripts/core/state/selectors/u_
 const U_DEBUG_SELECTORS := preload("res://scripts/core/state/selectors/u_debug_selectors.gd")
 const U_SCENE_SELECTORS := preload("res://scripts/core/state/selectors/u_scene_selectors.gd")
 const U_NAVIGATION_SELECTORS := preload("res://scripts/core/state/selectors/u_navigation_selectors.gd")
-const HUD_OVERLAY_SCENE := preload("res://scenes/ui/hud/ui_hud_overlay.tscn")
+const HUD_OVERLAY_SCENE := preload("res://scenes/core/ui/hud/ui_hud_overlay.tscn")
 const UI_HUD_CONTROLLER := preload("res://scripts/core/ui/hud/ui_hud_controller.gd")
 # T209: Transition class imports removed - now handled by U_TransitionFactory
 # Kept for type checking only:

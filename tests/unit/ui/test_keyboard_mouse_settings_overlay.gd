@@ -1,6 +1,6 @@
 extends GutTest
 
-const OverlayScene := preload("res://scenes/ui/overlays/ui_keyboard_mouse_settings_overlay.tscn")
+const OverlayScene := preload("res://scenes/core/ui/overlays/ui_keyboard_mouse_settings_overlay.tscn")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 
 var _store: TestStateStore

@@ -44,7 +44,7 @@ func before_each() -> void:
 	U_ServiceLocator.register(StringName("state_store"), _store)
 
 	# Add PostProcessOverlay before DisplayManager to avoid GameViewport lookup errors
-	const POST_PROCESS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/ui_post_process_overlay.tscn")
+	const POST_PROCESS_OVERLAY_SCENE := preload("res://scenes/core/ui/overlays/ui_post_process_overlay.tscn")
 	var post_process_overlay := POST_PROCESS_OVERLAY_SCENE.instantiate()
 	post_process_overlay.name = "PostProcessOverlay"
 	add_child_autofree(post_process_overlay)
@@ -70,7 +70,7 @@ func before_each() -> void:
 	await get_tree().process_frame
 
 	# Load HUD scene
-	var hud_scene := load("res://scenes/ui/hud/ui_hud_overlay.tscn") as PackedScene
+	var hud_scene := load("res://scenes/core/ui/hud/ui_hud_overlay.tscn") as PackedScene
 	_hud = hud_scene.instantiate() as UI_HudController
 	add_child_autofree(_hud)
 	await get_tree().process_frame

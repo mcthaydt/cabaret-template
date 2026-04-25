@@ -1,6 +1,6 @@
 extends GutTest
 
-const TAB_SCENE := preload("res://scenes/ui/overlays/settings/ui_localization_settings_tab.tscn")
+const TAB_SCENE := preload("res://scenes/core/ui/overlays/settings/ui_localization_settings_tab.tscn")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")

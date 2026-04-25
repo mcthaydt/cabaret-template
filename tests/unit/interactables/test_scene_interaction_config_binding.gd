@@ -19,11 +19,11 @@ const SCENE_PATHS := [
 	"res://scenes/gameplay/gameplay_alleyway.tscn",
 	"res://scenes/gameplay/gameplay_bar.tscn",
 	"res://scenes/gameplay/gameplay_interior_house.tscn",
-	"res://scenes/prefabs/prefab_door_trigger.tscn",
-	"res://scenes/prefabs/prefab_checkpoint_safe_zone.tscn",
-	"res://scenes/prefabs/prefab_spike_trap.tscn",
-	"res://scenes/prefabs/prefab_death_zone.tscn",
-	"res://scenes/prefabs/prefab_goal_zone.tscn",
+	"res://scenes/core/prefabs/prefab_door_trigger.tscn",
+	"res://scenes/core/prefabs/prefab_checkpoint_safe_zone.tscn",
+	"res://scenes/core/prefabs/prefab_spike_trap.tscn",
+	"res://scenes/core/prefabs/prefab_death_zone.tscn",
+	"res://scenes/core/prefabs/prefab_goal_zone.tscn",
 ]
 
 const CONTROLLER_TO_CONFIG_SCRIPT := {
@@ -57,7 +57,7 @@ func test_interaction_controllers_have_typed_config_assignments_in_scenes() -> v
 		instance.free()
 
 func test_scene_config_validation_fails_when_config_missing_or_wrong_type() -> void:
-	var packed := load("res://scenes/prefabs/prefab_door_trigger.tscn") as PackedScene
+	var packed := load("res://scenes/core/prefabs/prefab_door_trigger.tscn") as PackedScene
 	assert_not_null(packed)
 	if packed == null:
 		return

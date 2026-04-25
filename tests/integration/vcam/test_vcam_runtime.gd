@@ -1,6 +1,6 @@
 extends BaseTest
 
-const ROOT_SCENE := preload("res://scenes/root.tscn")
+const ROOT_SCENE := preload("res://scenes/core/root.tscn")
 
 const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/core/resources/state/rs_state_store_settings.gd")

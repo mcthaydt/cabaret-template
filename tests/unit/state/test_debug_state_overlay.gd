@@ -28,7 +28,7 @@ func after_each():
 ## Test: Debug overlay instantiates without errors
 func test_debug_overlay_instantiates_without_errors():
 	# Load overlay scene (will fail until scene is created)
-	var overlay_scene = load("res://scenes/debug/debug_state_overlay.tscn")
+	var overlay_scene = load("res://scenes/core/debug/debug_state_overlay.tscn")
 	assert_not_null(overlay_scene, "Debug overlay scene should exist")
 	
 	overlay = overlay_scene.instantiate()
@@ -42,7 +42,7 @@ func test_debug_overlay_instantiates_without_errors():
 ## Test: Debug overlay displays current state
 func test_debug_overlay_displays_current_state():
 	# Load and instantiate overlay
-	var overlay_scene = load("res://scenes/debug/debug_state_overlay.tscn")
+	var overlay_scene = load("res://scenes/core/debug/debug_state_overlay.tscn")
 	assert_not_null(overlay_scene, "Debug overlay scene should exist")
 	
 	overlay = overlay_scene.instantiate()
@@ -70,7 +70,7 @@ func test_debug_overlay_displays_current_state():
 ## Test: Debug overlay displays action history
 func test_debug_overlay_displays_action_history():
 	# Load and instantiate overlay
-	var overlay_scene = load("res://scenes/debug/debug_state_overlay.tscn")
+	var overlay_scene = load("res://scenes/core/debug/debug_state_overlay.tscn")
 	overlay = overlay_scene.instantiate()
 	add_child_autofree(overlay)
 	await get_tree().process_frame

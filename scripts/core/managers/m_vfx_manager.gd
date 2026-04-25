@@ -15,7 +15,7 @@ const U_NAVIGATION_SELECTORS := preload("res://scripts/core/state/selectors/u_na
 const U_ENTITY_SELECTORS := preload("res://scripts/core/state/selectors/u_entity_selectors.gd")
 const U_VCAM_SELECTORS := preload("res://scripts/core/state/selectors/u_vcam_selectors.gd")
 const U_VCAM_SILHOUETTE_HELPER := preload("res://scripts/core/managers/helpers/u_vcam_silhouette_helper.gd")
-const DAMAGE_FLASH_SCENE := preload("res://scenes/ui/overlays/ui_damage_flash_overlay.tscn")
+const DAMAGE_FLASH_SCENE := preload("res://scenes/core/ui/overlays/ui_damage_flash_overlay.tscn")
 const SCREEN_SHAKE_TUNING := preload("res://resources/core/vfx/cfg_screen_shake_tuning.tres")
 const SCREEN_SHAKE_CONFIG := preload("res://resources/core/vfx/cfg_screen_shake_config.tres")
 ##

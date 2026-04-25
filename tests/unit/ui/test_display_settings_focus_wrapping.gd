@@ -20,7 +20,7 @@ func after_each() -> void:
 
 func test_focus_wraps_from_first_to_last_control() -> void:
 	# GIVEN: Display settings tab with multiple focusable controls
-	var scene := load("res://scenes/ui/overlays/settings/ui_display_settings_tab.tscn")
+	var scene := load("res://scenes/core/ui/overlays/settings/ui_display_settings_tab.tscn")
 	_tab = scene.instantiate()
 	add_child_autofree(_tab)
 	await get_tree().process_frame
@@ -41,7 +41,7 @@ func test_focus_wraps_from_first_to_last_control() -> void:
 
 func test_focus_wraps_from_last_to_first_control() -> void:
 	# GIVEN: Display settings tab with multiple focusable controls
-	var scene := load("res://scenes/ui/overlays/settings/ui_display_settings_tab.tscn")
+	var scene := load("res://scenes/core/ui/overlays/settings/ui_display_settings_tab.tscn")
 	_tab = scene.instantiate()
 	add_child_autofree(_tab)
 	await get_tree().process_frame

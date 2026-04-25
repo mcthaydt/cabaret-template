@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 scene_id = "localization_settings"
-scene_path = "res://scenes/ui/overlays/settings/ui_localization_settings_overlay.tscn"
+scene_path = "res://scenes/core/ui/overlays/settings/ui_localization_settings_overlay.tscn"
 scene_type = 2
 default_transition = "instant"
 preload_priority = 5

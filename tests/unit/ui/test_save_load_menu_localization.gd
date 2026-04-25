@@ -1,6 +1,6 @@
 extends GutTest
 
-const MENU_SCENE := preload("res://scenes/ui/overlays/ui_save_load_menu.tscn")
+const MENU_SCENE := preload("res://scenes/core/ui/overlays/ui_save_load_menu.tscn")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 
 var _store: M_StateStore

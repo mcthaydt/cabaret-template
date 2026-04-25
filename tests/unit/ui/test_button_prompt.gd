@@ -1,6 +1,6 @@
 extends GutTest
 
-const ButtonPromptScene := preload("res://scenes/ui/hud/ui_button_prompt.tscn")
+const ButtonPromptScene := preload("res://scenes/core/ui/hud/ui_button_prompt.tscn")
 const DeviceType := M_InputDeviceManager.DeviceType
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
@@ -354,7 +354,7 @@ func test_button_prompt_applies_theme_tokens_when_active_config_set() -> void:
 	)
 
 func test_button_prompt_scene_has_no_inline_theme_overrides() -> void:
-	var scene_text := FileAccess.get_file_as_string("res://scenes/ui/hud/ui_button_prompt.tscn")
+	var scene_text := FileAccess.get_file_as_string("res://scenes/core/ui/hud/ui_button_prompt.tscn")
 	assert_ne(scene_text, "", "Scene file should load as text")
 	assert_eq(
 		scene_text.find("theme_override_"),

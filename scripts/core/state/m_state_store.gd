@@ -289,7 +289,7 @@ func _input(event: InputEvent) -> void:
 	if toggle_pressed:
 		if _debug_overlay == null or not is_instance_valid(_debug_overlay):
 			# Spawn debug overlay
-			var overlay_scene := load("res://scenes/debug/debug_state_overlay.tscn")
+			var overlay_scene := load("res://scenes/core/debug/debug_state_overlay.tscn")
 			if overlay_scene:
 				_debug_overlay = overlay_scene.instantiate()
 				add_child(_debug_overlay)
@@ -318,7 +318,7 @@ func _input(event: InputEvent) -> void:
 		if color_grading_toggle_pressed:
 			if _color_grading_debug_overlay == null or not is_instance_valid(_color_grading_debug_overlay):
 				# Spawn color grading debug overlay
-				var color_grading_overlay_scene := load("res://scenes/debug/debug_color_grading_overlay.tscn")
+				var color_grading_overlay_scene := load("res://scenes/core/debug/debug_color_grading_overlay.tscn")
 				if color_grading_overlay_scene:
 					_color_grading_debug_overlay = color_grading_overlay_scene.instantiate()
 					add_child(_color_grading_debug_overlay)

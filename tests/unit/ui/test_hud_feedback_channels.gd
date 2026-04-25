@@ -1,6 +1,6 @@
 extends GutTest
 
-const HUD_SCENE := preload("res://scenes/ui/hud/ui_hud_overlay.tscn")
+const HUD_SCENE := preload("res://scenes/core/ui/hud/ui_hud_overlay.tscn")
 const U_SAVE_ACTIONS := preload("res://scripts/core/state/actions/u_save_actions.gd")
 
 var _store: M_StateStore

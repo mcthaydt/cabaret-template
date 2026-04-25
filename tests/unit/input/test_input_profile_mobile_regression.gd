@@ -3,7 +3,7 @@ extends GutTest
 ## Regression tests for mobile input profile fixes
 ## Ensures "default" (keyboard/mouse) profile is never used on mobile
 
-const SCENE_INPUT_PROFILE_SELECTOR := preload("res://scenes/ui/overlays/ui_input_profile_selector.tscn")
+const SCENE_INPUT_PROFILE_SELECTOR := preload("res://scenes/core/ui/overlays/ui_input_profile_selector.tscn")
 
 func before_each() -> void:
 	U_ServiceLocator.clear()

@@ -11,7 +11,7 @@ const U_LOCALIZATION_SELECTORS := preload("res://scripts/core/state/selectors/u_
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_STATE_HANDOFF := preload("res://scripts/core/state/utils/u_state_handoff.gd")
 
-const LOCALIZATION_SETTINGS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/settings/ui_localization_settings_overlay.tscn")
+const LOCALIZATION_SETTINGS_OVERLAY_SCENE := preload("res://scenes/core/ui/overlays/settings/ui_localization_settings_overlay.tscn")
 
 var _store: M_StateStore
 var _loc_manager: M_LocalizationManager

@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://c8v4h1sdtyhps"]
 
 [ext_resource type="Script" uid="uid://c53v7ibat7r27" path="res://scripts/core/ui/hud/ui_hud_controller.gd" id="1_hud"]
-[ext_resource type="PackedScene" uid="uid://bq8y7b2npl2g0" path="res://scenes/ui/hud/ui_button_prompt.tscn" id="2_button_prompt"]
+[ext_resource type="PackedScene" uid="uid://bq8y7b2npl2g0" path="res://scenes/core/ui/hud/ui_button_prompt.tscn" id="2_button_prompt"]
 [ext_resource type="Texture2D" uid="uid://c4jh8p28av3c" path="res://assets/textures/tex_spinner_autosave.svg" id="3_spinner_icon"]
 [ext_resource type="Script" uid="uid://cvi7rh32jhp6d" path="res://scripts/core/ui/helpers/u_localization_root.gd" id="localization_root"]
 [ext_resource type="Script" uid="uid://dfg7i5kfpjwg1" path="res://scripts/core/ui/helpers/u_ui_scale_root.gd" id="ui_scale_root"]

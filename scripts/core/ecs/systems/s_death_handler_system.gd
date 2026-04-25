@@ -2,7 +2,7 @@
 extends BaseECSSystem
 class_name S_DeathHandlerSystem
 
-const PLAYER_RAGDOLL := preload("res://scenes/prefabs/prefab_player_ragdoll.tscn")
+const PLAYER_RAGDOLL := preload("res://scenes/core/prefabs/prefab_player_ragdoll.tscn")
 
 var _event_unsubscribes: Array[Callable] = []
 var _ragdoll_spawned: Dictionary = {}  # entity_id -> bool

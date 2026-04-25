@@ -1,6 +1,6 @@
 extends GutTest
 
-const DAMAGE_FLASH_SCENE := preload("res://scenes/ui/overlays/ui_damage_flash_overlay.tscn")
+const DAMAGE_FLASH_SCENE := preload("res://scenes/core/ui/overlays/ui_damage_flash_overlay.tscn")
 
 var _flash_owner: CanvasLayer
 var _flash_rect: ColorRect

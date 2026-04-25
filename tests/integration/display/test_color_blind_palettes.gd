@@ -17,7 +17,7 @@ const U_DISPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_display_a
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_STATE_HANDOFF := preload("res://scripts/core/state/utils/u_state_handoff.gd")
 
-const POST_PROCESS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/ui_post_process_overlay.tscn")
+const POST_PROCESS_OVERLAY_SCENE := preload("res://scenes/core/ui/overlays/ui_post_process_overlay.tscn")
 
 const PALETTE_NORMAL_PATH := "res://resources/core/ui_themes/cfg_palette_normal.tres"
 const PALETTE_DEUTER_PATH := "res://resources/core/ui_themes/cfg_palette_deuteranopia.tres"

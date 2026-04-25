@@ -52,22 +52,22 @@ const PRODUCTION_PATH_DIRECTORIES := [
 ]
 
 const UI_POLISHED_OVERLAY_SCENES := [
-	"res://scenes/ui/menus/ui_pause_menu.tscn",
-	"res://scenes/ui/menus/ui_settings_menu.tscn",
-	"res://scenes/ui/overlays/ui_save_load_menu.tscn",
-	"res://scenes/ui/overlays/ui_input_rebinding_overlay.tscn",
-	"res://scenes/ui/overlays/ui_input_profile_selector.tscn",
-	"res://scenes/ui/overlays/ui_gamepad_settings_overlay.tscn",
-	"res://scenes/ui/overlays/ui_touchscreen_settings_overlay.tscn",
-	"res://scenes/ui/overlays/ui_edit_touch_controls_overlay.tscn",
-	"res://scenes/ui/overlays/settings/ui_audio_settings_overlay.tscn",
-	"res://scenes/ui/overlays/settings/ui_display_settings_overlay.tscn",
-	"res://scenes/ui/overlays/settings/ui_localization_settings_overlay.tscn",
-	"res://scenes/ui/overlays/settings/ui_vfx_settings_overlay.tscn",
+	"res://scenes/core/ui/menus/ui_pause_menu.tscn",
+	"res://scenes/core/ui/menus/ui_settings_menu.tscn",
+	"res://scenes/core/ui/overlays/ui_save_load_menu.tscn",
+	"res://scenes/core/ui/overlays/ui_input_rebinding_overlay.tscn",
+	"res://scenes/core/ui/overlays/ui_input_profile_selector.tscn",
+	"res://scenes/core/ui/overlays/ui_gamepad_settings_overlay.tscn",
+	"res://scenes/core/ui/overlays/ui_touchscreen_settings_overlay.tscn",
+	"res://scenes/core/ui/overlays/ui_edit_touch_controls_overlay.tscn",
+	"res://scenes/core/ui/overlays/settings/ui_audio_settings_overlay.tscn",
+	"res://scenes/core/ui/overlays/settings/ui_display_settings_overlay.tscn",
+	"res://scenes/core/ui/overlays/settings/ui_localization_settings_overlay.tscn",
+	"res://scenes/core/ui/overlays/settings/ui_vfx_settings_overlay.tscn",
 ]
 
 const UI_THEME_OVERRIDE_ALLOWED_COUNTS := {
-	"res://scenes/ui/widgets/ui_virtual_button.tscn": 4,
+	"res://scenes/core/ui/widgets/ui_virtual_button.tscn": 4,
 }
 
 const SCRIPT_FILENAME_EXCEPTIONS := [
@@ -319,17 +319,23 @@ func test_input_source_scripts_follow_suffix_rule() -> void:
 func test_scenes_follow_naming_conventions() -> void:
 	var violations: Array[String] = []
 
-	# Check gameplay scenes
-	_check_scene_directory("res://scenes/gameplay", "gameplay_", violations)
+	# Check core gameplay scenes
+	_check_scene_directory("res://scenes/core/gameplay", "gameplay_", violations)
+	# Check demo gameplay scenes
+	_check_scene_directory("res://scenes/demo/gameplay", "gameplay_", violations)
 
-	# Check UI scenes
-	_check_scene_directory("res://scenes/ui", "ui_", violations)
+	# Check core UI scenes
+	_check_scene_directory("res://scenes/core/ui", "ui_", violations)
 
-	# Check prefab scenes
-	_check_scene_directory("res://scenes/prefabs", "prefab_", violations)
+	# Check core prefab scenes
+	_check_scene_directory("res://scenes/core/prefabs", "prefab_", violations)
+	# Check demo prefab scenes
+	_check_scene_directory("res://scenes/demo/prefabs", "prefab_", violations)
 
-	# Check debug scenes
-	_check_scene_directory("res://scenes/debug", "debug_", violations)
+	# Check core debug scenes
+	_check_scene_directory("res://scenes/core/debug", "debug_", violations)
+	# Check demo debug scenes
+	_check_scene_directory("res://scenes/demo/debug", "debug_", violations)
 
 	var message := "Scene files must follow documented naming patterns"
 	if violations.size() > 0:
@@ -344,14 +350,14 @@ func test_resources_follow_naming_conventions() -> void:
 	var violations: Array[String] = []
 
 	# Check UI screen definitions
-	_check_resource_directory("res://resources/ui_screens",
+	_check_resource_directory("res://resources/core/ui_screens",
 		["_screen.tres", "_overlay.tres"], violations)
 
 	# Interaction config instances
-	_check_resource_directory("res://resources/interactions", ["cfg_"], violations)
+	_check_resource_directory("res://resources/core/interactions", ["cfg_"], violations)
 
 	# Interaction config placement (must be in typed subdirectories)
-	_collect_interaction_resource_placement_violations("res://resources/interactions", violations)
+	_collect_interaction_resource_placement_violations("res://resources/core/interactions", violations)
 
 	# Scene registry entries don't need strict naming - just verify they exist and have scripts
 	# (handled by test_trigger_resources_define_script_reference)
@@ -400,7 +406,7 @@ func test_polished_overlay_scenes_have_no_inline_theme_overrides() -> void:
 
 func test_no_inline_theme_overrides_except_semantic() -> void:
 	var override_counts: Dictionary = {}
-	_collect_scene_theme_override_counts("res://scenes/ui", override_counts)
+	_collect_scene_theme_override_counts("res://scenes/core/ui", override_counts)
 
 	var total_override_count: int = 0
 	var violations: Array[String] = []
@@ -425,11 +431,11 @@ func test_no_inline_theme_overrides_except_semantic() -> void:
 	assert_lte(
 		total_override_count,
 		4,
-		"Expected <= 4 total inline theme_override_* lines under scenes/ui (semantic virtual-button overrides only), got %d" % total_override_count
+		"Expected <= 4 total inline theme_override_* lines under scenes/core/ui (semantic virtual-button overrides only), got %d" % total_override_count
 	)
 
 func test_scene_organization_root_structure() -> void:
-	var root_scene := load("res://scenes/root.tscn") as PackedScene
+	var root_scene := load("res://scenes/core/root.tscn") as PackedScene
 	assert_not_null(root_scene, "Root scene must exist")
 
 	# Use PackedScene.get_state() to check node structure without instantiation
@@ -481,7 +487,7 @@ func test_scene_organization_root_structure() -> void:
 	assert_true(has_ui_overlay_stack, "Root scene must have UIOverlayStack")
 
 func test_scene_organization_gameplay_structure() -> void:
-	var gameplay_base := load("res://scenes/gameplay/gameplay_base.tscn") as PackedScene
+	var gameplay_base := load("res://scenes/core/gameplay/gameplay_base.tscn") as PackedScene
 	assert_not_null(gameplay_base, "Gameplay base scene must exist")
 
 	# Inspect the packed scene's state directly to avoid runtime initialization issues
@@ -518,7 +524,7 @@ func test_scene_organization_gameplay_structure() -> void:
 		"Spawn points must be under Entities node per SCENE_ORGANIZATION_GUIDE.md")
 
 func test_character_template_defines_camera_follow_anchor() -> void:
-	var character_scene := load("res://scenes/templates/tmpl_character.tscn") as PackedScene
+	var character_scene := load("res://scenes/core/templates/tmpl_character.tscn") as PackedScene
 	assert_not_null(character_scene, "Character template scene must exist")
 
 	var character_instance := character_scene.instantiate() as Node
@@ -537,7 +543,7 @@ func test_character_template_defines_camera_follow_anchor() -> void:
 		)
 
 func test_camera_template_uses_camera_follow_anchor_path() -> void:
-	var camera_scene := load("res://scenes/templates/tmpl_camera.tscn") as PackedScene
+	var camera_scene := load("res://scenes/core/templates/tmpl_camera.tscn") as PackedScene
 	assert_not_null(camera_scene, "Camera template scene must exist")
 
 	var camera_instance := camera_scene.instantiate() as Node
@@ -554,7 +560,7 @@ func test_camera_template_uses_camera_follow_anchor_path() -> void:
 		)
 
 func test_prefab_player_inherits_camera_follow_anchor() -> void:
-	var player_prefab := load("res://scenes/prefabs/prefab_player.tscn") as PackedScene
+	var player_prefab := load("res://scenes/core/prefabs/prefab_player.tscn") as PackedScene
 	assert_not_null(player_prefab, "Player prefab scene must exist")
 
 	var player_instance := player_prefab.instantiate() as Node
@@ -1347,7 +1353,7 @@ func _scene_embeds_hud_overlay(path: String) -> bool:
 	var has_hud_node := false
 	while not file.eof_reached():
 		var line := file.get_line()
-		if line.find("res://scenes/ui/hud/ui_hud_overlay.tscn") != -1:
+		if line.find("res://scenes/core/ui/hud/ui_hud_overlay.tscn") != -1:
 			has_hud_ext_resource = true
 		if line.begins_with("[node name=\"HUD\""):
 			has_hud_node = true

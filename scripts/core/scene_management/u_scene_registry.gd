@@ -69,7 +69,7 @@ static func _register_scenes() -> void:
 	# Splash Screen (boot entry point — shows logos, preloads gameplay scene)
 	_register_scene(
 		StringName("splash_screen"),
-		"res://scenes/ui/menus/ui_splash_screen.tscn",
+		"res://scenes/core/ui/menus/ui_splash_screen.tscn",
 		SceneType.MENU,
 		"instant",
 		10  # Critical path — first scene loaded at boot
@@ -78,7 +78,7 @@ static func _register_scenes() -> void:
 	# Language Selector (initial scene — first-run language picker)
 	_register_scene(
 		StringName("language_selector"),
-		"res://scenes/ui/menus/ui_language_selector.tscn",
+		"res://scenes/core/ui/menus/ui_language_selector.tscn",
 		SceneType.MENU,
 		"instant",
 		10  # Critical path — loaded before anything else
@@ -87,7 +87,7 @@ static func _register_scenes() -> void:
 	# Main Menu (game entry point)
 	_register_scene(
 		StringName("main_menu"),
-		"res://scenes/ui/menus/ui_main_menu.tscn",
+		"res://scenes/core/ui/menus/ui_main_menu.tscn",
 		SceneType.MENU,
 		"fade",
 		10  # Critical path - preload at startup (Phase 8)
@@ -96,7 +96,7 @@ static func _register_scenes() -> void:
 	# Settings Menu (user-designated critical)
 	_register_scene(
 		StringName("settings_menu"),
-		"res://scenes/ui/menus/ui_settings_menu.tscn",
+		"res://scenes/core/ui/menus/ui_settings_menu.tscn",
 		SceneType.UI,
 		"instant",
 		10  # Upgraded to critical priority per user request
@@ -105,7 +105,7 @@ static func _register_scenes() -> void:
 	# Pause Menu (preloaded at startup)
 	_register_scene(
 		StringName("pause_menu"),
-		"res://scenes/ui/menus/ui_pause_menu.tscn",
+		"res://scenes/core/ui/menus/ui_pause_menu.tscn",
 		SceneType.UI,
 		"instant",
 		10  # Critical path - preload at startup (Phase 8)
@@ -114,7 +114,7 @@ static func _register_scenes() -> void:
 	# Save/Load Menu (preloaded at startup)
 	_register_scene(
 		StringName("save_load_menu"),
-		"res://scenes/ui/overlays/ui_save_load_menu.tscn",
+		"res://scenes/core/ui/overlays/ui_save_load_menu.tscn",
 		SceneType.UI,
 		"instant",
 		10  # Critical path - accessed from pause menu
@@ -123,7 +123,7 @@ static func _register_scenes() -> void:
 	# Loading Screen (preloaded at startup)
 	_register_scene(
 		StringName("loading_screen"),
-		"res://scenes/ui/hud/ui_loading_screen.tscn",
+		"res://scenes/core/ui/hud/ui_loading_screen.tscn",
 		SceneType.UI,
 		"instant",
 		10  # Critical path - preload at startup (Phase 8)

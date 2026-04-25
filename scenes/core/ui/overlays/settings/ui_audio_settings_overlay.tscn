@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://cnd5u3iolcr7d"]
 
 [ext_resource type="Script" uid="uid://rx4gh8fwamt" path="res://scripts/core/ui/settings/ui_audio_settings_overlay.gd" id="1_ui_audio_settings_overlay_script"]
-[ext_resource type="PackedScene" uid="uid://d14323kd04ar0" path="res://scenes/ui/overlays/settings/ui_audio_settings_tab.tscn" id="2_ui_audio_settings_tab_scene"]
+[ext_resource type="PackedScene" uid="uid://d14323kd04ar0" path="res://scenes/core/ui/overlays/settings/ui_audio_settings_tab.tscn" id="2_ui_audio_settings_tab_scene"]
 [ext_resource type="Resource" uid="uid://b72010a71rlh7" path="res://resources/core/ui/motions/cfg_motion_fade_slide.tres" id="3_motion_set"]
 [ext_resource type="Script" uid="uid://cvi7rh32jhp6d" path="res://scripts/core/ui/helpers/u_localization_root.gd" id="localization_root"]
 [ext_resource type="Script" uid="uid://dfg7i5kfpjwg1" path="res://scripts/core/ui/helpers/u_ui_scale_root.gd" id="ui_scale_root"]

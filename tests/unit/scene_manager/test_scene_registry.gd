@@ -310,7 +310,7 @@ func test_localization_settings_scene_backfilled_when_missing() -> void:
 	assert_eq(localization_settings.get("scene_type", -1), U_SceneRegistry.SceneType.UI, "localization_settings should be UI type")
 	assert_eq(
 		String(localization_settings.get("path", "")),
-		"res://scenes/ui/overlays/settings/ui_localization_settings_overlay.tscn",
+		"res://scenes/core/ui/overlays/settings/ui_localization_settings_overlay.tscn",
 		"localization_settings should point to the localization settings overlay scene"
 	)
 

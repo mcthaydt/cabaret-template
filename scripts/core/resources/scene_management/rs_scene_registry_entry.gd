@@ -40,7 +40,7 @@ var _scene_id: StringName = StringName("")
 		if value == StringName(""):
 			push_error("RS_SceneRegistryEntry: scene_id must not be empty. Resource: %s" % resource_path)
 
-## Path to the scene file (e.g., "res://scenes/ui/ui_main_menu.tscn")
+## Path to the scene file (e.g., "res://scenes/core/ui/ui_main_menu.tscn")
 var _scene_path: String = ""
 
 @export_file("*.tscn") var scene_path: String = "":

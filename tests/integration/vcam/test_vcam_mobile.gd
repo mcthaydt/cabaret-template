@@ -1,7 +1,7 @@
 extends BaseTest
 
-const MOBILE_CONTROLS_SCENE := preload("res://scenes/ui/hud/ui_mobile_controls.tscn")
-const TOUCHSCREEN_SETTINGS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/ui_touchscreen_settings_overlay.tscn")
+const MOBILE_CONTROLS_SCENE := preload("res://scenes/core/ui/hud/ui_mobile_controls.tscn")
+const TOUCHSCREEN_SETTINGS_OVERLAY_SCENE := preload("res://scenes/core/ui/overlays/ui_touchscreen_settings_overlay.tscn")
 
 const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/core/resources/state/rs_state_store_settings.gd")

@@ -1,6 +1,6 @@
 extends GutTest
 
-const MobileControlsScene := preload("res://scenes/ui/hud/ui_mobile_controls.tscn")
+const MobileControlsScene := preload("res://scenes/core/ui/hud/ui_mobile_controls.tscn")
 
 func before_each() -> void:
 	U_StateHandoff.clear_all()

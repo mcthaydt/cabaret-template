@@ -3,8 +3,8 @@ extends BaseTest
 const ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
 const ECS_COMPONENT := preload("res://scripts/core/ecs/base_ecs_component.gd")
 const ECS_SYSTEM := preload("res://scripts/core/ecs/base_ecs_system.gd")
-const PLAYER_SCENE := preload("res://scenes/prefabs/prefab_player.tscn")
-const BASE_SCENE := preload("res://scenes/templates/tmpl_base_scene.tscn")
+const PLAYER_SCENE := preload("res://scenes/core/prefabs/prefab_player.tscn")
+const BASE_SCENE := preload("res://scenes/core/templates/tmpl_base_scene.tscn")
 
 class FakeComponent extends BaseECSComponent:
 	const TYPE := StringName("C_FakeComponent")

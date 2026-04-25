@@ -1,6 +1,6 @@
 extends GutTest
 
-const HUD_SCENE := preload("res://scenes/ui/hud/ui_hud_overlay.tscn")
+const HUD_SCENE := preload("res://scenes/core/ui/hud/ui_hud_overlay.tscn")
 const DeviceType := M_InputDeviceManager.DeviceType
 
 class LocalizationManagerStub extends Node:

@@ -1,6 +1,6 @@
 extends GutTest
 
-const HUD_SCENE := preload("res://scenes/ui/hud/ui_hud_overlay.tscn")
+const HUD_SCENE := preload("res://scenes/core/ui/hud/ui_hud_overlay.tscn")
 const I_LOCALIZATION_MANAGER := preload("res://scripts/core/interfaces/i_localization_manager.gd")
 
 ## Minimal mock for the localization manager — returns translated string or falls back to key.

@@ -1,8 +1,8 @@
 extends CanvasLayer
 class_name UI_MobileControls
 
-const VIRTUAL_JOYSTICK_SCENE := preload("res://scenes/ui/widgets/ui_virtual_joystick.tscn")
-const VIRTUAL_BUTTON_SCENE := preload("res://scenes/ui/widgets/ui_virtual_button.tscn")
+const VIRTUAL_JOYSTICK_SCENE := preload("res://scenes/core/ui/widgets/ui_virtual_joystick.tscn")
+const VIRTUAL_BUTTON_SCENE := preload("res://scenes/core/ui/widgets/ui_virtual_button.tscn")
 
 @export var force_enable: bool = false
 @export var emulate_mobile_override: bool = false

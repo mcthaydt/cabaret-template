@@ -34,7 +34,7 @@ func test_desktop_controls_visible_on_desktop() -> void:
 		return
 
 	# WHEN: Display settings tab is instantiated
-	var scene := load("res://scenes/ui/overlays/settings/ui_display_settings_tab.tscn")
+	var scene := load("res://scenes/core/ui/overlays/settings/ui_display_settings_tab.tscn")
 	_tab = scene.instantiate()
 	add_child_autofree(_tab)
 	await get_tree().process_frame
@@ -60,7 +60,7 @@ func test_desktop_controls_hidden_on_mobile() -> void:
 		return
 
 	# WHEN: Display settings tab is instantiated
-	var scene := load("res://scenes/ui/overlays/settings/ui_display_settings_tab.tscn")
+	var scene := load("res://scenes/core/ui/overlays/settings/ui_display_settings_tab.tscn")
 	_tab = scene.instantiate()
 	add_child_autofree(_tab)
 	await get_tree().process_frame
@@ -84,7 +84,7 @@ func test_mobile_controls_still_visible_on_mobile() -> void:
 		return
 
 	# WHEN: Display settings tab is instantiated
-	var scene := load("res://scenes/ui/overlays/settings/ui_display_settings_tab.tscn")
+	var scene := load("res://scenes/core/ui/overlays/settings/ui_display_settings_tab.tscn")
 	_tab = scene.instantiate()
 	add_child_autofree(_tab)
 	await get_tree().process_frame

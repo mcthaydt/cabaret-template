@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://x3kbhac4l16l"]
 
-[ext_resource type="PackedScene" uid="uid://cyu3l6we2jq23" path="res://scenes/templates/tmpl_character.tscn" id="1_character"]
+[ext_resource type="PackedScene" uid="uid://cyu3l6we2jq23" path="res://scenes/core/templates/tmpl_character.tscn" id="1_character"]
 [ext_resource type="Resource" uid="uid://b3bxwsax1jmy5" path="res://resources/demo/ai/woods/wolf/cfg_woods_wolf_brain.tres" id="2_wolf_brain"]
 [ext_resource type="Resource" uid="uid://bqvxuqbjjpv38" path="res://resources/demo/base_settings/ai_woods/ai_woods/cfg_needs_wolf.tres" id="3_needs_wolf"]
 [ext_resource type="Resource" uid="uid://djsbcpo76jofy" path="res://resources/demo/base_settings/ai_woods/ai_woods/cfg_movement_woods_wolf.tres" id="4_movement_wolf"]

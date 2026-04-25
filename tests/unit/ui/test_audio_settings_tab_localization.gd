@@ -1,6 +1,6 @@
 extends GutTest
 
-const TAB_SCENE := preload("res://scenes/ui/overlays/settings/ui_audio_settings_tab.tscn")
+const TAB_SCENE := preload("res://scenes/core/ui/overlays/settings/ui_audio_settings_tab.tscn")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 
 var _store: M_StateStore
