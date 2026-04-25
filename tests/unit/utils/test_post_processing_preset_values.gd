@@ -2,9 +2,9 @@ extends GutTest
 
 ## Tests for post-processing preset intensity values
 
-const CFG_LIGHT_PRESET := preload("res://resources/display/cfg_post_processing_presets/cfg_post_processing_light.tres")
-const CFG_MEDIUM_PRESET := preload("res://resources/display/cfg_post_processing_presets/cfg_post_processing_medium.tres")
-const CFG_HEAVY_PRESET := preload("res://resources/display/cfg_post_processing_presets/cfg_post_processing_heavy.tres")
+const CFG_LIGHT_PRESET := preload("res://resources/core/display/cfg_post_processing_presets/cfg_post_processing_light.tres")
+const CFG_MEDIUM_PRESET := preload("res://resources/core/display/cfg_post_processing_presets/cfg_post_processing_medium.tres")
+const CFG_HEAVY_PRESET := preload("res://resources/core/display/cfg_post_processing_presets/cfg_post_processing_heavy.tres")
 
 
 func test_light_preset_has_lower_intensities() -> void:

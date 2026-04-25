@@ -7,24 +7,24 @@ const RS_QUALITY_PRESET := preload("res://scripts/core/resources/display/rs_qual
 const RS_WINDOW_SIZE_PRESET := preload("res://scripts/core/resources/display/rs_window_size_preset.gd")
 const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_localization_utils.gd")
 
-const QUALITY_PRESET_DIR := "res://resources/display/cfg_quality_presets"
-const WINDOW_SIZE_PRESET_DIR := "res://resources/display/cfg_window_size_presets"
+const QUALITY_PRESET_DIR := "res://resources/core/display/cfg_quality_presets"
+const WINDOW_SIZE_PRESET_DIR := "res://resources/core/display/cfg_window_size_presets"
 
 # Preloaded quality presets (mobile-compatible - avoids runtime DirAccess on Android)
 const QUALITY_PRESETS := [
-	preload("res://resources/display/cfg_quality_presets/cfg_quality_low.tres"),
-	preload("res://resources/display/cfg_quality_presets/cfg_quality_medium.tres"),
-	preload("res://resources/display/cfg_quality_presets/cfg_quality_high.tres"),
-	preload("res://resources/display/cfg_quality_presets/cfg_quality_ultra.tres"),
+	preload("res://resources/core/display/cfg_quality_presets/cfg_quality_low.tres"),
+	preload("res://resources/core/display/cfg_quality_presets/cfg_quality_medium.tres"),
+	preload("res://resources/core/display/cfg_quality_presets/cfg_quality_high.tres"),
+	preload("res://resources/core/display/cfg_quality_presets/cfg_quality_ultra.tres"),
 ]
 
 # Preloaded window size presets (mobile-compatible - avoids runtime DirAccess on Android)
 const WINDOW_SIZE_PRESETS := [
-	preload("res://resources/display/cfg_window_size_presets/cfg_window_size_1280x720.tres"),
-	preload("res://resources/display/cfg_window_size_presets/cfg_window_size_1600x900.tres"),
-	preload("res://resources/display/cfg_window_size_presets/cfg_window_size_1920x1080.tres"),
-	preload("res://resources/display/cfg_window_size_presets/cfg_window_size_2560x1440.tres"),
-	preload("res://resources/display/cfg_window_size_presets/cfg_window_size_3840x2160.tres"),
+	preload("res://resources/core/display/cfg_window_size_presets/cfg_window_size_1280x720.tres"),
+	preload("res://resources/core/display/cfg_window_size_presets/cfg_window_size_1600x900.tres"),
+	preload("res://resources/core/display/cfg_window_size_presets/cfg_window_size_1920x1080.tres"),
+	preload("res://resources/core/display/cfg_window_size_presets/cfg_window_size_2560x1440.tres"),
+	preload("res://resources/core/display/cfg_window_size_presets/cfg_window_size_3840x2160.tres"),
 ]
 
 const WINDOW_MODE_OPTIONS := [

@@ -28,7 +28,7 @@ static func _get_neutral_grade() -> RS_SceneColorGrading:
 static func _register_scene_grades() -> void:
 	_scene_grades.clear()
 
-	var gameplay_base := preload("res://resources/display/color_gradings/cfg_color_grading_gameplay_base.tres") as RS_SceneColorGrading
+	var gameplay_base := preload("res://resources/core/display/color_gradings/cfg_color_grading_gameplay_base.tres") as RS_SceneColorGrading
 	var alleyway := preload("res://resources/demo/display/color_gradings/cfg_color_grading_alleyway.tres") as RS_SceneColorGrading
 	var exterior := preload("res://resources/demo/display/color_gradings/cfg_color_grading_exterior.tres") as RS_SceneColorGrading
 	var bar := preload("res://resources/demo/display/color_gradings/cfg_color_grading_bar.tres") as RS_SceneColorGrading

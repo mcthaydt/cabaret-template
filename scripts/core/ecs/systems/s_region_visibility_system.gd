@@ -13,7 +13,7 @@ const U_ROOM_FADE_MATERIAL_APPLIER := preload(
 )
 const U_ENTITY_SELECTORS := preload("res://scripts/core/state/selectors/u_entity_selectors.gd")
 const DEFAULT_REGION_VISIBILITY_SETTINGS := preload(
-	"res://resources/display/vcam/cfg_default_region_visibility.tres"
+	"res://resources/core/display/vcam/cfg_default_region_visibility.tres"
 )
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/core/utils/display/u_mobile_platform_detector.gd")
 const U_PERF_PROBE := preload("res://scripts/core/utils/debug/u_perf_probe.gd")

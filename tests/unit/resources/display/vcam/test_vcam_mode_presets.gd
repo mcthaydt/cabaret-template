@@ -3,8 +3,8 @@ extends GutTest
 const RS_VCAM_MODE_ORBIT := preload("res://scripts/core/resources/display/vcam/rs_vcam_mode_orbit.gd")
 const RS_VCAM_RESPONSE := preload("res://scripts/core/resources/display/vcam/rs_vcam_response.gd")
 
-const DEFAULT_ORBIT_PATH := "res://resources/display/vcam/cfg_default_orbit.tres"
-const DEFAULT_RESPONSE_PATH := "res://resources/display/vcam/cfg_default_response.tres"
+const DEFAULT_ORBIT_PATH := "res://resources/core/display/vcam/cfg_default_orbit.tres"
+const DEFAULT_RESPONSE_PATH := "res://resources/core/display/vcam/cfg_default_response.tres"
 
 func test_default_orbit_preset_loads_as_orbit_mode() -> void:
 	var preset := load(DEFAULT_ORBIT_PATH) as Resource

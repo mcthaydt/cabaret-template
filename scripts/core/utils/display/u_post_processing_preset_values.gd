@@ -8,9 +8,9 @@ const RS_POST_PROCESSING_PRESET := preload("res://scripts/core/resources/display
 # Mobile-safe: Use const preload arrays instead of runtime DirAccess.open()
 # (DirAccess fails on Android when resources are packed into PCK files)
 const _PRESET_RESOURCES := [
-	preload("res://resources/display/cfg_post_processing_presets/cfg_post_processing_light.tres"),
-	preload("res://resources/display/cfg_post_processing_presets/cfg_post_processing_medium.tres"),
-	preload("res://resources/display/cfg_post_processing_presets/cfg_post_processing_heavy.tres"),
+	preload("res://resources/core/display/cfg_post_processing_presets/cfg_post_processing_light.tres"),
+	preload("res://resources/core/display/cfg_post_processing_presets/cfg_post_processing_medium.tres"),
+	preload("res://resources/core/display/cfg_post_processing_presets/cfg_post_processing_heavy.tres"),
 ]
 
 static var _presets_loaded: bool = false
