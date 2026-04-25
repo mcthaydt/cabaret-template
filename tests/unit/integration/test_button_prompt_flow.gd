@@ -1,12 +1,12 @@
 extends GutTest
 
 const HUD_SCENE := preload("res://scenes/ui/hud/ui_hud_overlay.tscn")
-const CFG_STATE_STORE_SETTINGS := preload("res://resources/state/cfg_default_state_store_settings.tres")
-const CFG_BOOT_INITIAL_STATE := preload("res://resources/state/cfg_default_boot_initial_state.tres")
-const CFG_MENU_INITIAL_STATE := preload("res://resources/state/cfg_default_menu_initial_state.tres")
-const CFG_GAMEPLAY_INITIAL_STATE := preload("res://resources/state/cfg_default_gameplay_initial_state.tres")
-const CFG_SCENE_INITIAL_STATE := preload("res://resources/state/cfg_default_scene_initial_state.tres")
-const CFG_SETTINGS_INITIAL_STATE := preload("res://resources/state/cfg_default_settings_initial_state.tres")
+const CFG_STATE_STORE_SETTINGS := preload("res://resources/core/state/cfg_default_state_store_settings.tres")
+const CFG_BOOT_INITIAL_STATE := preload("res://resources/core/state/cfg_default_boot_initial_state.tres")
+const CFG_MENU_INITIAL_STATE := preload("res://resources/core/state/cfg_default_menu_initial_state.tres")
+const CFG_GAMEPLAY_INITIAL_STATE := preload("res://resources/core/state/cfg_default_gameplay_initial_state.tres")
+const CFG_SCENE_INITIAL_STATE := preload("res://resources/core/state/cfg_default_scene_initial_state.tres")
+const CFG_SETTINGS_INITIAL_STATE := preload("res://resources/core/state/cfg_default_settings_initial_state.tres")
 const DeviceType := M_InputDeviceManager.DeviceType
 
 var _store: M_StateStore

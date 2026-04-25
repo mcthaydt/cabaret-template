@@ -1,7 +1,7 @@
 extends RefCounted
 class_name U_SceneRegistryLoader
 
-const CFG_GAMEPLAY_BASE_ENTRY := preload("res://resources/scene_registry/cfg_gameplay_base_entry.tres")
+const CFG_GAMEPLAY_BASE_ENTRY := preload("res://resources/core/scene_registry/cfg_gameplay_base_entry.tres")
 const CFG_ALLEYWAY_ENTRY := preload("res://resources/demo/scene_registry/cfg_alleyway_entry.tres")
 const CFG_INTERIOR_HOUSE_ENTRY := preload("res://resources/demo/scene_registry/cfg_interior_house_entry.tres")
 const CFG_INTERIOR_A_ENTRY := preload("res://resources/demo/scene_registry/cfg_interior_a_entry.tres")
@@ -11,18 +11,18 @@ const CFG_COMMS_ARRAY_ENTRY := preload("res://resources/demo/scene_registry/cfg_
 const CFG_NAV_NEXUS_ENTRY := preload("res://resources/demo/scene_registry/cfg_nav_nexus_entry.tres")
 const CFG_AI_SHOWCASE_ENTRY := preload("res://resources/demo/scene_registry/cfg_ai_showcase_entry.tres")
 const CFG_AI_WOODS_ENTRY := preload("res://resources/demo/scene_registry/cfg_ai_woods_entry.tres")
-const CFG_UI_GAME_OVER_ENTRY := preload("res://resources/scene_registry/cfg_ui_game_over_entry.tres")
-const CFG_UI_VICTORY_ENTRY := preload("res://resources/scene_registry/cfg_ui_victory_entry.tres")
-const CFG_UI_CREDITS_ENTRY := preload("res://resources/scene_registry/cfg_ui_credits_entry.tres")
-const CFG_UI_GAMEPAD_SETTINGS_ENTRY := preload("res://resources/scene_registry/cfg_ui_gamepad_settings_entry.tres")
-const CFG_UI_TOUCHSCREEN_SETTINGS_ENTRY := preload("res://resources/scene_registry/cfg_ui_touchscreen_settings_entry.tres")
-const CFG_UI_EDIT_TOUCH_CONTROLS_ENTRY := preload("res://resources/scene_registry/cfg_ui_edit_touch_controls_entry.tres")
-const CFG_UI_INPUT_PROFILE_SELECTOR_ENTRY := preload("res://resources/scene_registry/cfg_ui_input_profile_selector_entry.tres")
-const CFG_UI_INPUT_REBINDING_ENTRY := preload("res://resources/scene_registry/cfg_ui_input_rebinding_entry.tres")
-const CFG_UI_DISPLAY_SETTINGS_ENTRY := preload("res://resources/scene_registry/cfg_ui_display_settings_entry.tres")
-const CFG_UI_AUDIO_SETTINGS_ENTRY := preload("res://resources/scene_registry/cfg_ui_audio_settings_entry.tres")
-const CFG_UI_LOCALIZATION_SETTINGS_ENTRY := preload("res://resources/scene_registry/cfg_ui_localization_settings_entry.tres")
-const CFG_UI_KEYBOARD_MOUSE_SETTINGS_ENTRY := preload("res://resources/scene_registry/cfg_ui_keyboard_mouse_settings_entry.tres")
+const CFG_UI_GAME_OVER_ENTRY := preload("res://resources/core/scene_registry/cfg_ui_game_over_entry.tres")
+const CFG_UI_VICTORY_ENTRY := preload("res://resources/core/scene_registry/cfg_ui_victory_entry.tres")
+const CFG_UI_CREDITS_ENTRY := preload("res://resources/core/scene_registry/cfg_ui_credits_entry.tres")
+const CFG_UI_GAMEPAD_SETTINGS_ENTRY := preload("res://resources/core/scene_registry/cfg_ui_gamepad_settings_entry.tres")
+const CFG_UI_TOUCHSCREEN_SETTINGS_ENTRY := preload("res://resources/core/scene_registry/cfg_ui_touchscreen_settings_entry.tres")
+const CFG_UI_EDIT_TOUCH_CONTROLS_ENTRY := preload("res://resources/core/scene_registry/cfg_ui_edit_touch_controls_entry.tres")
+const CFG_UI_INPUT_PROFILE_SELECTOR_ENTRY := preload("res://resources/core/scene_registry/cfg_ui_input_profile_selector_entry.tres")
+const CFG_UI_INPUT_REBINDING_ENTRY := preload("res://resources/core/scene_registry/cfg_ui_input_rebinding_entry.tres")
+const CFG_UI_DISPLAY_SETTINGS_ENTRY := preload("res://resources/core/scene_registry/cfg_ui_display_settings_entry.tres")
+const CFG_UI_AUDIO_SETTINGS_ENTRY := preload("res://resources/core/scene_registry/cfg_ui_audio_settings_entry.tres")
+const CFG_UI_LOCALIZATION_SETTINGS_ENTRY := preload("res://resources/core/scene_registry/cfg_ui_localization_settings_entry.tres")
+const CFG_UI_KEYBOARD_MOUSE_SETTINGS_ENTRY := preload("res://resources/core/scene_registry/cfg_ui_keyboard_mouse_settings_entry.tres")
 
 const PRELOADED_SCENE_REGISTRY_ENTRIES := [
 	CFG_GAMEPLAY_BASE_ENTRY,

@@ -35,7 +35,7 @@ func before_each() -> void:
 	_store.settings.enable_persistence = false
 	_store.settings.enable_debug_logging = false
 	_store.settings.enable_debug_overlay = false
-	_store.gameplay_initial_state = load("res://resources/state/cfg_default_gameplay_initial_state.tres")
+	_store.gameplay_initial_state = load("res://resources/core/state/cfg_default_gameplay_initial_state.tres")
 	_store.display_initial_state = RS_DisplayInitialState.new()
 	add_child_autofree(_store)
 	await get_tree().process_frame

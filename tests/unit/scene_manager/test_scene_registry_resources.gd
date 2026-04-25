@@ -3,7 +3,7 @@ extends GutTest
 ## Unit tests for U_SceneRegistry resource-based scene entries loader (T212)
 
 
-var _tmp_path := "res://resources/scene_registry/cfg_tmp_registry_test_entry.tres"
+var _tmp_path := "res://resources/core/scene_registry/cfg_tmp_registry_test_entry.tres"
 var _tmp_scene_id := StringName("tmp_registry_test_scene")
 var _scenes_backup: Dictionary
 
@@ -11,7 +11,7 @@ func after_each() -> void:
     # Cleanup registry and file if present
     if _scenes_backup != null:
         U_SceneRegistry._scenes = _scenes_backup  # restore previous registry
-    var da := DirAccess.open("res://resources/scene_registry/")
+    var da := DirAccess.open("res://resources/core/scene_registry/")
     if da and da.file_exists("cfg_tmp_registry_test_entry.tres"):
         da.remove("cfg_tmp_registry_test_entry.tres")
 
@@ -54,6 +54,6 @@ func test_loader_accepts_trailing_slash_dir_path() -> void:
         registered[scene_id] = default_transition
 
     var loader = U_SceneRegistry._loader
-    loader._load_entries_from_dir("res://resources/scene_registry/", scenes, register_callable)
+    loader._load_entries_from_dir("res://resources/core/scene_registry/", scenes, register_callable)
 
     assert_true(registered.has(_tmp_scene_id), "Loader should accept trailing-slash directory paths")

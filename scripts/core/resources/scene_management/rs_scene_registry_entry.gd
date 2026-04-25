@@ -26,7 +26,7 @@ class_name RS_SceneRegistryEntry
 ## entry.scene_type = SceneType.GAMEPLAY
 ## entry.default_transition = "fade"
 ## entry.preload_priority = 5
-## ResourceSaver.save(entry, "res://resources/scene_registry/cfg_my_level_entry.tres")
+## ResourceSaver.save(entry, "res://resources/core/scene_registry/cfg_my_level_entry.tres")
 ## ```
 
 ## Unique identifier for this scene (e.g., "main_menu", "level_01")

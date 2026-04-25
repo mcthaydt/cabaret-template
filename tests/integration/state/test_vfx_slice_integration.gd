@@ -5,7 +5,7 @@ extends GutTest
 
 const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/core/resources/state/rs_state_store_settings.gd")
-const DEFAULT_VFX_INITIAL_STATE := preload("res://resources/state/cfg_default_vfx_initial_state.tres")
+const DEFAULT_VFX_INITIAL_STATE := preload("res://resources/core/state/cfg_default_vfx_initial_state.tres")
 const U_STATE_HANDOFF := preload("res://scripts/core/state/utils/u_state_handoff.gd")
 
 var _root: Node
