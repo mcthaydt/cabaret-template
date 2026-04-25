@@ -68,7 +68,7 @@ func load_resource_entries(scenes: Dictionary, register_scene_callable: Callable
 		# Optional additive scan for dev/headless runs so newly-authored resources can
 		# register without code changes. Duplicates from the preload manifest are expected.
 		res_result = _load_entries_from_dir(
-			"res://resources/scene_registry",
+			"res://resources/core/scene_registry",
 			scenes,
 			register_scene_callable,
 			false,
