@@ -3,21 +3,19 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://tyc24baxv7x0"
-path="res://.godot/imported/mdl_new_interior.glb-a3ae2888ff746a9857b901b28c6c086f.scn"
+uid="uid://beujlsseax1wc"
+path="res://.godot/imported/mdl_new_exterior.glb-0755d043813e9f6173df70c2789f7dee.scn"
 
 [deps]
 
-source_file="res://assets/models/mdl_new_interior.glb"
-dest_files=["res://.godot/imported/mdl_new_interior.glb-a3ae2888ff746a9857b901b28c6c086f.scn"]
+source_file="res://assets/demo/models/mdl_new_exterior.glb"
+dest_files=["res://.godot/imported/mdl_new_exterior.glb-0755d043813e9f6173df70c2789f7dee.scn"]
 
 [params]
 
 nodes/root_type=""
 nodes/root_name=""
 nodes/root_script=null
-mesh_library/use_node_names_as_mesh_names=false
-array_mesh/deduplicate_surfaces=true
 nodes/apply_root_scale=true
 nodes/root_scale=1.0
 nodes/import_as_skeleton_bones=false
@@ -42,4 +40,3 @@ materials/extract_path=""
 _subresources={}
 gltf/naming_version=0
 gltf/embedded_image_handling=0
-gltf/texture_map_mode=1

@@ -18,8 +18,8 @@ const U_TRANSITION_TEST_HELPERS := preload("res://tests/helpers/u_transition_tes
 const U_AUDIO_TEST_HELPERS := preload("res://tests/helpers/u_audio_test_helpers.gd")
 
 const STREAM_MAIN_MENU := preload("res://assets/audio/music/mus_main_menu.mp3")
-const STREAM_ALLEYWAY := preload("res://assets/audio/music/mus_alleyway.mp3")
-const STREAM_INTERIOR := preload("res://assets/audio/music/mus_interior.mp3")
+const STREAM_ALLEYWAY := preload("res://assets/demo/audio/music/mus_alleyway.mp3")
+const STREAM_INTERIOR := preload("res://assets/demo/audio/music/mus_interior.mp3")
 const STREAM_PAUSE := preload("res://assets/audio/music/mus_pause.mp3")
 
 var _store: M_StateStore
