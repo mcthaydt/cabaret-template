@@ -31,7 +31,7 @@ const PLAYER_TAG_COMPONENT := preload("res://scripts/core/ecs/components/c_playe
 const HEALTH_COMPONENT := preload("res://scripts/core/ecs/components/c_health_component.gd")
 const HEALTH_SYSTEM := preload("res://scripts/core/ecs/systems/s_health_system.gd")
 const DEATH_HANDLER_SYSTEM := preload("res://scripts/core/ecs/systems/s_death_handler_system.gd")
-const HEALTH_SETTINGS_RESOURCE := preload("res://resources/base_settings/gameplay/cfg_health_settings.tres")
+const HEALTH_SETTINGS_RESOURCE := preload("res://resources/core/base_settings/gameplay/cfg_health_settings.tres")
 
 const VICTORY_COMPONENT := preload("res://scripts/core/ecs/components/c_victory_trigger_component.gd")
 const GAME_EVENT_SYSTEM := preload("res://scripts/core/ecs/systems/s_game_event_system.gd")

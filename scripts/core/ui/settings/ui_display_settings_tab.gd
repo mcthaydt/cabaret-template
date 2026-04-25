@@ -2,7 +2,7 @@
 extends VBoxContainer
 class_name UI_DisplaySettingsTab
 
-const DEFAULT_DISPLAY_INITIAL_STATE: Resource = preload("res://resources/base_settings/state/cfg_display_initial_state.tres")
+const DEFAULT_DISPLAY_INITIAL_STATE: Resource = preload("res://resources/core/base_settings/state/cfg_display_initial_state.tres")
 const WINDOW_CONFIRM_SECONDS := 10
 const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_localization_utils.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")

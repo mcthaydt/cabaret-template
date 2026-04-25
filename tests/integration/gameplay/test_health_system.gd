@@ -22,7 +22,7 @@ const PLAYER_TAG_COMPONENT_PATH := "res://scripts/core/ecs/components/c_player_t
 const HEALTH_COMPONENT_PATH := "res://scripts/core/ecs/components/c_health_component.gd"
 const HEALTH_SYSTEM_PATH := "res://scripts/core/ecs/systems/s_health_system.gd"
 const HEALTH_SETTINGS_PATH := "res://scripts/core/resources/ecs/rs_health_settings.gd"
-const HEALTH_SETTINGS_RESOURCE := "res://resources/base_settings/gameplay/cfg_health_settings.tres"
+const HEALTH_SETTINGS_RESOURCE := "res://resources/core/base_settings/gameplay/cfg_health_settings.tres"
 
 var _root: Node
 var _state_store: M_StateStore

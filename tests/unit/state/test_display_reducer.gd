@@ -2,7 +2,7 @@ extends GutTest
 
 # Tests for U_DisplayReducer (Phase 0 - Task 0C.1)
 
-const DEFAULT_DISPLAY_CONFIG := preload("res://resources/base_settings/display/cfg_display_config_default.tres")
+const DEFAULT_DISPLAY_CONFIG := preload("res://resources/core/base_settings/display/cfg_display_config_default.tres")
 
 # Test 1: Default state has all fields
 func test_default_state_has_all_fields() -> void:

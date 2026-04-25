@@ -12,7 +12,7 @@ const U_PERF_PROBE := preload("res://scripts/core/utils/debug/u_perf_probe.gd")
 const U_PERF_FADE_BYPASS := preload("res://scripts/core/utils/debug/u_perf_fade_bypass.gd")
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/core/utils/display/u_mobile_platform_detector.gd")
 const RS_WALL_VISIBILITY_CONFIG_SCRIPT := preload("res://scripts/core/resources/ecs/rs_wall_visibility_config.gd")
-const DEFAULT_WALL_VISIBILITY_CONFIG := preload("res://resources/base_settings/gameplay/cfg_wall_visibility_config_default.tres")
+const DEFAULT_WALL_VISIBILITY_CONFIG := preload("res://resources/core/base_settings/gameplay/cfg_wall_visibility_config_default.tres")
 
 const ROOM_FADE_GROUP_TYPE := StringName("RoomFadeGroup")
 const MIN_NORMAL_LENGTH_SQUARED := 0.000001

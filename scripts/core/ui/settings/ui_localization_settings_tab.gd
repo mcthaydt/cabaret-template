@@ -10,7 +10,7 @@ const U_NAVIGATION_SELECTORS := preload("res://scripts/core/state/selectors/u_na
 const U_FOCUS_CONFIGURATOR := preload("res://scripts/core/ui/helpers/u_focus_configurator.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
-const DEFAULT_LOCALIZATION_INITIAL_STATE: Resource = preload("res://resources/base_settings/state/cfg_localization_initial_state.tres")
+const DEFAULT_LOCALIZATION_INITIAL_STATE: Resource = preload("res://resources/core/base_settings/state/cfg_localization_initial_state.tres")
 
 const SUPPORTED_LOCALES: Array[StringName] = [&"en", &"es", &"pt", &"zh_CN", &"ja"]
 const LOCALE_LABEL_KEYS: Array[StringName] = [

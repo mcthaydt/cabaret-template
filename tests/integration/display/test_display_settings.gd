@@ -25,7 +25,7 @@ const U_STATE_HANDOFF := preload("res://scripts/core/state/utils/u_state_handoff
 
 const DISPLAY_SETTINGS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/settings/ui_display_settings_overlay.tscn")
 const POST_PROCESS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/ui_post_process_overlay.tscn")
-const DEFAULT_DISPLAY_INITIAL_STATE: Resource = preload("res://resources/base_settings/state/cfg_display_initial_state.tres")
+const DEFAULT_DISPLAY_INITIAL_STATE: Resource = preload("res://resources/core/base_settings/state/cfg_display_initial_state.tres")
 
 const TEST_SAVE_PATH := "user://test_display_settings_ui.json"
 

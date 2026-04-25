@@ -19,10 +19,10 @@
 [ext_resource type="Script" uid="uid://dlse8vj3jiisi" path="res://scripts/core/ecs/systems/s_align_with_surface_system.gd" id="7_awem0"]
 [ext_resource type="Script" uid="uid://dd2ltbkjfti8n" path="res://scripts/core/ecs/systems/s_landing_indicator_system.gd" id="8_ey5t3"]
 [ext_resource type="Script" uid="uid://b58c42adqelud" path="res://scripts/core/ecs/systems/s_jump_particles_system.gd" id="9_jump_particles"]
-[ext_resource type="Resource" uid="uid://cd2l2cajwt23m" path="res://resources/base_settings/gameplay/cfg_jump_particles_default.tres" id="9_jump_particles_settings"]
+[ext_resource type="Resource" uid="uid://cd2l2cajwt23m" path="res://resources/core/base_settings/gameplay/cfg_jump_particles_default.tres" id="9_jump_particles_settings"]
 [ext_resource type="Script" uid="uid://cikvipyjc5hnc" path="res://scripts/core/ecs/systems/s_jump_sound_system.gd" id="9_jump_sound"]
 [ext_resource type="Script" uid="uid://bswg78jnnaste" path="res://scripts/core/ecs/systems/s_landing_particles_system.gd" id="10_landing_particles"]
-[ext_resource type="Resource" uid="uid://oxvahsme8310" path="res://resources/base_settings/gameplay/cfg_landing_particles_default.tres" id="10_landing_particles_settings"]
+[ext_resource type="Resource" uid="uid://oxvahsme8310" path="res://resources/core/base_settings/gameplay/cfg_landing_particles_default.tres" id="10_landing_particles_settings"]
 [ext_resource type="Script" uid="uid://d0omtagbm74cs" path="res://scripts/core/scene_structure/marker_managers_group.gd" id="12_klon2"]
 [ext_resource type="Script" uid="uid://bdp7886fufa8v" path="res://scripts/core/scene_structure/marker_entities_group.gd" id="16_8qi87"]
 [ext_resource type="PackedScene" uid="uid://4f8xryxbxit0" path="res://scenes/templates/tmpl_camera.tscn" id="19_ph0bl"]
@@ -35,7 +35,7 @@
 [ext_resource type="Script" uid="uid://cev2jaqejfcyx" path="res://scripts/core/ecs/systems/s_wall_visibility_system.gd" id="27_wall_visibility_system"]
 [ext_resource type="Script" uid="uid://b2huwk7mlhlvv" path="res://scripts/core/ecs/systems/s_spawn_recovery_system.gd" id="28_ai_spawn_recovery_system"]
 [ext_resource type="Script" uid="uid://de8ypfw5vqclq" path="res://scripts/core/ecs/base_ecs_entity.gd" id="29_base_ecs_entity"]
-[ext_resource type="Resource" uid="uid://0feve3rl35x4" path="res://resources/base_settings/gameplay/cfg_wall_visibility_config_default.tres" id="30_wall_visibility_config"]
+[ext_resource type="Resource" uid="uid://0feve3rl35x4" path="res://resources/core/base_settings/gameplay/cfg_wall_visibility_config_default.tres" id="30_wall_visibility_config"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 2

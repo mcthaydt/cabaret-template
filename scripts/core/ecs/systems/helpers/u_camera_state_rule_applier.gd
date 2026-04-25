@@ -8,7 +8,7 @@ const C_CAMERA_STATE_COMPONENT := preload("res://scripts/core/ecs/components/c_c
 const I_CAMERA_MANAGER := preload("res://scripts/core/interfaces/i_camera_manager.gd")
 const RSRuleContext := preload("res://scripts/core/resources/ecs/rs_rule_context.gd")
 const RS_CAMERA_STATE_CONFIG_SCRIPT := preload("res://scripts/core/resources/ecs/rs_camera_state_config.gd")
-const DEFAULT_CAMERA_STATE_CONFIG := preload("res://resources/base_settings/gameplay/cfg_camera_state_config_default.tres")
+const DEFAULT_CAMERA_STATE_CONFIG := preload("res://resources/core/base_settings/gameplay/cfg_camera_state_config_default.tres")
 
 const CAMERA_SHAKE_SOURCE := StringName("qb_camera_rule")
 const PRIMARY_CAMERA_ENTITY_ID := StringName("camera")

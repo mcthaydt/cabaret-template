@@ -35,7 +35,7 @@ const I_CAMERA_MANAGER := preload("res://scripts/core/interfaces/i_camera_manage
 const I_ECS_ENTITY := preload("res://scripts/core/interfaces/i_ecs_entity.gd")
 const SP_SPAWN_POINT := preload("res://scripts/core/scene_management/sp_spawn_point.gd")
 const RS_SPAWN_CONFIG_SCRIPT := preload("res://scripts/core/resources/managers/rs_spawn_config.gd")
-const DEFAULT_SPAWN_CONFIG := preload("res://resources/base_settings/gameplay/cfg_spawn_config_default.tres")
+const DEFAULT_SPAWN_CONFIG := preload("res://resources/core/base_settings/gameplay/cfg_spawn_config_default.tres")
 
 const SPAWN_STATE_TYPE := C_SPAWN_STATE_COMPONENT.COMPONENT_TYPE
 @export var spawn_config: Resource = null
