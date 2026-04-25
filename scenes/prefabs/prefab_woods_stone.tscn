@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://covgsx6ymyjom"]
 
 [ext_resource type="Script" uid="uid://cdsyf67dlyr4m" path="res://scripts/demo/ecs/components/c_resource_node_component.gd" id="1_resource_node"]
-[ext_resource type="Resource" uid="uid://77gej7er2umc" path="res://resources/demo/base_settings/ai_woods/cfg_resource_node_stone.tres" id="2_stone_settings"]
+[ext_resource type="Resource" uid="uid://77gej7er2umc" path="res://resources/demo/base_settings/ai_woods/ai_woods/cfg_resource_node_stone.tres" id="2_stone_settings"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_stone"]
 shading_mode = 0
