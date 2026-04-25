@@ -1,4 +1,4 @@
-@icon("res://assets/editor_icons/icn_manager.svg")
+@icon("res://assets/core/editor_icons/icn_manager.svg")
 extends I_UIInputHandler
 class_name M_UIInputHandler
 

@@ -1,4 +1,4 @@
-@icon("res://assets/editor_icons/icn_resource.svg")
+@icon("res://assets/core/editor_icons/icn_resource.svg")
 extends Node
 
 ## Scene marker for per-scene character lighting defaults consumed by M_CharacterLightingManager.

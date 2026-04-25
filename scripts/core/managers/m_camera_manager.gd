@@ -1,4 +1,4 @@
-@icon("res://assets/editor_icons/icn_manager.svg")
+@icon("res://assets/core/editor_icons/icn_manager.svg")
 class_name M_CameraManager
 extends "res://scripts/core/interfaces/i_camera_manager.gd"
 

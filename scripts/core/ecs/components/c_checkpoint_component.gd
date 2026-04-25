@@ -1,4 +1,4 @@
-@icon("res://assets/editor_icons/icn_component.svg")
+@icon("res://assets/core/editor_icons/icn_component.svg")
 extends BaseECSComponent
 class_name C_CheckpointComponent
 

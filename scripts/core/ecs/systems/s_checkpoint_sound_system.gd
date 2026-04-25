@@ -1,4 +1,4 @@
-@icon("res://assets/editor_icons/icn_system.svg")
+@icon("res://assets/core/editor_icons/icn_system.svg")
 extends "res://scripts/core/ecs/base_event_sfx_system.gd"
 class_name S_CheckpointSoundSystem
 

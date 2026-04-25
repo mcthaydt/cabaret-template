@@ -1,4 +1,4 @@
-@icon("res://assets/editor_icons/icn_resource.svg")
+@icon("res://assets/core/editor_icons/icn_resource.svg")
 extends "res://scripts/core/resources/bt/rs_bt_node.gd"
 class_name RS_BTCondition
 

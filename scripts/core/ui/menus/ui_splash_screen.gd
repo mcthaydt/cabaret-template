@@ -1,4 +1,4 @@
-@icon("res://assets/editor_icons/icn_utility.svg")
+@icon("res://assets/core/editor_icons/icn_utility.svg")
 extends Control
 class_name UI_SplashScreen
 

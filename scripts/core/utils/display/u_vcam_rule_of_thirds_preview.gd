@@ -1,5 +1,5 @@
 @tool
-@icon("res://assets/editor_icons/icn_utility.svg")
+@icon("res://assets/core/editor_icons/icn_utility.svg")
 extends Node
 class_name U_VCamRuleOfThirdsPreview
 

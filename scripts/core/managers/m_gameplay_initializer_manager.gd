@@ -1,4 +1,4 @@
-@icon("res://assets/editor_icons/icn_manager.svg")
+@icon("res://assets/core/editor_icons/icn_manager.svg")
 class_name M_GameplayInitializerManager
 extends I_GameplayInitializerManager
 

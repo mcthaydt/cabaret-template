@@ -1,4 +1,4 @@
-@icon("res://assets/editor_icons/icn_settings.svg")
+@icon("res://assets/core/editor_icons/icn_settings.svg")
 extends Resource
 class_name RS_FootstepSoundSettings
 

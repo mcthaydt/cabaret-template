@@ -1,4 +1,4 @@
-@icon("res://assets/editor_icons/icn_resource.svg")
+@icon("res://assets/core/editor_icons/icn_resource.svg")
 extends I_AIAction
 class_name RS_AIActionFeed
 

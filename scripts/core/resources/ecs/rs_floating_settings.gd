@@ -1,4 +1,4 @@
-@icon("res://assets/editor_icons/icn_utility.svg")
+@icon("res://assets/core/editor_icons/icn_utility.svg")
 extends Resource
 
 class_name RS_FloatingSettings

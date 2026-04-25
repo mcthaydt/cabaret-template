@@ -33,7 +33,7 @@ enabled=PackedStringArray("res://addons/IVX_VertexColorImportSwapper/plugin.cfg"
 folder_colors={
 "res://addons/": "gray",
 "res://assets/": "green",
-"res://assets/editor_icons/": "blue",
+"res://assets/core/editor_icons/": "blue",
 "res://docs/": "red",
 "res://resources/": "blue",
 "res://scenes/": "green",

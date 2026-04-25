@@ -1,4 +1,4 @@
-@icon("res://assets/editor_icons/icn_resource.svg")
+@icon("res://assets/core/editor_icons/icn_resource.svg")
 extends "res://scripts/core/resources/qb/rs_base_effect.gd"
 class_name RS_EffectDispatchAction
 

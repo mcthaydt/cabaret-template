@@ -1,4 +1,4 @@
-@icon("res://assets/editor_icons/icn_utility.svg")
+@icon("res://assets/core/editor_icons/icn_utility.svg")
 extends "res://scripts/core/ui/base/base_overlay.gd"
 class_name UI_InputProfileSelector
 

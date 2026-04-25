@@ -30,7 +30,7 @@ const ASSET_PREFIX_RULES := {
 		"extensions": [".mp3", ".ogg", ".wav"],
 		"description": "Music"
 	},
-	"res://assets/editor_icons": {
+	"res://assets/core/editor_icons": {
 		"prefix": "icn_",
 		"extensions": [".svg", ".png"],
 		"description": "Editor icons"

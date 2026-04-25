@@ -1,4 +1,4 @@
-@icon("res://assets/editor_icons/icn_entities.svg")
+@icon("res://assets/core/editor_icons/icn_entities.svg")
 extends "res://scripts/core/ecs/base_ecs_entity.gd"
 class_name BaseVolumeController
 
