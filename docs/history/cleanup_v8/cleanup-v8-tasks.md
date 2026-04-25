@@ -1,7 +1,7 @@
 # Cross-System Cleanup V8 — Tasks Checklist
 
 **Branch**: `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch. Subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred. Matches continuation prompt.
-**Status**: Phase 1 complete — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 complete (`26289494`, `fffa2e55`, `7de2a6cf`, `c1d7b0fb`, `a2766455`, `2aacb999` + remediation `91c094c0`..`e416469c`); P1.9b complete (`348802ca`, `b2c67185`, `7a96c4b0`, `d2644cf3`, `0bb07870`, `085c428d`, `73a66510`, `cd2afbcf`, `94d4b7c6` + 2026-04-22 verification follow-through); P1.10 BT-only legacy cleanup complete (`43035ad6`, `6a30f13c` + 2026-04-23 docs hygiene follow-through). Phase 2 complete through P2.4 (`28702b95`) with style recheck passing (`83/83`). Phase 3 complete as of 2026-04-23: P3.0–P3.4 + P3.6 landed, and the P3.5 framework deliverable (dir + `README.md` + `TEMPLATE.md` + `test_extension_recipe_structure`) shipped; the 18 individual extension recipes still ship at the tail of their owning phase (Phases 1/4/5), so overall P3 Verification closes only once those recipe commits land. Style recheck now `86/86` after `test_adr_structure` + `test_extension_recipe_structure` were added. Phase 4: P4.1–P4.2 complete; P4.3 complete (`0dba3719`..`ed8e5de0` — all scripts moved to scripts/core/ or scripts/demo/, core→demo import violations eliminated, stale dirs removed, full suite 4587/4595 green); P4.4 enforcement test already in style suite (`test_core_scripts_never_import_from_demo` 87/87). P4 Verification complete — all three checks green (2026-04-24). Phase 6 (LLM-first fluent builders) not yet started.
+**Status**: Phase 1 complete — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 complete (`26289494`, `fffa2e55`, `7de2a6cf`, `c1d7b0fb`, `a2766455`, `2aacb999` + remediation `91c094c0`..`e416469c`); P1.9b complete (`348802ca`, `b2c67185`, `7a96c4b0`, `d2644cf3`, `0bb07870`, `085c428d`, `73a66510`, `cd2afbcf`, `94d4b7c6` + 2026-04-22 verification follow-through); P1.10 BT-only legacy cleanup complete (`43035ad6`, `6a30f13c` + 2026-04-23 docs hygiene follow-through). Phase 2 complete through P2.4 (`28702b95`) with style recheck passing (`83/83`). Phase 3 complete as of 2026-04-23: P3.0–P3.4 + P3.6 landed, and the P3.5 framework deliverable (dir + `README.md` + `TEMPLATE.md` + `test_extension_recipe_structure`) shipped; the 18 individual extension recipes still ship at the tail of their owning phase (Phases 1/4/5), so overall P3 Verification closes only once those recipe commits land. Style recheck now `86/86` after `test_adr_structure` + `test_extension_recipe_structure` were added. Phase 4: P4.1–P4.2 complete; P4.3 complete (`0dba3719`..`ed8e5de0` — all scripts moved to scripts/core/ or scripts/demo/, core→demo import violations eliminated, stale dirs removed, full suite 4587/4595 green); P4.4 enforcement test already in style suite (`test_core_scripts_never_import_from_demo` 87/87). P4 Scripts Verification complete (2026-04-24). P4.5–P4.9 (resources/scenes/assets split) not yet started. Phase 6 (LLM-first fluent builders) not yet started.
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred.
 **Scope**: Six phases. Phase 1 is the largest (AI rewrite) and must complete before Phases 2–5, because Phases 4–5 depend on a stable AI architecture to decide what is "core template" vs "demo content." Phase 6 (fluent builders) can proceed after Phase 4 completes.
 
@@ -1306,14 +1306,89 @@ resources/
 - Verification (working tree): `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passes (`87/87`), `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_rs_ai_brain_settings_bt.gd` passes (`3/3`), and `tools/run_gut_suite.sh -gdir=res://tests/unit/resources -gdir=res://tests/unit/ai/resources -ginclude_subdirs=true` passes (`192/192`) after a headless import refresh.
 - Final P4.3 chunks (2026-04-24, continued): P4.3 chunks 11–14 complete — move input/state/scene_management/ui → scripts/core/ (already committed in P4.3 chunks 9–10), then ecs/gameplay/utils/debug → scripts/core/ (chunks 11–14). Core→demo import violations fixed in s_movement_system, s_spawn_recovery_system, u_ai_world_state_builder, inter_character_light_zone. Stale path entries removed from style test; empty old dirs removed. Legacy fixture goals field restored. Full suite: 4587/4595 passing (8 headless/mobile pending, 0 failing).
 
-## Milestone P4.4: Enforcement
+## Milestone P4.4: Enforcement (Scripts)
 
 - [x] **Commit 1** — Style enforcement: `scripts/core/**/*.gd` contains zero references to `scripts/demo/` paths. (Test `test_core_scripts_never_import_from_demo` was added in P4.3 Commit 1 and remains green throughout.)
 
-**P4 Verification**:
+**P4 Verification (Scripts)**:
 - [x] Full test suite green after each move commit.
 - [x] Deleting `scripts/demo/` and `resources/demo/` leaves a building (if non-functional-without-content) template. (Verified 2026-04-24: zero core script parse errors without demo; only demo scene resource-load failures, which are expected.)
 - [x] Core import boundary enforcement green (87/87 style tests, `test_core_scripts_never_import_from_demo` passing).
+
+## Milestone P4.5: Resources & Scenes Audit
+
+**Goal**: Audit all `.tres` resource files and `.tscn` scene files against the classification in `template_vs_demo.md` and the target layout in `target_structure.md`. Produce a detailed migration checklist identifying: (a) files already correctly placed, (b) files needing move, (c) import/reference paths needing update. The scripts split is done; this audit covers the remaining resource and scene moves.
+
+**Current state**: `resources/demo/` already contains 107 demo files (AI brains, demo audio, demo base_settings/gameplay, demo color gradings, demo interactions, demo lighting, demo scene_registry, demo spawn_metadata). `resources/core/` is empty — all ~170 core `.tres` files remain in flat `resources/` subdirs. `scenes/` is entirely unsplit. `assets/` is entirely unsplit.
+
+- [ ] **Commit 1** — `docs/guides/cleanup_v8/resources_scenes_audit.md`: For each directory still requiring split work, enumerate:
+  - **Resources core** (~170 files): Every file remaining in `resources/{audio,base_settings,display,input,interactions,localization,qb,scene_director,scene_registry,spawn_metadata,state,textures,triggers,ui,ui_screens,ui_themes,vfx}` and `resources/cfg_game_config.tres` that must move to `resources/core/`. Cross-reference with `target_structure.md` to confirm classification. Note: some `resources/audio/tracks/` files are mixed (main_menu/pause = core, alleyway/bar/etc. = demo already moved). Note: `resources/base_settings/gameplay/cfg_floating_patrol_drone_default.tres` is demo (already in `resources/demo/`).
+  - **Scenes core** (~30 files): Every `.tscn` that is core per `template_vs_demo.md` (root.tscn, templates/*, gameplay_base.tscn, gameplay_interior_base.tscn, core prefabs, debug_color_grading_overlay.tscn, debug_state_overlay.tscn, all ui/*).
+  - **Scenes demo** (~20 files): Every `.tscn` that is demo (gameplay_ai_showcase, ai_woods, alleyway, bar, comms_array, exterior, interior_a, interior_house, nav_nexus, power_core, demo prefabs, debug_ai_brain_panel, debug_woods_*).
+  - **Assets demo** (~10 files): Demo models (mdl_new_exterior.glb, mdl_new_interior.glb), demo textures (tex_alleyway.png, tex_bar.png), demo music (mus_alleyway/bar/exterior/interior.mp3).
+  - **Import/reference path impacts**: For each file move, list all `.gd`, `.tres`, `.tscn`, and `project.godot` references that must update.
+  - **Commit sequence proposal**: Ordered move commits to minimize mid-migration breakage, following the pattern established in P4.3.
+
+## Milestone P4.6: Resources Core Move
+
+**Goal**: Move all core `.tres` resources from their flat `resources/` locations into `resources/core/`, matching the target layout from `target_structure.md`. This is the resources counterpart of P4.3 (which moved scripts). The demo resources are already in `resources/demo/`.
+
+- [ ] **Commit 1** (RED) — Grep test: `resources/core/**/*.tres` paths are referenced correctly. Add style enforcement that `resources/core/**/*.tres` files reference only `resources/core/` or `scripts/core/` paths (no `resources/demo/` or `scripts/demo/` references in core resource files).
+- [ ] **Commit 2+** (GREEN) — Move files per audit, one commit per logical chunk. Proposed chunks:
+  - `resources/cfg_game_config.tres` → `resources/core/cfg_game_config.tres`
+  - `resources/base_settings/` (audio, display, gameplay, state defaults) → `resources/core/base_settings/`
+  - `resources/audio/ui/` → `resources/core/audio/ui/`; `resources/audio/tracks/` (main_menu, pause) → `resources/core/audio/tracks/`
+  - `resources/display/` (presets, vcam, color_gradings/gameplay_base) → `resources/core/display/`
+  - `resources/input/` → `resources/core/input/`
+  - `resources/interactions/` (defaults only) → `resources/core/interactions/`
+  - `resources/localization/` → `resources/core/localization/`
+  - `resources/qb/` → `resources/core/qb/`
+  - `resources/scene_director/` → `resources/core/scene_director/`
+  - `resources/scene_registry/` (gameplay_base + 12 UI entries) → `resources/core/scene_registry/`
+  - `resources/spawn_metadata/cfg_sp_base.tres` → `resources/core/spawn_metadata/`
+  - `resources/state/` → `resources/core/state/`
+  - `resources/textures/` → `resources/core/textures/`
+  - `resources/triggers/` → `resources/core/triggers/`
+  - `resources/ui/` → `resources/core/ui/`
+  - `resources/ui_screens/` → `resources/core/ui_screens/`
+  - `resources/ui_themes/` → `resources/core/ui_themes/`
+  - `resources/vfx/` → `resources/core/vfx/`
+- [ ] **Commit N** — Update all `preload()`/`load()` paths in `.gd` files, all resource references in `.tres` files, all script/ext_resource references in `.tscn` files, and `project.godot` autoload paths that reference moved resources. Remove stale empty directories.
+
+## Milestone P4.7: Scenes Split
+
+**Goal**: Split `scenes/` into `scenes/core/` and `scenes/demo/`, matching the target layout from `target_structure.md`.
+
+- [ ] **Commit 1** (RED) — Grep test: `scenes/core/**/*.tscn` references only `scenes/core/` and `resources/core/` paths (no `scenes/demo/` or `resources/demo/` references in core scenes).
+- [ ] **Commit 2+** (GREEN) — Move files per audit, one commit per logical chunk:
+  - Core scenes: `root.tscn`, `templates/*`, `gameplay/gameplay_base.tscn`, `gameplay/gameplay_interior_base.tscn`, core prefabs (`prefab_character`, `prefab_player`, `prefab_player_body`, `prefab_player_ragdoll`, `prefab_checkpoint_safe_zone`, `prefab_death_zone`, `prefab_door_trigger`, `prefab_goal_zone`, `prefab_spike_trap`), `debug/debug_color_grading_overlay.tscn`, `debug/debug_state_overlay.tscn`, all `ui/*`
+  - Demo scenes: `gameplay/gameplay_ai_showcase.tscn`, `gameplay_ai_woods.tscn`, `gameplay_alleyway.tscn`, `gameplay_bar.tscn`, `gameplay_comms_array.tscn`, `gameplay_exterior.tscn`, `gameplay_interior_a.tscn`, `gameplay_interior_house.tscn`, `gameplay_nav_nexus.tscn`, `gameplay_power_core.tscn`, demo prefabs (`prefab_alleyway`, `prefab_bar`, `prefab_demo_npc`, `prefab_demo_npc_body`, `prefab_woods_*`), `debug/debug_ai_brain_panel.tscn`, `debug/debug_woods_agent_label.tscn`, `debug/debug_woods_build_site_label.tscn`
+- [ ] **Commit N** — Update all scene references, preload paths, `project.godot` main scene entry, and remove stale empty directories.
+
+## Milestone P4.8: Assets Demo Move
+
+**Goal**: Move demo-only assets into `assets/demo/`. Core assets remain in their current locations (fonts, shaders, materials, button_prompts, editor_icons, video, core textures/models).
+
+- [ ] **Commit 1+** (GREEN) — Move per `template_vs_demo.md` classification:
+  - `assets/models/mdl_new_exterior.glb` → `assets/demo/models/`
+  - `assets/models/mdl_new_interior.glb` → `assets/demo/models/`
+  - `assets/textures/tex_alleyway.png` → `assets/demo/textures/`
+  - `assets/textures/tex_bar.png` → `assets/demo/textures/`
+  - `assets/audio/music/mus_alleyway.mp3` → `assets/demo/audio/music/` (and bar, exterior, interior)
+  - Update all `.tscn` and `.tres` references to moved assets.
+  - Core assets (`assets/audio/music/mus_main_menu.mp3`, `mus_pause.mp3`, `mus_credits.mp3`, character models, core textures) stay in place.
+
+## Milestone P4.9: Resources & Scenes Enforcement
+
+**Goal**: Enforce the core/demo boundary for resources, scenes, and assets, mirroring the P4.4 scripts enforcement.
+
+- [ ] **Commit 1** — Style enforcement: `resources/core/**/*.tres` contains zero references to `resources/demo/` or `scripts/demo/` paths. `scenes/core/**/*.tscn` contains zero references to `scenes/demo/`, `resources/demo/`, or `scripts/demo/` paths.
+- [ ] **Commit 2** — Add `test_core_resources_never_reference_demo` to style suite: grep all `.tres` files under `resources/core/` for `resources/demo/` and `scripts/demo/` path references. Grep all `.tscn` files under `scenes/core/` for `scenes/demo/`, `resources/demo/`, `scripts/demo/` path references.
+
+**P4 Full Verification**:
+- [ ] Full test suite green after each move commit.
+- [ ] Deleting `scripts/demo/`, `resources/demo/`, `scenes/demo/`, and `assets/demo/` leaves a bootable template with zero parse errors in core scripts, core resources, and core scenes.
+- [ ] Core boundary enforcement green: `scripts/core/**/*.gd` never imports from `scripts/demo/`, `resources/core/**/*.tres` never references `resources/demo/` or `scripts/demo/`, `scenes/core/**/*.tscn` never references `scenes/demo/`, `resources/demo/`, or `scripts/demo/`.
 
 ---
 
