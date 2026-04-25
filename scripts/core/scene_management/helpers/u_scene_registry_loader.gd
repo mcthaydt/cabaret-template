@@ -125,7 +125,7 @@ func backfill_default_gameplay_scenes(scenes: Dictionary, register_scene_callabl
 	if not scenes.has(StringName("alleyway")):
 		register_scene_callable.call(
 			StringName("alleyway"),
-			"res://scenes/gameplay/gameplay_alleyway.tscn",
+			"res://scenes/demo/gameplay/gameplay_alleyway.tscn",
 			U_SceneRegistry.SceneType.GAMEPLAY,
 			"loading",
 			6
@@ -134,7 +134,7 @@ func backfill_default_gameplay_scenes(scenes: Dictionary, register_scene_callabl
 	if not scenes.has(StringName("interior_house")):
 		register_scene_callable.call(
 			StringName("interior_house"),
-			"res://scenes/gameplay/gameplay_interior_house.tscn",
+			"res://scenes/demo/gameplay/gameplay_interior_house.tscn",
 			U_SceneRegistry.SceneType.GAMEPLAY,
 			"loading",
 			6
@@ -143,7 +143,7 @@ func backfill_default_gameplay_scenes(scenes: Dictionary, register_scene_callabl
 	if not scenes.has(StringName("bar")):
 		register_scene_callable.call(
 			StringName("bar"),
-			"res://scenes/gameplay/gameplay_bar.tscn",
+			"res://scenes/demo/gameplay/gameplay_bar.tscn",
 			U_SceneRegistry.SceneType.GAMEPLAY,
 			"loading",
 			6
@@ -152,7 +152,7 @@ func backfill_default_gameplay_scenes(scenes: Dictionary, register_scene_callabl
 	if not scenes.has(StringName("power_core")):
 		register_scene_callable.call(
 			StringName("power_core"),
-			"res://scenes/gameplay/gameplay_power_core.tscn",
+			"res://scenes/demo/gameplay/gameplay_power_core.tscn",
 			U_SceneRegistry.SceneType.GAMEPLAY,
 			"loading",
 			7
@@ -161,7 +161,7 @@ func backfill_default_gameplay_scenes(scenes: Dictionary, register_scene_callabl
 	if not scenes.has(StringName("comms_array")):
 		register_scene_callable.call(
 			StringName("comms_array"),
-			"res://scenes/gameplay/gameplay_comms_array.tscn",
+			"res://scenes/demo/gameplay/gameplay_comms_array.tscn",
 			U_SceneRegistry.SceneType.GAMEPLAY,
 			"loading",
 			6
@@ -170,7 +170,7 @@ func backfill_default_gameplay_scenes(scenes: Dictionary, register_scene_callabl
 	if not scenes.has(StringName("nav_nexus")):
 		register_scene_callable.call(
 			StringName("nav_nexus"),
-			"res://scenes/gameplay/gameplay_nav_nexus.tscn",
+			"res://scenes/demo/gameplay/gameplay_nav_nexus.tscn",
 			U_SceneRegistry.SceneType.GAMEPLAY,
 			"loading",
 			6
@@ -179,7 +179,7 @@ func backfill_default_gameplay_scenes(scenes: Dictionary, register_scene_callabl
 	if not scenes.has(StringName("ai_showcase")):
 		register_scene_callable.call(
 			StringName("ai_showcase"),
-			"res://scenes/gameplay/gameplay_ai_showcase.tscn",
+			"res://scenes/demo/gameplay/gameplay_ai_showcase.tscn",
 			U_SceneRegistry.SceneType.GAMEPLAY,
 			"loading",
 			8
@@ -188,7 +188,7 @@ func backfill_default_gameplay_scenes(scenes: Dictionary, register_scene_callabl
 	if not scenes.has(StringName("interior_a")):
 		register_scene_callable.call(
 			StringName("interior_a"),
-			"res://scenes/gameplay/gameplay_interior_a.tscn",
+			"res://scenes/demo/gameplay/gameplay_interior_a.tscn",
 			U_SceneRegistry.SceneType.GAMEPLAY,
 			"loading",
 			6

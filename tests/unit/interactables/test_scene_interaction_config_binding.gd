@@ -15,10 +15,10 @@ const SIGNPOST_HINT_CONFIG_PATH := "res://resources/demo/interactions/signposts/
 const SIGNPOST_BAR_HINT_CONFIG_PATH := "res://resources/demo/interactions/signposts/cfg_signpost_bar_tutorial.tres"
 
 const SCENE_PATHS := [
-	"res://scenes/gameplay/gameplay_exterior.tscn",
-	"res://scenes/gameplay/gameplay_alleyway.tscn",
-	"res://scenes/gameplay/gameplay_bar.tscn",
-	"res://scenes/gameplay/gameplay_interior_house.tscn",
+	"res://scenes/demo/gameplay/gameplay_exterior.tscn",
+	"res://scenes/demo/gameplay/gameplay_alleyway.tscn",
+	"res://scenes/demo/gameplay/gameplay_bar.tscn",
+	"res://scenes/demo/gameplay/gameplay_interior_house.tscn",
 	"res://scenes/core/prefabs/prefab_door_trigger.tscn",
 	"res://scenes/core/prefabs/prefab_checkpoint_safe_zone.tscn",
 	"res://scenes/core/prefabs/prefab_spike_trap.tscn",

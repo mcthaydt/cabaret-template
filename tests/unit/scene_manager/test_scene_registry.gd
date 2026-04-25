@@ -261,22 +261,22 @@ func test_gameplay_scenes_backfilled_with_loading_transition() -> void:
 func test_ai_demo_scene_entries_registered() -> void:
 	var power_core: Dictionary = U_SceneRegistry.get_scene(StringName("power_core"))
 	assert_false(power_core.is_empty(), "power_core scene should be registered")
-	assert_eq(String(power_core.get("path", "")), "res://scenes/gameplay/gameplay_power_core.tscn")
+	assert_eq(String(power_core.get("path", "")), "res://scenes/demo/gameplay/gameplay_power_core.tscn")
 	assert_eq(power_core.get("scene_type", -1), U_SceneRegistry.SceneType.GAMEPLAY)
 
 	var comms_array: Dictionary = U_SceneRegistry.get_scene(StringName("comms_array"))
 	assert_false(comms_array.is_empty(), "comms_array scene should be registered")
-	assert_eq(String(comms_array.get("path", "")), "res://scenes/gameplay/gameplay_comms_array.tscn")
+	assert_eq(String(comms_array.get("path", "")), "res://scenes/demo/gameplay/gameplay_comms_array.tscn")
 	assert_eq(comms_array.get("scene_type", -1), U_SceneRegistry.SceneType.GAMEPLAY)
 
 	var nav_nexus: Dictionary = U_SceneRegistry.get_scene(StringName("nav_nexus"))
 	assert_false(nav_nexus.is_empty(), "nav_nexus scene should be registered")
-	assert_eq(String(nav_nexus.get("path", "")), "res://scenes/gameplay/gameplay_nav_nexus.tscn")
+	assert_eq(String(nav_nexus.get("path", "")), "res://scenes/demo/gameplay/gameplay_nav_nexus.tscn")
 	assert_eq(nav_nexus.get("scene_type", -1), U_SceneRegistry.SceneType.GAMEPLAY)
 
 	var ai_showcase: Dictionary = U_SceneRegistry.get_scene(StringName("ai_showcase"))
 	assert_false(ai_showcase.is_empty(), "ai_showcase scene should be registered")
-	assert_eq(String(ai_showcase.get("path", "")), "res://scenes/gameplay/gameplay_ai_showcase.tscn")
+	assert_eq(String(ai_showcase.get("path", "")), "res://scenes/demo/gameplay/gameplay_ai_showcase.tscn")
 	assert_eq(ai_showcase.get("scene_type", -1), U_SceneRegistry.SceneType.GAMEPLAY)
 
 func test_mobile_preloaded_scene_registry_manifest_includes_ai_demo_scenes() -> void:

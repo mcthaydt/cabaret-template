@@ -5,7 +5,7 @@
 [ext_resource type="Script" uid="uid://baidwxk0mvb2s" path="res://scripts/core/resources/ecs/rs_floating_settings.gd" id="3_2ykux"]
 [ext_resource type="Script" uid="uid://dwlwh6m2b1o2o" path="res://scripts/demo/ecs/components/c_ai_brain_component.gd" id="3_ai_brain"]
 [ext_resource type="Resource" uid="uid://1obnyyxuffs6" path="res://resources/demo/ai/cfg_ai_brain_placeholder.tres" id="4_ai_brain_placeholder"]
-[ext_resource type="PackedScene" uid="uid://bnuwfkkw85h1t" path="res://scenes/prefabs/prefab_demo_npc_body.tscn" id="5_npc_body"]
+[ext_resource type="PackedScene" uid="uid://bnuwfkkw85h1t" path="res://scenes/demo/prefabs/prefab_demo_npc_body.tscn" id="5_npc_body"]
 [ext_resource type="Script" uid="uid://cdkunc6hqdyw8" path="res://scripts/demo/ecs/components/c_detection_component.gd" id="6_detection"]
 [ext_resource type="Script" uid="uid://djymtihqjri34" path="res://scripts/core/ecs/components/c_spawn_recovery_component.gd" id="7_spawn_recovery_component"]
 [ext_resource type="Resource" uid="uid://csm4hs602vmux" path="res://resources/core/base_settings/gameplay/cfg_spawn_recovery_default.tres" id="8_spawn_recovery_settings"]

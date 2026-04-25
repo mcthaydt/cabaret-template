@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://bqpmclfqe0no5"]
+[gd_scene format=3 uid="uid://dde0a1ji26l71"]
 
 [ext_resource type="Script" uid="uid://bnxhc71hx1tiq" path="res://scripts/core/ecs/systems/s_camera_state_system.gd" id="1_camera_state_system"]
 [ext_resource type="Script" uid="uid://breqdywdxah32" path="res://scripts/core/ecs/systems/s_character_state_system.gd" id="1_character_rule_manager"]
@@ -58,73 +58,54 @@
 [ext_resource type="Script" uid="uid://dtssad2lt1l7e" path="res://scripts/demo/ecs/systems/s_ai_behavior_system.gd" id="53_ai_behavior_system"]
 [ext_resource type="Script" uid="uid://dwarsnlm0slqa" path="res://scripts/demo/ecs/systems/s_move_target_follower_system.gd" id="54_move_target_follower_system"]
 [ext_resource type="Script" uid="uid://de8ypfw5vqclq" path="res://scripts/core/ecs/base_ecs_entity.gd" id="55_base_ecs_entity"]
-[ext_resource type="Script" uid="uid://bwgh4ltexidbw" path="res://scripts/demo/ecs/systems/s_ai_detection_system.gd" id="56_ai_detection_system"]
-[ext_resource type="Script" uid="uid://co4k74m0060av" path="res://scripts/demo/gameplay/s_demo_alarm_relay_system.gd" id="57_demo_alarm_relay_system"]
 [ext_resource type="Script" uid="uid://bmks0dvhg1v28" path="res://scripts/demo/gameplay/inter_ai_demo_flag_zone.gd" id="62_ai_demo_flag_zone"]
 [ext_resource type="Texture2D" uid="uid://rb3wysvedbe2" path="res://assets/textures/tex_interaction_v.svg" id="62_kkkmb"]
 [ext_resource type="Script" uid="uid://dmpersmvlqd8v" path="res://scripts/core/ecs/components/c_room_fade_group_component.gd" id="63_room_fade_group_component"]
 [ext_resource type="Script" uid="uid://cev2jaqejfcyx" path="res://scripts/core/ecs/systems/s_wall_visibility_system.gd" id="64_wall_visibility_system"]
 [ext_resource type="Script" uid="uid://b2huwk7mlhlvv" path="res://scripts/core/ecs/systems/s_spawn_recovery_system.gd" id="67_ai_spawn_recovery_system"]
 [ext_resource type="Resource" uid="uid://w32u5tryuii8" path="res://resources/demo/spawn_metadata/cfg_sp_ai_patrol_drone.tres" id="68_ai_patrol_drone_spawn_meta"]
-[ext_resource type="PackedScene" uid="uid://cv15bmronxxil" path="res://scenes/prefabs/prefab_demo_npc.tscn" id="69_prefab_npc"]
-[ext_resource type="Texture2D" uid="uid://emedu6pq2lwj" path="res://assets/textures/prototype_grids_png/Light/tex_texture_06.png" id="70_grid_light_06"]
+[ext_resource type="PackedScene" uid="uid://cv15bmronxxil" path="res://scenes/demo/prefabs/prefab_demo_npc.tscn" id="69_prefab_npc"]
 [ext_resource type="Resource" uid="uid://c015tdg1lh2er" path="res://resources/demo/ai/patrol_drone/cfg_patrol_drone_brain.tres" id="70_patrol_drone_brain"]
-[ext_resource type="Texture2D" uid="uid://cu6nemmc82bo4" path="res://assets/textures/prototype_grids_png/Light/tex_texture_03.png" id="71_grid_light_03"]
-[ext_resource type="Resource" uid="uid://b7o33da70w7bq" path="res://resources/demo/ai/sentry/cfg_sentry_brain.tres" id="71_sentry_brain"]
-[ext_resource type="Texture2D" uid="uid://dy0x7tmqlyw0y" path="res://assets/textures/prototype_grids_png/Dark/tex_texture_01.png" id="72_grid_dark_01"]
-[ext_resource type="Resource" uid="uid://bmwo3kaddap2a" path="res://resources/demo/ai/guide_prism/cfg_guide_showcase_brain.tres" id="72_guide_showcase_brain"]
-[ext_resource type="Texture2D" uid="uid://bln3t6p8asyk3" path="res://assets/textures/prototype_grids_png/Purple/tex_texture_01.png" id="73_grid_purple_01"]
-[ext_resource type="Texture2D" uid="uid://bqnushigljekn" path="res://assets/textures/prototype_grids_png/Red/tex_texture_03.png" id="74_grid_red_03"]
-[ext_resource type="Texture2D" uid="uid://brvkkkykk0wyi" path="res://assets/textures/prototype_grids_png/Green/tex_texture_01.png" id="75_grid_green_01"]
-[ext_resource type="Texture2D" uid="uid://b1r5ab5wgdm2q" path="res://assets/textures/prototype_grids_png/Orange/tex_texture_01.png" id="76_grid_orange_01"]
-[ext_resource type="Script" uid="uid://cdj01v3o2u1nv" path="res://scripts/demo/gameplay/inter_ai_demo_guard_barrier.gd" id="77_guard_barrier_script"]
-[ext_resource type="Resource" uid="uid://caph8doutt1dg" path="res://resources/demo/ai/patrol_drone/cfg_patrol_drone_spawn_recovery.tres" id="78_patrol_drone_spawn_recovery"]
+[ext_resource type="Resource" uid="uid://caph8doutt1dg" path="res://resources/demo/ai/patrol_drone/cfg_patrol_drone_spawn_recovery.tres" id="71_patrol_drone_spawn_recovery"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
-shading_mode = 0
-albedo_texture = ExtResource("70_grid_light_06")
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
+shading_mode = 2
+diffuse_mode = 3
+specular_mode = 1
+albedo_color = Color(0.43137255, 0.15294118, 0.15294118, 1)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wall"]
-shading_mode = 0
-albedo_texture = ExtResource("71_grid_light_03")
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_748a2"]
+shading_mode = 2
+diffuse_mode = 3
+specular_mode = 1
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pillar"]
-shading_mode = 0
-albedo_texture = ExtResource("72_grid_dark_01")
+[sub_resource type="BoxShape3D" id="BoxShape3D_floor_collider"]
+size = Vector3(25, 1, 25)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_patrol_accent"]
-shading_mode = 0
-albedo_texture = ExtResource("73_grid_purple_01")
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_power_core"]
+shading_mode = 2
+diffuse_mode = 3
+specular_mode = 1
+albedo_color = Color(0.05882353, 0.5803922, 0.6392157, 1)
+emission_enabled = true
+emission = Color(0.10980392, 0.7607843, 0.8666667, 1)
+emission_energy_multiplier = 0.8
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_guard_accent"]
-shading_mode = 0
-albedo_texture = ExtResource("74_grid_red_03")
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_guide_accent"]
-shading_mode = 0
-albedo_texture = ExtResource("75_grid_green_01")
-
-[sub_resource type="Environment" id="Environment_showcase"]
+[sub_resource type="Environment" id="Environment_q3o1v"]
 background_mode = 1
-background_color = Color(0.19607843, 0.26666668, 0.4, 1)
+background_color = Color(0.3019608, 0.60784316, 0.9019608, 1)
 background_energy_multiplier = 0.0
-ambient_light_source = 1
-ambient_light_color = Color(1, 1, 1, 1)
-ambient_light_energy = 1.6
+ambient_light_source = 2
+ambient_light_energy = 1.8
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_activatable"]
 size = Vector3(2, 2, 2)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_marker"]
-shading_mode = 0
-albedo_texture = ExtResource("76_grid_orange_01")
-
-[sub_resource type="SphereShape3D" id="SphereShape3D_noise_source"]
-radius = 0.8
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_noise"]
-shading_mode = 0
-albedo_texture = ExtResource("76_grid_orange_01")
+shading_mode = 2
+diffuse_mode = 3
+specular_mode = 1
+albedo_color = Color(0.9490196, 0.70980394, 0.21568628, 1)
 
 [node name="GameplayRoot" type="Node3D" unique_id=1611027441]
 script = ExtResource("1_f2o31")
@@ -134,117 +115,90 @@ script = ExtResource("2_ph0bl")
 
 [node name="SO_Floor" type="CSGBox3D" parent="SceneObjects" unique_id=1563682987]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -2, 0)
-material_override = SubResource("StandardMaterial3D_floor")
+material_override = SubResource("StandardMaterial3D_q3o1v")
 use_collision = true
 collision_layer = 33
-size = Vector3(60, 1, 30)
+size = Vector3(25, 1, 25)
+material = SubResource("StandardMaterial3D_748a2")
 
-[node name="SO_RoomFadeShell" type="Node3D" parent="SceneObjects" unique_id=1001200001]
+[node name="SO_FloorCollider" type="StaticBody3D" parent="SceneObjects" unique_id=483874454]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -2, 0)
+collision_layer = 33
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="SceneObjects/SO_FloorCollider" unique_id=824279677]
+shape = SubResource("BoxShape3D_floor_collider")
+
+[node name="SO_RoomFadeShell" type="Node3D" parent="SceneObjects" unique_id=920082735]
 script = ExtResource("55_base_ecs_entity")
-entity_id = &"ai_showcase_room_shell"
+entity_id = &"power_core_room_shell"
 tags = Array[StringName]([&"room_fade_shell"])
 
-[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/SO_RoomFadeShell" unique_id=1001200002]
+[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/SO_RoomFadeShell" unique_id=992225471]
 script = ExtResource("63_room_fade_group_component")
-group_tag = &"ai_showcase_room_shell"
-clip_height_offset = 3.0
+group_tag = &"power_core_room_shell"
 
-[node name="SO_WallNorth" type="CSGBox3D" parent="SceneObjects/SO_RoomFadeShell" unique_id=1001100001]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -14)
+[node name="SO_WallNorth" type="CSGBox3D" parent="SceneObjects/SO_RoomFadeShell" unique_id=688319800]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -11)
 use_collision = true
 collision_layer = 33
-size = Vector3(60, 7, 1)
-material = SubResource("StandardMaterial3D_wall")
+size = Vector3(24, 7, 1)
+material = SubResource("StandardMaterial3D_748a2")
 
-[node name="SO_WallSouth" type="CSGBox3D" parent="SceneObjects/SO_RoomFadeShell" unique_id=1001100002]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 14)
+[node name="SO_WallSouth" type="CSGBox3D" parent="SceneObjects/SO_RoomFadeShell" unique_id=1019287313]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 11)
 use_collision = true
 collision_layer = 33
-size = Vector3(60, 7, 1)
-material = SubResource("StandardMaterial3D_wall")
+size = Vector3(24, 7, 1)
+material = SubResource("StandardMaterial3D_748a2")
 
-[node name="SO_WallEast" type="CSGBox3D" parent="SceneObjects/SO_RoomFadeShell" unique_id=1001100003]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 29, 1.5, 0)
+[node name="SO_WallEast" type="CSGBox3D" parent="SceneObjects/SO_RoomFadeShell" unique_id=901183046]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 1.5, 0)
 use_collision = true
 collision_layer = 33
-size = Vector3(1, 7, 28)
-material = SubResource("StandardMaterial3D_wall")
+size = Vector3(1, 7, 24)
+material = SubResource("StandardMaterial3D_748a2")
 
-[node name="SO_WallWest" type="CSGBox3D" parent="SceneObjects/SO_RoomFadeShell" unique_id=1001100004]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -29, 1.5, 0)
+[node name="SO_WallWest" type="CSGBox3D" parent="SceneObjects/SO_RoomFadeShell" unique_id=2098540849]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 1.5, 0)
 use_collision = true
 collision_layer = 33
-size = Vector3(1, 7, 28)
-material = SubResource("StandardMaterial3D_wall")
+size = Vector3(1, 7, 24)
+material = SubResource("StandardMaterial3D_748a2")
 
-[node name="SO_Ceiling" type="CSGBox3D" parent="SceneObjects/SO_RoomFadeShell" unique_id=1001100005]
+[node name="SO_Ceiling" type="CSGBox3D" parent="SceneObjects/SO_RoomFadeShell" unique_id=744394162]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
 use_collision = true
 collision_layer = 33
-size = Vector3(58, 1, 27)
-material = SubResource("StandardMaterial3D_wall")
+size = Vector3(24, 1, 24)
+material = SubResource("StandardMaterial3D_748a2")
 
-[node name="SO_ZoneDividerWestNorth" type="CSGBox3D" parent="SceneObjects/SO_RoomFadeShell" unique_id=1001100006]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 1.5, -9)
-use_collision = true
-collision_layer = 33
-size = Vector3(1, 6, 9)
-material = SubResource("StandardMaterial3D_pillar")
-
-[node name="SO_ZoneDividerWestSouth" type="CSGBox3D" parent="SceneObjects/SO_RoomFadeShell" unique_id=1001100007]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 1.5, 9)
-use_collision = true
-collision_layer = 33
-size = Vector3(1, 6, 9)
-material = SubResource("StandardMaterial3D_pillar")
-
-[node name="SO_ZoneDividerEastNorth" type="CSGBox3D" parent="SceneObjects/SO_RoomFadeShell" unique_id=1001100008]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 1.5, -9)
-use_collision = true
-collision_layer = 33
-size = Vector3(1, 6, 9)
-material = SubResource("StandardMaterial3D_pillar")
-
-[node name="SO_ZoneDividerEastSouth" type="CSGBox3D" parent="SceneObjects/SO_RoomFadeShell" unique_id=1001100009]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 1.5, 9)
-use_collision = true
-collision_layer = 33
-size = Vector3(1, 6, 9)
-material = SubResource("StandardMaterial3D_pillar")
-
-[node name="SO_PatrolAccent" type="CSGCylinder3D" parent="SceneObjects" unique_id=1001100010]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19, 0.5, 0)
-radius = 1.2
-height = 3.5
-material = SubResource("StandardMaterial3D_patrol_accent")
-
-[node name="SO_GuardAccent" type="CSGBox3D" parent="SceneObjects" unique_id=1001100011]
+[node name="SO_PowerCore" type="CSGCylinder3D" parent="SceneObjects" unique_id=1300612802]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
-size = Vector3(2, 2, 2)
-material = SubResource("StandardMaterial3D_guard_accent")
-
-[node name="SO_GuardBarrier" type="CSGBox3D" parent="SceneObjects" unique_id=1001100014]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 1.8, 0)
 use_collision = true
-size = Vector3(1, 4, 8)
-material = SubResource("StandardMaterial3D_guard_accent")
-script = ExtResource("77_guard_barrier_script")
+collision_layer = 33
+radius = 1.35
+height = 5.0
+material = SubResource("StandardMaterial3D_power_core")
 
-[node name="SO_GuideAccentA" type="CSGBox3D" parent="SceneObjects" unique_id=1001100012]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19, 1, 0)
-size = Vector3(4, 0.4, 4)
-material = SubResource("StandardMaterial3D_guide_accent")
-
-[node name="SO_GuideAccentB" type="CSGBox3D" parent="SceneObjects" unique_id=1001100013]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, 2.5, 0)
-size = Vector3(3, 0.4, 3)
-material = SubResource("StandardMaterial3D_guide_accent")
+[node name="SO_PowerCoreBase" type="CSGCylinder3D" parent="SceneObjects" unique_id=1526883239]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.5, 0)
+use_collision = true
+collision_layer = 33
+radius = 2.4
+height = 1.0
+material = SubResource("StandardMaterial3D_748a2")
 
 [node name="Environment" type="Node" parent="." unique_id=1521282328]
 script = ExtResource("2_8soux")
 
 [node name="Env_WorldEnvironment" type="WorldEnvironment" parent="Environment" unique_id=150504512]
-environment = SubResource("Environment_showcase")
+environment = SubResource("Environment_q3o1v")
+
+[node name="Env_DirectionalLight3D" type="DirectionalLight3D" parent="Environment" unique_id=193818180]
+transform = Transform3D(1, 0, 0, 0, 0.9385653, 0.34510165, 0, -0.34510165, 0.9385653, 0, 0, 0)
+light_color = Color(0.56078434, 0.827451, 1, 1)
+light_energy = 1.5
+light_indirect_energy = 0.0
 
 [node name="Systems" type="Node" parent="." unique_id=2103517242]
 script = ExtResource("3_ph0bl")
@@ -260,14 +214,6 @@ script = ExtResource("1_game_event_system")
 
 [node name="S_CameraStateSystem" type="Node" parent="Systems/Core" unique_id=1084946385]
 script = ExtResource("1_camera_state_system")
-
-[node name="S_AIDetectionSystem" type="Node" parent="Systems/Core" unique_id=1775100001]
-script = ExtResource("56_ai_detection_system")
-execution_priority = -12
-
-[node name="S_DemoAlarmRelaySystem" type="Node" parent="Systems/Core" unique_id=1775100002]
-script = ExtResource("57_demo_alarm_relay_system")
-execution_priority = -11
 
 [node name="S_InputSystem" type="Node" parent="Systems/Core" unique_id=950736546]
 script = ExtResource("1_pybrx")
@@ -288,7 +234,7 @@ script = ExtResource("24_touchscreen_system")
 script = ExtResource("52_vcam_system")
 execution_priority = 100
 
-[node name="S_WallVisibilitySystem" type="Node" parent="Systems/Core" unique_id=1001200003]
+[node name="S_WallVisibilitySystem" type="Node" parent="Systems/Core" unique_id=1104315912]
 script = ExtResource("64_wall_visibility_system")
 
 [node name="S_HealthSystem" type="Node" parent="Systems/Core" unique_id=1928596962]
@@ -419,12 +365,12 @@ script = ExtResource("16_8qi87")
 script = ExtResource("21_spawnpoints")
 
 [node name="sp_default" type="Node3D" parent="Entities/SpawnPoints" unique_id=185028670]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27, 1.9034653, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15322971, 1.9034653, 3.5)
 script = ExtResource("50_spawn_point")
 spawn_metadata = ExtResource("51_base_spawn_meta")
 
 [node name="sp_ai_patrol_drone" type="Node3D" parent="Entities/SpawnPoints" unique_id=725301164]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 4.7, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 4.7, 0)
 script = ExtResource("50_spawn_point")
 spawn_metadata = ExtResource("68_ai_patrol_drone_spawn_meta")
 
@@ -432,49 +378,25 @@ spawn_metadata = ExtResource("68_ai_patrol_drone_spawn_meta")
 script = ExtResource("16_8qi87")
 
 [node name="WaypointA" type="Node3D" parent="Entities/Waypoints" unique_id=505903170]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 1, -8)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 1, -6)
 
 [node name="WaypointB" type="Node3D" parent="Entities/Waypoints" unique_id=1041374679]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 1, -8)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 1, -6)
 
 [node name="WaypointC" type="Node3D" parent="Entities/Waypoints" unique_id=761285584]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 1, 8)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 1, 6)
 
 [node name="WaypointD" type="Node3D" parent="Entities/Waypoints" unique_id=691250077]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 1, 8)
-
-[node name="WaypointGuardA" type="Node3D" parent="Entities/Waypoints" unique_id=1281449906]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 1, 8)
-
-[node name="WaypointGuardB" type="Node3D" parent="Entities/Waypoints" unique_id=67887672]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
-
-[node name="WaypointGuardC" type="Node3D" parent="Entities/Waypoints" unique_id=1894224416]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 1, -8)
-
-[node name="PathMarkers" type="Node" parent="Entities" unique_id=1001300001]
-script = ExtResource("16_8qi87")
-
-[node name="PathMarkerA" type="Node3D" parent="Entities/PathMarkers" unique_id=1001300002]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 1, -8)
-
-[node name="PathMarkerB" type="Node3D" parent="Entities/PathMarkers" unique_id=1001300003]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22, 1, -8)
-
-[node name="PathMarkerC" type="Node3D" parent="Entities/PathMarkers" unique_id=1001300004]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, 1, 0)
-
-[node name="PathMarkerD" type="Node3D" parent="Entities/PathMarkers" unique_id=1001300005]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 1, 8)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 1, 6)
 
 [node name="Interactions" type="Node" parent="Entities" unique_id=1951408761]
 script = ExtResource("16_8qi87")
 
 [node name="Inter_ActivatableNode" type="Area3D" parent="Entities/Interactions" unique_id=1302477174]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19, 1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 1, 0)
 script = ExtResource("62_ai_demo_flag_zone")
 ai_flag_id = &"power_core_activated"
-completed_area_id = "ai_showcase"
+completed_area_id = "power_core"
 signpost_message = "gameplay.signpost.default_message"
 interaction_hint_icon = ExtResource("62_kkkmb")
 interaction_hint_offset = Vector3(0, 1.2, 0)
@@ -483,141 +405,29 @@ interaction_hint_offset = Vector3(0, 1.2, 0)
 shape = SubResource("BoxShape3D_activatable")
 
 [node name="Visual" type="CSGCylinder3D" parent="Entities/Interactions/Inter_ActivatableNode" unique_id=2119273560]
+use_collision = true
 radius = 0.6
 height = 1.8
 material = SubResource("StandardMaterial3D_marker")
 
-[node name="Inter_AlarmButton" type="Area3D" parent="Entities/Interactions" unique_id=1302477175]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 8)
-script = ExtResource("62_ai_demo_flag_zone")
-ai_flag_id = &"comms_disturbance_heard"
-completed_area_id = "ai_showcase"
-signpost_message = "gameplay.signpost.default_message"
-action_required = true
-interaction_hint_icon = ExtResource("62_kkkmb")
-interaction_hint_offset = Vector3(0, 1, 0)
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Entities/Interactions/Inter_AlarmButton" unique_id=277963268]
-shape = SubResource("BoxShape3D_activatable")
-
-[node name="Visual" type="CSGCylinder3D" parent="Entities/Interactions/Inter_AlarmButton" unique_id=2119273561]
-radius = 0.45
-height = 1.2
-material = SubResource("StandardMaterial3D_guard_accent")
-
-[node name="Inter_DoorSwitch" type="Area3D" parent="Entities/Interactions" unique_id=1302477176]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 1, 0)
-script = ExtResource("62_ai_demo_flag_zone")
-ai_flag_id = &"showcase_guard_door_open"
-completed_area_id = "ai_showcase"
-signpost_message = "gameplay.signpost.default_message"
-action_required = true
-interaction_hint_icon = ExtResource("62_kkkmb")
-interaction_hint_offset = Vector3(0, 1, 0)
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Entities/Interactions/Inter_DoorSwitch" unique_id=277963269]
-shape = SubResource("BoxShape3D_activatable")
-
-[node name="Visual" type="CSGBox3D" parent="Entities/Interactions/Inter_DoorSwitch" unique_id=2119273562]
-size = Vector3(0.9, 1.4, 0.6)
-material = SubResource("StandardMaterial3D_guard_accent")
-
-[node name="Inter_GuideCollectible" type="Area3D" parent="Entities/Interactions" unique_id=1302477177]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 1.4, 8)
-script = ExtResource("62_ai_demo_flag_zone")
-ai_flag_id = &"nav_goal_reached"
-completed_area_id = "ai_showcase"
-signpost_message = "gameplay.signpost.default_message"
-action_required = true
-interaction_hint_icon = ExtResource("62_kkkmb")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Entities/Interactions/Inter_GuideCollectible" unique_id=277963270]
-shape = SubResource("SphereShape3D_noise_source")
-
-[node name="Visual" type="CSGSphere3D" parent="Entities/Interactions/Inter_GuideCollectible" unique_id=2119273563]
-radius = 0.6
-material = SubResource("StandardMaterial3D_guide_accent")
-
-[node name="NoiseSources" type="Node" parent="Entities" unique_id=1001400001]
-script = ExtResource("16_8qi87")
-
-[node name="Inter_NoiseSourceA" type="Area3D" parent="Entities/NoiseSources" unique_id=1001400002]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 1, -10)
-script = ExtResource("62_ai_demo_flag_zone")
-ai_flag_id = &"comms_disturbance_heard"
-completed_area_id = "ai_showcase"
-signpost_message = "gameplay.signpost.default_message"
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Entities/NoiseSources/Inter_NoiseSourceA" unique_id=1001400003]
-shape = SubResource("SphereShape3D_noise_source")
-
-[node name="Visual" type="CSGSphere3D" parent="Entities/NoiseSources/Inter_NoiseSourceA" unique_id=1001400004]
-radius = 0.4
-material = SubResource("StandardMaterial3D_noise")
-
 [node name="NPCs" type="Node" parent="Entities" unique_id=746647039]
 script = ExtResource("16_8qi87")
 
-[node name="E_PatrolDroneA" parent="Entities/NPCs" unique_id=1100000001 instance=ExtResource("69_prefab_npc")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 2.5, -5)
-entity_id = &"patrol_drone_a"
+[node name="E_PatrolDrone" parent="Entities/NPCs" unique_id=1366380738 instance=ExtResource("69_prefab_npc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 2.5, 0)
+entity_id = &"patrol_drone"
 tags = Array[StringName]([&"npc", &"ai", &"patrol_drone"])
 
-[node name="C_AIBrainComponent" parent="Entities/NPCs/E_PatrolDroneA/Components" parent_id_path=PackedInt32Array(1100000001, 1373490017) index="8" unique_id=392776987]
+[node name="C_AIBrainComponent" parent="Entities/NPCs/E_PatrolDrone/Components" parent_id_path=PackedInt32Array(1366380738, 1373490017) index="8" unique_id=392776987]
 brain_settings = ExtResource("70_patrol_drone_brain")
 
-[node name="C_DetectionComponent" parent="Entities/NPCs/E_PatrolDroneA/Components" parent_id_path=PackedInt32Array(1100000001, 1373490017) index="9" unique_id=2145048101]
-detection_radius = 7.5
-ai_flag_id = &"power_core_proximity"
-
-[node name="C_SpawnRecoveryComponent" parent="Entities/NPCs/E_PatrolDroneA/Components" parent_id_path=PackedInt32Array(1100000001, 1373490017) index="10" unique_id=2145048102]
-settings = ExtResource("78_patrol_drone_spawn_recovery")
-
-[node name="E_PatrolDroneB" parent="Entities/NPCs" unique_id=1100000002 instance=ExtResource("69_prefab_npc")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 2.5, 5)
-entity_id = &"patrol_drone_b"
-tags = Array[StringName]([&"npc", &"ai", &"patrol_drone"])
-
-[node name="C_AIBrainComponent" parent="Entities/NPCs/E_PatrolDroneB/Components" parent_id_path=PackedInt32Array(1100000002, 1373490017) index="8" unique_id=392776987]
-brain_settings = ExtResource("70_patrol_drone_brain")
-
-[node name="C_DetectionComponent" parent="Entities/NPCs/E_PatrolDroneB/Components" parent_id_path=PackedInt32Array(1100000002, 1373490017) index="9" unique_id=2145048101]
-detection_radius = 7.5
-ai_flag_id = &"power_core_proximity"
-
-[node name="C_SpawnRecoveryComponent" parent="Entities/NPCs/E_PatrolDroneB/Components" parent_id_path=PackedInt32Array(1100000002, 1373490017) index="10" unique_id=2145048102]
-settings = ExtResource("78_patrol_drone_spawn_recovery")
-
-[node name="E_Sentry" parent="Entities/NPCs" unique_id=1100000003 instance=ExtResource("69_prefab_npc")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 2)
-entity_id = &"sentry"
-tags = Array[StringName]([&"npc", &"ai", &"sentry"])
-
-[node name="C_AIBrainComponent" parent="Entities/NPCs/E_Sentry/Components" parent_id_path=PackedInt32Array(1100000003, 1373490017) index="8" unique_id=392776987]
-brain_settings = ExtResource("71_sentry_brain")
-
-[node name="C_DetectionComponent" parent="Entities/NPCs/E_Sentry/Components" parent_id_path=PackedInt32Array(1100000003, 1373490017) index="9" unique_id=2145048101]
-ai_flag_id = &"comms_disturbance_proximity"
-
-[node name="E_GuidePrism" parent="Entities/NPCs" unique_id=1100000004 instance=ExtResource("69_prefab_npc")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 2.5, -5)
-entity_id = &"guide_prism"
-tags = Array[StringName]([&"npc", &"ai", &"guide_prism"])
-
-[node name="C_AIBrainComponent" parent="Entities/NPCs/E_GuidePrism/Components" parent_id_path=PackedInt32Array(1100000004, 1373490017) index="8" unique_id=392776987]
-brain_settings = ExtResource("72_guide_showcase_brain")
-
-[node name="C_DetectionComponent" parent="Entities/NPCs/E_GuidePrism/Components" parent_id_path=PackedInt32Array(1100000004, 1373490017) index="9" unique_id=2145048101]
-detection_radius = 9.5
-ai_flag_id = &"guide_player_nearby"
+[node name="C_SpawnRecoveryComponent" parent="Entities/NPCs/E_PatrolDrone/Components" parent_id_path=PackedInt32Array(1366380738, 1373490017) index="10" unique_id=2145048102]
+settings = ExtResource("71_patrol_drone_spawn_recovery")
 
 [node name="E_Player" parent="Entities" unique_id=1084793980 instance=ExtResource("7_4wxy1")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27, 1.9733102, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15322971, 1.9733102, -2)
 
 [node name="E_CameraRoot" parent="Entities" unique_id=909307282 instance=ExtResource("19_ph0bl")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27, 1, 4.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 4.5)
 
-[editable path="Entities/NPCs/E_PatrolDroneA"]
-[editable path="Entities/NPCs/E_PatrolDroneB"]
-[editable path="Entities/NPCs/E_Sentry"]
-[editable path="Entities/NPCs/E_GuidePrism"]
+[editable path="Entities/NPCs/E_PatrolDrone"]

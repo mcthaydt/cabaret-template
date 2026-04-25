@@ -9,7 +9,7 @@
 [ext_resource type="Script" uid="uid://cdkunc6hqdyw8" path="res://scripts/demo/ecs/components/c_detection_component.gd" id="7_detection"]
 [ext_resource type="Script" uid="uid://rgkenqvxmdyx" path="res://scripts/demo/ecs/components/c_move_target_component.gd" id="8_move_target"]
 [ext_resource type="Script" uid="uid://bl07foi6nma64" path="res://scripts/demo/ecs/components/c_needs_component.gd" id="9_needs"]
-[ext_resource type="PackedScene" uid="uid://ulajqu65rdw6" path="res://scenes/debug/debug_woods_agent_label.tscn" id="10_debug_label"]
+[ext_resource type="PackedScene" uid="uid://ulajqu65rdw6" path="res://scenes/demo/debug/debug_woods_agent_label.tscn" id="10_debug_label"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rabbit"]
 shading_mode = 0

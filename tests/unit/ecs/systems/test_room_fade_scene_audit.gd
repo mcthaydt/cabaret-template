@@ -1,7 +1,7 @@
 extends BaseTest
 
-const SCENE_PATH := "res://scenes/gameplay/gameplay_interior_a.tscn"
-const POWER_CORE_SCENE_PATH := "res://scenes/gameplay/gameplay_power_core.tscn"
+const SCENE_PATH := "res://scenes/demo/gameplay/gameplay_interior_a.tscn"
+const POWER_CORE_SCENE_PATH := "res://scenes/demo/gameplay/gameplay_power_core.tscn"
 const TEMPLATE_SCENE_PATH := "res://scenes/core/templates/tmpl_base_scene.tscn"
 const C_ROOM_FADE_GROUP_COMPONENT_SCRIPT := preload(
 	"res://scripts/core/ecs/components/c_room_fade_group_component.gd"

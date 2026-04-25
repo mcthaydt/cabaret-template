@@ -2,8 +2,8 @@ extends BaseTest
 
 const U_ECS_UTILS := preload("res://scripts/core/utils/ecs/u_ecs_utils.gd")
 const SCENE_BASE := preload("res://scenes/core/templates/tmpl_base_scene.tscn")
-const SCENE_EXTERIOR := preload("res://scenes/gameplay/gameplay_exterior.tscn")
-const SCENE_INTERIOR := preload("res://scenes/gameplay/gameplay_interior_house.tscn")
+const SCENE_EXTERIOR := preload("res://scenes/demo/gameplay/gameplay_exterior.tscn")
+const SCENE_INTERIOR := preload("res://scenes/demo/gameplay/gameplay_interior_house.tscn")
 const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
 const M_SPAWN_MANAGER := preload("res://scripts/core/managers/m_spawn_manager.gd")
 

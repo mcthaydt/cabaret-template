@@ -1,6 +1,6 @@
 extends BaseTest
 
-const AI_SHOWCASE_SCENE_PATH := "res://scenes/gameplay/gameplay_ai_showcase.tscn"
+const AI_SHOWCASE_SCENE_PATH := "res://scenes/demo/gameplay/gameplay_ai_showcase.tscn"
 const PATROL_BRAIN_PATH := "res://resources/demo/ai/patrol_drone/cfg_patrol_drone_brain.tres"
 const SENTRY_BRAIN_PATH := "res://resources/demo/ai/sentry/cfg_sentry_brain.tres"
 const GUIDE_SHOWCASE_BRAIN_PATH := "res://resources/demo/ai/guide_prism/cfg_guide_showcase_brain.tres"

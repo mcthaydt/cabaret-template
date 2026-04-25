@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://boulcm0qu24hs" path="res://scripts/demo/ecs/components/c_build_site_component.gd" id="1_build_site"]
 [ext_resource type="Resource" uid="uid://cxqfekpsxhav1" path="res://resources/demo/base_settings/ai_woods/ai_woods/cfg_build_site_house.tres" id="2_build_settings"]
-[ext_resource type="PackedScene" uid="uid://bhrug6ke0o5xa" path="res://scenes/debug/debug_woods_build_site_label.tscn" id="3_debug_label"]
+[ext_resource type="PackedScene" uid="uid://bhrug6ke0o5xa" path="res://scenes/demo/debug/debug_woods_build_site_label.tscn" id="3_debug_label"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_foundation"]
 shading_mode = 0

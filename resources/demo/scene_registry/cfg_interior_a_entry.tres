@@ -5,6 +5,6 @@
 [resource]
 script = ExtResource("1_resource")
 scene_id = &"interior_a"
-scene_path = "res://scenes/gameplay/gameplay_interior_a.tscn"
+scene_path = "res://scenes/demo/gameplay/gameplay_interior_a.tscn"
 scene_type = 1
 preload_priority = 6

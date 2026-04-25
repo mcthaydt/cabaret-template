@@ -1,6 +1,6 @@
 extends BaseTest
 
-const NPC_PREFAB_PATH := "res://scenes/prefabs/prefab_demo_npc.tscn"
+const NPC_PREFAB_PATH := "res://scenes/demo/prefabs/prefab_demo_npc.tscn"
 const CHARACTER_TEMPLATE_PATH := "res://scenes/core/templates/tmpl_character.tscn"
 
 const REQUIRED_COMPONENT_PATHS: Array[String] = [

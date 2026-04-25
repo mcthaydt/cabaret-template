@@ -11,7 +11,7 @@
 [ext_resource type="Script" uid="uid://rgkenqvxmdyx" path="res://scripts/demo/ecs/components/c_move_target_component.gd" id="9_move_target"]
 [ext_resource type="Script" uid="uid://bl07foi6nma64" path="res://scripts/demo/ecs/components/c_needs_component.gd" id="10_needs"]
 [ext_resource type="Script" uid="uid://dku2qmk4p02q5" path="res://scripts/demo/ecs/components/c_inventory_component.gd" id="11_inventory"]
-[ext_resource type="PackedScene" uid="uid://ulajqu65rdw6" path="res://scenes/debug/debug_woods_agent_label.tscn" id="12_debug_label"]
+[ext_resource type="PackedScene" uid="uid://ulajqu65rdw6" path="res://scenes/demo/debug/debug_woods_agent_label.tscn" id="12_debug_label"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_builder"]
 shading_mode = 0
