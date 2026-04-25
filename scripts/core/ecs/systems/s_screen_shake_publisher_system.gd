@@ -10,7 +10,7 @@ class_name S_ScreenShakePublisherSystem
 const U_ECS_EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
 const U_ECS_EVENT_NAMES := preload("res://scripts/core/events/ecs/u_ecs_event_names.gd")
 const EVN_SCREEN_SHAKE_REQUEST := preload("res://scripts/core/events/ecs/evn_screen_shake_request.gd")
-const DEFAULT_TUNING := preload("res://resources/vfx/cfg_screen_shake_tuning.tres")
+const DEFAULT_TUNING := preload("res://resources/core/vfx/cfg_screen_shake_tuning.tres")
 
 @export var tuning: Resource = null
 

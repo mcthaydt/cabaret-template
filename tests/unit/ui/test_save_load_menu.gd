@@ -5,7 +5,7 @@ const U_SAVE_TEST_UTILS := preload("res://tests/unit/save/u_save_test_utils.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 
-const PLACEHOLDER_TEXTURE_PATH := "res://resources/ui/tex_save_slot_placeholder.png"
+const PLACEHOLDER_TEXTURE_PATH := "res://resources/core/ui/tex_save_slot_placeholder.png"
 const TEST_THUMB_DIR := "user://test_ui_thumbs/"
 
 var _test_save_manager: MockSaveManager

@@ -6,14 +6,14 @@ class_name U_PaletteManager
 signal active_palette_changed(palette)
 
 const PALETTES := {
-	"normal": preload("res://resources/ui_themes/cfg_palette_normal.tres"),
-	"normal_high_contrast": preload("res://resources/ui_themes/cfg_palette_normal_high_contrast.tres"),
-	"deuteranopia": preload("res://resources/ui_themes/cfg_palette_deuteranopia.tres"),
-	"deuteranopia_high_contrast": preload("res://resources/ui_themes/cfg_palette_deuteranopia_high_contrast.tres"),
-	"protanopia": preload("res://resources/ui_themes/cfg_palette_protanopia.tres"),
-	"protanopia_high_contrast": preload("res://resources/ui_themes/cfg_palette_protanopia_high_contrast.tres"),
-	"tritanopia": preload("res://resources/ui_themes/cfg_palette_tritanopia.tres"),
-	"tritanopia_high_contrast": preload("res://resources/ui_themes/cfg_palette_tritanopia_high_contrast.tres"),
+	"normal": preload("res://resources/core/ui_themes/cfg_palette_normal.tres"),
+	"normal_high_contrast": preload("res://resources/core/ui_themes/cfg_palette_normal_high_contrast.tres"),
+	"deuteranopia": preload("res://resources/core/ui_themes/cfg_palette_deuteranopia.tres"),
+	"deuteranopia_high_contrast": preload("res://resources/core/ui_themes/cfg_palette_deuteranopia_high_contrast.tres"),
+	"protanopia": preload("res://resources/core/ui_themes/cfg_palette_protanopia.tres"),
+	"protanopia_high_contrast": preload("res://resources/core/ui_themes/cfg_palette_protanopia_high_contrast.tres"),
+	"tritanopia": preload("res://resources/core/ui_themes/cfg_palette_tritanopia.tres"),
+	"tritanopia_high_contrast": preload("res://resources/core/ui_themes/cfg_palette_tritanopia_high_contrast.tres"),
 }
 
 var _active_palette: Resource = null

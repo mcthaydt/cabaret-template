@@ -5,7 +5,7 @@ const RS_UI_COLOR_PALETTE := preload("res://scripts/core/resources/ui/rs_ui_colo
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const U_DISPLAY_UI_THEME_APPLIER := preload("res://scripts/core/managers/helpers/display/u_display_ui_theme_applier.gd")
 const U_LOCALIZATION_FONT_APPLIER := preload("res://scripts/core/managers/helpers/localization/u_localization_font_applier.gd")
-const UI_THEME_CONFIG_DEFAULT := preload("res://resources/ui/cfg_ui_theme_default.tres")
+const UI_THEME_CONFIG_DEFAULT := preload("res://resources/core/ui/cfg_ui_theme_default.tres")
 
 var _config: Resource = null
 

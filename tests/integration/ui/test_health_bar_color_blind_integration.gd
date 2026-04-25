@@ -98,7 +98,7 @@ func test_health_bar_uses_success_color_from_normal_palette() -> void:
 	await get_tree().process_frame  # Extra frame for theme update
 
 	# Load the normal palette to get expected color
-	var normal_palette := load("res://resources/ui_themes/cfg_palette_normal.tres") as Resource
+	var normal_palette := load("res://resources/core/ui_themes/cfg_palette_normal.tres") as Resource
 	var expected_color: Color = normal_palette.success
 
 	# Act: Get the health bar's fill color (check for override first)
@@ -127,7 +127,7 @@ func test_health_bar_uses_success_color_from_deuteranopia_palette() -> void:
 	await get_tree().process_frame  # Extra frame for theme update
 
 	# Load the deuteranopia palette to get expected color
-	var deut_palette := load("res://resources/ui_themes/cfg_palette_deuteranopia.tres") as Resource
+	var deut_palette := load("res://resources/core/ui_themes/cfg_palette_deuteranopia.tres") as Resource
 	var expected_color: Color = deut_palette.success
 
 	# Act: Get the health bar's fill color (check for override first)
@@ -150,7 +150,7 @@ func test_health_bar_uses_warning_color_when_health_is_medium() -> void:
 	await get_tree().process_frame
 
 	# Load the normal palette to get expected color
-	var normal_palette := load("res://resources/ui_themes/cfg_palette_normal.tres") as Resource
+	var normal_palette := load("res://resources/core/ui_themes/cfg_palette_normal.tres") as Resource
 	var expected_color: Color = normal_palette.warning
 
 	# Act: Get the health bar's fill color (check for override first)
@@ -173,7 +173,7 @@ func test_health_bar_uses_danger_color_when_health_is_low() -> void:
 	await get_tree().process_frame
 
 	# Load the normal palette to get expected color
-	var normal_palette := load("res://resources/ui_themes/cfg_palette_normal.tres") as Resource
+	var normal_palette := load("res://resources/core/ui_themes/cfg_palette_normal.tres") as Resource
 	var expected_color: Color = normal_palette.danger
 
 	# Act: Get the health bar's fill color (check for override first)
@@ -196,7 +196,7 @@ func test_health_bar_color_updates_when_color_blind_mode_changes() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame  # Extra frame for theme update
 
-	var normal_palette := load("res://resources/ui_themes/cfg_palette_normal.tres") as Resource
+	var normal_palette := load("res://resources/core/ui_themes/cfg_palette_normal.tres") as Resource
 	var normal_color: Color = normal_palette.success
 
 	var health_bar: ProgressBar = _hud.health_bar
@@ -214,7 +214,7 @@ func test_health_bar_color_updates_when_color_blind_mode_changes() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame  # Extra frame for theme update
 
-	var prot_palette := load("res://resources/ui_themes/cfg_palette_protanopia.tres") as Resource
+	var prot_palette := load("res://resources/core/ui_themes/cfg_palette_protanopia.tres") as Resource
 	var prot_color: Color = prot_palette.success
 
 	# Get fill style again after update

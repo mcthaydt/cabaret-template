@@ -24,7 +24,7 @@ const GD_DIRECTORIES := [
 ]
 
 const TRIGGER_RESOURCE_DIRECTORIES := [
-	"res://resources/triggers"
+	"res://resources/core/triggers"
 ]
 
 const INTERACTION_RESOURCE_DIRECTORIES := [
@@ -32,7 +32,7 @@ const INTERACTION_RESOURCE_DIRECTORIES := [
 ]
 
 const TRIGGER_RESOURCE_FILES := [
-	"res://resources/triggers/cfg_scene_trigger_settings.tres"
+	"res://resources/core/triggers/cfg_scene_trigger_settings.tres"
 ]
 
 const INTERACTION_RESOURCE_ALLOWED_SUBDIRS := [

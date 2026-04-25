@@ -5,7 +5,7 @@ extends Node
 
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const U_UI_THEME_DEBUG := preload("res://scripts/core/ui/utils/u_ui_theme_debug.gd")
-const UI_THEME_CONFIG_DEFAULT := preload("res://resources/ui/cfg_ui_theme_default.tres")
+const UI_THEME_CONFIG_DEFAULT := preload("res://resources/core/ui/cfg_ui_theme_default.tres")
 
 func _enter_tree() -> void:
 	_theme_debug_log("_enter_tree start")

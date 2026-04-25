@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="RS_DoorInteractionConfig" format=3 uid="uid://c5f8wl2rsd2uw"]
 
 [ext_resource type="Script" uid="uid://dg280xmlvc2yd" path="res://scripts/core/resources/interactions/rs_door_interaction_config.gd" id="1"]
-[ext_resource type="Resource" uid="uid://b4iokk546qp3w" path="res://resources/triggers/cfg_scene_trigger_settings.tres" id="2"]
+[ext_resource type="Resource" uid="uid://b4iokk546qp3w" path="res://resources/core/triggers/cfg_scene_trigger_settings.tres" id="2"]
 
 [resource]
 script = ExtResource("1")

@@ -43,7 +43,7 @@
 [ext_resource type="Script" uid="uid://d2w2tpq145yl4" path="res://scripts/core/managers/m_run_coordinator_manager.gd" id="41_run_coordinator"]
 [ext_resource type="Resource" uid="uid://xn3e3t3x7lad" path="res://resources/core/state/cfg_default_objectives_initial_state.tres" id="42_objectives_state"]
 [ext_resource type="Resource" uid="uid://nbd84s2mk7ye" path="res://resources/core/state/cfg_default_scene_director_initial_state.tres" id="43_scene_director_state"]
-[ext_resource type="Resource" uid="uid://dmbf02gq12jfj" path="res://resources/cfg_game_config.tres" id="44_game_config"]
+[ext_resource type="Resource" uid="uid://dmbf02gq12jfj" path="res://resources/core/cfg_game_config.tres" id="44_game_config"]
 [ext_resource type="Resource" uid="uid://bgnybbenm5glv" path="res://resources/core/state/cfg_default_vcam_initial_state.tres" id="45_vcam_state"]
 [ext_resource type="Script" uid="uid://dsr10vhcaxvps" path="res://scripts/core/managers/m_vcam_manager.gd" id="46_vcam_manager"]
 [ext_resource type="Resource" uid="uid://cyryucy4pxy6f" path="res://resources/core/base_settings/gameplay/cfg_spawn_config_default.tres" id="47_spawn_config"]

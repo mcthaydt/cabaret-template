@@ -9,9 +9,9 @@ const RS_UI_MOTION_PRESET := preload("res://scripts/core/resources/ui/rs_ui_moti
 const U_UI_MOTION := preload("res://scripts/core/ui/utils/u_ui_motion.gd")
 const U_SAVE_ACTIONS := preload("res://scripts/core/state/actions/u_save_actions.gd")
 
-@export var checkpoint_toast_motion_set: Resource = preload("res://resources/ui/motions/cfg_motion_hud_checkpoint_toast.tres")
-@export var signpost_fade_in_preset: Resource = preload("res://resources/ui/motions/cfg_motion_hud_signpost_fade_in.tres")
-@export var signpost_fade_out_preset: Resource = preload("res://resources/ui/motions/cfg_motion_hud_signpost_fade_out.tres")
+@export var checkpoint_toast_motion_set: Resource = preload("res://resources/core/ui/motions/cfg_motion_hud_checkpoint_toast.tres")
+@export var signpost_fade_in_preset: Resource = preload("res://resources/core/ui/motions/cfg_motion_hud_signpost_fade_in.tres")
+@export var signpost_fade_out_preset: Resource = preload("res://resources/core/ui/motions/cfg_motion_hud_signpost_fade_out.tres")
 
 @onready var hud_margin_container: MarginContainer = $MarginContainer
 @onready var pause_label: Label = $MarginContainer/VBoxContainer/PauseLabel
