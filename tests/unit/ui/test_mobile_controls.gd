@@ -1,7 +1,7 @@
 extends GutTest
 
 const MobileControlsScene := preload("res://scenes/ui/hud/ui_mobile_controls.tscn")
-const DefaultTouchscreenProfile := preload("res://resources/input/profiles/cfg_default_touchscreen.tres")
+const DefaultTouchscreenProfile := preload("res://resources/core/input/profiles/cfg_default_touchscreen.tres")
 
 func before_each() -> void:
 	U_StateHandoff.clear_all()

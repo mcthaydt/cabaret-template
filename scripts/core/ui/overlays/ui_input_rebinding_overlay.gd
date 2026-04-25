@@ -3,7 +3,7 @@ extends "res://scripts/core/interfaces/i_rebind_overlay.gd"
 class_name UI_InputRebindingOverlay
 
 const I_INPUT_PROFILE_MANAGER := preload("res://scripts/core/interfaces/i_input_profile_manager.gd")
-const DEFAULT_REBIND_SETTINGS: Resource = preload("res://resources/input/rebind_settings/cfg_default_rebind_settings.tres")
+const DEFAULT_REBIND_SETTINGS: Resource = preload("res://resources/core/input/rebind_settings/cfg_default_rebind_settings.tres")
 const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_localization_utils.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
