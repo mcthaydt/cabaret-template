@@ -84,7 +84,20 @@ func _select_best_child_index(context: Dictionary) -> int:
 	return best_index
 
 func _score_child(index: int, context: Dictionary) -> float:
+	var child: RS_BTNode = children[index]
+	if "scorer" in child:
+		return _score_child_via_node_scorer(child, context)
 	return _score_child_via_resource(index, context)
+
+func _score_child_via_node_scorer(child: RS_BTNode, context: Dictionary) -> float:
+	var scorer: Variant = child.get("scorer")
+	if scorer == null or not (scorer is Resource):
+		return 0.0
+	var score_variant: Variant = (scorer as Resource).call("score", context)
+	if score_variant is float or score_variant is int:
+		return float(score_variant)
+	push_error("RS_BTUtilitySelector.tick: node scorer returned non-numeric score %s" % str(score_variant))
+	return 0.0
 
 func _score_child_via_resource(index: int, context: Dictionary) -> float:
 	if index < 0 or index >= _child_scorers.size():
