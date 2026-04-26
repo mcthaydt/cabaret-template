@@ -1492,36 +1492,20 @@ resources/
 
 **Goal**: Static factory class that creates every BT node type. No AI-specific imports.
 
-- [ ] **Commit 1** (RED) — `tests/unit/ai/bt/test_u_bt_builder.gd`:
-  - `sequence([...])` creates `RS_BTSequence` with correct children
-  - `selector([...])` creates `RS_BTSelector` with correct children
-  - `utility_selector([...])` creates `RS_BTUtilitySelector` with scored children
-  - `scored(child, scorer)` creates `RS_BTScoredNode` wrapping child + scorer
-  - `cooldown(child, duration)` creates `RS_BTCooldown` wrapping child
-  - `once(child)` creates `RS_BTOnce` wrapping child
-  - `rising_edge(child, gate_condition)` creates `RS_BTRisingEdge` wrapping child
-  - `inverter(child)` creates `RS_BTInverter` wrapping child
-  - `action(action_resource)` creates `RS_BTAction` wrapping an `I_AIAction`
-  - `condition(condition_resource)` creates `RS_BTCondition` wrapping an `I_Condition`
-  - `planner(goal, action_pool, ...)` creates `RS_BTPlanner`
-  - `score_const(value)` creates `RS_AIScorerConstant`
-  - `score_condition(condition, if_true, if_false)` creates `RS_AIScorerCondition`
-  - `score_context_field(path, multiplier)` creates `RS_AIScorerContextField`
-  - Built trees pass through `U_BTRunner.tick()` correctly
-- [ ] **Commit 2** (GREEN) — `scripts/core/utils/bt/u_bt_builder.gd`:
-  - `class_name U_BTBuilder`, extends `RefCounted`
-  - All methods are `static`
-  - Composites: `sequence`, `selector`, `utility_selector`
-  - Scored: `scored` (creates `RS_BTScoredNode`), `score_const`, `score_condition`, `score_context_field`
-  - Decorators: `cooldown`, `once`, `rising_edge`, `inverter`
-  - Leaves: `action`, `condition`, `planner`
-- [ ] **Commit 3** (GREEN) — Style enforcement: add `u_bt_builder.gd` line-count guard (max 150 lines), verify no AI-specific imports.
+- [x] **Commit 1** (RED) — `tests/unit/ai/bt/test_u_bt_builder.gd` (`a4c41434`)
+- [x] **Commit 2** (GREEN) — `scripts/core/utils/bt/u_bt_builder.gd` (`9139e459`)
+- [x] **Commit 3** (GREEN) — Style enforcement: LOC cap 100 lines added (`a23270b1`)
+
+**Notes**:
+- `planner()` omitted from `U_BTBuilder` — `RS_BTPlanner*` is a forbidden token in `BT_UTILS_DIR`; planner factory belongs in `U_AIBTFactory` (P6.3)
+- `scored()` return type is `RS_BTDecorator` (not `RS_BTScoredNode`) — `rs_bt_scored_node.gd` lacks a UID file so the class name can't be resolved as a type annotation in headless mode
+- Composite children use `_coerce_children` + `_children` bypass — direct typed-Array property assignment silently coerces to empty in headless runs
 
 **P6.2 Verification**:
-- [ ] All builder tests green
-- [ ] Built trees produce correct behavior via `U_BTRunner`
-- [ ] No AI-specific imports in BT builder (style enforcement)
-- [ ] Full suite green
+- [x] All 16 builder tests green
+- [x] Built trees produce correct behavior via `U_BTRunner`
+- [x] No AI-specific imports in BT builder (style enforcement: 91/91)
+- [x] Full suite green (4617/4617)
 
 ---
 

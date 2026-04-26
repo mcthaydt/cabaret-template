@@ -5,9 +5,9 @@
 Implements `docs/history/cleanup_v8/cleanup-v8-tasks.md` in phase order with TDD discipline. V8 is the follow-up to V7.2, addressing structural/organizational debt rather than internal architectural issues.
 
 **Branch**: `cleanup-v8` (off `main`, after `GOAP-AI` merged via PR #16).
-**Status**: Phases 1–4 complete. Phase 5 not started (deferred to last per sequencing plan). Phase 6 in progress — P6.1 complete, P6.2 next.
-**Next Task**: P6.2 — `U_BTBuilder` static factory class. Provides static factory methods for every BT node type. No AI-specific imports (lives in `scripts/core/utils/bt/`).
-**Prerequisite**: V7.2 complete (`e015aff2`). Phase 4 complete (`cbf0fd61`). All 18 P3.5 extension recipes complete (`b0c5b1cd`). P6.1 complete (`ec14181a`).
+**Status**: Phases 1–4 complete. Phase 5 not started (deferred to last per sequencing plan). Phase 6 in progress — P6.1 complete, P6.2 complete, P6.3 next.
+**Next Task**: P6.3 — `U_AIBTFactory` AI-specific convenience factories (creatures, scorers, conditions).
+**Prerequisite**: V7.2 complete (`e015aff2`). Phase 4 complete (`cbf0fd61`). All 18 P3.5 extension recipes complete (`b0c5b1cd`). P6.1 complete (`ec14181a`). P6.2 complete (`a23270b1`).
 
 ---
 
@@ -39,7 +39,7 @@ Six phases bundled for one goal: make the template LLM-friendly, modular, and sh
   - P4.10: `prototype_grids_png` → `assets/demo/textures/`; `editor_icons` → `assets/core/`; remaining core dirs → `assets/core/` (`bfc64316`–`58e4263e`).
   - Style suite: **89/89** after P4.10.
 - **Phase 5**: NOT STARTED. Deferred to last.
-- **Phase 6**: IN PROGRESS. P6.1 complete (`10310f00`–`ec14181a`). Style suite 90/90. Full suite 4601/4601 passing.
+- **Phase 6**: IN PROGRESS. P6.1 complete (`10310f00`–`ec14181a`). P6.2 complete (`a4c41434`–`a23270b1`). Style suite 91/91. Full suite 4617/4617 passing.
 
 ---
 
@@ -72,17 +72,16 @@ Six phases bundled for one goal: make the template LLM-friendly, modular, and sh
 
 ---
 
-## P6.2 Detail — BT Structural Builder (`U_BTBuilder`)
+## P6.2 — BT Structural Builder (`U_BTBuilder`) — COMPLETE
 
-**Goal**: Static factory class that creates every BT node type. No AI-specific imports. Lives in `scripts/core/utils/bt/u_bt_builder.gd`.
+**Commits**: `a4c41434`–`a23270b1` (3 commits + docs).
 
-**Commit sequence:**
+**Key implementation notes**:
+- `planner()` omitted — `RS_BTPlanner*` is a forbidden token in `BT_UTILS_DIR`; planner factory goes in `U_AIBTFactory` (P6.3).
+- `scored()` returns `RS_BTDecorator` (not `RS_BTScoredNode`) — `rs_bt_scored_node.gd` has no UID, so its class name can't be resolved as a type annotation in headless.
+- `sequence/selector/utility_selector` use `_coerce_children` + `_children` bypass — `Object.set()` with typed `Array[RS_BTNode]` exports silently coerces to empty in headless runs (established GDScript 4.6 pitfall).
 
-1. **(RED)** `tests/unit/ai/bt/test_u_bt_builder.gd` — factory method tests for: `sequence([...])`, `selector([...])`, `utility_selector([...])` with `RS_BTScoredNode` children, `scored(child, scorer)`, `cooldown(child, duration)`, `once(child)`, `rising_edge(child, gate)`, `inverter(child)`, `action(action_resource)`, `condition(condition_resource)`, `planner(goal, pool, ...)`, `score_const(value)`, `score_condition(condition, if_true, if_false)`, `score_context_field(path, multiplier)`. Built trees pass through `U_BTRunner.tick()` correctly.
-2. **(GREEN)** `scripts/core/utils/bt/u_bt_builder.gd` — `class_name U_BTBuilder`, `extends RefCounted`. All methods `static`. Each factory creates the target resource, sets its typed properties, and returns it. No AI-specific imports (action/condition factory methods accept the abstract types `I_AIAction`/`I_Condition` but don't import concrete implementations).
-3. **(GREEN)** Style enforcement — add `U_BTBuilder` to the `BT_UTILS_DIR` line-count check; confirm it passes `test_bt_general_utils_do_not_reference_ai_specific_types`.
-
-**Boundary**: lives in `scripts/core/utils/bt/` alongside `u_bt_runner.gd`. May reference `RS_BT*` node types (general BT dir). Must NOT reference `U_AI*`, `I_AIAction`, `I_Condition`, `RS_WorldStateEffect`, `RS_BTPlanner*` (enforced by existing style test).
+**Result**: style suite 91/91; full suite 4617/4617 passing; 16 new builder tests all green.
 
 ---
 
@@ -126,8 +125,8 @@ Test command: `tools/run_gut_suite.sh` (or `-gtest=<path>` for targeted runs).
 
 ## Next Steps
 
-1. **P6.2 Commit 1 (RED)** — Write `tests/unit/ai/bt/test_u_bt_builder.gd` covering all factory methods; verify RED for expected missing-script reason.
-2. **P6.2 Commit 2 (GREEN)** — Implement `scripts/core/utils/bt/u_bt_builder.gd` with all static factory methods.
-3. **P6.2 Commit 3 (GREEN)** — Style enforcement: verify `U_BTBuilder` passes `test_bt_general_utils_do_not_reference_ai_specific_types`; add LOC cap if needed.
-4. After P6.2: proceed to P6.3 — `U_AIBTFactory` (AI-specific convenience factories for creatures/scorers/conditions).
+1. **P6.3 Commit 1 (RED)** — Write `tests/unit/ai/bt/test_u_ai_bt_factory.gd` covering creature/scorer/condition factories; verify RED.
+2. **P6.3 Commit 2 (GREEN)** — Implement `scripts/core/utils/ai/u_ai_bt_factory.gd` with AI-specific convenience factories (includes `planner()` which `U_BTBuilder` cannot have).
+3. **P6.3 Commit 3 (GREEN)** — Style enforcement: add LOC cap if needed.
+4. After P6.3: proceed to P6.4 — `RS_AIBrainScriptSettings` (script-backed brain settings).
 5. Keep docs/history references archived; new evergreen guidance belongs under `docs/guides/` or `docs/systems/`.
