@@ -53,8 +53,8 @@ Type system, inference, and language-level gotchas specific to GDScript 4.6.
   **Problem**: Type checking fails when passing preloaded `.tres` resources to functions expecting the class type:
   ```gdscript
   # WRONG - shadows class_name symbol with preload constant:
-  const RS_UIScreenDefinition := preload("res://scripts/ui/resources/rs_ui_screen_definition.gd")
-  const MAIN_MENU := preload("res://resources/ui_screens/cfg_main_menu_screen.tres")
+  const RS_UIScreenDefinition := preload("res://scripts/core/ui/resources/rs_ui_screen_definition.gd")
+  const MAIN_MENU := preload("res://resources/core/ui_screens/cfg_main_menu_screen.tres")
 
   static func register(definition: RS_UIScreenDefinition) -> void:
       # ...
@@ -65,8 +65,8 @@ Type system, inference, and language-level gotchas specific to GDScript 4.6.
   **Solution**: Do not shadow the class symbol. Either remove the preload constant entirely, or rename it to a non-type alias:
   ```gdscript
   # CORRECT - class_name stays available for typing:
-  const RS_UI_SCREEN_DEFINITION_SCRIPT := preload("res://scripts/ui/resources/rs_ui_screen_definition.gd")
-  const MAIN_MENU := preload("res://resources/ui_screens/cfg_main_menu_screen.tres")
+  const RS_UI_SCREEN_DEFINITION_SCRIPT := preload("res://scripts/core/ui/resources/rs_ui_screen_definition.gd")
+  const MAIN_MENU := preload("res://resources/core/ui_screens/cfg_main_menu_screen.tres")
 
   static func register(definition: RS_UIScreenDefinition) -> void:
       # ...
