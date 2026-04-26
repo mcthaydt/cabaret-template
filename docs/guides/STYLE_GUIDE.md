@@ -72,9 +72,9 @@ The following patterns apply to **production** scripts under `res://scripts/**`.
 | **Helpers** | `*helpers/*` + `u_*_helper.gd` / `u_*_builder.gd` / `u_*_loader.gd` | `u_scene_registry_loader.gd`, `u_touchscreen_preview_builder.gd`, `u_input_profile_loader.gd` |
 
 **QB v2 resource directory convention:**
-- Condition resource classes live under `scripts/resources/qb/conditions/` and must use `rs_condition_*.gd`.
-- Effect resource classes live under `scripts/resources/qb/effects/` and must use `rs_effect_*.gd`.
-- Shared rule/base contracts stay at `scripts/resources/qb/` (`rs_rule.gd`, `rs_base_condition.gd`, `rs_base_effect.gd`).
+- Condition resource classes live under `scripts/core/resources/qb/conditions/` and must use `rs_condition_*.gd`.
+- Effect resource classes live under `scripts/core/resources/qb/effects/` and must use `rs_effect_*.gd`.
+- Shared rule/base contracts stay at `scripts/core/resources/qb/` (`rs_rule.gd`, `rs_base_condition.gd`, `rs_base_effect.gd`).
 
 **Shader filename exception (locked):**
 - `assets/shaders/sh_character_zone_lighting.gdshader` is an intentional locked production filename for the character lighting pipeline and is allowed even though it does not use the `_shader` suffix.
@@ -90,8 +90,8 @@ These rules apply to **production** assets under `res://scenes/**` and `res://re
 | **Prefab Scenes** | `prefab_*.tscn` | `prefab_death_zone.tscn`, `prefab_checkpoint.tscn` |
 | **Debug Scenes** | `debug_*.tscn` | `debug_state_overlay.tscn` |
 | **Template Scenes** | `tmpl_*.tscn` | `tmpl_base_scene.tscn`, `tmpl_camera.tscn`, `tmpl_character.tscn` |
-| **UI Screen Definitions** | `resources/ui_screens/cfg_*_screen.tres` / `cfg_*_overlay.tres` | `cfg_main_menu_screen.tres` |
-| **Scene Registry Entries** | `resources/scene_registry/cfg_*_entry.tres` | `cfg_gameplay_base_entry.tres` |
+| **UI Screen Definitions** | `resources/core/ui_screens/cfg_*_screen.tres` / `cfg_*_overlay.tres` | `cfg_main_menu_screen.tres` |
+| **Scene Registry Entries** | `resources/core/scene_registry/cfg_*_entry.tres` | `cfg_gameplay_base_entry.tres` |
 
 **Note**: All UI scenes now use `ui_` prefix. Legacy unprefixed UI scenes have been migrated to this pattern.
 
@@ -138,7 +138,7 @@ All asset files under `res://assets/**` must use type-specific prefixes:
 |----------|---------|---------|
 | **Unit/Integration Tests** | `test_*.gd` under `res://tests/**` | `test_m_state_store.gd` |
 | **Prototype Scripts** | `proto_*.gd` under `res://prototypes/**` | `proto_movement_playground.gd` |
-| **Debug Helpers** | `debug_*.gd` under `res://scripts/debug/**` | `debug_state_overlay_controller.gd` |
+| **Debug Helpers** | `debug_*.gd` under `res://scripts/core/debug/**` | `debug_state_overlay_controller.gd` |
 
 Tests and prototypes may use more relaxed naming, but must be clearly distinguished from production scripts via directory and filename prefixes.
 
@@ -240,13 +240,13 @@ This matrix documents all allowed filename and class prefixes by category. **Eve
 | **Input Utilities** | `u_input_*.gd` | `U_Input*` | `u_input_rebind_utils.gd` → `U_InputRebindUtils`, `u_input_serialization.gd` → `U_InputSerialization` |
 | **Input Components** | `c_*_component.gd` | `C_*Component` | `c_input_component.gd` → `C_InputComponent`, `c_gamepad_component.gd` → `C_GamepadComponent` |
 | **Input Systems** | `s_*_system.gd` | `S_*System` | `s_input_system.gd` → `S_InputSystem`, `s_touchscreen_system.gd` → `S_TouchscreenSystem` |
-| **Input Sources** | `*_source.gd` (in `scripts/input/sources/`) | `*Source` | `keyboard_mouse_source.gd` → `KeyboardMouseSource` |
-| **Input Resources** | `rs_*.gd` (in `scripts/resources/input/`) | `RS_*` | `rs_input_profile.gd` → `RS_InputProfile`, `rs_touchscreen_settings.gd` → `RS_TouchscreenSettings` |
+| **Input Sources** | `*_source.gd` (in `scripts/core/input/sources/`) | `*Source` | `keyboard_mouse_source.gd` → `KeyboardMouseSource` |
+| **Input Resources** | `rs_*.gd` (in `scripts/core/resources/input/`) | `RS_*` | `rs_input_profile.gd` → `RS_InputProfile`, `rs_touchscreen_settings.gd` → `RS_TouchscreenSettings` |
 | **Lighting Resources** | `rs_*.gd` (in `scripts/demo/resources/lighting/`) | `RS_*` | `rs_character_lighting_profile.gd` → `RS_CharacterLightingProfile`, `rs_character_light_zone_config.gd` → `RS_CharacterLightZoneConfig` |
 
 ##### Input Sources
 
-- Location: `scripts/input/sources/`
+- Location: `scripts/core/input/sources/`
 - File pattern: `*_source.gd`
 - Class pattern (informational): `*Source`
 
@@ -292,30 +292,48 @@ Demo-only gameplay scripts live under `scripts/demo/gameplay/` and keep the same
 ```
 scripts/
 ├── core/
-├── ecs/
-│   ├── components/
-│   └── systems/
-├── events/
-├── interfaces/
-├── managers/
-├── resources/
+│   ├── debug/
 │   ├── ecs/
+│   │   ├── components/
+│   │   └── systems/
+│   ├── events/
 │   ├── input/
-│   ├── lighting/
+│   ├── interfaces/
+│   ├── managers/
+│   ├── resources/
+│   │   ├── ecs/
+│   │   ├── input/
+│   │   ├── scene_management/
+│   │   ├── state/
+│   │   └── ui/
 │   ├── scene_management/
 │   ├── state/
-│   └── ui/
-├── state/
-├── ui/
-├── utils/
-│   ├── ecs/
-│   └── input/
-└── helpers/
+│   ├── ui/
+│   └── utils/
+│       ├── debug/
+│       ├── ecs/
+│       └── input/
+└── demo/
+    └── ...
+
+resources/
+├── core/
+│   ├── base_settings/
+│   ├── display/
+│   ├── input/
+│   ├── scene_registry/
+│   ├── spawn_metadata/
+│   └── ...
+└── demo/
+    └── ...
 
 scenes/
-├── gameplay/
-├── templates/
-└── ui/
+├── core/
+│   ├── gameplay/
+│   ├── templates/
+│   └── ui/
+└── demo/
+    └── ...
 
 assets/
 ├── audio/
@@ -324,9 +342,6 @@ assets/
 
 tests/
 └── unit/
-    └── ecs/
-        ├── systems/
-        └── components/
 ```
 
 ---
@@ -335,7 +350,7 @@ tests/
 
 ### System Example
 
-**File:** `scripts/ecs/systems/s_movement_system.gd`
+**File:** `scripts/core/ecs/systems/s_movement_system.gd`
 
 ```gdscript
 class_name S_MovementSystem
@@ -362,7 +377,7 @@ func _process_movement(component: C_MovementComponent, delta: float) -> void:
 
 ### Component Example
 
-**File:** `scripts/ecs/components/c_movement_component.gd`
+**File:** `scripts/core/ecs/components/c_movement_component.gd`
 
 ```gdscript
 class_name C_MovementComponent
@@ -389,7 +404,7 @@ func set_velocity(new_velocity: Vector3) -> void:
 
 ### Resource Example
 
-**File:** `scripts/resources/ecs/rs_movement_settings.gd`
+**File:** `scripts/core/resources/ecs/rs_movement_settings.gd`
 
 ```gdscript
 class_name RS_MovementSettings
@@ -408,7 +423,7 @@ extends Resource
 
 ### Manager Example
 
-**File:** `scripts/managers/m_ecs_manager.gd`
+**File:** `scripts/core/managers/m_ecs_manager.gd`
 
 ```gdscript
 class_name M_ECSManager
@@ -429,7 +444,7 @@ func get_components(type: StringName) -> Array:
 
 ### Utility Example
 
-**File:** `scripts/state/utils/u_action_registry.gd`
+**File:** `scripts/core/state/utils/u_action_registry.gd`
 
 ```gdscript
 class_name U_ECSUtils
@@ -959,7 +974,7 @@ EXCLUSIONS:
 - `.gd` files under `scripts/` and gameplay/unit tests use tab indentation. The style suite fails on leading spaces.
 - Trigger configuration resources (`RS_SceneTriggerSettings` derivatives) must include `script = ExtResource(...)`.
 - Duplicate shared `.tres` files before customizing per-scene values, or rely on controller auto-duplication.
-- Avoid `Resource.new()` fallback allocation in hot-path config resolvers. Use canonical default config instances under `resources/base_settings/**/cfg_*_config_default.tres` and scene exports where possible.
+- Avoid `Resource.new()` fallback allocation in hot-path config resolvers. Use canonical default config instances under `resources/core/base_settings/**/cfg_*_config_default.tres` and scene exports where possible.
 - New production categories must update this guide and style enforcement together.
 
 ---
@@ -974,7 +989,7 @@ EXCLUSIONS:
 ### Spawn Point Scripts
 
 - Spawn point nodes that own metadata use a dedicated script:
-  - File: `scripts/scene_management/sp_spawn_point.gd`
+  - File: `scripts/core/scene_management/sp_spawn_point.gd`
   - Class: `SP_SpawnPoint`
   - Prefix pattern: `sp_*` (spawn point scripts live alongside `u_*`/`i_*` scene management helpers)
   - Purpose: export an `RS_SpawnMetadata` resource on each `sp_*` node under `SpawnPoints`.
