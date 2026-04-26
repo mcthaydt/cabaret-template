@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="RS_AIBrainScriptSettings" format=3]
+
+[ext_resource type="Script" uid="uid://cx16snmfm7di" path="res://scripts/core/resources/ai/brain/rs_ai_brain_script_settings.gd" id="1_script_settings"]
+[ext_resource type="Script" path="res://scripts/demo/ai/trees/patrol_drone_behavior.gd" id="2_builder"]
+
+[resource]
+script = ExtResource("1_script_settings")
+builder_script = ExtResource("2_builder")
+evaluation_interval = 0.2
