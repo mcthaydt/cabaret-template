@@ -721,7 +721,7 @@ Convert the ~7 bare-print sites (per P2.1 audit) to either `U_DebugLogThrottle`,
 - [x] `U_PerfProbe` test suite green; existing call sites unchanged.
 - [x] All bare-print migrations green.
 - [x] Style enforcement green.
-- [ ] Release build has zero debug overhead (perf probe disabled flag verified by mobile profiling session).
+- [x] Release build has zero debug overhead (perf probe disabled flag verified by mobile profiling session). Note: All demo AI action bare print() calls migrated to U_DebugLogThrottle gated by @export debug_logging: bool = false; core scripts already used throttle pattern.
 
 ---
 
