@@ -81,7 +81,7 @@ func _process_brain(
 	var has_running_bt_state: bool = not brain.bt_state_bag.is_empty()
 	if not should_evaluate and not has_running_bt_state:
 		return -1
-	var root: RS_BTNode = brain_settings.root
+	var root: RS_BTNode = brain_settings.get_root()
 	if root == null:
 		if brain.active_goal_id != ROOT_MISSING_SENTINEL:
 			push_error("S_AIBehaviorSystem: root is null for brain %s" % str(brain.name))

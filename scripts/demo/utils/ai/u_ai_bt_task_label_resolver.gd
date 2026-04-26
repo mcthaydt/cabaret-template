@@ -14,7 +14,7 @@ static func resolve_task_id(brain_settings: RS_AIBrainSettings, bt_state_bag: Di
 	var running_action_node_id: int = _resolve_running_action_node_id(bt_state_bag)
 	if running_action_node_id < 0:
 		return StringName()
-	var root: RS_BTNode = brain_settings.root
+	var root: RS_BTNode = brain_settings.get_root()
 	if root == null:
 		return StringName()
 	var node_by_id: Dictionary = {}
