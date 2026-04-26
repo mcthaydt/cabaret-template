@@ -16,7 +16,7 @@ We tried programmatic scene generation (`U_SceneBuilder`) but it was **overengin
 
 ### 1. Duplicate gameplay_base.tscn
 
-1. In Godot FileSystem panel, find `scenes/gameplay/gameplay_base.tscn`
+1. In Godot FileSystem panel, find `scenes/demo/gameplay/gameplay_base.tscn`
 2. Right-click → **Duplicate**
 3. Name it `exterior.tscn`
 4. Open `exterior.tscn` in the scene editor
@@ -37,7 +37,7 @@ We tried programmatic scene generation (`U_SceneBuilder`) but it was **overengin
 4. Set Transform Position: `x=5, y=0, z=0`
 
 5. Right-click `E_DoorTrigger` → **Add Child Node** → Select `Node`
-6. Attach script: `res://scripts/ecs/components/c_scene_trigger_component.gd`
+6. Attach script: `res://scripts/core/ecs/components/c_scene_trigger_component.gd`
 7. In Inspector, set:
    - `door_id`: "door_to_house"
    - `target_scene_id`: "interior_house"
@@ -125,7 +125,7 @@ Both scenes should already be registered in `u_scene_registry.gd`:
 ```gdscript
 _register_scene(
     StringName("exterior"),
-    "res://scenes/gameplay/exterior.tscn",
+    "res://scenes/demo/gameplay/exterior.tscn",
     SceneType.GAMEPLAY,
     "fade",
     6
@@ -133,7 +133,7 @@ _register_scene(
 
 _register_scene(
     StringName("interior_house"),
-    "res://scenes/gameplay/interior_house.tscn",
+    "res://scenes/demo/gameplay/interior_house.tscn",
     SceneType.GAMEPLAY,
     "fade",
     6

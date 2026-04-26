@@ -14,10 +14,10 @@ The audio stack uses `M_AudioManager` (persistent manager) for bus layout + volu
 
 - Main scene is `scenes/root.tscn` (there is no `scenes/main.tscn` in this repo).
 - Service registration is bootstrapped by `scripts/core/root.gd` using `U_ServiceLocator` (`res://scripts/core/u_service_locator.gd`).
-- `S_JumpSoundSystem` exists at `scripts/ecs/systems/s_jump_sound_system.gd` and is implemented (event-driven SFX via BaseEventSFXSystem + pooled 3D spawner).
+- `S_JumpSoundSystem` exists at `scripts/core/ecs/systems/s_jump_sound_system.gd` and is implemented (event-driven SFX via BaseEventSFXSystem + pooled 3D spawner).
 - `RS_GameplayInitialState` currently includes `gameplay.audio_settings` + `U_VisualSelectors.get_audio_settings()`; this is not used by any real audio playback path today.
 - `BaseEventSFXSystem` exists (mirrors BaseEventVFXSystem) and is used by event-driven sound systems.
-- Placeholder audio assets live under `resources/audio/` and are imported (see `resources/audio/music/` and `resources/audio/sfx/`).
+- Placeholder audio assets live under `resources/demo/audio/` and are imported (see `resources/demo/audio/music/` and `resources/demo/audio/sfx/`).
 
 ## Goals
 
@@ -246,7 +246,7 @@ func _spawn_sound(_request: Dictionary) -> void:
 
 ### SFX Spawner Utility
 
-`U_SFXSpawner` manages pooled AudioStreamPlayer3D instances (see `scripts/managers/helpers/u_sfx_spawner.gd`):
+`U_SFXSpawner` manages pooled AudioStreamPlayer3D instances (see `scripts/core/managers/helpers/u_sfx_spawner.gd`):
 
 ```gdscript
 class_name U_SFXSpawner
@@ -384,23 +384,23 @@ Implementation:
 ## File Structure
 
 ```
-scripts/managers/
+scripts/core/managers/
   m_audio_manager.gd
 
-scripts/managers/helpers/
+scripts/core/managers/helpers/
   u_sfx_spawner.gd
 
-scripts/ui/utils/
+scripts/core/ui/utils/
   u_ui_sound_player.gd
 
-scripts/ui/settings/
+scripts/core/ui/settings/
   ui_audio_settings_tab.gd
   ui_audio_settings_overlay.gd
 
-scripts/ecs/
+scripts/core/ecs/
   base_event_sfx_system.gd
 
-scripts/ecs/systems/
+scripts/core/ecs/systems/
   s_jump_sound_system.gd
   s_landing_sound_system.gd
   s_death_sound_system.gd
@@ -409,10 +409,10 @@ scripts/ecs/systems/
   s_footstep_sound_system.gd
   s_ambient_sound_system.gd
 
-scripts/ecs/components/
+scripts/core/ecs/components/
   c_surface_detector_component.gd
 
-scripts/ecs/resources/
+scripts/core/ecs/resources/
   rs_jump_sound_settings.gd
   rs_landing_sound_settings.gd
   rs_death_sound_settings.gd
@@ -421,14 +421,14 @@ scripts/ecs/resources/
   rs_footstep_sound_settings.gd
   rs_ambient_sound_settings.gd
 
-scripts/state/
+scripts/core/state/
   resources/rs_audio_initial_state.gd
   actions/u_audio_actions.gd
   reducers/u_audio_reducer.gd
   selectors/u_audio_selectors.gd
 
 resources/
-  audio/
+  demo/audio/
     music/
     sfx/
     ambient/
@@ -444,7 +444,7 @@ resources/
 
 ### Audio Settings Overlay
 
-- Implemented as `UI_AudioSettingsOverlay` (`scenes/ui/ui_audio_settings_overlay.tscn`) and `UI_AudioSettingsTab` (`scenes/ui/settings/ui_audio_settings_tab.tscn`).
+- Implemented as `UI_AudioSettingsOverlay` (`scenes/core/ui/ui_audio_settings_overlay.tscn`) and `UI_AudioSettingsTab` (`scenes/core/ui/settings/ui_audio_settings_tab.tscn`).
 - Uses Apply/Cancel/Reset pattern: edits are local until Apply; Cancel discards; Reset applies defaults immediately.
 - Opened from `UI_SettingsMenu`:
   - Gameplay (pause/settings overlay): opens as an overlay (`overlay_id = "audio_settings"`).
@@ -453,7 +453,7 @@ resources/
 ### Redux Actions for Settings
 
 ```gdscript
-const U_AudioActions = preload("res://scripts/state/actions/u_audio_actions.gd")
+const U_AudioActions = preload("res://scripts/core/state/actions/u_audio_actions.gd")
 
 # Volume changes
 store.dispatch(U_AudioActions.set_master_volume(0.8))
@@ -527,22 +527,22 @@ Use Audacity to create temporary placeholder files for testing and development:
 
 1. Generate > Silence (5-10 seconds)
 2. File > Export > Export as OGG
-3. Commit to `resources/audio/music/` or `resources/audio/ambient/`
+3. Commit to `resources/demo/audio/music/` or `resources/demo/audio/ambient/`
 
 ### SFX (tone beeps)
 
 1. Generate > Tone (specify frequency/duration per table below)
 2. File > Export > Export as WAV
-3. Commit to appropriate `resources/audio/` subfolder
+3. Commit to appropriate `resources/demo/audio/` subfolder
 
 | Sound Type | Frequency | Duration | Path |
 |------------|-----------|----------|------|
-| Jump | 440 Hz | 100ms | resources/audio/sfx/placeholder_jump.wav |
-| Landing | 220 Hz | 100ms | resources/audio/sfx/placeholder_land.wav |
-| Death | 110 Hz | 150ms | resources/audio/sfx/placeholder_death.wav |
-| UI Focus | 1000 Hz | 30ms | resources/audio/sfx/placeholder_ui_focus.wav |
-| UI Confirm | 1200 Hz | 50ms | resources/audio/sfx/placeholder_ui_confirm.wav |
-| UI Cancel | 800 Hz | 50ms | resources/audio/sfx/placeholder_ui_cancel.wav |
+| Jump | 440 Hz | 100ms | resources/demo/audio/sfx/placeholder_jump.wav |
+| Landing | 220 Hz | 100ms | resources/demo/audio/sfx/placeholder_land.wav |
+| Death | 110 Hz | 150ms | resources/demo/audio/sfx/placeholder_death.wav |
+| UI Focus | 1000 Hz | 30ms | resources/demo/audio/sfx/placeholder_ui_focus.wav |
+| UI Confirm | 1200 Hz | 50ms | resources/demo/audio/sfx/placeholder_ui_confirm.wav |
+| UI Cancel | 800 Hz | 50ms | resources/demo/audio/sfx/placeholder_ui_cancel.wav |
 
 ### Footsteps (4 variations per surface)
 

@@ -320,17 +320,17 @@ Color blind accessibility uses pre-authored Theme Resource palettes rather than 
 ### Theme Resources Architecture
 
 ```
-scripts/resources/ui/
+scripts/core/resources/ui/
   rs_ui_color_palette.gd        # Resource class definition
 
-resources/ui_themes/
+resources/core/ui_themes/
   cfg_palette_normal.tres       # Default palette
   cfg_palette_deuteranopia.tres
   cfg_palette_protanopia.tres
   cfg_palette_tritanopia.tres
   cfg_palette_high_contrast.tres
 
-scripts/managers/helpers/
+scripts/core/managers/helpers/
   u_palette_manager.gd          # Loads/applies palettes based on Redux state
 ```
 
@@ -382,38 +382,38 @@ Optional simulation shaders for testing accessibility or user preference:
 ## File Structure
 
 ```
-scripts/interfaces/
+scripts/core/interfaces/
   i_display_manager.gd              # Interface for testability
 
-scripts/managers/
+scripts/core/managers/
   m_display_manager.gd              # Extends I_DisplayManager
 
-scripts/managers/helpers/display/
+scripts/core/managers/helpers/display/
   u_post_process_layer.gd           # CanvasLayer effect manager
   u_color_grading_registry.gd        # Scene→grade mapping (mobile-safe)
   u_display_color_grading_applier.gd # Color grading applier (CanvasLayer 1)
 
-scripts/managers/helpers/
+scripts/core/managers/helpers/
   u_palette_manager.gd              # Color blind palette loading
 
-scripts/resources/state/
+scripts/core/resources/state/
   rs_display_initial_state.gd       # Initial state resource
 
-scripts/resources/display/
+scripts/core/resources/display/
   rs_quality_preset.gd              # Quality preset resource class
   rs_scene_color_grading.gd          # Per-scene color grading config (Phase 11)
 
-scripts/resources/ui/
+scripts/core/resources/ui/
   rs_ui_color_palette.gd            # Color palette resource class
 
-scripts/state/actions/
+scripts/core/state/actions/
   u_display_actions.gd
   u_color_grading_actions.gd         # color_grading/ prefix (not persisted) (Phase 11)
 
-scripts/state/reducers/
+scripts/core/state/reducers/
   u_display_reducer.gd              # Also handles color_grading/ actions (Phase 11)
 
-scripts/state/selectors/
+scripts/core/state/selectors/
   u_display_selectors.gd
   u_color_grading_selectors.gd       # Color grading parameter selectors (Phase 11)
 
@@ -424,37 +424,37 @@ assets/shaders/
   sh_dither_shader.gdshader
   sh_colorblind_daltonize.gdshader
 
-resources/base_settings/state/
+resources/core/base_settings/state/
   cfg_display_initial_state.tres    # Default display settings instance
 
-resources/display/
+resources/core/display/
   cfg_quality_presets/              # Quality preset configurations
     cfg_quality_low.tres
     cfg_quality_medium.tres
     cfg_quality_high.tres
     cfg_quality_ultra.tres
 
-resources/ui_themes/
+resources/core/ui_themes/
   cfg_palette_normal.tres           # Instances only (class in scripts/)
   cfg_palette_deuteranopia.tres
   cfg_palette_protanopia.tres
   cfg_palette_tritanopia.tres
   cfg_palette_high_contrast.tres
 
-resources/display/color_gradings/
+resources/core/display/color_gradings/
   cfg_color_grading_gameplay_base.tres  # Per-scene configs (Phase 11)
   cfg_color_grading_alleyway.tres
   cfg_color_grading_exterior.tres
   cfg_color_grading_bar.tres
   cfg_color_grading_interior_house.tres
 
-resources/textures/
+resources/core/textures/
   tex_bayer_8x8.png
 
-scripts/utils/display/
+scripts/core/utils/display/
   u_color_grading_preview.gd         # @tool editor preview (Phase 11)
 
-scenes/ui/overlays/
+scenes/core/ui/overlays/
   ui_post_process_overlay.tscn      # CanvasLayer with effect ColorRects
 ```
 
@@ -506,7 +506,7 @@ Color blind options in "Accessibility" tab:
 ### Redux Actions for Settings
 
 ```gdscript
-const U_DisplayActions = preload("res://scripts/state/actions/u_display_actions.gd")
+const U_DisplayActions = preload("res://scripts/core/state/actions/u_display_actions.gd")
 
 # Graphics
 store.dispatch(U_DisplayActions.set_window_size_preset("1920x1080"))

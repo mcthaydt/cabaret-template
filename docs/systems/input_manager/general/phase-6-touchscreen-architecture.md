@@ -617,7 +617,7 @@ Like keyboard and gamepad profiles, we need default touchscreen profiles for res
 
 **Touchscreen Profile Structure (RS_InputProfile):**
 ```gdscript
-# resources/input/profiles/cfg_default_touchscreen.tres
+# resources/core/input/profiles/cfg_default_touchscreen.tres
 profile_name: "Default (Touchscreen)"
 device_type: 2  # DeviceType.TOUCHSCREEN
 action_mappings: {}  # Touchscreen doesn't use InputMap
@@ -671,7 +671,7 @@ func _get_default_touchscreen_profile() -> RS_InputProfile:
 	if available_profiles.has("default_touchscreen"):
 		return available_profiles["default_touchscreen"]
 	# Otherwise load directly
-	return load("res://resources/input/profiles/cfg_default_touchscreen.tres") as RS_InputProfile
+	return load("res://resources/core/input/profiles/cfg_default_touchscreen.tres") as RS_InputProfile
 ```
 
 ### 1.6 S_InputSystem Integration
@@ -717,7 +717,7 @@ But this is **NOT NECESSARY** since the component is already updated!
 ### 2.1 VirtualJoystick → ButtonPrompt + PrototypeTouch Pattern
 
 **Reference Implementations:**
-- `scripts/ui/button_prompt.gd` (UI component pattern)
+- `scripts/core/ui/button_prompt.gd` (UI component pattern)
 - `tests/prototypes/prototype_touch.gd` (touch handling logic)
 
 **VirtualJoystick Structure:**
@@ -903,7 +903,7 @@ func _save_position() -> void:
 
 ### 2.3 S_TouchscreenSystem → S_GamepadVibrationSystem Pattern
 
-**Reference:** `scripts/ecs/systems/s_gamepad_vibration_system.gd`
+**Reference:** `scripts/core/ecs/systems/s_gamepad_vibration_system.gd`
 
 **Similarities:**
 - Extends `BaseECSSystem`
@@ -919,7 +919,7 @@ func _save_position() -> void:
 
 ### 2.4 RS_TouchscreenSettings → RS_GamepadSettings Pattern
 
-**Reference:** `scripts/input/resources/rs_gamepad_settings.gd`
+**Reference:** `scripts/core/input/resources/rs_gamepad_settings.gd`
 
 **Structure:**
 ```gdscript
@@ -956,7 +956,7 @@ static func apply_touch_deadzone(touch_vector: Vector2, deadzone: float) -> Vect
 - ✅ Extends `Resource`
 - ✅ Uses `@export` for editor configuration
 - ✅ Static helper methods for shared logic
-- ✅ Default `.tres` file in `resources/input/touchscreen_settings/`
+- ✅ Default `.tres` file in `resources/core/input/touchscreen_settings/`
 
 ---
 
@@ -1384,7 +1384,7 @@ func test_60fps_sustained_input():
 
 **Redux Debug Slice Extension:**
 ```gdscript
-# scripts/state/reducers/u_debug_reducer.gd (or extend if doesn't exist)
+# scripts/core/state/reducers/u_debug_reducer.gd (or extend if doesn't exist)
 func _get_default_state() -> Dictionary:
 	return {
 		"disable_touchscreen": false,  # Emergency killswitch
@@ -1405,7 +1405,7 @@ func process_tick(_delta: float) -> void:
 
 **Debug Action:**
 ```gdscript
-# scripts/state/actions/u_debug_actions.gd
+# scripts/core/state/actions/u_debug_actions.gd
 const ACTION_SET_DISABLE_TOUCHSCREEN := StringName("debug/set_disable_touchscreen")
 
 static func set_disable_touchscreen(enabled: bool) -> Dictionary:
@@ -1497,7 +1497,7 @@ static func set_disable_touchscreen(enabled: bool) -> Dictionary:
 
 **Default Touchscreen Profile:**
 ```gdscript
-# resources/input/profiles/cfg_default_touchscreen.tres
+# resources/core/input/profiles/cfg_default_touchscreen.tres
 profile_name: "Default (Touchscreen)"
 profile_type: "touchscreen"
 device_type: DeviceType.TOUCHSCREEN
@@ -1669,21 +1669,21 @@ metadata: {
 ### New Files to Create
 
 **Resources:**
-- `resources/input/profiles/cfg_default_touchscreen.tres` (touchscreen profile with metadata-driven buttons)
-- `resources/input/touchscreen_settings/cfg_default_touchscreen_settings.tres` (settings resource)
+- `resources/core/input/profiles/cfg_default_touchscreen.tres` (touchscreen profile with metadata-driven buttons)
+- `resources/core/input/touchscreen_settings/cfg_default_touchscreen_settings.tres` (settings resource)
 - `resources/button_prompts/mobile/joystick_base.png` (Kenney.nl asset)
 - `resources/button_prompts/mobile/joystick_thumb.png` (Kenney.nl asset)
 - `resources/button_prompts/mobile/button_background.png` (Kenney.nl asset)
 - `resources/button_prompts/mobile/LICENSE_Kenney_Mobile.txt` (CC0 license)
 
 **Scripts:**
-- `scripts/input/resources/rs_touchscreen_settings.gd` (settings resource)
-- `scripts/ecs/systems/s_touchscreen_system.gd` (ECS system)
-- `scripts/ui/virtual_joystick.gd` (joystick component)
-- `scripts/ui/virtual_button.gd` (button component)
-- `scripts/ui/mobile_controls.gd` (container layer with metadata-driven button instantiation)
-- `scripts/ui/touchscreen_settings_overlay.gd` (settings UI - Gap Fill)
-- `scripts/ui/edit_touch_controls_overlay.gd` (layout editor UI - Gap Fill)
+- `scripts/core/input/resources/rs_touchscreen_settings.gd` (settings resource)
+- `scripts/core/ecs/systems/s_touchscreen_system.gd` (ECS system)
+- `scripts/core/ui/virtual_joystick.gd` (joystick component)
+- `scripts/core/ui/virtual_button.gd` (button component)
+- `scripts/core/ui/mobile_controls.gd` (container layer with metadata-driven button instantiation)
+- `scripts/core/ui/touchscreen_settings_overlay.gd` (settings UI - Gap Fill)
+- `scripts/core/ui/edit_touch_controls_overlay.gd` (layout editor UI - Gap Fill)
 
 **Scenes:**
 - `scenes/ui/virtual_joystick.tscn` (joystick scene)
@@ -1708,15 +1708,15 @@ metadata: {
 ### Files to Modify
 
 **State Management:**
-- `scripts/state/actions/u_input_actions.gd` (add touchscreen actions)
-- `scripts/state/reducers/u_input_reducer.gd` (add touchscreen reducer cases)
-- `scripts/state/selectors/u_input_selectors.gd` (add touchscreen selectors)
+- `scripts/core/state/actions/u_input_actions.gd` (add touchscreen actions)
+- `scripts/core/state/reducers/u_input_reducer.gd` (add touchscreen reducer cases)
+- `scripts/core/state/selectors/u_input_selectors.gd` (add touchscreen selectors)
 
 **Managers:**
-- `scripts/managers/m_input_profile_manager.gd` (add touchscreen profile methods, reset positions)
+- `scripts/core/managers/m_input_profile_manager.gd` (add touchscreen profile methods, reset positions)
 
 **UI:**
-- `scripts/ui/hud_controller.gd` (add safe area margin calculation and application - Gap Fill)
+- `scripts/core/ui/hud_controller.gd` (add safe area margin calculation and application - Gap Fill)
 
 **Root Scene:**
 - `scenes/root.tscn` (add MobileControls CanvasLayer)

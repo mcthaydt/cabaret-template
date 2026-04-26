@@ -21,7 +21,7 @@ The GOAP/HTN pipeline landed across M1–M15 and is functionally green, but the 
 3. **Modular action registry** — formalize `I_AIAction` as a real base class and kill magic-string `task_state` keys shared between actions and the navigation system.
 4. **Debug decoupling** — lift duplicated render-probe + log-throttle code out of production systems into shared utilities.
 5. **Player/NPC DRY** — promote the spawn-recovery and move-target-follower patterns to shared ECS systems used by both player and NPCs.
-6. **Directory hygiene** — reorganize `scripts/resources/ai/` and move demo-only systems out of production folders.
+6. **Directory hygiene** — reorganize `scripts/demo/resources/ai/` and move demo-only systems out of production folders.
 
 No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pipeline_integration.gd`) must stay green throughout.
 
@@ -49,11 +49,11 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
   - `tests/unit/ai/resources/test_rs_ai_task.gd` *(existing)* — add `test_primitive_task_action_typed_i_ai_action`, `test_compound_task_subtasks_typed_rs_ai_task`
   - `tests/unit/ecs/components/test_c_ai_brain_component.gd` *(existing)* — add `test_brain_settings_export_typed_rs_ai_brain_settings`, `test_current_task_queue_typed_rs_ai_primitive_task`
 - [x] **Commit 2** — Implement typed field updates (TDD GREEN):
-  - `scripts/resources/ai/rs_ai_brain_settings.gd` — `goals: Array[Resource]` → `Array[RS_AIGoal]`
-  - `scripts/resources/ai/rs_ai_goal.gd` — `root_task: Resource` → `RS_AITask`; `conditions: Array[Resource]` → `Array[I_Condition]` (the `I_Condition` base lives at `scripts/interfaces/i_condition.gd` and is the shared contract used by `RS_ConditionComponentField`, `RS_ConditionReduxField`, `RS_ConditionEntityTag`, `RS_ConditionEventName`, `RS_ConditionEventPayload`, `RS_ConditionComposite`, `RS_ConditionConstant`)
-  - `scripts/resources/ai/rs_ai_primitive_task.gd` — `action: Resource` → `I_AIAction`
-  - `scripts/resources/ai/rs_ai_compound_task.gd` — `subtasks: Array[Resource]` → `Array[RS_AITask]`; `method_conditions: Array[Resource]` → `Array[I_Condition]`
-  - `scripts/ecs/components/c_ai_brain_component.gd` — `brain_settings: Resource` → `RS_AIBrainSettings`; `current_task_queue: Array[Resource]` → `Array[RS_AIPrimitiveTask]`; add typed accessors `get_brain_settings()`, `get_active_goal_id()`, `get_current_task()`
+  - `scripts/demo/resources/ai/rs_ai_brain_settings.gd` — `goals: Array[Resource]` → `Array[RS_AIGoal]`
+  - `scripts/demo/resources/ai/rs_ai_goal.gd` — `root_task: Resource` → `RS_AITask`; `conditions: Array[Resource]` → `Array[I_Condition]` (the `I_Condition` base lives at `scripts/core/interfaces/i_condition.gd` and is the shared contract used by `RS_ConditionComponentField`, `RS_ConditionReduxField`, `RS_ConditionEntityTag`, `RS_ConditionEventName`, `RS_ConditionEventPayload`, `RS_ConditionComposite`, `RS_ConditionConstant`)
+  - `scripts/demo/resources/ai/rs_ai_primitive_task.gd` — `action: Resource` → `I_AIAction`
+  - `scripts/demo/resources/ai/rs_ai_compound_task.gd` — `subtasks: Array[Resource]` → `Array[RS_AITask]`; `method_conditions: Array[Resource]` → `Array[I_Condition]`
+  - `scripts/core/ecs/components/c_ai_brain_component.gd` — `brain_settings: Resource` → `RS_AIBrainSettings`; `current_task_queue: Array[Resource]` → `Array[RS_AIPrimitiveTask]`; add typed accessors `get_brain_settings()`, `get_active_goal_id()`, `get_current_task()`
 - [x] **Commit 3** — Delete duck-typing helpers from `s_ai_behavior_system.gd` that are no longer reachable after the type tightening (`_read_object_property` can remain temporarily if still called from suspended-state paths; they vanish in R10)
 
 **R1 Verification**:
@@ -92,14 +92,14 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
 - [x] **Commit 1** — Create keys + base tests (TDD RED):
   - `tests/unit/ai/test_u_ai_task_state_keys.gd` — `test_move_target_key_constant`, `test_arrival_threshold_key_constant`, `test_action_started_key_constant`, etc.
   - `tests/unit/ai/test_i_ai_action_base.gd` — `test_subclass_extends_class_name`, `test_base_start_virtuals_are_callable`
-  - Grep-based style test (add to `test_style_enforcement.gd` or new file): assert no AI script under `scripts/resources/ai/` or `scripts/ecs/systems/s_ai_*` contains a bare `"ai_move_target"` string literal
+  - Grep-based style test (add to `test_style_enforcement.gd` or new file): assert no AI script under `scripts/demo/resources/ai/` or `scripts/core/ecs/systems/s_ai_*` contains a bare `"ai_move_target"` string literal
 - [x] **Commit 2** — Implement (TDD GREEN):
-  - `scripts/utils/ai/u_ai_task_state_keys.gd` — new `class_name U_AITaskStateKeys` with `const MOVE_TARGET := &"ai_move_target"`, `const ARRIVAL_THRESHOLD := &"ai_arrival_threshold"`, `const ACTION_STARTED := &"action_started"`, `const MOVE_TARGET_RESOLVED := &"move_target_resolved"`, `const MOVE_TARGET_SOURCE := &"move_target_source"`, `const MOVE_TARGET_RESOLUTION_REASON := &"move_target_resolution_reason"`, `const MOVE_TARGET_USED_FALLBACK := &"move_target_used_fallback"`, and the six `move_target_*` debug keys
-  - `scripts/interfaces/i_ai_action.gd` — keep `class_name I_AIAction extends Resource`; replace `push_error` stubs with `assert(false, "...")` inside the virtuals so misuse is detected at the first call site; add a doc comment declaring the contract
-  - `scripts/resources/ai/actions/rs_ai_action_move_to.gd` — replace `TARGET_STATE_KEY`, `ARRIVAL_THRESHOLD_STATE_KEY`, and every `DEBUG_*_STATE_KEY` with `U_AITaskStateKeys.*`; change `extends "res://scripts/interfaces/i_ai_action.gd"` → `extends I_AIAction`
+  - `scripts/core/utils/ai/u_ai_task_state_keys.gd` — new `class_name U_AITaskStateKeys` with `const MOVE_TARGET := &"ai_move_target"`, `const ARRIVAL_THRESHOLD := &"ai_arrival_threshold"`, `const ACTION_STARTED := &"action_started"`, `const MOVE_TARGET_RESOLVED := &"move_target_resolved"`, `const MOVE_TARGET_SOURCE := &"move_target_source"`, `const MOVE_TARGET_RESOLUTION_REASON := &"move_target_resolution_reason"`, `const MOVE_TARGET_USED_FALLBACK := &"move_target_used_fallback"`, and the six `move_target_*` debug keys
+  - `scripts/core/interfaces/i_ai_action.gd` — keep `class_name I_AIAction extends Resource`; replace `push_error` stubs with `assert(false, "...")` inside the virtuals so misuse is detected at the first call site; add a doc comment declaring the contract
+  - `scripts/demo/resources/ai/actions/rs_ai_action_move_to.gd` — replace `TARGET_STATE_KEY`, `ARRIVAL_THRESHOLD_STATE_KEY`, and every `DEBUG_*_STATE_KEY` with `U_AITaskStateKeys.*`; change `extends "res://scripts/core/interfaces/i_ai_action.gd"` → `extends I_AIAction`
   - Same `extends I_AIAction` fix for `rs_ai_action_wait.gd`, `rs_ai_action_scan.gd`, `rs_ai_action_animate.gd`, `rs_ai_action_publish_event.gd`, `rs_ai_action_set_field.gd`
-  - `scripts/ecs/systems/s_ai_behavior_system.gd` — replace local `ACTION_STARTED_STATE_KEY` with `U_AITaskStateKeys.ACTION_STARTED`
-  - `scripts/ecs/systems/s_ai_navigation_system.gd` — replace local `TARGET_STATE_KEY`/`ARRIVAL_THRESHOLD_STATE_KEY` with `U_AITaskStateKeys.*`
+  - `scripts/core/ecs/systems/s_ai_behavior_system.gd` — replace local `ACTION_STARTED_STATE_KEY` with `U_AITaskStateKeys.ACTION_STARTED`
+  - `scripts/core/ecs/systems/s_ai_navigation_system.gd` — replace local `TARGET_STATE_KEY`/`ARRIVAL_THRESHOLD_STATE_KEY` with `U_AITaskStateKeys.*`
 
 **R2 Verification**:
 - [x] All new key/base tests green
@@ -113,10 +113,10 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
   - `tests/unit/ai/test_i_ai_action_base.gd` (`2/2`)
   - `tests/unit/style/test_style_enforcement.gd` (`18/18`) with `test_ai_move_target_magic_strings_not_used_in_ai_scripts`
 - Implemented shared task-state key registry:
-  - `scripts/utils/ai/u_ai_task_state_keys.gd` (`class_name U_AITaskStateKeys`)
+  - `scripts/core/utils/ai/u_ai_task_state_keys.gd` (`class_name U_AITaskStateKeys`)
   - Includes movement and debug key constants used by AI action/system hot paths.
 - Hardened action interface contract:
-  - `scripts/interfaces/i_ai_action.gd` now asserts in base virtuals (`start`, `tick`, `is_complete`) to fail fast on misuse.
+  - `scripts/core/interfaces/i_ai_action.gd` now asserts in base virtuals (`start`, `tick`, `is_complete`) to fail fast on misuse.
   - Action resources now use `extends I_AIAction` via class-name contract:
     - `rs_ai_action_move_to.gd`
     - `rs_ai_action_wait.gd`
@@ -125,9 +125,9 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
     - `rs_ai_action_publish_event.gd`
     - `rs_ai_action_set_field.gd`
 - Replaced duplicated task-state string literals with `U_AITaskStateKeys` in:
-  - `scripts/resources/ai/actions/rs_ai_action_move_to.gd`
-  - `scripts/ecs/systems/s_ai_behavior_system.gd`
-  - `scripts/ecs/systems/s_ai_navigation_system.gd`
+  - `scripts/demo/resources/ai/actions/rs_ai_action_move_to.gd`
+  - `scripts/core/ecs/systems/s_ai_behavior_system.gd`
+  - `scripts/core/ecs/systems/s_ai_navigation_system.gd`
 - Verification:
   - Targeted suites green:
     - `test_u_ai_task_state_keys.gd` (`4/4`)
@@ -175,10 +175,10 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
     - `test_includes_components_dict`
     - `test_handles_missing_store_gracefully`
 - [x] **Commit 2** — Implement extracted utils (TDD GREEN):
-  - `scripts/utils/ai/u_ai_goal_selector.gd` (`class_name U_AIGoalSelector extends RefCounted`) — owns `select(brain_settings, context, tracker, executing_goal_id)`, internal `_build_rule_from_goal`, `_apply_state_gates`, `_find_goal_by_id`, `_rule_pool`, `_goal_by_id_cache`
-  - `scripts/utils/ai/u_ai_task_runner.gd` (`class_name U_AITaskRunner extends RefCounted`) — owns `tick(brain, delta, context)`, internal `_advance_to_next_task`, `_finish_task_queue`
-  - `scripts/utils/ai/u_ai_replanner.gd` (`class_name U_AIReplanner extends RefCounted`) — owns `replan_for_goal(brain, goal, context)`, `_suspend_current_goal`, `_read_suspended_state`; composes `U_HTNPlanner`
-  - `scripts/utils/ai/u_ai_context_builder.gd` (`class_name U_AIContextBuilder extends RefCounted`) — owns `build(entity_query, brain, redux_state, store, manager)`, `context_key_for_context(context)`
+  - `scripts/core/utils/ai/u_ai_goal_selector.gd` (`class_name U_AIGoalSelector extends RefCounted`) — owns `select(brain_settings, context, tracker, executing_goal_id)`, internal `_build_rule_from_goal`, `_apply_state_gates`, `_find_goal_by_id`, `_rule_pool`, `_goal_by_id_cache`
+  - `scripts/core/utils/ai/u_ai_task_runner.gd` (`class_name U_AITaskRunner extends RefCounted`) — owns `tick(brain, delta, context)`, internal `_advance_to_next_task`, `_finish_task_queue`
+  - `scripts/core/utils/ai/u_ai_replanner.gd` (`class_name U_AIReplanner extends RefCounted`) — owns `replan_for_goal(brain, goal, context)`, `_suspend_current_goal`, `_read_suspended_state`; composes `U_HTNPlanner`
+  - `scripts/core/utils/ai/u_ai_context_builder.gd` (`class_name U_AIContextBuilder extends RefCounted`) — owns `build(entity_query, brain, redux_state, store, manager)`, `context_key_for_context(context)`
 - [x] **Commit 3** — Refactor `s_ai_behavior_system.gd` to compose the new utils. Leave goal-fired cooldown bookkeeping and debug logging in place for now (R4 removes debug; R10 is the final cleanup pass).
 
 **R3 Verification**:
@@ -195,15 +195,15 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
   - `tests/unit/ai/test_u_ai_replanner.gd` (`4/4`)
   - `tests/unit/ai/test_u_ai_context_builder.gd` (`4/4`)
 - Implemented focused AI collaborator utilities:
-  - `scripts/utils/ai/u_ai_goal_selector.gd`
-  - `scripts/utils/ai/u_ai_task_runner.gd`
-  - `scripts/utils/ai/u_ai_replanner.gd`
-  - `scripts/utils/ai/u_ai_context_builder.gd`
+  - `scripts/core/utils/ai/u_ai_goal_selector.gd`
+  - `scripts/core/utils/ai/u_ai_task_runner.gd`
+  - `scripts/core/utils/ai/u_ai_replanner.gd`
+  - `scripts/core/utils/ai/u_ai_context_builder.gd`
 - Refactored `S_AIBehaviorSystem` to orchestration-first composition:
-  - `scripts/ecs/systems/s_ai_behavior_system.gd` now delegates goal selection, replanning, task execution, and context assembly to the new collaborators while preserving existing debug logging and deferred cooldown bookkeeping.
+  - `scripts/core/ecs/systems/s_ai_behavior_system.gd` now delegates goal selection, replanning, task execution, and context assembly to the new collaborators while preserving existing debug logging and deferred cooldown bookkeeping.
   - Preserved rule-pool observability for existing tests via collaborator-backed `_rule_pool` / `_goal_by_id_cache`.
 - Line count reduction:
-  - `scripts/ecs/systems/s_ai_behavior_system.gd`: `771` (pre-R3 baseline) -> `372` lines after R3.
+  - `scripts/core/ecs/systems/s_ai_behavior_system.gd`: `771` (pre-R3 baseline) -> `372` lines after R3.
 - Verification:
   - Targeted R3 suite: `67/67` passing (new util tests + behavior goals/tasks + AI pipeline integration + style enforcement).
   - Full regression snapshot (2026-04-10): `3897/3907` passing, `1` failing performance smoke test (`tests/integration/lighting/test_character_zone_lighting_flow.gd::test_multi_character_multi_zone_performance_smoke`), `9` pending/risky.
@@ -213,7 +213,7 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
 
 ## Milestone R4: Extract Debug Probe + Log Throttle Utilities
 
-**Goal**: Remove ~200 lines of duplicated debug/probe code. `_build_render_probe(...)` is copy-pasted between `s_ai_behavior_system.gd` and `s_ai_navigation_system.gd` (verified: both files define the helper with the same body). The simpler `_find_character_body_recursive` helper is additionally duplicated in `scripts/ecs/components/c_movement_component.gd` and `scripts/ecs/systems/helpers/u_vcam_runtime_context.gd` — the new `U_AIRenderProbe` utility should expose `_find_character_body_recursive` as a `static` helper that those two non-AI call sites can also adopt during the R4 stretch commit. Six systems reinvent `_tick_debug_log_cooldowns`: `s_ai_behavior_system.gd`, `s_ai_navigation_system.gd`, `s_ai_spawn_recovery_system.gd`, `s_floating_system.gd`, `s_gravity_system.gd`, `s_movement_system.gd` (verified via grep). Consolidate both.
+**Goal**: Remove ~200 lines of duplicated debug/probe code. `_build_render_probe(...)` is copy-pasted between `s_ai_behavior_system.gd` and `s_ai_navigation_system.gd` (verified: both files define the helper with the same body). The simpler `_find_character_body_recursive` helper is additionally duplicated in `scripts/core/ecs/components/c_movement_component.gd` and `scripts/core/ecs/systems/helpers/u_vcam_runtime_context.gd` — the new `U_AIRenderProbe` utility should expose `_find_character_body_recursive` as a `static` helper that those two non-AI call sites can also adopt during the R4 stretch commit. Six systems reinvent `_tick_debug_log_cooldowns`: `s_ai_behavior_system.gd`, `s_ai_navigation_system.gd`, `s_ai_spawn_recovery_system.gd`, `s_floating_system.gd`, `s_gravity_system.gd`, `s_movement_system.gd` (verified via grep). Consolidate both.
 
 - [x] **Commit 1** — Create debug util tests (TDD RED):
   - `tests/unit/utils/debug/test_u_debug_log_throttle.gd`:
@@ -228,12 +228,12 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
     - `test_build_render_probe_reports_body_position`
     - `test_build_render_probe_reports_visual_transparency_when_geometry`
 - [x] **Commit 2** — Implement debug utils (TDD GREEN):
-  - `scripts/utils/debug/u_debug_log_throttle.gd` (`class_name U_DebugLogThrottle extends RefCounted`) — `consume_budget(key: StringName, interval_sec: float) -> bool`, `tick(delta: float) -> void`, `clear() -> void`
+  - `scripts/core/utils/debug/u_debug_log_throttle.gd` (`class_name U_DebugLogThrottle extends RefCounted`) — `consume_budget(key: StringName, interval_sec: float) -> bool`, `tick(delta: float) -> void`, `clear() -> void`
   - `scripts/demo/debug/utils/u_ai_render_probe.gd` (`class_name U_AIRenderProbe extends RefCounted`) — `static func build_probe_string(entity: Node, body: CharacterBody3D, movement_component: C_MovementComponent) -> String`; internal `_resolve_visual_node`, `_find_character_body_recursive`, `_find_first_geometry_recursive`
 - [x] **Commit 3** — Migrate call sites (TDD GREEN):
-  - `scripts/ecs/systems/s_ai_behavior_system.gd` — delete inline `_build_render_probe`, `_resolve_body_from_context`, `_resolve_visual_node`, `_find_character_body_recursive`, `_find_first_geometry_recursive`, `_debug_log_cooldowns` bookkeeping, `_tick_debug_log_cooldowns`. Use `U_DebugLogThrottle` and `U_AIRenderProbe` instead.
-  - `scripts/ecs/systems/s_ai_navigation_system.gd` — same delete-and-replace pass
-- [x] **Commit 4** (stretch, optional within R4) — migrate other systems with `_tick_debug_log_cooldowns` to `U_DebugLogThrottle`: `s_floating_system.gd`, `s_gravity_system.gd`, `s_movement_system.gd`, `s_ai_spawn_recovery_system.gd`. Also migrate the `_find_character_body_recursive` duplicates in `scripts/ecs/components/c_movement_component.gd` and `scripts/ecs/systems/helpers/u_vcam_runtime_context.gd` to `U_AIRenderProbe.find_character_body_recursive(...)` (or promote that helper to a separate `U_NodeFind` utility if you'd rather not couple non-AI code to an `AI`-named util — recommended if the stretch commit runs).
+  - `scripts/core/ecs/systems/s_ai_behavior_system.gd` — delete inline `_build_render_probe`, `_resolve_body_from_context`, `_resolve_visual_node`, `_find_character_body_recursive`, `_find_first_geometry_recursive`, `_debug_log_cooldowns` bookkeeping, `_tick_debug_log_cooldowns`. Use `U_DebugLogThrottle` and `U_AIRenderProbe` instead.
+  - `scripts/core/ecs/systems/s_ai_navigation_system.gd` — same delete-and-replace pass
+- [x] **Commit 4** (stretch, optional within R4) — migrate other systems with `_tick_debug_log_cooldowns` to `U_DebugLogThrottle`: `s_floating_system.gd`, `s_gravity_system.gd`, `s_movement_system.gd`, `s_ai_spawn_recovery_system.gd`. Also migrate the `_find_character_body_recursive` duplicates in `scripts/core/ecs/components/c_movement_component.gd` and `scripts/core/ecs/systems/helpers/u_vcam_runtime_context.gd` to `U_AIRenderProbe.find_character_body_recursive(...)` (or promote that helper to a separate `U_NodeFind` utility if you'd rather not couple non-AI code to an `AI`-named util — recommended if the stretch commit runs).
 
 **R4 Verification**:
 - [x] All new debug util tests green
@@ -247,27 +247,27 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
   - `tests/unit/utils/debug/test_u_debug_log_throttle.gd` (`5/5`)
   - `tests/unit/utils/debug/test_u_ai_render_probe.gd` (`4/4`)
 - Implemented shared debug utilities:
-  - `scripts/utils/debug/u_debug_log_throttle.gd` (`class_name U_DebugLogThrottle`)
+  - `scripts/core/utils/debug/u_debug_log_throttle.gd` (`class_name U_DebugLogThrottle`)
   - `scripts/demo/debug/utils/u_ai_render_probe.gd` (`class_name U_AIRenderProbe`)
 - Migrated AI debug/probe call sites to shared utilities:
-  - `scripts/ecs/systems/s_ai_behavior_system.gd` now uses `U_DebugLogThrottle` for per-entity and empty-query logging budgets and `U_AIRenderProbe.build_probe_string(...)` for render diagnostics.
-  - `scripts/ecs/systems/s_ai_navigation_system.gd` now uses `U_DebugLogThrottle` + `U_AIRenderProbe` and no longer owns duplicate probe/cooldown helpers.
+  - `scripts/core/ecs/systems/s_ai_behavior_system.gd` now uses `U_DebugLogThrottle` for per-entity and empty-query logging budgets and `U_AIRenderProbe.build_probe_string(...)` for render diagnostics.
+  - `scripts/core/ecs/systems/s_ai_navigation_system.gd` now uses `U_DebugLogThrottle` + `U_AIRenderProbe` and no longer owns duplicate probe/cooldown helpers.
 - Stretch pass completed (Commit 4):
   - Migrated `_tick_debug_log_cooldowns` duplication to `U_DebugLogThrottle` in:
-    - `scripts/ecs/systems/s_floating_system.gd`
-    - `scripts/ecs/systems/s_gravity_system.gd`
-    - `scripts/ecs/systems/s_movement_system.gd`
-    - `scripts/ecs/systems/s_ai_spawn_recovery_system.gd`
-  - Introduced `scripts/utils/ecs/u_node_find.gd` (`class_name U_NodeFind`) to avoid coupling non-AI systems to `U_AIRenderProbe`.
+    - `scripts/core/ecs/systems/s_floating_system.gd`
+    - `scripts/core/ecs/systems/s_gravity_system.gd`
+    - `scripts/core/ecs/systems/s_movement_system.gd`
+    - `scripts/core/ecs/systems/s_ai_spawn_recovery_system.gd`
+  - Introduced `scripts/core/utils/ecs/u_node_find.gd` (`class_name U_NodeFind`) to avoid coupling non-AI systems to `U_AIRenderProbe`.
   - Migrated recursive character-body lookup duplicates to `U_NodeFind.find_character_body_recursive(...)` in:
-    - `scripts/ecs/components/c_movement_component.gd`
-    - `scripts/ecs/systems/helpers/u_vcam_runtime_context.gd`
+    - `scripts/core/ecs/components/c_movement_component.gd`
+    - `scripts/core/ecs/systems/helpers/u_vcam_runtime_context.gd`
     - `scripts/demo/debug/utils/u_ai_render_probe.gd` (internal delegation)
 - Headless hardening included in `U_AIRenderProbe`:
   - detached nodes now emit safe `<detached:...>` path markers and use local `position` when `global_position` is unavailable.
 - Line count reduction:
-  - `scripts/ecs/systems/s_ai_behavior_system.gd`: `372` -> `264`
-  - `scripts/ecs/systems/s_ai_navigation_system.gd`: `306` -> `200`
+  - `scripts/core/ecs/systems/s_ai_behavior_system.gd`: `372` -> `264`
+  - `scripts/core/ecs/systems/s_ai_navigation_system.gd`: `306` -> `200`
 - Verification:
   - Targeted suites green:
     - `tools/run_gut_suite.sh -gtest=res://tests/unit/utils/debug/test_u_debug_log_throttle.gd` (`5/5`)
@@ -304,16 +304,16 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
     - `test_player_entity_respawned_via_shared_system`
     - `test_npc_entity_respawned_via_shared_system`
 - [x] **Commit 2** — Implement new component/settings/system (TDD GREEN):
-  - `scripts/resources/ecs/rs_spawn_recovery_settings.gd` — `class_name RS_SpawnRecoverySettings`, fields `spawn_point_id: StringName`, `unsupported_delay_sec: float = 0.6`, `recovery_cooldown_sec: float = 1.0`, `startup_grace_period_sec: float = 1.0`
-  - `scripts/ecs/components/c_spawn_recovery_component.gd` — `class_name C_SpawnRecoveryComponent extends BaseECSComponent`, `@export var settings: RS_SpawnRecoverySettings`, `_validate_required_settings()` requires non-null settings
-  - `scripts/ecs/systems/s_spawn_recovery_system.gd` — `class_name S_SpawnRecoverySystem extends BaseECSSystem`, queries `[C_SpawnRecoveryComponent, C_FloatingComponent, C_MovementComponent, C_InputComponent]`, delegates actual respawn to `U_SERVICE_LOCATOR.try_get_service(&"spawn_manager") as I_SpawnManager`
+  - `scripts/core/resources/ecs/rs_spawn_recovery_settings.gd` — `class_name RS_SpawnRecoverySettings`, fields `spawn_point_id: StringName`, `unsupported_delay_sec: float = 0.6`, `recovery_cooldown_sec: float = 1.0`, `startup_grace_period_sec: float = 1.0`
+  - `scripts/core/ecs/components/c_spawn_recovery_component.gd` — `class_name C_SpawnRecoveryComponent extends BaseECSComponent`, `@export var settings: RS_SpawnRecoverySettings`, `_validate_required_settings()` requires non-null settings
+  - `scripts/core/ecs/systems/s_spawn_recovery_system.gd` — `class_name S_SpawnRecoverySystem extends BaseECSSystem`, queries `[C_SpawnRecoveryComponent, C_FloatingComponent, C_MovementComponent, C_InputComponent]`, delegates actual respawn to `U_SERVICE_LOCATOR.try_get_service(&"spawn_manager") as I_SpawnManager`
 - [x] **Commit 3** — Migrate existing NPC recovery (TDD GREEN):
-  - `scripts/ecs/systems/s_ai_spawn_recovery_system.gd` — **delete** after verifying `s_spawn_recovery_system.gd` covers all prior behavior
-  - `scripts/resources/ai/rs_ai_brain_settings.gd` — remove `respawn_spawn_point_id`, `respawn_unsupported_delay_sec`, `respawn_recovery_cooldown_sec` fields
-  - `resources/ai/patrol_drone/cfg_patrol_drone_brain.tres` is currently the **only** brain resource that populates the three `respawn_*` fields with non-default values (verified via grep). Before deleting the fields on `rs_ai_brain_settings.gd`, create a sibling `resources/ai/patrol_drone/cfg_patrol_drone_spawn_recovery.tres` that carries those values into an `RS_SpawnRecoverySettings` instance.
-  - `resources/ai/sentry/cfg_sentry_brain.tres`, `resources/ai/guide_prism/cfg_guide_brain.tres`, `resources/ai/guide_prism/cfg_guide_showcase_brain.tres`, `resources/ai/cfg_ai_brain_placeholder.tres` — rely on defaults; create empty/default `RS_SpawnRecoverySettings` companions only if the prefab wiring explicitly needs them. Re-save each `.tres` after the field removal so Godot drops the now-unknown properties cleanly.
-  - `scenes/prefabs/prefab_demo_npc.tscn` — add `C_SpawnRecoveryComponent` child referencing the new settings resource
-  - `scenes/prefabs/prefab_player.tscn` — add `C_SpawnRecoveryComponent` wired with a player-specific `RS_SpawnRecoverySettings` (spawn point resolved from active scene's spawn registry). `scenes/templates/tmpl_character.tscn` is the shared character template — decide during execution whether to attach the component there (applies to every character inheritor automatically) or only to `prefab_player.tscn` + `prefab_demo_npc.tscn` (explicit opt-in). Explicit opt-in is recommended because each NPC archetype needs different tuning.
+  - `scripts/core/ecs/systems/s_ai_spawn_recovery_system.gd` — **delete** after verifying `s_spawn_recovery_system.gd` covers all prior behavior
+  - `scripts/demo/resources/ai/rs_ai_brain_settings.gd` — remove `respawn_spawn_point_id`, `respawn_unsupported_delay_sec`, `respawn_recovery_cooldown_sec` fields
+  - `resources/demo/ai/patrol_drone/cfg_patrol_drone_brain.tres` is currently the **only** brain resource that populates the three `respawn_*` fields with non-default values (verified via grep). Before deleting the fields on `rs_ai_brain_settings.gd`, create a sibling `resources/demo/ai/patrol_drone/cfg_patrol_drone_spawn_recovery.tres` that carries those values into an `RS_SpawnRecoverySettings` instance.
+  - `resources/demo/ai/sentry/cfg_sentry_brain.tres`, `resources/demo/ai/guide_prism/cfg_guide_brain.tres`, `resources/demo/ai/guide_prism/cfg_guide_showcase_brain.tres`, `resources/demo/ai/cfg_ai_brain_placeholder.tres` — rely on defaults; create empty/default `RS_SpawnRecoverySettings` companions only if the prefab wiring explicitly needs them. Re-save each `.tres` after the field removal so Godot drops the now-unknown properties cleanly.
+  - `scenes/core/prefabs/prefab_demo_npc.tscn` — add `C_SpawnRecoveryComponent` child referencing the new settings resource
+  - `scenes/core/prefabs/prefab_player.tscn` — add `C_SpawnRecoveryComponent` wired with a player-specific `RS_SpawnRecoverySettings` (spawn point resolved from active scene's spawn registry). `scenes/core/templates/tmpl_character.tscn` is the shared character template — decide during execution whether to attach the component there (applies to every character inheritor automatically) or only to `prefab_player.tscn` + `prefab_demo_npc.tscn` (explicit opt-in). Explicit opt-in is recommended because each NPC archetype needs different tuning.
 - [x] **Commit 4** — Add integration test that a player dropped below a death plane respawns to the current scene's player spawn point
 
 **R5 Verification**:
@@ -329,21 +329,21 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
   - `tests/unit/ecs/systems/test_s_spawn_recovery_system.gd` (`6/6`)
   - `tests/integration/spawn_system/test_player_spawn_recovery_power_core.gd` (`1/1`)
 - Implemented shared recovery runtime:
-  - `scripts/resources/ecs/rs_spawn_recovery_settings.gd`
-  - `scripts/ecs/components/c_spawn_recovery_component.gd`
-  - `scripts/ecs/systems/s_spawn_recovery_system.gd`
+  - `scripts/core/resources/ecs/rs_spawn_recovery_settings.gd`
+  - `scripts/core/ecs/components/c_spawn_recovery_component.gd`
+  - `scripts/core/ecs/systems/s_spawn_recovery_system.gd`
 - Migrated off AI-brain-owned respawn fields:
-  - `scripts/resources/ai/rs_ai_brain_settings.gd` removed `respawn_spawn_point_id`, `respawn_unsupported_delay_sec`, and `respawn_recovery_cooldown_sec`
-  - Added `resources/ai/patrol_drone/cfg_patrol_drone_spawn_recovery.tres` and wired patrol drone instances to it
+  - `scripts/demo/resources/ai/rs_ai_brain_settings.gd` removed `respawn_spawn_point_id`, `respawn_unsupported_delay_sec`, and `respawn_recovery_cooldown_sec`
+  - Added `resources/demo/ai/patrol_drone/cfg_patrol_drone_spawn_recovery.tres` and wired patrol drone instances to it
 - Removed legacy AI-only recovery system and tests:
-  - deleted `scripts/ecs/systems/s_ai_spawn_recovery_system.gd`
+  - deleted `scripts/core/ecs/systems/s_ai_spawn_recovery_system.gd`
   - deleted `tests/unit/ecs/systems/test_s_ai_spawn_recovery_system.gd`
 - Prefab/scene migration:
-  - Added `C_SpawnRecoveryComponent` to `scenes/prefabs/prefab_demo_npc.tscn` and `scenes/prefabs/prefab_player.tscn`
+  - Added `C_SpawnRecoveryComponent` to `scenes/core/prefabs/prefab_demo_npc.tscn` and `scenes/core/prefabs/prefab_player.tscn`
   - Replaced `S_AISpawnRecoverySystem` with `S_SpawnRecoverySystem` in gameplay/template scenes
 - Added default settings resources:
-  - `resources/base_settings/gameplay/cfg_spawn_recovery_default.tres`
-  - `resources/base_settings/gameplay/cfg_spawn_recovery_player_default.tres`
+  - `resources/core/base_settings/gameplay/cfg_spawn_recovery_default.tres`
+  - `resources/core/base_settings/gameplay/cfg_spawn_recovery_player_default.tres`
 - Verification:
   - Targeted suites:
     - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/components/test_c_spawn_recovery_component.gd` (`3/3`)
@@ -376,13 +376,13 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
     - `test_prefers_move_target_component_when_both_sources_present`
     - `test_per_entity_throttle_honored`
 - [x] **Commit 2** — Implement follower (TDD GREEN):
-  - `scripts/ecs/components/c_move_target_component.gd` — `class_name C_MoveTargetComponent extends BaseECSComponent`, `@export var target_position: Vector3`, `@export var arrival_threshold: float = 0.5`, `@export var is_active: bool = false`
-  - `scripts/ecs/systems/s_move_target_follower_system.gd` — `class_name S_MoveTargetFollowerSystem extends BaseECSSystem`. Queries `[C_InputComponent, C_MovementComponent]` then branches: if entity has `C_MoveTargetComponent.is_active`, use its target; else if entity has `C_AIBrainComponent` with `task_state[U_AITaskStateKeys.MOVE_TARGET]` set, use that (back-compat path); else write `Vector2.ZERO`
+  - `scripts/core/ecs/components/c_move_target_component.gd` — `class_name C_MoveTargetComponent extends BaseECSComponent`, `@export var target_position: Vector3`, `@export var arrival_threshold: float = 0.5`, `@export var is_active: bool = false`
+  - `scripts/core/ecs/systems/s_move_target_follower_system.gd` — `class_name S_MoveTargetFollowerSystem extends BaseECSSystem`. Queries `[C_InputComponent, C_MovementComponent]` then branches: if entity has `C_MoveTargetComponent.is_active`, use its target; else if entity has `C_AIBrainComponent` with `task_state[U_AITaskStateKeys.MOVE_TARGET]` set, use that (back-compat path); else write `Vector2.ZERO`
 - [x] **Commit 3** — Migrate call sites and delete old system (TDD GREEN):
-  - Six `.tscn` files reference `s_ai_navigation_system` today (verified via grep): `scenes/gameplay/gameplay_ai_showcase.tscn`, `gameplay_power_core.tscn`, `gameplay_comms_array.tscn`, `gameplay_nav_nexus.tscn`, `gameplay_base.tscn`, and `scenes/templates/tmpl_base_scene.tscn`. Update all six to instance `s_move_target_follower_system` instead. The template-scene change is the important one — once `tmpl_base_scene.tscn` is updated, inherited scenes pick it up automatically.
-  - `scripts/ecs/systems/s_ai_navigation_system.gd` — **delete** after verification
+  - Six `.tscn` files reference `s_ai_navigation_system` today (verified via grep): `scenes/demo/gameplay/gameplay_ai_showcase.tscn`, `gameplay_power_core.tscn`, `gameplay_comms_array.tscn`, `gameplay_nav_nexus.tscn`, `gameplay_base.tscn`, and `scenes/core/templates/tmpl_base_scene.tscn`. Update all six to instance `s_move_target_follower_system` instead. The template-scene change is the important one — once `tmpl_base_scene.tscn` is updated, inherited scenes pick it up automatically.
+  - `scripts/core/ecs/systems/s_ai_navigation_system.gd` — **delete** after verification
   - `tests/unit/ecs/systems/test_s_ai_navigation_system.gd` — rename to `test_s_move_target_follower_system.gd` and update its target/assertions
-  - `scripts/resources/ai/actions/rs_ai_action_move_to.gd` — route authored move targets to `C_MoveTargetComponent` when present while preserving `task_state` writes for follower back-compat.
+  - `scripts/demo/resources/ai/actions/rs_ai_action_move_to.gd` — route authored move targets to `C_MoveTargetComponent` when present while preserving `task_state` writes for follower back-compat.
 
 **R6 Verification**:
 - [x] All new follower tests green
@@ -396,14 +396,14 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
   - `tests/unit/ecs/components/test_c_move_target_component.gd` (`4/4`)
   - `tests/unit/ecs/systems/test_s_move_target_follower_system.gd` (`5/5`)
 - Implemented generic move-target runtime:
-  - `scripts/ecs/components/c_move_target_component.gd`
-  - `scripts/ecs/systems/s_move_target_follower_system.gd`
+  - `scripts/core/ecs/components/c_move_target_component.gd`
+  - `scripts/core/ecs/systems/s_move_target_follower_system.gd`
 - Back-compat retained:
   - Follower prefers active `C_MoveTargetComponent` targets and falls back to `C_AIBrainComponent.task_state[U_AITaskStateKeys.MOVE_TARGET]`.
   - `RS_AIActionMoveTo` now writes both `C_MoveTargetComponent` (when available) and task-state keys; `U_AITaskRunner`/`U_AIReplanner` clear active move targets during task advance/finish/replan to prevent stale movement.
 - Migrated call sites and removed legacy system:
   - Updated shared scene stacks (`tmpl_base_scene`, `gameplay_base`, `gameplay_ai_showcase`, `gameplay_power_core`, `gameplay_comms_array`, `gameplay_nav_nexus`) to `S_MoveTargetFollowerSystem`.
-  - Deleted `scripts/ecs/systems/s_ai_navigation_system.gd`.
+  - Deleted `scripts/core/ecs/systems/s_ai_navigation_system.gd`.
   - Replaced `tests/unit/ecs/systems/test_s_ai_navigation_system.gd` with follower-system coverage.
   - Updated AI integration suites to load `s_move_target_follower_system.gd`.
 - Verification:
@@ -419,20 +419,20 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
 
 ---
 
-## Milestone R7: Reorganize `scripts/resources/ai/` Directory
+## Milestone R7: Reorganize `scripts/demo/resources/ai/` Directory
 
 **Goal**: Tasks, goals, and brain settings currently live at the top level while actions are in an `actions/` subfolder. Nest everything by concept.
 
 - [x] **Commit 1** — Add style enforcement test (TDD RED):
-  - Extend `tests/unit/style/test_style_enforcement.gd`: assert every file matching `scripts/resources/ai/rs_ai_*.gd` lives under `brain/`, `goals/`, `tasks/`, or `actions/`
+  - Extend `tests/unit/style/test_style_enforcement.gd`: assert every file matching `scripts/demo/resources/ai/rs_ai_*.gd` lives under `brain/`, `goals/`, `tasks/`, or `actions/`
 - [x] **Commit 2** — Mechanical move + preload updates (TDD GREEN):
-  - `scripts/resources/ai/rs_ai_brain_settings.gd` → `scripts/resources/ai/brain/rs_ai_brain_settings.gd`
-  - `scripts/resources/ai/rs_ai_goal.gd` → `scripts/resources/ai/goals/rs_ai_goal.gd`
-  - `scripts/resources/ai/rs_ai_task.gd` → `scripts/resources/ai/tasks/rs_ai_task.gd`
-  - `scripts/resources/ai/rs_ai_primitive_task.gd` → `scripts/resources/ai/tasks/rs_ai_primitive_task.gd`
-  - `scripts/resources/ai/rs_ai_compound_task.gd` → `scripts/resources/ai/tasks/rs_ai_compound_task.gd`
+  - `scripts/demo/resources/ai/rs_ai_brain_settings.gd` → `scripts/demo/resources/ai/brain/rs_ai_brain_settings.gd`
+  - `scripts/demo/resources/ai/rs_ai_goal.gd` → `scripts/demo/resources/ai/goals/rs_ai_goal.gd`
+  - `scripts/demo/resources/ai/rs_ai_task.gd` → `scripts/demo/resources/ai/tasks/rs_ai_task.gd`
+  - `scripts/demo/resources/ai/rs_ai_primitive_task.gd` → `scripts/demo/resources/ai/tasks/rs_ai_primitive_task.gd`
+  - `scripts/demo/resources/ai/rs_ai_compound_task.gd` → `scripts/demo/resources/ai/tasks/rs_ai_compound_task.gd`
   - Carry the `.uid` files alongside
-  - Update every `preload("res://scripts/core/resources/ai/...")` call-site across `scripts/`, `tests/`, and `resources/ai/*.tres` `[ext_resource]` entries
+  - Update every `preload("res://scripts/demo/resources/ai/...")` call-site across `scripts/`, `tests/`, and `resources/demo/ai/*.tres` `[ext_resource]` entries
 
 **R7 Verification**:
 - [x] New style test green
@@ -443,14 +443,14 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
 - Added RED/GREEN layout enforcement coverage:
   - `tests/unit/style/test_style_enforcement.gd` now includes `test_ai_resource_scripts_are_grouped_by_subdirectory`.
 - Reorganized AI resource scripts into concept folders and carried `.uid` sidecars:
-  - `scripts/resources/ai/brain/rs_ai_brain_settings.gd`
-  - `scripts/resources/ai/goals/rs_ai_goal.gd`
-  - `scripts/resources/ai/tasks/rs_ai_task.gd`
-  - `scripts/resources/ai/tasks/rs_ai_primitive_task.gd`
-  - `scripts/resources/ai/tasks/rs_ai_compound_task.gd`
+  - `scripts/demo/resources/ai/brain/rs_ai_brain_settings.gd`
+  - `scripts/demo/resources/ai/goals/rs_ai_goal.gd`
+  - `scripts/demo/resources/ai/tasks/rs_ai_task.gd`
+  - `scripts/demo/resources/ai/tasks/rs_ai_primitive_task.gd`
+  - `scripts/demo/resources/ai/tasks/rs_ai_compound_task.gd`
 - Updated all runtime and authored-resource references:
   - `preload(...)`/`extends` call sites across `scripts/` + `tests/`.
-  - `resources/ai/**/*.tres` `ext_resource` script paths.
+  - `resources/demo/ai/**/*.tres` `ext_resource` script paths.
 - Post-move class cache refresh:
   - `HOME="$PWD/.godot_user" /Applications/Godot.app/Contents/MacOS/Godot --headless --path . --import`
 - Verification:
@@ -463,7 +463,7 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
     - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`19/20`, only existing `test_rule_systems_do_not_define_local_rule_pipeline_helpers` fails)
   - Full regression snapshot (2026-04-10): `tools/run_gut_suite.sh` -> `3913/3929` passing, `7` failing, `9` pending/risky.
   - Remaining failures are outside R7 scope:
-    - `tests/unit/ecs/systems/test_u_rule_evaluator.gd` (`6` tests) expects missing `res://scripts/utils/ecs/u_rule_evaluator.gd`.
+    - `tests/unit/ecs/systems/test_u_rule_evaluator.gd` (`6` tests) expects missing `res://scripts/core/utils/ecs/u_rule_evaluator.gd`.
     - `tests/unit/style/test_style_enforcement.gd::test_rule_systems_do_not_define_local_rule_pipeline_helpers`.
 
 ---
@@ -473,12 +473,12 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
 **Goal**: `s_ai_demo_alarm_relay_system.gd` is Signal Lost–specific. It doesn't belong next to production AI systems.
 
 - [x] **Commit 1** — Add style enforcement test (TDD RED):
-  - Extend `tests/unit/style/test_style_enforcement.gd`: assert no file matching `scripts/ecs/systems/*.gd` contains `_demo_` in its filename
+  - Extend `tests/unit/style/test_style_enforcement.gd`: assert no file matching `scripts/core/ecs/systems/*.gd` contains `_demo_` in its filename
 - [x] **Commit 2** — Move file and update wiring (TDD GREEN):
-  - `scripts/ecs/systems/s_ai_demo_alarm_relay_system.gd` → `scripts/demo/gameplay/s_demo_alarm_relay_system.gd`. Rationale: the existing convention already groups demo-specific gameplay scripts flat under `scripts/gameplay/` (see `inter_ai_demo_flag_zone.gd`, `inter_ai_demo_guard_barrier.gd`). Introducing a new `demo_signal_lost/` subfolder would break that convention — avoid it unless that reorganization is its own separate milestone. Verify the style test rule covers the new location.
-  - Caveat: `scripts/gameplay/` currently holds interactable controllers (`inter_*.gd`, `base_*.gd`). An ECS `System` at that level is a new shape. If the style test enforces "no `s_*.gd` files under `scripts/gameplay/`", relax it or create `scripts/gameplay/ecs_systems/` as a subfolder — decide at R8 execution time, not speculatively.
+  - `scripts/core/ecs/systems/s_ai_demo_alarm_relay_system.gd` → `scripts/demo/gameplay/s_demo_alarm_relay_system.gd`. Rationale: the existing convention already groups demo-specific gameplay scripts flat under `scripts/demo/gameplay/` (see `inter_ai_demo_flag_zone.gd`, `inter_ai_demo_guard_barrier.gd`). Introducing a new `demo_signal_lost/` subfolder would break that convention — avoid it unless that reorganization is its own separate milestone. Verify the style test rule covers the new location.
+  - Caveat: `scripts/demo/gameplay/` currently holds interactable controllers (`inter_*.gd`, `base_*.gd`). An ECS `System` at that level is a new shape. If the style test enforces "no `s_*.gd` files under `scripts/demo/gameplay/`", relax it or create `scripts/demo/gameplay/ecs_systems/` as a subfolder — decide at R8 execution time, not speculatively.
   - Rename class to `S_DemoAlarmRelaySystem`
-  - Update scene wiring: `s_ai_demo_alarm_relay_system` is referenced **only** by `scenes/gameplay/gameplay_ai_showcase.tscn` (verified via grep — *not* `gameplay_comms_array.tscn`). Update just that one scene.
+  - Update scene wiring: `s_ai_demo_alarm_relay_system` is referenced **only** by `scenes/demo/gameplay/gameplay_ai_showcase.tscn` (verified via grep — *not* `gameplay_comms_array.tscn`). Update just that one scene.
   - Update `.uid` references and rename the sibling test file `tests/unit/ecs/systems/test_s_ai_demo_alarm_relay_system.gd` → `tests/unit/gameplay/test_s_demo_alarm_relay_system.gd`
 
 **R8 Verification**:
@@ -490,12 +490,12 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
 - Added RED/GREEN style enforcement for demo-only ECS script placement:
   - `tests/unit/style/test_style_enforcement.gd` now includes `test_ecs_system_filenames_do_not_include_demo_marker`.
 - Moved and renamed demo-only alarm relay runtime:
-  - `scripts/ecs/systems/s_ai_demo_alarm_relay_system.gd` → `scripts/demo/gameplay/s_demo_alarm_relay_system.gd`
+  - `scripts/core/ecs/systems/s_ai_demo_alarm_relay_system.gd` → `scripts/demo/gameplay/s_demo_alarm_relay_system.gd`
   - `class_name S_AIDemoAlarmRelaySystem` → `class_name S_DemoAlarmRelaySystem`
 - Updated gameplay prefix guard to allow gameplay-scoped ECS systems:
-  - `tests/unit/style/test_style_enforcement.gd` `SCRIPT_PREFIX_RULES["res://scripts/gameplay"]` now includes `s_`.
+  - `tests/unit/style/test_style_enforcement.gd` `SCRIPT_PREFIX_RULES["res://scripts/demo/gameplay"]` now includes `s_`.
 - Updated scene/test wiring:
-  - `scenes/gameplay/gameplay_ai_showcase.tscn` now wires `S_DemoAlarmRelaySystem` from `res://scripts/demo/gameplay/s_demo_alarm_relay_system.gd`.
+  - `scenes/demo/gameplay/gameplay_ai_showcase.tscn` now wires `S_DemoAlarmRelaySystem` from `res://scripts/demo/gameplay/s_demo_alarm_relay_system.gd`.
   - `tests/unit/ecs/systems/test_s_ai_demo_alarm_relay_system.gd` → `tests/unit/gameplay/test_s_demo_alarm_relay_system.gd`.
   - `tests/unit/ai/resources/test_ai_showcase_scene.gd` now asserts `Systems/Core/S_DemoAlarmRelaySystem`.
   - `tests/integration/gameplay/test_ai_interaction_triggers.gd` now loads `res://scripts/demo/gameplay/s_demo_alarm_relay_system.gd`.
@@ -516,7 +516,7 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
 - [x] **Commit 1** — Add internal-coverage tests (TDD RED if any gap exists; otherwise mark GREEN):
   - `tests/unit/ai/test_u_htn_planner.gd` — confirm existing 8 tests still green; add `test_reusable_rule_is_not_mutated_between_calls` if not already present
 - [x] **Commit 2** — Refactor internals (TDD GREEN):
-  - `scripts/utils/ai/u_htn_planner.gd` — introduce inner `class PlannerContext` (or a top-level `U_HTNPlannerContext` under `scripts/utils/ai/`) carrying `reusable_rule`, `recursion_stack`, `result`, `max_depth`, `depth`. Keep public `static func decompose(task, context, max_depth)` identical.
+  - `scripts/core/utils/ai/u_htn_planner.gd` — introduce inner `class PlannerContext` (or a top-level `U_HTNPlannerContext` under `scripts/core/utils/ai/`) carrying `reusable_rule`, `recursion_stack`, `result`, `max_depth`, `depth`. Keep public `static func decompose(task, context, max_depth)` identical.
 
 **R9 Verification**:
 - [x] All planner tests green with zero behavioral change
@@ -526,11 +526,11 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
 - Added planner statelessness coverage:
   - `tests/unit/ai/test_u_htn_planner.gd` now includes `test_reusable_rule_is_not_mutated_between_calls` (GREEN on baseline and post-refactor).
 - Extracted recursion/runtime state into a dedicated context object:
-  - Added `scripts/utils/ai/u_htn_planner_context.gd` (`class_name U_HTNPlannerContext`) to carry planner-internal mutable state (`reusable_rule`, `recursion_stack`, `result`, `max_depth`, `depth`, and evaluation context).
-  - Refactored `scripts/utils/ai/u_htn_planner.gd` internals to pass the context object through recursion while preserving public API:
+  - Added `scripts/core/utils/ai/u_htn_planner_context.gd` (`class_name U_HTNPlannerContext`) to carry planner-internal mutable state (`reusable_rule`, `recursion_stack`, `result`, `max_depth`, `depth`, and evaluation context).
+  - Refactored `scripts/core/utils/ai/u_htn_planner.gd` internals to pass the context object through recursion while preserving public API:
     - `static func decompose(task: Resource, context: Dictionary, max_depth: int = 20) -> Array[Resource]`.
 - Line-count change:
-  - `scripts/utils/ai/u_htn_planner.gd`: `107` -> `106` lines.
+  - `scripts/core/utils/ai/u_htn_planner.gd`: `107` -> `106` lines.
 - Verification:
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/test_u_htn_planner.gd` (`11/11`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_ai_pipeline_integration.gd` (`6/6`)
@@ -546,9 +546,9 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
 **Scope note**: The same duck-typing helper family is used elsewhere in the codebase (`s_camera_state_system.gd`, `s_character_state_system.gd`, `s_game_event_system.gd`, `u_vcam_runtime_context.gd`, `u_vcam_landing_impact.gd`, `u_rule_scorer.gd`, `u_rule_selector.gd`, `u_rule_validator.gd`). Global removal is **out of scope** for this AI refactor — the R10 grep test must be scoped narrowly to `s_ai_behavior_system.gd` only, otherwise it will fail the first time it runs. A follow-up "project-wide duck-typing removal" initiative can tackle the QB/camera/character systems once this refactor lands.
 
 - [x] **Commit 1** — Confirm no remaining duck-typing call sites (TDD RED):
-  - Grep-based test in `test_style_enforcement.gd`: assert `scripts/ecs/systems/s_ai_behavior_system.gd` does not contain `_read_object_property`, `_read_int_property`, `_read_bool_property`, `_read_float_property`, or `_variant_to_string_name`
+  - Grep-based test in `test_style_enforcement.gd`: assert `scripts/core/ecs/systems/s_ai_behavior_system.gd` does not contain `_read_object_property`, `_read_int_property`, `_read_bool_property`, `_read_float_property`, or `_variant_to_string_name`
 - [x] **Commit 2** — Rewrite orchestrator (TDD GREEN):
-  - `scripts/ecs/systems/s_ai_behavior_system.gd` target: under 200 lines. Imports `U_AIGoalSelector`, `U_AITaskRunner`, `U_AIReplanner`, `U_AIContextBuilder`, `U_AIRenderProbe`, `U_DebugLogThrottle`, `U_AITaskStateKeys`. `process_tick` becomes: (1) tick debug throttle + rule state tracker, (2) query brain entities, (3) build frame snapshot, (4) loop entities — for each: `U_AIContextBuilder.build(...)`, `U_AIGoalSelector.select(...)`, `U_AIReplanner.replan_for_goal(...)` when the winner changes, `U_AITaskRunner.tick(...)`, debug log dispatch.
+  - `scripts/core/ecs/systems/s_ai_behavior_system.gd` target: under 200 lines. Imports `U_AIGoalSelector`, `U_AITaskRunner`, `U_AIReplanner`, `U_AIContextBuilder`, `U_AIRenderProbe`, `U_DebugLogThrottle`, `U_AITaskStateKeys`. `process_tick` becomes: (1) tick debug throttle + rule state tracker, (2) query brain entities, (3) build frame snapshot, (4) loop entities — for each: `U_AIContextBuilder.build(...)`, `U_AIGoalSelector.select(...)`, `U_AIReplanner.replan_for_goal(...)` when the winner changes, `U_AITaskRunner.tick(...)`, debug log dispatch.
 - [x] **Commit 3** — Delete all duck-typing helpers and any other now-unused private methods
 
 **R10 Verification**:
@@ -564,13 +564,13 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
   - `tests/unit/style/test_style_enforcement.gd`
     - `test_ai_behavior_system_has_no_local_duck_typing_helpers`
     - `test_ai_behavior_system_stays_under_two_hundred_lines`
-- Refactored `scripts/ecs/systems/s_ai_behavior_system.gd` into final orchestration-only shape:
+- Refactored `scripts/core/ecs/systems/s_ai_behavior_system.gd` into final orchestration-only shape:
   - `process_tick(...)` now performs manager/store snapshot resolution once per frame and delegates per-entity flow to `U_AIContextBuilder`, `U_AIGoalSelector`, `U_AIReplanner`, and `U_AITaskRunner`.
   - Preserved behavior-system observability contracts (`_rule_pool`, `_goal_by_id_cache`) backed by goal-selector caches.
   - Kept debug-throttle/render-probe integration while reducing local helper sprawl.
   - Restored manager-snapshot fallback semantics: when ECS frame snapshot is empty, the system falls back to store state to preserve HTN method-selection contexts.
 - Line-count target achieved:
-  - `scripts/ecs/systems/s_ai_behavior_system.gd`: `264` -> `195` lines.
+  - `scripts/core/ecs/systems/s_ai_behavior_system.gd`: `264` -> `195` lines.
 - Verification:
   - RED step: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` failed at `test_ai_behavior_system_stays_under_two_hundred_lines` (`265` lines).
   - GREEN targeted suites:
@@ -601,7 +601,7 @@ No behavioral changes. Integration suite (`tests/unit/ai/integration/test_ai_pip
 | R4 | `u_debug_log_throttle.gd` *(new)*, `u_ai_render_probe.gd` *(new)*, `s_ai_behavior_system.gd`, `s_ai_navigation_system.gd` |
 | R5 | `c_spawn_recovery_component.gd` *(new)*, `rs_spawn_recovery_settings.gd` *(new)*, `s_spawn_recovery_system.gd` *(new)*, `s_ai_spawn_recovery_system.gd` *(delete)*, `rs_ai_brain_settings.gd`, all NPC brain `.tres` files, `prefab_demo_npc.tscn`, player prefab/template |
 | R6 | `c_move_target_component.gd` *(new)*, `s_move_target_follower_system.gd` *(new)*, `s_ai_navigation_system.gd` *(delete)*, gameplay `.tscn` files |
-| R7 | every `scripts/resources/ai/rs_ai_*.gd` *(move)*, every `.tres` and `preload()` referencing them |
+| R7 | every `scripts/demo/resources/ai/rs_ai_*.gd` *(move)*, every `.tres` and `preload()` referencing them |
 | R8 | `s_demo_alarm_relay_system.gd` *(move/rename)*, `gameplay_ai_showcase.tscn`, `test_s_demo_alarm_relay_system.gd` *(move/rename)* |
 | R9 | `u_htn_planner.gd` |
 | R10 | `s_ai_behavior_system.gd`, `tests/unit/style/test_style_enforcement.gd` |

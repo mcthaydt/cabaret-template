@@ -6,25 +6,29 @@ This document captures the agreed-upon directory layout for the Input Manager in
 
 ```
 scripts/
-├── ecs/
-│   ├── components/
-│   ├── systems/
-│   └── resources/
-├── managers/
-├── state/
-│   ├── actions/
-│   ├── reducers/
-│   ├── selectors/
-│   └── utils/
-├── ui/
+├── core/
+│   ├── ecs/
+│   │   ├── components/
+│   │   ├── systems/
+│   │   └── resources/
+│   ├── managers/
+│   ├── state/
+│   │   ├── actions/
+│   │   ├── reducers/
+│   │   ├── selectors/
+│   │   └── utils/
+│   └── ui/
 └── prototypes/
 resources/
-├── input/
-├── state/
-└── triggers/
+├── core/
+│   ├── input/
+│   ├── state/
+│   └── triggers/
 scenes/
-├── ui/
-└── gameplay/
+├── core/
+│   └── ui/
+└── demo/
+    └── gameplay/
 tests/
 ├── unit/
 │   ├── input/
@@ -36,29 +40,29 @@ tests/
 
 ## Scripts
 
-### Managers (`scripts/managers`)
+### Managers (`scripts/core/managers`)
 - `m_input_profile_manager.gd` – Loads/activates `RS_InputProfile`, applies bindings to `InputMap`, exposes profile APIs, emits `profile_switched`.
 - `m_input_device_manager.gd` – Detects active device, tracks last-used device, emits device-change signals, updates HUD prompt state.
 - Both managers live under `Managers` in `scenes/root.tscn` (siblings to `M_StateStore`/`M_SceneManager`) and join groups `"input_profile_manager"` / `"input_device_manager"`.
 
-### ECS Components (`scripts/ecs/components`)
+### ECS Components (`scripts/core/ecs/components`)
 - `c_input_component.gd` – Existing keyboard/mouse component (extended but stays in place).
 - `c_gamepad_component.gd` – Stores per-device state (axes, buttons, vibration flags).
 - `c_touch_input_component.gd` – Captures virtual joystick/button metrics for mobile.
 
-### ECS Systems (`scripts/ecs/systems`)
+### ECS Systems (`scripts/core/ecs/systems`)
 - `s_input_system.gd` – Enhanced keyboard/mouse/gamepad capture, dispatches Redux actions.
 - `s_touchscreen_system.gd` – Reads virtual control nodes, updates `C_TouchInputComponent`.
 - `s_input_feedback_system.gd` (Phase 4+) – Routes vibration/tactile feedback to devices.
 
-### Resources (`scripts/ecs/resources`)
+### Resources (`scripts/core/ecs/resources`)
 - `rs_input_profile.gd` – Defines bindings + metadata for a profile.
 - `rs_gamepad_settings.gd` – Deadzones, sensitivity, vibration curves.
 - `rs_touchscreen_settings.gd` – Virtual joystick layout, opacity, drag zones.
 - `rs_rebind_settings.gd` – Constraints for runtime rebinding (conflict policies, reserved actions).
-- Resource `.tres` instances live under `resources/input/…`.
+- Resource `.tres` instances live under `resources/core/input/…`.
 
-### State Layer (`scripts/state`)
+### State Layer (`scripts/core/state`)
 - `actions/u_input_actions.gd` – Existing gameplay slice actions.
 - `actions/u_input_settings_actions.gd` – Persistent settings actions (profiles, sensitivity).
 - `reducers/u_gameplay_reducer.gd` – Already handles gameplay input values; keep updates here.
@@ -69,8 +73,8 @@ tests/
 - `utils/u_input_serialization.gd` – Serializes/deserializes the `input_settings` section.
 
 ### UI + Utilities
-- `scripts/ui/input_prompts/u_button_prompt_registry.gd` – Maps logical actions to prompt textures.
-- `scripts/ui/mobile_controls/virtual_joystick.gd` / `virtual_button.gd` – Control scripts instanced in `mobile_controls.tscn`.
+- `scripts/core/ui/input_prompts/u_button_prompt_registry.gd` – Maps logical actions to prompt textures.
+- `scripts/core/ui/mobile_controls/virtual_joystick.gd` / `virtual_button.gd` – Control scripts instanced in `mobile_controls.tscn`.
 - Prototypes stay under `tests/prototypes/` (already housing gamepad, touch, latency, InputMap research helpers).
 
 ## Scenes & UI
@@ -90,11 +94,11 @@ tests/
 
 ## Resources & Assets
 
-- `resources/input/profiles/*.tres` – Built-in `RS_InputProfile` assets (default, accessibility, gamepad).
-- `resources/input/gamepad_settings/*.tres` – `RS_GamepadSettings` variants per device family.
-- `resources/input/touchscreen_settings/*.tres` – `RS_TouchscreenSettings` presets (phone/tablet layout).
-- `resources/ui/button_prompts/` – PNG textures sourced from the Kenney Input Prompts pack (64×64). Reference them via `Texture2D` in prompt registry.
-- `resources/state/cfg_default_settings_initial_state.tres` – Initial state used by `M_StateStore` when creating the settings slice.
+- `resources/core/input/profiles/*.tres` – Built-in `RS_InputProfile` assets (default, accessibility, gamepad).
+- `resources/core/input/gamepad_settings/*.tres` – `RS_GamepadSettings` variants per device family.
+- `resources/core/input/touchscreen_settings/*.tres` – `RS_TouchscreenSettings` presets (phone/tablet layout).
+- `resources/core/ui/button_prompts/` – PNG textures sourced from the Kenney Input Prompts pack (64×64). Reference them via `Texture2D` in prompt registry.
+- `resources/core/state/cfg_default_settings_initial_state.tres` – Initial state used by `M_StateStore` when creating the settings slice.
 
 ## Tests
 
@@ -118,12 +122,12 @@ tests/
   - `gameplay.input` – transient actions (move/look/jump) already covered.
   - `settings.input_settings` – persistent overrides (active profile id, custom bindings, sensitivity).
 - When adding new fields, update:
-  1. `resources/state/cfg_default_settings_initial_state.tres`
+  1. `resources/core/state/cfg_default_settings_initial_state.tres`
   2. `u_input_settings_reducer.gd` defaults
   3. Serialization schema version in `u_global_settings_serialization.gd`
 
 ## Notes
 
-- No new `scripts/input/` directory—place files within existing prefixes (components, systems, managers, state, ui).
+- No new `scripts/core/input/` directory—place files within existing prefixes (components, systems, managers, state, ui).
 - Keep `.tres` resources referencing their script via `script = ExtResource(...)` to satisfy style enforcement tests.
 - Each phase completion requires updates to this document if the file layout changes.

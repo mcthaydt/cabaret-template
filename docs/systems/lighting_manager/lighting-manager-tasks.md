@@ -23,9 +23,9 @@
 
 ## Planned Public API / Types
 
-- `scripts/interfaces/i_character_lighting_manager.gd` (runtime lighting behavior only; no debug methods)
-- `scripts/managers/m_character_lighting_manager.gd`
-- `scripts/gameplay/inter_character_light_zone.gd`
+- `scripts/core/interfaces/i_character_lighting_manager.gd` (runtime lighting behavior only; no debug methods)
+- `scripts/core/managers/m_character_lighting_manager.gd`
+- `scripts/demo/gameplay/inter_character_light_zone.gd`
 - `scripts/demo/resources/lighting/rs_character_lighting_profile.gd`
 - `scripts/demo/resources/lighting/rs_character_light_zone_config.gd`
 - `assets/shaders/sh_character_zone_lighting.gdshader`
@@ -36,9 +36,9 @@
 
 **Exit Criteria:** task list, continuation prompt, and implementation skeleton are in place with naming/style compliance.
 
-- [x] LM001 Create interface stub `scripts/interfaces/i_character_lighting_manager.gd`
-- [x] LM002 Create manager stub `scripts/managers/m_character_lighting_manager.gd`
-- [x] LM003 Create zone controller stub `scripts/gameplay/inter_character_light_zone.gd`
+- [x] LM001 Create interface stub `scripts/core/interfaces/i_character_lighting_manager.gd`
+- [x] LM002 Create manager stub `scripts/core/managers/m_character_lighting_manager.gd`
+- [x] LM003 Create zone controller stub `scripts/demo/gameplay/inter_character_light_zone.gd`
 - [x] LM004 Create resource stubs:
   - `scripts/demo/resources/lighting/rs_character_lighting_profile.gd`
   - `scripts/demo/resources/lighting/rs_character_light_zone_config.gd`
@@ -46,9 +46,9 @@
 - [x] LM006 Add manager node `M_CharacterLightingManager` under root `Managers` in `scenes/root.tscn`
 - [x] LM007 Register ServiceLocator key in `scripts/core/root.gd` (`character_lighting_manager`)
 - [x] LM064 Update `docs/guides/STYLE_GUIDE.md` with lighting category naming conventions and locked shader filename guidance
-- [x] LM065 Update `tests/unit/style/test_style_enforcement.gd` prefix rules to include `scripts/resources/lighting` and enforce `rs_` pattern
+- [x] LM065 Update `tests/unit/style/test_style_enforcement.gd` prefix rules to include `scripts/core/resources/lighting` and enforce `rs_` pattern
 - [x] LM008 Run style enforcement: `tools/run_gut_suite.sh -gdir=res://tests/unit/style`
-  - 2026-02-12: PASS after removing duplicate workspace directories (`resources/interactions/* 2`).
+  - 2026-02-12: PASS after removing duplicate workspace directories (`resources/demo/interactions/* 2`).
 
 ---
 
@@ -133,37 +133,37 @@
 **Exit Criteria:** gameplay scenes/prefabs use zone-based character lighting data; physical mood/objective/signpost light nodes removed.
 
 - [x] LM043 Audit existing light nodes in:
-  - `scenes/gameplay/gameplay_alleyway.tscn`
-  - `scenes/gameplay/gameplay_bar.tscn`
-  - `scenes/gameplay/gameplay_exterior.tscn`
-  - `scenes/gameplay/gameplay_interior_house.tscn`
+  - `scenes/demo/gameplay/gameplay_alleyway.tscn`
+  - `scenes/demo/gameplay/gameplay_bar.tscn`
+  - `scenes/demo/gameplay/gameplay_exterior.tscn`
+  - `scenes/demo/gameplay/gameplay_interior_house.tscn`
   - related prefabs with objective/signpost lights
   - 2026-02-12 inventory:
     - Character mood lights under `Lighting`: `MoonLight` + `StreetLight_Warm` (`gameplay_alleyway`), `BarLight_Warm` + `EntranceLight_Cool` (`gameplay_bar`).
     - Objective/signpost glow lights: `GlowLight` under objective goals in all four scenes, plus tutorial sign `GlowLight` in `gameplay_interior_house`.
-    - Prefab reference: `scenes/prefabs/prefab_goal_zone.tscn` includes `GlowLight` (objective visual cue baseline).
+    - Prefab reference: `scenes/core/prefabs/prefab_goal_zone.tscn` includes `GlowLight` (objective visual cue baseline).
     - `Lighting` root exists in alleyway/bar but not exterior/interior; no `Inter_CharacterLightZone` or `CharacterLightingSettings` nodes are authored yet in audited scenes.
     - `Env_DirectionalLight3D` nodes in exterior/interior are environment/global lighting and tracked separately from zone migration targets.
 - [x] LM044 Author scene default profiles from current scene lighting intent
   - 2026-02-12 authored defaults:
-    - `resources/lighting/cfg_character_lighting_profile_alleyway.tres`
-    - `resources/lighting/cfg_character_lighting_profile_bar.tres`
-    - `resources/lighting/cfg_character_lighting_profile_exterior.tres`
-    - `resources/lighting/cfg_character_lighting_profile_interior_house.tres`
+    - `resources/demo/lighting/cfg_character_lighting_profile_alleyway.tres`
+    - `resources/demo/lighting/cfg_character_lighting_profile_bar.tres`
+    - `resources/demo/lighting/cfg_character_lighting_profile_exterior.tres`
+    - `resources/demo/lighting/cfg_character_lighting_profile_interior_house.tres`
   - Added `Lighting/CharacterLightingSettings` scene node bindings in:
-    - `scenes/gameplay/gameplay_alleyway.tscn`
-    - `scenes/gameplay/gameplay_bar.tscn`
-    - `scenes/gameplay/gameplay_exterior.tscn`
-    - `scenes/gameplay/gameplay_interior_house.tscn`
+    - `scenes/demo/gameplay/gameplay_alleyway.tscn`
+    - `scenes/demo/gameplay/gameplay_bar.tscn`
+    - `scenes/demo/gameplay/gameplay_exterior.tscn`
+    - `scenes/demo/gameplay/gameplay_interior_house.tscn`
 - [x] LM045 Add `Inter_CharacterLightZone` nodes to mirror current light placement/range/color/energy
   - 2026-02-12 added zone controllers + configs for mood lights in alleyway/bar and glow-light replacements in goal/signpost targets:
-    - `scenes/gameplay/gameplay_alleyway.tscn`
-    - `scenes/gameplay/gameplay_bar.tscn`
-    - `scenes/gameplay/gameplay_exterior.tscn`
-    - `scenes/gameplay/gameplay_interior_house.tscn`
-    - `scenes/prefabs/prefab_goal_zone.tscn`
-    - `resources/lighting/zones/cfg_character_light_zone_*.tres`
-    - `resources/lighting/profiles/cfg_character_lighting_profile_*.tres`
+    - `scenes/demo/gameplay/gameplay_alleyway.tscn`
+    - `scenes/demo/gameplay/gameplay_bar.tscn`
+    - `scenes/demo/gameplay/gameplay_exterior.tscn`
+    - `scenes/demo/gameplay/gameplay_interior_house.tscn`
+    - `scenes/core/prefabs/prefab_goal_zone.tscn`
+    - `resources/demo/lighting/zones/cfg_character_light_zone_*.tres`
+    - `resources/demo/lighting/profiles/cfg_character_lighting_profile_*.tres`
 - [x] LM046 Remove migrated `OmniLight3D` nodes used for character lighting mood
   - 2026-02-12 removed `MoonLight` + `StreetLight_Warm` (alleyway) and `BarLight_Warm` + `EntranceLight_Cool` (bar) after equivalent zone authoring.
 - [x] LM047 Remove objective/signpost glow lights and replace with equivalent zones
@@ -239,7 +239,7 @@
     - `tests/unit/managers/test_character_lighting_manager.gd::test_boundary_jitter_uses_temporal_smoothing_to_reduce_flicker`
   - RED evidence: `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -gselect=test_character_lighting_manager` failed with boundary jitter assertions before smoothing implementation.
 - [x] LM068 (Green) Implement boundary hysteresis/smoothing safeguards to prevent zone-edge flicker
-  - 2026-02-12: Implemented per-zone hysteresis and per-character temporal smoothing in `scripts/managers/m_character_lighting_manager.gd` (plus runtime-state resets on refresh/transition block).
+  - 2026-02-12: Implemented per-zone hysteresis and per-character temporal smoothing in `scripts/core/managers/m_character_lighting_manager.gd` (plus runtime-state resets on refresh/transition block).
   - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -gselect=test_character_lighting_manager` (9 tests)
 - [x] LM069 Add integration coverage that validates player and NPC parity through identical zone paths
   - 2026-02-12: Added `test_player_and_npc_receive_matching_lighting_along_same_path` to `tests/integration/lighting/test_character_zone_lighting_flow.gd`.

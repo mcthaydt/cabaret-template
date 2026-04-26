@@ -187,9 +187,9 @@ func on_configured() -> void:
 ```
 
 Domain managers implement defaults via const preloads:
-- `S_CharacterRuleManager` -> `resources/qb/character/*.tres`
-- `S_GameRuleManager` -> `resources/qb/game/*.tres`
-- `S_CameraRuleManager` -> `resources/qb/camera/*.tres`
+- `S_CharacterRuleManager` -> `resources/core/qb/character/*.tres`
+- `S_GameRuleManager` -> `resources/core/qb/game/*.tres`
+- `S_CameraRuleManager` -> `resources/core/qb/camera/*.tres`
 
 Scenes only set `rule_definitions` when overriding defaults for experiments/mods/tests.
 

@@ -24,7 +24,7 @@
   - All 6 tests failing as expected ✅
 
 - [x] **Task 0.2 (Green)**: Implement VFX initial state resource
-  - Create `scripts/resources/state/rs_vfx_initial_state.gd`
+  - Create `scripts/core/resources/state/rs_vfx_initial_state.gd`
   - Exports: `screen_shake_enabled: bool`, `screen_shake_intensity: float`, `damage_flash_enabled: bool`, `particles_enabled: bool`
   - Implement `to_dictionary()` for slice initialization
   - All 6 tests passing ✅
@@ -36,9 +36,9 @@
   - All 17 tests failing as expected ✅
 
 - [x] **Task 0.4 (Green)**: Implement VFX actions and reducer
-  - Create `scripts/state/actions/u_vfx_actions.gd`
+  - Create `scripts/core/state/actions/u_vfx_actions.gd`
   - Action creators: `set_screen_shake_enabled(enabled: bool)`, `set_screen_shake_intensity(intensity: float)`, `set_damage_flash_enabled(enabled: bool)`, `set_particles_enabled(enabled: bool)`
-  - Create `scripts/state/reducers/u_vfx_reducer.gd`
+  - Create `scripts/core/state/reducers/u_vfx_reducer.gd`
   - Implement `reduce(state: Dictionary, action: Dictionary) -> Dictionary`
   - Implement `get_default_vfx_state() -> Dictionary`
   - Intensity clamping: 0.0-2.0 range
@@ -52,7 +52,7 @@
   - All 17 tests failing as expected ✅
 
 - [x] **Task 0.6 (Green)**: Implement VFX selectors
-  - Create `scripts/state/selectors/u_vfx_selectors.gd`
+  - Create `scripts/core/state/selectors/u_vfx_selectors.gd`
   - Implement `is_screen_shake_enabled(state: Dictionary) -> bool`
   - Implement `get_screen_shake_intensity(state: Dictionary) -> float`
   - Implement `is_damage_flash_enabled(state: Dictionary) -> bool`
@@ -60,12 +60,12 @@
   - All 17 tests passing ✅
 
 - [x] **Task 0.7 (Green)**: Integrate VFX slice into M_StateStore
-  - Modify `scripts/state/m_state_store.gd`:
-    - Line ~27: Add `const U_VFX_REDUCER := preload("res://scripts/state/reducers/u_vfx_reducer.gd")` ✅
+  - Modify `scripts/core/state/m_state_store.gd`:
+    - Line ~27: Add `const U_VFX_REDUCER := preload("res://scripts/core/state/reducers/u_vfx_reducer.gd")` ✅
     - Line ~56: Add `@export var vfx_initial_state: RS_VFXInitialState` ✅
     - Line ~164: Add `vfx_initial_state` parameter to `initialize_slices()` call ✅
-  - Modify `scripts/state/utils/u_state_slice_manager.gd`:
-    - Add `const U_VFX_REDUCER := preload("res://scripts/state/reducers/u_vfx_reducer.gd")` at top ✅
+  - Modify `scripts/core/state/utils/u_state_slice_manager.gd`:
+    - Add `const U_VFX_REDUCER := preload("res://scripts/core/state/reducers/u_vfx_reducer.gd")` at top ✅
     - Add `vfx_initial_state: RS_VFXInitialState` parameter to `initialize_slices()` function signature ✅
     - Add VFX slice registration block (after debug slice, ~line 99) ✅
   - VFX slice accessible via `state.vfx` ✅
@@ -89,7 +89,7 @@
   - All 8 tests failing as expected ✅
 
 - [x] **Task 1.2 (Green)**: Implement VFX manager scaffolding
-  - Create `scripts/managers/m_vfx_manager.gd`
+  - Create `scripts/core/managers/m_vfx_manager.gd`
   - Extend Node, add `@icon("res://assets/editor_icons/manager.svg")`
   - Add to "vfx_manager" group
   - `_ready()`: Set `process_mode = PROCESS_MODE_ALWAYS`, register with ServiceLocator, discover M_StateStore
@@ -106,7 +106,7 @@
   - All 9 tests failing as expected ✅
 
 - [x] **Task 1.4 (Green)**: Implement ECS event subscriptions and trauma decay
-  - Modify `scripts/managers/m_vfx_manager.gd`
+  - Modify `scripts/core/managers/m_vfx_manager.gd`
   - Add fields: `_unsubscribe_health: Callable`, `_unsubscribe_landed: Callable`, `_unsubscribe_death: Callable`
   - Subscribe in `_ready()`:
     ```gdscript
@@ -143,7 +143,7 @@
   - All 15 tests failing as expected ✅
 
 - [x] **Task 2.2 (Green)**: Implement U_ScreenShake helper
-  - Create `scripts/managers/helpers/u_screen_shake.gd`
+  - Create `scripts/core/managers/helpers/u_screen_shake.gd`
   - Class structure:
     ```gdscript
     class_name U_ScreenShake
@@ -190,7 +190,7 @@
 **Exit Criteria:** Camera shake visible in-game, no gimbal lock at extreme camera angles, shake applied to parent node (not camera directly)
 
 - [x] **Task 3.1 (Green)**: Integrate shake parent node into M_CameraManager
-  - Modify `scripts/managers/m_camera_manager.gd`
+  - Modify `scripts/core/managers/m_camera_manager.gd`
   - Add field: `var _shake_parent: Node3D = null`
   - Add method `_create_shake_parent() -> void`:
     ```gdscript
@@ -219,7 +219,7 @@
   - Shake parent approach prevents gimbal lock and isolates shake from camera rotation
 
 - [x] **Task 3.2 (Green)**: Wire VFX Manager to Camera Manager shake application
-  - Modify `scripts/managers/m_vfx_manager.gd`
+  - Modify `scripts/core/managers/m_vfx_manager.gd`
   - Add field: `var _camera_manager: M_CameraManager`, `var _screen_shake: U_ScreenShake`
   - Discover camera manager in `_ready()`: `_camera_manager = U_ServiceLocator.get_service(StringName("camera_manager"))`
   - Initialize `_screen_shake = U_ScreenShake.new()` in `_ready()`
@@ -276,7 +276,7 @@
   - All 10 tests failing as expected ✅
 
 - [x] **Task 4.3 (Green)**: Implement U_DamageFlash helper
-  - Create `scripts/managers/helpers/u_damage_flash.gd`
+  - Create `scripts/core/managers/helpers/u_damage_flash.gd`
   - Class structure:
     ```gdscript
     class_name U_DamageFlash
@@ -311,7 +311,7 @@
   - All 10 tests passing ✅
 
 - [x] **Task 4.4 (Green)**: Integrate damage flash into VFX Manager
-  - Modify `scripts/managers/m_vfx_manager.gd`
+  - Modify `scripts/core/managers/m_vfx_manager.gd`
   - Add field: `var _damage_flash: U_DamageFlash`
   - Load and instance damage flash scene in `_ready()`:
     ```gdscript
@@ -395,7 +395,7 @@
   - All controls use focus navigation for gamepad support
 
 - [x] **Task 5.2 (Green)**: Implement VFX settings overlay script
-  - Created `scripts/ui/settings/ui_vfx_settings_overlay.gd`
+  - Created `scripts/core/ui/settings/ui_vfx_settings_overlay.gd`
   - Extends `BaseOverlay` and follows the existing settings overlay pattern (`UI_GamepadSettingsOverlay`, `UI_TouchscreenSettingsOverlay`)
   - Uses `M_StateStore.subscribe()` for reactive initialization/updates (callback signature is `(action: Dictionary, state: Dictionary)`)
   - **Apply/Cancel/Reset pattern**:
@@ -409,8 +409,8 @@
   - Added "Visual Effects" button to `scenes/ui/ui_settings_menu.tscn`
   - Registered VFX settings in `U_UIRegistry` (screen_id: `vfx_settings`)
   - Registered scene in `U_SceneRegistryLoader.backfill_default_gameplay_scenes()`
-  - Created UI screen definition at `resources/ui_screens/cfg_vfx_settings_overlay.tres`
-  - Wired button handler in `scripts/ui/ui_settings_menu.gd` to open overlay
+  - Created UI screen definition at `resources/core/ui_screens/cfg_vfx_settings_overlay.tres`
+  - Wired button handler in `scripts/core/ui/ui_settings_menu.gd` to open overlay
   - Settings saved to Redux state (VFX slice) and persist via state persistence system
   - All tests passing: 75/75 (33 Redux + 17 Manager + 15 ScreenShake + 10 DamageFlash)
   - Style enforcement tests passing: 7/7
@@ -483,17 +483,17 @@
   - Add particle gating test: `tests/unit/ecs/systems/test_spawn_particles_system.gd`
 
 - [x] **Task 7.2 (Green)**: Add `particles_enabled` to VFX Redux slice
-  - Modify `scripts/resources/state/rs_vfx_initial_state.gd` (add field + `to_dictionary()`)
-  - Modify `scripts/state/actions/u_vfx_actions.gd` (add action + creator)
-  - Modify `scripts/state/reducers/u_vfx_reducer.gd` (add reducer support)
-  - Modify `scripts/state/selectors/u_vfx_selectors.gd` (add selector)
+  - Modify `scripts/core/resources/state/rs_vfx_initial_state.gd` (add field + `to_dictionary()`)
+  - Modify `scripts/core/state/actions/u_vfx_actions.gd` (add action + creator)
+  - Modify `scripts/core/state/reducers/u_vfx_reducer.gd` (add reducer support)
+  - Modify `scripts/core/state/selectors/u_vfx_selectors.gd` (add selector)
 
 - [x] **Task 7.3 (Green)**: Add particles toggle to settings UI
   - Modify `scenes/ui/ui_vfx_settings_overlay.tscn` (add "Particles" row + toggle)
-  - Modify `scripts/ui/settings/ui_vfx_settings_overlay.gd` (Apply/Cancel/Reset integration + focus)
+  - Modify `scripts/core/ui/settings/ui_vfx_settings_overlay.gd` (Apply/Cancel/Reset integration + focus)
 
 - [x] **Task 7.4 (Green)**: Gate particle spawning via `U_ParticleSpawner`
-  - Modify `scripts/utils/u_particle_spawner.gd` to no-op when `U_VFXSelectors.is_particles_enabled(state) == false`
+  - Modify `scripts/core/utils/u_particle_spawner.gd` to no-op when `U_VFXSelectors.is_particles_enabled(state) == false`
 
 **Completion Notes:**
 - Added global `particles_enabled` toggle (default true) and persisted via VFX slice
@@ -505,30 +505,30 @@
 
 | File Path | Status | Phase | Notes |
 |-----------|--------|-------|-------|
-| `scripts/resources/state/rs_vfx_initial_state.gd` | ✅ Complete | 0, 7 | VFX initial state resource with 4 fields |
-| `scripts/state/actions/u_vfx_actions.gd` | ✅ Complete | 0, 7 | 4 action creators for VFX settings |
-| `scripts/state/reducers/u_vfx_reducer.gd` | ✅ Complete | 0, 7 | VFX reducer with intensity clamping |
-| `scripts/state/selectors/u_vfx_selectors.gd` | ✅ Complete | 0, 7 | 4 selectors for VFX state |
-| `scripts/state/m_state_store.gd` | ✅ Complete | 0 | Modified to export vfx_initial_state |
-| `scripts/state/utils/u_state_slice_manager.gd` | ✅ Complete | 0 | Modified to register VFX slice |
+| `scripts/core/resources/state/rs_vfx_initial_state.gd` | ✅ Complete | 0, 7 | VFX initial state resource with 4 fields |
+| `scripts/core/state/actions/u_vfx_actions.gd` | ✅ Complete | 0, 7 | 4 action creators for VFX settings |
+| `scripts/core/state/reducers/u_vfx_reducer.gd` | ✅ Complete | 0, 7 | VFX reducer with intensity clamping |
+| `scripts/core/state/selectors/u_vfx_selectors.gd` | ✅ Complete | 0, 7 | 4 selectors for VFX state |
+| `scripts/core/state/m_state_store.gd` | ✅ Complete | 0 | Modified to export vfx_initial_state |
+| `scripts/core/state/utils/u_state_slice_manager.gd` | ✅ Complete | 0 | Modified to register VFX slice |
 | `tests/unit/state/test_vfx_initial_state.gd` | ✅ Complete | 0, 7 | 6 tests for initial state |
 | `tests/unit/state/test_vfx_reducer.gd` | ✅ Complete | 0, 7 | 17 tests for reducer (includes clamping) |
 | `tests/unit/state/test_vfx_selectors.gd` | ✅ Complete | 0, 7 | 17 tests for selectors |
-| `scripts/managers/m_vfx_manager.gd` | ✅ Complete | 1, 3, 4 | VFX manager with trauma system + camera integration + damage flash |
+| `scripts/core/managers/m_vfx_manager.gd` | ✅ Complete | 1, 3, 4 | VFX manager with trauma system + camera integration + damage flash |
 | `tests/unit/managers/test_vfx_manager.gd` | ✅ Complete | 1 | 17 tests for manager lifecycle + trauma |
 | `scenes/root.tscn` | ✅ Complete | 1 | Modified to add M_VFXManager node |
-| `scripts/managers/helpers/u_screen_shake.gd` | ✅ Complete | 2 | Screen shake helper with noise algorithm |
+| `scripts/core/managers/helpers/u_screen_shake.gd` | ✅ Complete | 2 | Screen shake helper with noise algorithm |
 | `tests/unit/managers/helpers/test_screen_shake.gd` | ✅ Complete | 2 | 15 tests for shake algorithm |
-| `scripts/managers/m_camera_manager.gd` | ✅ Complete | 3 | Modified to add shake parent + apply method + ServiceLocator registration |
+| `scripts/core/managers/m_camera_manager.gd` | ✅ Complete | 3 | Modified to add shake parent + apply method + ServiceLocator registration |
 | `scenes/ui/overlays/ui_damage_flash_overlay.tscn` | ✅ Complete | 4 | Damage flash overlay scene (CanvasLayer layer 50) |
-| `scripts/managers/helpers/u_damage_flash.gd` | ✅ Complete | 4 | Damage flash helper with tween fade (0.4s duration) |
+| `scripts/core/managers/helpers/u_damage_flash.gd` | ✅ Complete | 4 | Damage flash helper with tween fade (0.4s duration) |
 | `tests/unit/managers/helpers/test_damage_flash.gd` | ✅ Complete | 4 | 10 tests for damage flash |
 | `scenes/ui/ui_vfx_settings_overlay.tscn` | ✅ Complete | 5 | VFX settings overlay scene |
-| `scripts/ui/settings/ui_vfx_settings_overlay.gd` | ✅ Complete | 5, 7 | VFX settings overlay controller (Apply/Cancel/Reset) |
+| `scripts/core/ui/settings/ui_vfx_settings_overlay.gd` | ✅ Complete | 5, 7 | VFX settings overlay controller (Apply/Cancel/Reset) |
 | `tests/integration/vfx/test_vfx_camera_integration.gd` | ✅ Complete | 6 | 5 integration tests for VFX-Camera |
 | `tests/integration/vfx/test_vfx_settings_ui.gd` | ✅ Complete | 6, 7 | 8 integration tests for settings UI |
 | `tests/unit/ecs/systems/test_spawn_particles_system.gd` | ✅ Complete | 7 | Verifies global particles toggle suppresses spawns |
-| `scripts/utils/u_particle_spawner.gd` | ✅ Complete | 7 | Gates particle spawns when particles are disabled |
+| `scripts/core/utils/u_particle_spawner.gd` | ✅ Complete | 7 | Gates particle spawns when particles are disabled |
 
 **Status Legend:**
 - ⬜ Not Started

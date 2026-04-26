@@ -17,9 +17,9 @@ Before starting Phase 0, verify:
   - Verify audio slice is registered (run existing audio tests)
 
 - [ ] **PRE-2**: Understand existing patterns by reading:
-  - `scripts/state/utils/u_state_slice_manager.gd` (slice registration)
-  - `scripts/managers/m_audio_manager.gd` (hash-based optimization, preview mode)
-  - `scripts/state/m_state_store.gd` (export pattern, initialize_slices call)
+  - `scripts/core/state/utils/u_state_slice_manager.gd` (slice registration)
+  - `scripts/core/managers/m_audio_manager.gd` (hash-based optimization, preview mode)
+  - `scripts/core/state/m_state_store.gd` (export pattern, initialize_slices call)
 
 ---
 
@@ -44,16 +44,16 @@ Before starting Phase 0, verify:
   - Notes: Completed 2026-02-01 (added 11 tests in `tests/unit/state/test_display_initial_state.gd`)
 
 - [x] **Task 0A.2 (Green)**: Implement RS_DisplayInitialState resource
-  - Create `scripts/resources/state/rs_display_initial_state.gd`
+  - Create `scripts/core/resources/state/rs_display_initial_state.gd`
   - Add all @export fields with correct types and defaults
   - Implement `to_dictionary()` method
   - All tests should pass
-  - Notes: Completed 2026-02-01 (created `scripts/resources/state/rs_display_initial_state.gd`)
+  - Notes: Completed 2026-02-01 (created `scripts/core/resources/state/rs_display_initial_state.gd`)
 
 - [x] **Task 0A.3**: Create default resource instance
-  - Create `resources/base_settings/state/cfg_display_initial_state.tres`
+  - Create `resources/core/base_settings/state/cfg_display_initial_state.tres`
   - Set all fields to sensible defaults
-  - Notes: Completed 2026-02-01 (created `resources/base_settings/state/cfg_display_initial_state.tres`)
+  - Notes: Completed 2026-02-01 (created `resources/core/base_settings/state/cfg_display_initial_state.tres`)
 
 ---
 
@@ -78,11 +78,11 @@ Before starting Phase 0, verify:
   - Notes: Completed 2026-02-01 (added 19 tests in `tests/unit/state/test_display_actions.gd`)
 
 - [x] **Task 0B.2 (Green)**: Implement U_DisplayActions
-  - Create `scripts/state/actions/u_display_actions.gd`
+  - Create `scripts/core/state/actions/u_display_actions.gd`
   - Add all action type constants (StringName)
   - Implement all static action creator functions
   - All tests should pass
-  - Notes: Completed 2026-02-01 (created `scripts/state/actions/u_display_actions.gd`)
+  - Notes: Completed 2026-02-01 (created `scripts/core/state/actions/u_display_actions.gd`)
 
 ---
 
@@ -106,12 +106,12 @@ Before starting Phase 0, verify:
   - Notes: Completed 2026-02-01 (added 28 tests in `tests/unit/state/test_display_reducer.gd`)
 
 - [x] **Task 0C.2 (Green)**: Implement U_DisplayReducer
-  - Create `scripts/state/reducers/u_display_reducer.gd`
+  - Create `scripts/core/state/reducers/u_display_reducer.gd`
   - Add validation constants (VALID_WINDOW_PRESETS, VALID_WINDOW_MODES, etc.)
   - Implement `reduce(state, action)` with match statement
   - Implement `_with_values()` helper for immutable updates
   - All tests should pass
-  - Notes: Completed 2026-02-01 (created `scripts/state/reducers/u_display_reducer.gd`)
+  - Notes: Completed 2026-02-01 (created `scripts/core/state/reducers/u_display_reducer.gd`)
 
 - [x] **Task 0C.3 (Refactor)**: Extract helper methods if needed
   - Ensure all validation logic is clean and consistent
@@ -131,22 +131,22 @@ Before starting Phase 0, verify:
   - Notes: Completed 2026-02-01 (added 19 tests in `tests/unit/state/test_display_selectors.gd`)
 
 - [x] **Task 0D.2 (Green)**: Implement U_DisplaySelectors
-  - Create `scripts/state/selectors/u_display_selectors.gd`
+  - Create `scripts/core/state/selectors/u_display_selectors.gd`
   - Implement all selector functions with safe defaults
   - All tests should pass
-  - Notes: Completed 2026-02-01 (created `scripts/state/selectors/u_display_selectors.gd`)
+  - Notes: Completed 2026-02-01 (created `scripts/core/state/selectors/u_display_selectors.gd`)
 
 - [x] **Task 0D.3**: Integrate display slice with M_StateStore
-  - Modify `scripts/state/m_state_store.gd`:
+  - Modify `scripts/core/state/m_state_store.gd`:
     - Line ~41: Add `const RS_DISPLAY_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_display_initial_state.gd")`
     - Line ~65: Add `@export var display_initial_state: Resource`
     - Lines 217-229: Add `display_initial_state` as 12th parameter to `initialize_slices()` call
-  - Modify `scripts/state/utils/u_state_slice_manager.gd`:
-    - Line ~11: Add `const U_DISPLAY_REDUCER := preload("res://scripts/state/reducers/u_display_reducer.gd")`
+  - Modify `scripts/core/state/utils/u_state_slice_manager.gd`:
+    - Line ~11: Add `const U_DISPLAY_REDUCER := preload("res://scripts/core/state/reducers/u_display_reducer.gd")`
     - Lines 16-28: Add `display_initial_state: Resource` as 12th parameter
     - After line 120: Add display slice registration block (copy audio pattern)
   - Modify `scenes/root.tscn`:
-    - Assign `resources/base_settings/state/cfg_display_initial_state.tres` to M_StateStore.display_initial_state export
+    - Assign `resources/core/base_settings/state/cfg_display_initial_state.tres` to M_StateStore.display_initial_state export
   - Notes: Completed 2026-02-01 (export uses `Resource` to avoid headless class cache issues)
 
 - [x] **Task 0D.4**: Register display actions with U_ActionRegistry
@@ -176,14 +176,14 @@ Before starting Phase 0, verify:
 ### Phase 1A: Interface Definition
 
 - [x] **Task 1A.1**: Create I_DisplayManager interface
-  - Create `scripts/interfaces/i_display_manager.gd`
+  - Create `scripts/core/interfaces/i_display_manager.gd`
   - Define `set_display_settings_preview(settings: Dictionary) -> void`
   - Define `clear_display_settings_preview() -> void`
   - Define `register_ui_scale_root(node: Node) -> void`
   - Define `unregister_ui_scale_root(node: Node) -> void`
   - Define `get_active_palette() -> Resource`
   - All methods push_error for unimplemented
-  - Notes: Completed 2026-02-01 (created `scripts/interfaces/i_display_manager.gd`, palette returns Resource to avoid headless class cache issues)
+  - Notes: Completed 2026-02-01 (created `scripts/core/interfaces/i_display_manager.gd`, palette returns Resource to avoid headless class cache issues)
 
 ---
 
@@ -206,7 +206,7 @@ Before starting Phase 0, verify:
   - Notes: Completed 2026-02-01 (added 11 tests in `tests/unit/managers/test_display_manager.gd`)
 
 - [x] **Task 1B.2 (Green)**: Implement M_DisplayManager scaffold
-  - Create `scripts/managers/m_display_manager.gd` extending I_DisplayManager
+  - Create `scripts/core/managers/m_display_manager.gd` extending I_DisplayManager
   - Add `@export var state_store: I_StateStore` for DI
   - Add `var _last_display_hash: int = 0` for change detection
   - Add `var _display_settings_preview_active: bool = false` for preview mode
@@ -227,7 +227,7 @@ Before starting Phase 0, verify:
     ```
   - Implement preview mode methods
   - All tests should pass
-  - Notes: Completed 2026-02-01 (created `scripts/managers/m_display_manager.gd`)
+  - Notes: Completed 2026-02-01 (created `scripts/core/managers/m_display_manager.gd`)
 
 - [x] **Task 1B.3**: Add manager to main scene
   - Add M_DisplayManager node to `scenes/root.tscn` under Managers/
@@ -238,7 +238,7 @@ Before starting Phase 0, verify:
   - Notes: Completed 2026-02-01 (added M_DisplayManager node + root registration)
 
 - [x] **Task 1B.4**: Create U_DisplayUtils helper
-  - Create `scripts/utils/display/u_display_utils.gd`
+  - Create `scripts/core/utils/display/u_display_utils.gd`
   - Implement `static func get_display_manager() -> M_DisplayManager`
   - Pattern: `return U_ServiceLocator.get_service(StringName("display_manager")) as M_DisplayManager`
   - Notes: Completed 2026-02-01 (helper returns I_DisplayManager via ServiceLocator)
@@ -268,22 +268,22 @@ Before starting Phase 0, verify:
   - Implement `set_window_mode(mode)`
   - Implement `set_vsync_enabled(enabled)`
   - Call deferred for thread safety
-  - Notes: Completed 2026-02-01 (implemented in `scripts/managers/m_display_manager.gd`)
+  - Notes: Completed 2026-02-01 (implemented in `scripts/core/managers/m_display_manager.gd`)
 
 ---
 
 ### Phase 2B: Quality Presets
 
 - [x] **Task 2B.1**: Create RS_QualityPreset resource
-  - Create `scripts/resources/display/rs_quality_preset.gd`
+  - Create `scripts/core/resources/display/rs_quality_preset.gd`
   - Add fields: `preset_name`, `shadow_quality`, `anti_aliasing`, `post_processing_enabled`
   - Notes: Completed 2026-02-01 (created resource with shadow/AA/post-processing fields)
 
 - [x] **Task 2B.2**: Create quality preset instances
-  - Create `resources/display/cfg_quality_presets/cfg_quality_low.tres`
-  - Create `resources/display/cfg_quality_presets/cfg_quality_medium.tres`
-  - Create `resources/display/cfg_quality_presets/cfg_quality_high.tres`
-  - Create `resources/display/cfg_quality_presets/cfg_quality_ultra.tres`
+  - Create `resources/core/display/cfg_quality_presets/cfg_quality_low.tres`
+  - Create `resources/core/display/cfg_quality_presets/cfg_quality_medium.tres`
+  - Create `resources/core/display/cfg_quality_presets/cfg_quality_high.tres`
+  - Create `resources/core/display/cfg_quality_presets/cfg_quality_ultra.tres`
   - Notes: Completed 2026-02-01 (added low/medium/high/ultra preset configs)
 
 - [x] **Task 2B.3**: Implement quality preset application
@@ -312,7 +312,7 @@ Before starting Phase 0, verify:
   - Notes: Completed 2026-02-01 (added 8 helper tests)
 
 - [x] **Task 3A.2 (Green)**: Implement U_PostProcessLayer helper
-  - Create `scripts/managers/helpers/display/u_post_process_layer.gd`
+  - Create `scripts/core/managers/helpers/display/u_post_process_layer.gd`
   - Implement `initialize()` to cache ColorRect references
   - Implement `set_effect_enabled(effect_name, enabled)`
   - Implement `set_effect_parameter(effect_name, param, value)`
@@ -409,17 +409,17 @@ Before starting Phase 0, verify:
   - Notes: Completed 2026-02-01 (added 5 tests in `tests/unit/resources/test_ui_color_palette.gd`)
 
 - [x] **Task 5A.2 (Green)**: Implement RS_UIColorPalette resource
-  - Create `scripts/resources/ui/rs_ui_color_palette.gd`
+  - Create `scripts/core/resources/ui/rs_ui_color_palette.gd`
   - Add fields: palette_id, primary, secondary, success, warning, danger, info, background, text
-  - Notes: Completed 2026-02-01 (created `scripts/resources/ui/rs_ui_color_palette.gd`)
+  - Notes: Completed 2026-02-01 (created `scripts/core/resources/ui/rs_ui_color_palette.gd`)
 
 - [x] **Task 5A.3**: Create palette resource instances
-  - Create `resources/ui_themes/cfg_palette_normal.tres`
-  - Create `resources/ui_themes/cfg_palette_deuteranopia.tres`
-  - Create `resources/ui_themes/cfg_palette_protanopia.tres`
-  - Create `resources/ui_themes/cfg_palette_tritanopia.tres`
-  - Create `resources/ui_themes/cfg_palette_high_contrast.tres`
-  - Notes: Completed 2026-02-01 (added 5 palette resources under `resources/ui_themes/`)
+  - Create `resources/core/ui_themes/cfg_palette_normal.tres`
+  - Create `resources/core/ui_themes/cfg_palette_deuteranopia.tres`
+  - Create `resources/core/ui_themes/cfg_palette_protanopia.tres`
+  - Create `resources/core/ui_themes/cfg_palette_tritanopia.tres`
+  - Create `resources/core/ui_themes/cfg_palette_high_contrast.tres`
+  - Notes: Completed 2026-02-01 (added 5 palette resources under `resources/core/ui_themes/`)
 
 ---
 
@@ -436,11 +436,11 @@ Before starting Phase 0, verify:
   - Notes: Completed 2026-02-01 (added 8 tests in `tests/unit/managers/helpers/test_palette_manager.gd`)
 
 - [x] **Task 5B.2 (Green)**: Implement U_PaletteManager helper
-  - Create `scripts/managers/helpers/u_palette_manager.gd`
+  - Create `scripts/core/managers/helpers/u_palette_manager.gd`
   - Add `active_palette_changed` signal
   - Implement palette loading with cache
   - Implement fallback to "normal" on invalid mode
-  - Notes: Completed 2026-02-01 (created `scripts/managers/helpers/u_palette_manager.gd`)
+  - Notes: Completed 2026-02-01 (created `scripts/core/managers/helpers/u_palette_manager.gd`)
 
 - [x] **Task 5B.3**: Integrate with M_DisplayManager
   - M_DisplayManager creates/owns U_PaletteManager instance
@@ -491,7 +491,7 @@ Before starting Phase 0, verify:
   - Notes: Completed 2026-02-04 (scrollable tab + sectioned layout)
 
 - [x] **Task 6A.2**: Implement display settings tab controller
-  - Create `scripts/ui/settings/ui_display_settings_tab.gd`
+  - Create `scripts/core/ui/settings/ui_display_settings_tab.gd`
   - Subscribe to store for initial values via `U_StateUtils.get_store(self)`
   - Use Apply/Cancel + preview pattern (set preview on change, dispatch on Apply)
   - Wire all controls to corresponding U_DisplayActions
@@ -651,37 +651,37 @@ Before starting Phase 0, verify:
 ### Phase 11B: Resource Class + Registry
 
 - [x] **Task 11B.1**: Create RS_SceneCinemaGrade resource class
-  - Create `scripts/resources/display/rs_scene_color_grading.gd`
+  - Create `scripts/core/resources/display/rs_scene_color_grading.gd`
   - @export groups: Filter, Exposure & Brightness, Tone, Color, Detail
   - `to_dictionary()` returns all values with `color_grading_` prefix
   - `FILTER_PRESET_MAP` const maps string → int
   - Notes: Completed 2026-02-06
 
 - [x] **Task 11B.2**: Create U_CinemaGradeRegistry
-  - Create `scripts/managers/helpers/display/u_color_grading_registry.gd`
+  - Create `scripts/core/managers/helpers/display/u_color_grading_registry.gd`
   - Mobile-safe `const preload` pattern (follows U_AudioRegistryLoader)
   - `get_color_grading_for_scene(scene_id)` with neutral fallback
   - Notes: Completed 2026-02-06
 
 - [x] **Task 11B.3**: Create per-scene .tres configs
-  - `resources/display/color_gradings/cfg_color_grading_gameplay_base.tres`
-  - `resources/display/color_gradings/cfg_color_grading_alleyway.tres`
-  - `resources/display/color_gradings/cfg_color_grading_exterior.tres`
-  - `resources/display/color_gradings/cfg_color_grading_bar.tres`
-  - `resources/display/color_gradings/cfg_color_grading_interior_house.tres`
+  - `resources/core/display/color_gradings/cfg_color_grading_gameplay_base.tres`
+  - `resources/core/display/color_gradings/cfg_color_grading_alleyway.tres`
+  - `resources/core/display/color_gradings/cfg_color_grading_exterior.tres`
+  - `resources/core/display/color_gradings/cfg_color_grading_bar.tres`
+  - `resources/core/display/color_gradings/cfg_color_grading_interior_house.tres`
   - All start with neutral values (ready for tuning)
   - Notes: Completed 2026-02-06
 
 ### Phase 11C: Redux Integration
 
 - [x] **Task 11C.1**: Create U_CinemaGradeActions
-  - Create `scripts/state/actions/u_color_grading_actions.gd`
+  - Create `scripts/core/state/actions/u_color_grading_actions.gd`
   - `color_grading/` prefix (NOT persisted to global_settings.json)
   - Actions: load_scene_grade, set_parameter, reset_to_scene_defaults
   - Notes: Completed 2026-02-06
 
 - [x] **Task 11C.2**: Create U_CinemaGradeSelectors
-  - Create `scripts/state/selectors/u_color_grading_selectors.gd`
+  - Create `scripts/core/state/selectors/u_color_grading_selectors.gd`
   - One getter per parameter reading from display slice with `color_grading_` key prefix
   - Notes: Completed 2026-02-06
 
@@ -693,7 +693,7 @@ Before starting Phase 0, verify:
 ### Phase 11D: Applier + Manager Integration
 
 - [x] **Task 11D.1**: Create U_DisplayCinemaGradeApplier
-  - Create `scripts/managers/helpers/display/u_display_color_grading_applier.gd`
+  - Create `scripts/core/managers/helpers/display/u_display_color_grading_applier.gd`
   - Creates CinemaGradeLayer (CanvasLayer 1) inside PostProcessOverlay
   - Listens for `scene/transition_completed` via `action_dispatched` signal
   - Looks up registry → dispatches load_scene_grade action
@@ -708,7 +708,7 @@ Before starting Phase 0, verify:
 ### Phase 11E: @tool Editor Preview
 
 - [x] **Task 11E.1**: Create U_CinemaGradePreview
-  - Create `scripts/utils/display/u_color_grading_preview.gd`
+  - Create `scripts/core/utils/display/u_color_grading_preview.gd`
   - `@tool` script extending Node
   - `@export var color_grading: Resource` with setter calling `_update_preview()`
   - Editor: creates CanvasLayer 100 + ColorRect with shader
@@ -776,27 +776,27 @@ Before starting Phase 0, verify:
 
 | File | Type | Description |
 |------|------|-------------|
-| `scripts/resources/state/rs_display_initial_state.gd` | Resource | Initial state for display slice |
-| `resources/base_settings/state/cfg_display_initial_state.tres` | Instance | Default display settings instance |
-| `scripts/state/actions/u_display_actions.gd` | Actions | Display action creators (19 actions) |
-| `scripts/state/reducers/u_display_reducer.gd` | Reducer | Display state reducer |
-| `scripts/state/selectors/u_display_selectors.gd` | Selectors | Display state selectors (19 selectors) |
-| `scripts/interfaces/i_display_manager.gd` | Interface | Display manager interface |
-| `scripts/managers/m_display_manager.gd` | Manager | Main display manager |
-| `scripts/managers/helpers/display/u_post_process_layer.gd` | Helper | Post-process effect management |
-| `scripts/managers/helpers/u_palette_manager.gd` | Helper | Color blind palette management |
-| `scripts/utils/display/u_display_utils.gd` | Utility | Display manager lookup helper |
-| `scripts/resources/display/rs_quality_preset.gd` | Resource | Quality preset definition |
-| `scripts/resources/ui/rs_ui_color_palette.gd` | Resource | Color palette definition |
-| `resources/display/cfg_quality_presets/cfg_quality_low.tres` | Instance | Low quality preset |
-| `resources/display/cfg_quality_presets/cfg_quality_medium.tres` | Instance | Medium quality preset |
-| `resources/display/cfg_quality_presets/cfg_quality_high.tres` | Instance | High quality preset |
-| `resources/display/cfg_quality_presets/cfg_quality_ultra.tres` | Instance | Ultra quality preset |
-| `resources/ui_themes/cfg_palette_normal.tres` | Instance | Normal color palette |
-| `resources/ui_themes/cfg_palette_deuteranopia.tres` | Instance | Deuteranopia palette |
-| `resources/ui_themes/cfg_palette_protanopia.tres` | Instance | Protanopia palette |
-| `resources/ui_themes/cfg_palette_tritanopia.tres` | Instance | Tritanopia palette |
-| `resources/ui_themes/cfg_palette_high_contrast.tres` | Instance | High contrast palette |
+| `scripts/core/resources/state/rs_display_initial_state.gd` | Resource | Initial state for display slice |
+| `resources/core/base_settings/state/cfg_display_initial_state.tres` | Instance | Default display settings instance |
+| `scripts/core/state/actions/u_display_actions.gd` | Actions | Display action creators (19 actions) |
+| `scripts/core/state/reducers/u_display_reducer.gd` | Reducer | Display state reducer |
+| `scripts/core/state/selectors/u_display_selectors.gd` | Selectors | Display state selectors (19 selectors) |
+| `scripts/core/interfaces/i_display_manager.gd` | Interface | Display manager interface |
+| `scripts/core/managers/m_display_manager.gd` | Manager | Main display manager |
+| `scripts/core/managers/helpers/display/u_post_process_layer.gd` | Helper | Post-process effect management |
+| `scripts/core/managers/helpers/u_palette_manager.gd` | Helper | Color blind palette management |
+| `scripts/core/utils/display/u_display_utils.gd` | Utility | Display manager lookup helper |
+| `scripts/core/resources/display/rs_quality_preset.gd` | Resource | Quality preset definition |
+| `scripts/core/resources/ui/rs_ui_color_palette.gd` | Resource | Color palette definition |
+| `resources/core/display/cfg_quality_presets/cfg_quality_low.tres` | Instance | Low quality preset |
+| `resources/core/display/cfg_quality_presets/cfg_quality_medium.tres` | Instance | Medium quality preset |
+| `resources/core/display/cfg_quality_presets/cfg_quality_high.tres` | Instance | High quality preset |
+| `resources/core/display/cfg_quality_presets/cfg_quality_ultra.tres` | Instance | Ultra quality preset |
+| `resources/core/ui_themes/cfg_palette_normal.tres` | Instance | Normal color palette |
+| `resources/core/ui_themes/cfg_palette_deuteranopia.tres` | Instance | Deuteranopia palette |
+| `resources/core/ui_themes/cfg_palette_protanopia.tres` | Instance | Protanopia palette |
+| `resources/core/ui_themes/cfg_palette_tritanopia.tres` | Instance | Tritanopia palette |
+| `resources/core/ui_themes/cfg_palette_high_contrast.tres` | Instance | High contrast palette |
 | `assets/shaders/sh_film_grain_shader.gdshader` | Shader | Film grain effect |
 | `assets/shaders/sh_outline_shader.gdshader` | Shader | Outline effect (created but not wired to state) |
 | `assets/shaders/sh_dither_shader.gdshader` | Shader | Dither effect |
@@ -805,7 +805,7 @@ Before starting Phase 0, verify:
 | `scenes/ui/overlays/ui_post_process_overlay.tscn` | Scene | Post-process overlay (instanced in GameViewport) |
 | `scenes/ui/overlays/settings/ui_display_settings_tab.tscn` | Scene | Display settings UI tab |
 | `scenes/ui/overlays/settings/ui_display_settings_overlay.tscn` | Scene | Display settings overlay wrapper |
-| `scripts/ui/settings/ui_display_settings_tab.gd` | UI | Display settings controller |
+| `scripts/core/ui/settings/ui_display_settings_tab.gd` | UI | Display settings controller |
 | `docs/display_manager/display-manager-continuation-prompt.md` | Doc | Implementation continuation prompt |
 | `tests/unit/state/test_display_initial_state.gd` | Test | Initial state tests (11) |
 | `tests/unit/state/test_display_actions.gd` | Test | Actions tests (19) |
@@ -824,32 +824,32 @@ Before starting Phase 0, verify:
 | File | Type | Description |
 |------|------|-------------|
 | `assets/shaders/sh_color_grading_shader.gdshader` | Shader | GLSL color grading shader (13 uniforms + 8 filters) |
-| `scripts/resources/display/rs_scene_color_grading.gd` | Resource | Per-scene color grading config with @export groups |
-| `scripts/managers/helpers/display/u_color_grading_registry.gd` | Registry | Scene→grade mapping (mobile-safe const preload) |
-| `scripts/managers/helpers/display/u_display_color_grading_applier.gd` | Applier | Creates ColorGradingLayer, listens for scene transitions |
-| `scripts/state/actions/u_color_grading_actions.gd` | Actions | color_grading/ prefix actions (not persisted) |
-| `scripts/state/selectors/u_color_grading_selectors.gd` | Selectors | Color grading parameter selectors |
-| `scripts/utils/display/u_color_grading_preview.gd` | @tool | Editor viewport preview node |
-| `resources/display/color_gradings/cfg_color_grading_gameplay_base.tres` | Config | Gameplay base scene grade |
-| `resources/display/color_gradings/cfg_color_grading_alleyway.tres` | Config | Alleyway scene grade |
-| `resources/display/color_gradings/cfg_color_grading_exterior.tres` | Config | Exterior scene grade |
-| `resources/display/color_gradings/cfg_color_grading_bar.tres` | Config | Interior bar scene grade |
-| `resources/display/color_gradings/cfg_color_grading_interior_house.tres` | Config | Interior house scene grade |
+| `scripts/core/resources/display/rs_scene_color_grading.gd` | Resource | Per-scene color grading config with @export groups |
+| `scripts/core/managers/helpers/display/u_color_grading_registry.gd` | Registry | Scene→grade mapping (mobile-safe const preload) |
+| `scripts/core/managers/helpers/display/u_display_color_grading_applier.gd` | Applier | Creates ColorGradingLayer, listens for scene transitions |
+| `scripts/core/state/actions/u_color_grading_actions.gd` | Actions | color_grading/ prefix actions (not persisted) |
+| `scripts/core/state/selectors/u_color_grading_selectors.gd` | Selectors | Color grading parameter selectors |
+| `scripts/core/utils/display/u_color_grading_preview.gd` | @tool | Editor viewport preview node |
+| `resources/core/display/color_gradings/cfg_color_grading_gameplay_base.tres` | Config | Gameplay base scene grade |
+| `resources/core/display/color_gradings/cfg_color_grading_alleyway.tres` | Config | Alleyway scene grade |
+| `resources/core/display/color_gradings/cfg_color_grading_exterior.tres` | Config | Exterior scene grade |
+| `resources/core/display/color_gradings/cfg_color_grading_bar.tres` | Config | Interior bar scene grade |
+| `resources/core/display/color_gradings/cfg_color_grading_interior_house.tres` | Config | Interior house scene grade |
 
 ### Files to Modify
 
 | File | Changes |
 |------|---------|
-| `scripts/state/m_state_store.gd` | Add RS_DISPLAY_INITIAL_STATE const, display_initial_state export, pass as 12th param to initialize_slices() |
-| `scripts/state/utils/u_state_slice_manager.gd` | Add U_DISPLAY_REDUCER const, display_initial_state as 12th param, register display slice after audio |
-| `scripts/state/u_action_registry.gd` | Register all 19 U_DisplayActions action types |
+| `scripts/core/state/m_state_store.gd` | Add RS_DISPLAY_INITIAL_STATE const, display_initial_state export, pass as 12th param to initialize_slices() |
+| `scripts/core/state/utils/u_state_slice_manager.gd` | Add U_DISPLAY_REDUCER const, display_initial_state as 12th param, register display slice after audio |
+| `scripts/core/state/u_action_registry.gd` | Register all 19 U_DisplayActions action types |
 | `scenes/root.tscn` | Add M_DisplayManager node under Managers/, assign cfg_display_initial_state.tres |
 | `scripts/core/root.gd` | Register M_DisplayManager with ServiceLocator via `_register_if_exists()` |
-| `scripts/ui/helpers/u_ui_scale_root.gd` | Helper node to register UI roots for scaling |
+| `scripts/core/ui/helpers/u_ui_scale_root.gd` | Helper node to register UI roots for scaling |
 | `scenes/ui/menus/*.tscn` | Add UIScaleRoot helper node |
 | `scenes/ui/overlays/*.tscn` | Add UIScaleRoot helper node |
 | `scenes/ui/hud/*.tscn` | Add UIScaleRoot helper node |
 | `AGENTS.md` | Add Display Manager Patterns section (after Audio Manager) |
 | `docs/guides/pitfalls/` | Add Display-specific pitfalls if discovered |
-| `scripts/state/reducers/u_display_reducer.gd` | Add U_ColorGradingActions const + 3 color_grading/ match cases (Phase 11) |
-| `scripts/managers/m_display_manager.gd` | Add color grading applier preload, var, ensure, init, apply, visibility, cleanup (Phase 11) |
+| `scripts/core/state/reducers/u_display_reducer.gd` | Add U_ColorGradingActions const + 3 color_grading/ match cases (Phase 11) |
+| `scripts/core/managers/m_display_manager.gd` | Add color grading applier preload, var, ensure, init, apply, visibility, cleanup (Phase 11) |

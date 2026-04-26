@@ -85,7 +85,7 @@ M_SaveManager.request_autosave(priority: int) -> void
 
 ## Existing Code Migration
 
-**Remove from M_StateStore** (`scripts/state/m_state_store.gd`):
+**Remove from M_StateStore** (`scripts/core/state/m_state_store.gd`):
 - `_autosave_timer: Timer`
 - `_setup_autosave_timer()`
 - `_on_autosave_timeout()`
@@ -147,7 +147,7 @@ user://saves/
 - Excluded from transient fields (persists across scene transitions).
 - Read by Save Manager when building header metadata.
 
-**New system**: `S_PlaytimeSystem` (`scripts/ecs/systems/s_playtime_system.gd`)
+**New system**: `S_PlaytimeSystem` (`scripts/core/ecs/systems/s_playtime_system.gd`)
 - Extends `BaseECSSystem`
 - Queries navigation state to determine if gameplay is active
 - Dispatches `U_GameplayActions.increment_playtime(delta_seconds)` periodically
@@ -244,7 +244,7 @@ Single overlay scene (`ui_save_load_menu.tscn`) with mode switching:
 
 **Registration requirements**:
 1. Scene in `U_SceneRegistry` with `SceneType.UI`
-2. Overlay definition in `resources/ui_screens/cfg_save_load_menu_overlay.tres`
+2. Overlay definition in `resources/core/ui_screens/cfg_save_load_menu_overlay.tres`
 
 ### Toast Notifications
 

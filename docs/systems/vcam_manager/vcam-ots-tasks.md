@@ -16,10 +16,10 @@ Before starting Phase 3, verify:
   - Read `docs/vcam_manager/vcam-manager-overview.md` (Camera Modes > RS_VCamModeOTS)
   - Read `docs/guides/pitfalls/` and `docs/guides/STYLE_GUIDE.md`
 - [x] **PRE-3**: Understand existing patterns by reading:
-  - `scripts/resources/display/vcam/rs_vcam_mode_orbit.gd` (resource pattern from Phase 2)
-  - `scripts/managers/helpers/u_vcam_mode_evaluator.gd` (evaluator pattern from Phase 2)
+  - `scripts/core/resources/display/vcam/rs_vcam_mode_orbit.gd` (resource pattern from Phase 2)
+  - `scripts/core/managers/helpers/u_vcam_mode_evaluator.gd` (evaluator pattern from Phase 2)
   - `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd` (test pattern from Phase 2)
-  - `tests/unit/resources/display/vcam/test_vcam_mode_orbit.gd` (resource test pattern)
+  - `tests/unit/resources/core/display/vcam/test_vcam_mode_orbit.gd` (resource test pattern)
 - [x] **PRE-4**: Verify branch is `vcam` and working tree is clean
 - [x] **PRE-5**: Verify orbit tests still pass before extending the evaluator:
   ```bash
@@ -55,7 +55,7 @@ Before starting Phase 3, verify:
 ### Phase 3A: RS_VCamModeOTS Resource
 
 - [x] **Task 3A.1 (Red)**: Write tests for RS_VCamModeOTS
-  - Create `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd`
+  - Create `tests/unit/resources/core/display/vcam/test_vcam_mode_ots.gd`
   - Test `shoulder_offset` field exists with default `Vector3(0.3, 1.6, -0.5)`
     - Verify type is `Vector3`
     - Verify default places camera right of, above, and behind entity origin
@@ -83,10 +83,10 @@ Before starting Phase 3, verify:
   - Test `collision_probe_radius` field exists with default `0.15`
     - Verify type is `float`
   - Added landing-dip baseline coverage (`landing_dip_distance`, `landing_dip_recovery_speed`) to match AGENTS OTS resource contract.
-  - **Completion note (March 15, 2026):** `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` added with `16/16` passing.
+  - **Completion note (March 15, 2026):** `tests/unit/resources/core/display/vcam/test_vcam_mode_ots.gd` added with `16/16` passing.
 
 - [x] **Task 3A.2 (Green)**: Implement RS_VCamModeOTS
-  - Create `scripts/resources/display/vcam/rs_vcam_mode_ots.gd`
+  - Create `scripts/core/resources/display/vcam/rs_vcam_mode_ots.gd`
   - Extend `Resource`
   - Add `class_name RS_VCamModeOTS`
   - All `@export` fields with sensible defaults:
@@ -108,7 +108,7 @@ Before starting Phase 3, verify:
 - [x] **Task 3A.3**: Run style enforcement tests
   - `tests/unit/style/test_style_enforcement.gd` remains unchanged at known pre-existing HUD inline-theme failure (`16/17`, `scenes/ui/hud/ui_hud_overlay.tscn`)
   - Verify file naming follows `rs_` prefix convention
-  - Verify script is in `scripts/resources/display/vcam/` per style guide
+  - Verify script is in `scripts/core/resources/display/vcam/` per style guide
 
 ---
 
@@ -173,7 +173,7 @@ Before starting Phase 3, verify:
   6. Return `{transform, fov, mode_name: "ots"}`
 
 - [x] **Task 3B.2 (Green)**: Implement OTS evaluation in U_VCamModeEvaluator
-  - Extend `scripts/managers/helpers/u_vcam_mode_evaluator.gd` with OTS branch
+  - Extend `scripts/core/managers/helpers/u_vcam_mode_evaluator.gd` with OTS branch
   - Handle OTS mode branch:
     - Guard: return `{}` if mode is null or follow_target is null
     - Rotate `shoulder_offset` by `runtime_yaw` around Y axis
@@ -209,15 +209,15 @@ Before starting Phase 3, verify:
   ```
 
 - [x] **Task 3B.3**: Create default OTS resource instance
-  - Create `resources/display/vcam/cfg_default_ots.tres`
+  - Create `resources/core/display/vcam/cfg_default_ots.tres`
   - Set all fields to resource defaults (shoulder_offset=Vector3(0.3,1.6,-0.5), camera_distance=1.8, look_multiplier=1.0, pitch_min=-60.0, pitch_max=50.0, fov=60.0, collision_probe_radius=0.15, collision_recovery_speed=8.0, shoulder_sway_angle=0.0, shoulder_sway_smoothing=6.0, landing_dip_distance=0.0, landing_dip_recovery_speed=6.0)
   - Verify resource loads without errors:
     ```gdscript
-    var res := load("res://resources/display/vcam/cfg_default_ots.tres")
+    var res := load("res://resources/core/display/vcam/cfg_default_ots.tres")
     assert_not_null(res)
     assert_is(res, RS_VCamModeOTS)
     ```
-  - **Completion note (March 15, 2026):** Added `resources/display/vcam/cfg_default_ots.tres` and default-preset load assertion in `test_vcam_mode_ots.gd` (`17/17` total).
+  - **Completion note (March 15, 2026):** Added `resources/core/display/vcam/cfg_default_ots.tres` and default-preset load assertion in `test_vcam_mode_ots.gd` (`17/17` total).
 
 - [x] **Task 3B.4 (Refactor)**: Review U_VCamModeEvaluator for clarity
   - Review evaluator now that it handles two modes (orbit + OTS)
@@ -238,9 +238,9 @@ Before starting Phase 3, verify:
   - Run OTS evaluator tests
   - Run style enforcement tests
   ```bash
-  /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/resources/display/vcam -gselect=test_vcam_mode_orbit -ginclude_subdirs=true -gexit
+  /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/resources/core/display/vcam -gselect=test_vcam_mode_orbit -ginclude_subdirs=true -gexit
   /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/managers/helpers -gselect=test_vcam_mode_evaluator -ginclude_subdirs=true -gexit
-  /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/resources/display/vcam -gselect=test_vcam_mode_ots -ginclude_subdirs=true -gexit
+  /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/resources/core/display/vcam -gselect=test_vcam_mode_ots -ginclude_subdirs=true -gexit
   /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/style -gselect=test_style_enforcement -ginclude_subdirs=true -gexit
   ```
   - **Completion note (March 15, 2026):**
@@ -261,18 +261,18 @@ Before starting Phase 3, verify:
   - Added failing system tests in `tests/unit/ecs/systems/test_vcam_system.gd`:
     - `test_ots_runtime_pitch_clamps_to_lower_bound_during_input_accumulation`
     - `test_ots_runtime_pitch_clamps_to_upper_bound_during_input_accumulation`
-  - Added failing preset-tuning test in `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd`:
+  - Added failing preset-tuning test in `tests/unit/resources/core/display/vcam/test_vcam_mode_ots.gd`:
     - `test_default_ots_preset_uses_grounded_vertical_framing_values`
   - Implemented fix in `S_VCamSystem`:
     - OTS branch now clamps `component.runtime_pitch` to authored `pitch_min`/`pitch_max` immediately after input accumulation (pre-evaluator).
-  - Tuned default OTS preset in `resources/display/vcam/cfg_default_ots.tres`:
+  - Tuned default OTS preset in `resources/core/display/vcam/cfg_default_ots.tres`:
     - `shoulder_offset` set to `Vector3(0.25, 2.0, -1.2)` (moved camera anchor closer to head while keeping pullback for tight FOV framing)
     - `camera_distance` set to `2.2`
     - `pitch_min` set to `-35.0`
     - `pitch_max` set to `25.0`
   - Validation:
     - `tests/unit/ecs/systems/test_vcam_system.gd` (`130/130`)
-    - `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` (`28/28`)
+    - `tests/unit/resources/core/display/vcam/test_vcam_mode_ots.gd` (`28/28`)
 
 > **Why OTS-specific?** Over-the-shoulder game feel differs from both orbit and first-person. The camera sits behind and beside the character in a tight shoulder view — collision avoidance is critical to prevent wall clipping, shoulder sway provides embodied movement feedback from the third-person perspective, and landing camera response uses distance compression rather than pitch dip since the camera is external to the character.
 
@@ -288,7 +288,7 @@ Before starting Phase 3, verify:
   - Test `collision_probe_radius` must be non-negative
   - Test `collision_recovery_speed` must be positive
   - **Target: ~4 tests**
-  - **Completion note (March 15, 2026):** Coverage already existed in `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` (`test_collision_probe_radius_default_is_zero_point_fifteen`, clamp behavior, and positive recovery-speed behavior).
+  - **Completion note (March 15, 2026):** Coverage already existed in `tests/unit/resources/core/display/vcam/test_vcam_mode_ots.gd` (`test_collision_probe_radius_default_is_zero_point_fifteen`, clamp behavior, and positive recovery-speed behavior).
 
 - [x] **Task 3C1.2 (Red)**: Write tests for collision avoidance in S_VCamSystem
   - Add to `tests/unit/ecs/systems/test_vcam_system.gd`
@@ -345,7 +345,7 @@ Before starting Phase 3, verify:
     - Runtime state is tracked per-vCam in `_ots_collision_state` (`follow_target_id`, `recovery_speed_hz`, `current_distance`, `dynamics`) and is cleared on non-OTS mode and stale-vCam prune paths.
   - **Validation run (March 15, 2026):**
     - `tests/unit/ecs/systems/test_vcam_system.gd` (`107/107`)
-    - `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` (`17/17`)
+    - `tests/unit/resources/core/display/vcam/test_vcam_mode_ots.gd` (`17/17`)
     - `tests/unit/style/test_style_enforcement.gd` unchanged at known pre-existing HUD inline-theme failure (`16/17`, `scenes/ui/hud/ui_hud_overlay.tscn`)
 
 ---
@@ -361,7 +361,7 @@ Before starting Phase 3, verify:
   - Add tests verifying fields exist with defaults
   - Test `shoulder_sway_angle` must be non-negative
   - **Target: ~3 tests**
-  - **Completion note (March 15, 2026):** Added `test_shoulder_sway_angle_resolves_non_negative` in `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` (`18/18` total).
+  - **Completion note (March 15, 2026):** Added `test_shoulder_sway_angle_resolves_non_negative` in `tests/unit/resources/core/display/vcam/test_vcam_mode_ots.gd` (`18/18` total).
 
 - [x] **Task 3C2.2 (Red)**: Write tests for shoulder sway in S_VCamSystem
   - Add to `tests/unit/ecs/systems/test_vcam_system.gd`
@@ -400,7 +400,7 @@ Before starting Phase 3, verify:
     - Sway state is cleared when mode is not OTS, when authored angle is disabled, and during stale-vCam prune/clear paths.
   - **Validation run (March 15, 2026):**
     - `tests/unit/ecs/systems/test_vcam_system.gd` (`115/115`)
-    - `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` (`18/18`)
+    - `tests/unit/resources/core/display/vcam/test_vcam_mode_ots.gd` (`18/18`)
     - `tests/unit/style/test_style_enforcement.gd` unchanged at known pre-existing HUD inline-theme failure (`16/17`, `scenes/ui/hud/ui_hud_overlay.tscn`)
 
 ---
@@ -410,7 +410,7 @@ Before starting Phase 3, verify:
 > **Why:** While the shared landing impact (Phase 6A3c) applies a camera dip via QB rules to any mode, OTS benefits from an additional external-view landing response — a temporary camera distance reduction on impact that creates a visual "punch-in" effect. This stacks with the shared position dip and screen shake for a layered landing feel, but uses distance compression rather than an embodied pitch dip since the camera is external to the character.
 
 - [x] **Task 3C3.1**: Add landing response fields to RS_VCamModeOTS
-  - Modify `scripts/resources/display/vcam/rs_vcam_mode_ots.gd`:
+  - Modify `scripts/core/resources/display/vcam/rs_vcam_mode_ots.gd`:
     - `@export var landing_dip_distance: float = 0.0` — temporary distance reduction on hard landing in world units (0 = disabled)
     - `@export var landing_dip_recovery_speed: float = 6.0` — Hz for distance recovery second-order dynamics
   - Add tests verifying fields exist with defaults
@@ -450,7 +450,7 @@ Before starting Phase 3, verify:
     - Non-OTS, disabled-distance, invalid-target, and stale-vCam paths clear landing-response state.
   - **Validation run (March 15, 2026):**
     - `tests/unit/ecs/systems/test_vcam_system.gd` (`122/122`)
-    - `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` (`18/18`)
+    - `tests/unit/resources/core/display/vcam/test_vcam_mode_ots.gd` (`18/18`)
     - `tests/unit/style/test_style_enforcement.gd` unchanged at known pre-existing HUD inline-theme failure (`16/17`, `scenes/ui/hud/ui_hud_overlay.tscn`)
 
 ---
@@ -460,7 +460,7 @@ Before starting Phase 3, verify:
 > **Why:** RE4-style OTS aiming requires a full behavioral package: aim input triggers orbit↔OTS switch with a fast blend, movement slows to a dedicated profile, character locks facing to camera yaw, sprint is disabled, and a dot reticle fades in. This phase adds the aim-hold activation loop, movement profile override, facing lock, and reticle HUD element.
 
 - [x] **Task 3C4.1**: Add aiming exports to RS_VCamModeOTS
-  - Modify `scripts/resources/display/vcam/rs_vcam_mode_ots.gd`:
+  - Modify `scripts/core/resources/display/vcam/rs_vcam_mode_ots.gd`:
     - `@export var movement_profile: RS_MovementSettings` — nullable, null = use base settings
     - `@export var disable_sprint: bool = true`
     - `@export var lock_facing_to_camera: bool = true`
@@ -472,7 +472,7 @@ Before starting Phase 3, verify:
     - `"movement_profile": movement_profile` — nullable passthrough
   - Tests: field defaults and `get_resolved_values()` clamp behavior
   - **Target: ~6 tests**
-  - **Completion note (March 15, 2026):** `RS_VCamModeOTS` now exports `movement_profile`, `disable_sprint`, `lock_facing_to_camera`, and `aim_blend_duration`; `get_resolved_values()` includes passthrough/clamp coverage. `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` now passes `22/22`.
+  - **Completion note (March 15, 2026):** `RS_VCamModeOTS` now exports `movement_profile`, `disable_sprint`, `lock_facing_to_camera`, and `aim_blend_duration`; `get_resolved_values()` includes passthrough/clamp coverage. `tests/unit/resources/core/display/vcam/test_vcam_mode_ots.gd` now passes `22/22`.
 
 - [x] **Task 3C4.2**: Add aim input action
   - Desktop: `aim` mapped to L2/LT (gamepad) + right mouse button
@@ -533,7 +533,7 @@ Before starting Phase 3, verify:
 
   **Movement profile integration point (in `process_tick`):**
   ```gdscript
-  const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component.gd")
+  const C_VCAM_COMPONENT := preload("res://scripts/core/ecs/components/c_vcam_component.gd")
   const VCAM_TYPE := C_VCAM_COMPONENT.COMPONENT_TYPE
 
   # After getting movement_component and input_component:
@@ -571,7 +571,7 @@ Before starting Phase 3, verify:
 
   **Facing lock integration point (in `_get_desired_direction()`):**
   ```gdscript
-  const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component.gd")
+  const C_VCAM_COMPONENT := preload("res://scripts/core/ecs/components/c_vcam_component.gd")
   const VCAM_TYPE := C_VCAM_COMPONENT.COMPONENT_TYPE
 
   # Before camera-relative direction calc:
@@ -597,7 +597,7 @@ Before starting Phase 3, verify:
   - **Completion note (March 15, 2026):** `UI_HudController` now drives `OTSReticleContainer` visibility/fading from `state.vcam.active_mode` with pause/gameplay gating and OTS `aim_blend_duration` resolution from the active vCam mode (fallback `0.15s`), and `scenes/ui/hud/ui_hud_overlay.tscn` now includes a centered dot reticle node hidden by default.
 
 - [x] **Task 3C4.11**: Create default OTS movement settings preset
-  - Create `resources/base_settings/gameplay/cfg_ots_movement_default.tres`
+  - Create `resources/core/base_settings/gameplay/cfg_ots_movement_default.tres`
   - Type: `RS_MovementSettings` with OTS overrides:
     - `max_speed = 3.0` (reduced from default 6.0)
     - `sprint_speed_multiplier = 1.0` (no sprint bonus)
@@ -616,7 +616,7 @@ Before starting Phase 3, verify:
     - `air_control_scale = 0.3`
     - `slope_limit_degrees = 50.0`
   - Verify resource loads without errors
-  - **Completion note (March 15, 2026):** Added `cfg_ots_movement_default.tres`, wired it into `resources/display/vcam/cfg_default_ots.tres` via `movement_profile`, and extended `test_vcam_mode_ots` with preset load/value/reference assertions.
+  - **Completion note (March 15, 2026):** Added `cfg_ots_movement_default.tres`, wired it into `resources/core/display/vcam/cfg_default_ots.tres` via `movement_profile`, and extended `test_vcam_mode_ots` with preset load/value/reference assertions.
 
 - [x] **DOC**: Update `docs/vcam_manager/vcam-manager-continuation-prompt.md` and this file with Phase 3C4 completion status.
 
@@ -625,7 +625,7 @@ Before starting Phase 3, verify:
   - Add rotation system vcam awareness contract (S_RotateToInputSystem queries C_VCamComponent for OTS facing lock)
 
 - **Validation run (March 15, 2026):**
-  - `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` (`24/24`)
+  - `tests/unit/resources/core/display/vcam/test_vcam_mode_ots.gd` (`24/24`)
   - `tests/unit/ui/hud/test_ots_reticle.gd` (`4/4`)
   - `tests/unit/ui` (`-gselect=test_hud`, `28/28`)
   - `tests/unit/ecs/systems/test_vcam_system.gd` (`127/127`)
@@ -807,7 +807,7 @@ Completion note (March 22, 2026): OTS manual blend checklist passed (`MT-20/33`)
 
 ```bash
 # Run OTS resource tests
-/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/resources/display/vcam -gselect=test_vcam_mode_ots -ginclude_subdirs=true -gexit
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/resources/core/display/vcam -gselect=test_vcam_mode_ots -ginclude_subdirs=true -gexit
 
 # Run evaluator tests (includes orbit + OTS)
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/managers/helpers -gselect=test_vcam_mode_evaluator -ginclude_subdirs=true -gexit

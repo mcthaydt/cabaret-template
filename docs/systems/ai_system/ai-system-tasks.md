@@ -11,15 +11,15 @@
 
 - [x] Fixed stale woods debug agent labels:
   - `scripts/demo/debug/debug_woods_agent_label.gd` now updates follow + text every frame.
-  - `scripts/ecs/components/c_ai_brain_component.gd` now preserves `goal_id` and `task_id` in debug snapshots.
-  - `scripts/ecs/systems/s_ai_behavior_system.gd` now derives runtime `task_id` from running `RS_BTAction` state.
+  - `scripts/core/ecs/components/c_ai_brain_component.gd` now preserves `goal_id` and `task_id` in debug snapshots.
+  - `scripts/core/ecs/systems/s_ai_behavior_system.gd` now derives runtime `task_id` from running `RS_BTAction` state.
 - [x] Improved wolf consume reliability:
   - Added `completion_radius_override` to `RS_AIActionMoveToDetected`.
-  - Updated `resources/ai/woods/wolf/cfg_woods_wolf_brain.tres` chase/feed tuning for consume-range completion (`1.25`).
+  - Updated `resources/demo/ai/woods/wolf/cfg_woods_wolf_brain.tres` chase/feed tuning for consume-range completion (`1.25`).
 - [x] Prevented builder post-completion gather/haul loops and added in-world house progress label:
-  - Updated `resources/ai/woods/builder/cfg_builder_brain.tres` with `build_not_completed` gate for gather/haul scorers.
+  - Updated `resources/demo/ai/woods/builder/cfg_builder_brain.tres` with `build_not_completed` gate for gather/haul scorers.
   - Added `scripts/demo/debug/debug_woods_build_site_label.gd` and `scenes/debug/debug_woods_build_site_label.tscn`.
-  - Instanced label in `scenes/prefabs/prefab_woods_construction_site.tscn`.
+  - Instanced label in `scenes/core/prefabs/prefab_woods_construction_site.tscn`.
 - [x] Added/updated tests for this pack:
   - `tests/unit/ecs/components/test_c_ai_brain_component.gd`
   - `tests/unit/ai/actions/test_ai_actions_movement.gd`
@@ -46,10 +46,10 @@
   - `test_i_ai_action_interface_contract` — verify I_AIAction declares start/tick/is_complete methods
   - `test_primitive_task_action_defaults_to_null` — action is optional (null until assigned)
 - [x] **Commit 2** — Implement `i_ai_action.gd`, `rs_ai_task.gd`, `rs_ai_primitive_task.gd`, `rs_ai_compound_task.gd` (TDD GREEN):
-  - `scripts/interfaces/i_ai_action.gd` — interface with `start(context, task_state)`, `tick(context, task_state, delta)`, `is_complete(context, task_state)` (matches I_Condition/I_Effect pattern)
-  - `scripts/resources/ai/tasks/rs_ai_task.gd` — base Resource with `@export var task_id: StringName`
-  - `scripts/resources/ai/tasks/rs_ai_primitive_task.gd` — extends RS_AITask with `@export var action: Resource` (I_AIAction)
-  - `scripts/resources/ai/tasks/rs_ai_compound_task.gd` — extends RS_AITask with `subtasks: Array[Resource]`, `method_conditions: Array[Resource]`
+  - `scripts/core/interfaces/i_ai_action.gd` — interface with `start(context, task_state)`, `tick(context, task_state, delta)`, `is_complete(context, task_state)` (matches I_Condition/I_Effect pattern)
+  - `scripts/demo/resources/ai/tasks/rs_ai_task.gd` — base Resource with `@export var task_id: StringName`
+  - `scripts/demo/resources/ai/tasks/rs_ai_primitive_task.gd` — extends RS_AITask with `@export var action: Resource` (I_AIAction)
+  - `scripts/demo/resources/ai/tasks/rs_ai_compound_task.gd` — extends RS_AITask with `subtasks: Array[Resource]`, `method_conditions: Array[Resource]`
 - [x] **Commit 3** — Verify style enforcement passes; refactor if needed
 
 **M1 Verification**:
@@ -152,7 +152,7 @@
 
 **M4 Completion Notes (2026-04-02)**:
 - RED confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/test_u_htn_planner.gd` failed with expected missing-script assertions for `u_htn_planner.gd`.
-- GREEN confirmed: same test target passed `8/8` after implementing `scripts/utils/ai/u_htn_planner.gd`.
+- GREEN confirmed: same test target passed `8/8` after implementing `scripts/core/utils/ai/u_htn_planner.gd`.
 - Style confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passed `17/17`.
 - Full-suite baseline run executed: `tools/run_gut_suite.sh` currently finishes `3641/3650` passing with `9` pending/risky (headless/platform/mobile skips) and `0` failing tests.
 
@@ -185,7 +185,7 @@
 
 **M5 Completion Notes (2026-04-02)**:
 - RED confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` failed with expected missing-script assertions for `s_ai_behavior_system.gd`.
-- GREEN confirmed: same test target passed `7/7` after implementing `scripts/ecs/systems/s_ai_behavior_system.gd`; audit hardening added goal-gating coverage and current target now passes `10/10`.
+- GREEN confirmed: same test target passed `7/7` after implementing `scripts/core/ecs/systems/s_ai_behavior_system.gd`; audit hardening added goal-gating coverage and current target now passes `10/10`.
 - Hardening confirmed: `S_AIBehaviorSystem` now marks cooldown/one-shot state only for the selected goal winner (not all gated candidates).
 - Style confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passed `17/17`.
 - Full-suite regression run executed: `tools/run_gut_suite.sh` currently finishes `3666/3675` passing with `9` pending/risky (headless/platform/mobile skips) and `0` failing tests.
@@ -203,7 +203,7 @@
   - `test_publish_event_action_fires_and_completes_immediately` — RS_AIActionPublishEvent publishes to U_ECSEventBus, is_complete returns true after start
   - `test_set_field_action_modifies_component_and_completes` — RS_AIActionSetField resolves target, sets value, completes immediately
   - `test_set_field_action_typed_exports` — verify @export fields for float/int/bool/string values
-- [x] **Commit 2** — Implement typed action resources in `scripts/resources/ai/actions/` (TDD GREEN):
+- [x] **Commit 2** — Implement typed action resources in `scripts/demo/resources/ai/actions/` (TDD GREEN):
   - `rs_ai_action_wait.gd` — `@export var duration: float = 1.0`; implements I_AIAction; tracks elapsed in task_state
   - `rs_ai_action_publish_event.gd` — `@export var event_name: StringName`, `@export var payload: Dictionary`; implements I_AIAction
   - `rs_ai_action_set_field.gd` — `@export var field_path: String`, `@export_enum(...)  var value_type`, typed value exports; implements I_AIAction; uses U_PathResolver
@@ -248,7 +248,7 @@
   - `test_scan_action_completes_after_duration` — RS_AIActionScan tracks elapsed, sets scan flags in task_state
   - `test_animate_stub_sets_state_field` — RS_AIActionAnimate sets task_state["animation_state"]
   - `test_animate_stub_completes_immediately` — is_complete returns true after start
-- [x] **Commit 2** — Implement typed action resources in `scripts/resources/ai/actions/` (TDD GREEN):
+- [x] **Commit 2** — Implement typed action resources in `scripts/demo/resources/ai/actions/` (TDD GREEN):
   - `rs_ai_action_move_to.gd` — `@export var target_position: Vector3`, `@export var target_node_path: NodePath`, `@export var waypoint_index: int = -1`, `@export var arrival_threshold: float = 0.5`; implements I_AIAction
   - `rs_ai_action_scan.gd` — `@export var scan_duration: float = 2.0`, `@export var rotation_speed: float = 1.0`; implements I_AIAction
   - `rs_ai_action_animate.gd` (stub) — `@export var animation_state: StringName`; sets task_state field, completes immediately
@@ -266,7 +266,7 @@
   - `test_input_system_skips_entities_without_player_tag` — C_InputComponent without C_PlayerTagComponent not overwritten by player input
   - `test_input_system_still_writes_to_player_entity` — C_InputComponent + C_PlayerTagComponent still receives player input
 - [x] **Commit 4** — Implement `s_ai_navigation_system.gd` + modify `s_input_system.gd` (TDD GREEN):
-  - `scripts/ecs/systems/s_ai_navigation_system.gd` — extends BaseECSSystem, execution_priority = -5
+  - `scripts/core/ecs/systems/s_ai_navigation_system.gd` — extends BaseECSSystem, execution_priority = -5
     - Queries entities with C_AIBrainComponent + C_InputComponent + C_MovementComponent
     - Reads `brain.task_state.get("ai_move_target")` → Vector3 target
     - Gets entity position via `C_MovementComponent.get_character_body().global_position`
@@ -275,7 +275,7 @@
     - Writes to `C_InputComponent.set_move_vector()` — NPCs flow through same S_MovementSystem path as player
     - Falls back to direct mapping when no camera
     - Writes Vector2.ZERO when no target or within epsilon
-  - `scripts/ecs/systems/s_input_system.gd` — add C_PlayerTagComponent to query filter so player input only writes to player-tagged entities
+  - `scripts/core/ecs/systems/s_input_system.gd` — add C_PlayerTagComponent to query filter so player input only writes to player-tagged entities
 - [x] **Commit 5** — Verify style enforcement passes; run full test suite for regressions
 
 **M7 Verification**:
@@ -342,19 +342,19 @@
 
 **Goal**: Build 3 gameplay scenes with CSG geometry, waypoints, triggers, and NPC entity placeholders. No NPC behavior yet.
 
-- [x] **Commit 1** — Create `scenes/gameplay/gameplay_power_core.tscn` (Patrol Drone room):
+- [x] **Commit 1** — Create `scenes/demo/gameplay/gameplay_power_core.tscn` (Patrol Drone room):
   - CSG industrial room with central power core (CSGCylinder)
   - Waypoint markers: WaypointA, WaypointB, WaypointC, WaypointD
   - Activatable node Area3D (investigate trigger)
   - Player spawn point
   - E_PatrolDrone placeholder (CSGSphere + C_AIBrainComponent + minimal RS_AIBrainSettings placeholder resource assigned)
-- [x] **Commit 2** — Create `scenes/gameplay/gameplay_comms_array.tscn` (Sentry room):
+- [x] **Commit 2** — Create `scenes/demo/gameplay/gameplay_comms_array.tscn` (Sentry room):
   - CSG open area with antenna structures (CSGBox pillars)
   - Guard post waypoints
   - Noise source Area3D positions
   - Player spawn point
   - E_Sentry placeholder (CSGBox + C_AIBrainComponent + minimal RS_AIBrainSettings placeholder resource assigned)
-- [x] **Commit 3** — Create `scenes/gameplay/gameplay_nav_nexus.tscn` (Guide Prism room):
+- [x] **Commit 3** — Create `scenes/demo/gameplay/gameplay_nav_nexus.tscn` (Guide Prism room):
   - CSG vertical platforming room with floating platforms (CSGBox)
   - Path marker Node3Ds for guide destinations
   - Fall detection Area3D below platforms
@@ -362,7 +362,7 @@
   - Player spawn point
   - E_GuidePrism placeholder (CSGSphere + C_AIBrainComponent + minimal RS_AIBrainSettings placeholder resource assigned)
 - [x] **Commit 4** — Add shared placeholder brain settings resource for scene authoring validation:
-  - `resources/ai/cfg_ai_brain_placeholder.tres` (valid `RS_AIBrainSettings`, empty goals, non-null assignment target)
+  - `resources/demo/ai/cfg_ai_brain_placeholder.tres` (valid `RS_AIBrainSettings`, empty goals, non-null assignment target)
 
 **M9 Verification**:
 - [x] Each scene loads without errors
@@ -374,20 +374,20 @@
 
 **M9 Completion Notes (2026-04-02)**:
 - Implemented new gameplay prototype scenes:
-  - `scenes/gameplay/gameplay_power_core.tscn`
-  - `scenes/gameplay/gameplay_comms_array.tscn`
-  - `scenes/gameplay/gameplay_nav_nexus.tscn`
+  - `scenes/demo/gameplay/gameplay_power_core.tscn`
+  - `scenes/demo/gameplay/gameplay_comms_array.tscn`
+  - `scenes/demo/gameplay/gameplay_nav_nexus.tscn`
 - Added shared placeholder brain settings resource:
-  - `resources/ai/cfg_ai_brain_placeholder.tres`
+  - `resources/demo/ai/cfg_ai_brain_placeholder.tres`
 - Filled scene-integration gaps:
   - Wired runtime trigger behavior for all milestone demo trigger areas:
     - `scripts/demo/gameplay/inter_ai_demo_flag_zone.gd` now drives durable gameplay AI flags from Area3D triggers (`power_core_activated`, `comms_disturbance_heard`, `nav_goal_reached`).
     - `Inter_FallDetectionArea` in Nav Nexus now uses `Inter_HazardZone` + `cfg_hazard_nav_nexus_fall` for actual fall/death behavior.
 - Registered demo scenes for runtime + export/mobile loading:
   - Added scene registry entries:
-    - `resources/scene_registry/cfg_power_core_entry.tres`
-    - `resources/scene_registry/cfg_comms_array_entry.tres`
-    - `resources/scene_registry/cfg_nav_nexus_entry.tres`
+    - `resources/core/scene_registry/cfg_power_core_entry.tres`
+    - `resources/core/scene_registry/cfg_comms_array_entry.tres`
+    - `resources/core/scene_registry/cfg_nav_nexus_entry.tres`
   - Added entries to `U_SceneRegistryLoader.PRELOADED_SCENE_REGISTRY_ENTRIES` + gameplay backfill safety net.
 - Assigned new gameplay start location:
   - Main-menu New Game default switched to `power_core` (`UI_MainMenu.DEFAULT_GAMEPLAY_SCENE`).
@@ -406,17 +406,17 @@
 
 **Goal**: Author `.tres` resources for 3 demo NPCs, wire into scenes, playtest and tune.
 
-- [x] **Commit 1** — Author Patrol Drone resources (`resources/ai/patrol_drone/`):
+- [x] **Commit 1** — Author Patrol Drone resources (`resources/demo/ai/patrol_drone/`):
   - `cfg_patrol_drone_brain.tres` — RS_AIBrainSettings, default `&"patrol"`, interval `0.2`
   - `cfg_goal_patrol.tres` — RS_AIGoal, constant-gated patrol compound loop using waypoint node paths
   - `cfg_goal_investigate.tres` — RS_AIGoal, durable-flag investigate sequence [move_to(activatable), scan(2.0), wait(1.0)]
   - Wired onto `E_PatrolDrone` in `gameplay_power_core.tscn`
-- [x] **Commit 2** — Author Sentry resources (`resources/ai/sentry/`):
+- [x] **Commit 2** — Author Sentry resources (`resources/demo/ai/sentry/`):
   - `cfg_sentry_brain.tres` — default `&"guard"`
   - `cfg_goal_guard.tres` — guard loop [scan/patrol across guard waypoints]
   - `cfg_goal_investigate_disturbance.tres` — durable-flag investigate sequence [move_to(noise_source), scan(4.0), move_to(guard_post)]
   - Wired into `gameplay_comms_array.tscn`
-- [x] **Commit 3** — Author Guide Prism resources (`resources/ai/guide_prism/`):
+- [x] **Commit 3** — Author Guide Prism resources (`resources/demo/ai/guide_prism/`):
   - `cfg_guide_brain.tres` — default `&"show_path"`
   - `cfg_goal_show_path.tres` — path marker loop [move_to(next_marker), wait(1.0)] across A/B/C/D
   - `cfg_goal_encourage.tres` — airborne/fall-triggered support sequence [move_to(respawn_point), animate("pulse"), wait(1.5)]
@@ -449,23 +449,23 @@
 **Goal**: Prevent floating AI from falling indefinitely by recovering to authored spawn points (no last-supported-position dependency).
 
 - [x] **Commit 1** — Extend AI brain settings + spawn manager API:
-  - `scripts/resources/ai/brain/rs_ai_brain_settings.gd` adds:
+  - `scripts/demo/resources/ai/brain/rs_ai_brain_settings.gd` adds:
     - `respawn_spawn_point_id: StringName`
     - `respawn_unsupported_delay_sec: float`
     - `respawn_recovery_cooldown_sec: float`
-  - `scripts/interfaces/i_spawn_manager.gd` adds `spawn_entity_at_point(scene, entity_id, spawn_point_id) -> bool`
-  - `scripts/managers/m_spawn_manager.gd` implements generic entity spawn using existing spawn hardening (velocity reset, spawn freeze, floating reset).
+  - `scripts/core/interfaces/i_spawn_manager.gd` adds `spawn_entity_at_point(scene, entity_id, spawn_point_id) -> bool`
+  - `scripts/core/managers/m_spawn_manager.gd` implements generic entity spawn using existing spawn hardening (velocity reset, spawn freeze, floating reset).
 - [x] **Commit 2** — Add runtime recovery system + scene/resource authoring:
-  - Added `scripts/ecs/systems/s_ai_spawn_recovery_system.gd` (runs after floating, `execution_priority = 75`).
-  - Added `resources/spawn_metadata/cfg_sp_ai_patrol_drone.tres`.
+  - Added `scripts/core/ecs/systems/s_ai_spawn_recovery_system.gd` (runs after floating, `execution_priority = 75`).
+  - Added `resources/core/spawn_metadata/cfg_sp_ai_patrol_drone.tres`.
   - Updated patrol drone brain resource with respawn settings:
-    - `resources/ai/patrol_drone/cfg_patrol_drone_brain.tres`.
+    - `resources/demo/ai/patrol_drone/cfg_patrol_drone_brain.tres`.
   - Added recovery system wiring in shared gameplay scenes:
-    - `scenes/templates/tmpl_base_scene.tscn`
-    - `scenes/gameplay/gameplay_base.tscn`
-    - `scenes/gameplay/gameplay_power_core.tscn`
-    - `scenes/gameplay/gameplay_comms_array.tscn`
-    - `scenes/gameplay/gameplay_nav_nexus.tscn`
+    - `scenes/core/templates/tmpl_base_scene.tscn`
+    - `scenes/demo/gameplay/gameplay_base.tscn`
+    - `scenes/demo/gameplay/gameplay_power_core.tscn`
+    - `scenes/demo/gameplay/gameplay_comms_array.tscn`
+    - `scenes/demo/gameplay/gameplay_nav_nexus.tscn`
   - Added dedicated patrol-drone spawn point in `gameplay_power_core` (`sp_ai_patrol_drone`).
 - [x] **Commit 3** — Add RED/GREEN tests for recovery + generic spawn:
   - Added `tests/unit/ecs/systems/test_s_ai_spawn_recovery_system.gd`.
@@ -506,7 +506,7 @@
 
 - [x] **Step 12a** — Fix CSG visual self-collision on all 3 NPC entities:
   - Remove `use_collision = true` from NPC visual CSG nodes (or move them to a collision layer the body doesn't mask)
-  - Files: `scenes/gameplay/gameplay_power_core.tscn`, `scenes/gameplay/gameplay_comms_array.tscn`, `scenes/gameplay/gameplay_nav_nexus.tscn`
+  - Files: `scenes/demo/gameplay/gameplay_power_core.tscn`, `scenes/demo/gameplay/gameplay_comms_array.tscn`, `scenes/demo/gameplay/gameplay_nav_nexus.tscn`
   - Verify: NPC moves smoothly without jitter after fix
 
 - [x] **Step 12b** — Align nav epsilon with action arrival threshold (TDD):
@@ -514,14 +514,14 @@
   - `S_AINavigationSystem` reads `task_state["ai_arrival_threshold"]` instead of hardcoded `TARGET_REACHED_EPSILON` (fallback to 0.5 if absent)
   - Tests RED: `test_stops_moving_within_action_arrival_threshold`, `test_uses_default_threshold_when_not_in_task_state`, `test_move_to_start_writes_arrival_threshold_to_task_state`
   - Tests GREEN: implement changes
-  - Files: `scripts/ecs/systems/s_ai_navigation_system.gd`, `scripts/resources/ai/actions/rs_ai_action_move_to.gd`
+  - Files: `scripts/core/ecs/systems/s_ai_navigation_system.gd`, `scripts/demo/resources/ai/actions/rs_ai_action_move_to.gd`
 
 - [x] **Step 12c** — Simplify AI navigation to use world-space directly (TDD):
   - Nav system uses direct world-space mapping `Vector2(direction.x, direction.z)` for AI entities — skip camera-relative conversion (unnecessary round-trip)
   - Movement system: add `C_AIBrainComponent` check to use `_get_desired_velocity()` (world-space) path instead of camera-relative for AI entities
   - Tests RED: `test_writes_world_space_direction_without_camera_transform`
   - Tests GREEN: implement
-  - Files: `scripts/ecs/systems/s_ai_navigation_system.gd`, `scripts/ecs/systems/s_movement_system.gd`
+  - Files: `scripts/core/ecs/systems/s_ai_navigation_system.gd`, `scripts/core/ecs/systems/s_movement_system.gd`
 
 **M12 Verification**:
 - [x] Patrol drone jitter root cause removed in authored scenes (NPC visual CSG `use_collision` disabled for Patrol Drone, Sentry, Guide Prism)
@@ -533,9 +533,9 @@
 
 **M12 Completion Notes (2026-04-03)**:
 - Scene jitter fix landed by disabling NPC visual CSG collision on:
-  - `scenes/gameplay/gameplay_power_core.tscn` (`E_PatrolDrone/NPC_Body/Visual`)
-  - `scenes/gameplay/gameplay_comms_array.tscn` (`E_Sentry/NPC_Body/Visual`)
-  - `scenes/gameplay/gameplay_nav_nexus.tscn` (`E_GuidePrism/NPC_Body/Visual`)
+  - `scenes/demo/gameplay/gameplay_power_core.tscn` (`E_PatrolDrone/NPC_Body/Visual`)
+  - `scenes/demo/gameplay/gameplay_comms_array.tscn` (`E_Sentry/NPC_Body/Visual`)
+  - `scenes/demo/gameplay/gameplay_nav_nexus.tscn` (`E_GuidePrism/NPC_Body/Visual`)
 - Added threshold handoff contract:
   - `RS_AIActionMoveTo.start()` and `tick()` now publish `task_state["ai_arrival_threshold"]`.
   - `S_AINavigationSystem` now consumes per-task `ai_arrival_threshold` with `0.5` fallback (removed hardcoded epsilon dependency).
@@ -559,8 +559,8 @@
   - Initial post-implementation snapshot: `tools/run_gut_suite.sh` → `3708/3734` passing, `17` failing, `9` pending/risky.
   - Post-stabilization snapshot: `tools/run_gut_suite.sh` → `3725/3734` passing, `0` failing, `9` pending/risky (headless/mobile skips).
 - Post-M12 stabilization hardening (2026-04-03):
-  - Converted `scenes/templates/tmpl_base_scene.tscn` room-fade fixture nodes (`SO_Block`, `SO_Block2`, `SO_Block3`) to `BaseECSEntity` roots with explicit `entity_id`/`room_fade_group` tags to eliminate ECS registration errors in shared scene tests.
-  - Updated `scripts/ecs/systems/s_ai_spawn_recovery_system.gd` to suppress non-actionable missing-`spawn_manager` warnings in harness contexts (debug-log only when enabled), preserving explicit error signaling for missing spawn points.
+  - Converted `scenes/core/templates/tmpl_base_scene.tscn` room-fade fixture nodes (`SO_Block`, `SO_Block2`, `SO_Block3`) to `BaseECSEntity` roots with explicit `entity_id`/`room_fade_group` tags to eliminate ECS registration errors in shared scene tests.
+  - Updated `scripts/core/ecs/systems/s_ai_spawn_recovery_system.gd` to suppress non-actionable missing-`spawn_manager` warnings in harness contexts (debug-log only when enabled), preserving explicit error signaling for missing spawn points.
   - Hardened timing-sensitive benchmarks for headless runs:
     - `tests/unit/state/test_m_state_store.gd` (`test_signal_batching_overhead_less_than_0_05ms`) now uses a headless-aware threshold.
     - `tests/unit/state/test_state_store_copy_optimization.gd` (`test_a1_dispatch_with_multiple_subscribers_is_faster_than_per_subscriber_copy`) now runs on a dedicated history-disabled store and uses a headless-aware threshold.
@@ -571,7 +571,7 @@
 
 **Goal**: Player and AI characters should be functionally the same — same base template (`tmpl_character.tscn`), same component stack — except the AI has a different model, no human input, and an AI brain. Currently all 3 demo NPCs are built inline with only 4 components (vs 10+ on the player).
 
-- [x] **Step 13a** — Create `scenes/prefabs/prefab_demo_npc.tscn` extending `tmpl_character.tscn` (TDD):
+- [x] **Step 13a** — Create `scenes/core/prefabs/prefab_demo_npc.tscn` extending `tmpl_character.tscn` (TDD):
   - Inherits all 9 base components: `C_SpawnStateComponent`, `C_CharacterStateComponent`, `C_MovementComponent`, `C_JumpComponent`, `C_RotateToInputComponent`, `C_FloatingComponent`, `C_AlignWithSurfaceComponent`, `C_LandingIndicatorComponent`, `C_HealthComponent`
   - Adds: `C_InputComponent`, `C_AIBrainComponent`
   - Does NOT add: `C_PlayerTagComponent`, `C_GamepadComponent`, `C_SurfaceDetectorComponent`
@@ -604,11 +604,11 @@
 - RED/GREEN coverage added for prefab contract:
   - Added `tests/unit/ai/resources/test_prefab_npc.gd` (`5/5` passing) with required stack/presence/absence assertions.
 - Implemented shared NPC prefab and scene migration:
-  - Added `scenes/prefabs/prefab_demo_npc.tscn` (inherits `tmpl_character.tscn`, adds `C_InputComponent` + `C_AIBrainComponent`, default tags `npc/ai/character`).
+  - Added `scenes/core/prefabs/prefab_demo_npc.tscn` (inherits `tmpl_character.tscn`, adds `C_InputComponent` + `C_AIBrainComponent`, default tags `npc/ai/character`).
   - Replaced inline NPC entities in:
-    - `scenes/gameplay/gameplay_power_core.tscn`
-    - `scenes/gameplay/gameplay_comms_array.tscn`
-    - `scenes/gameplay/gameplay_nav_nexus.tscn`
+    - `scenes/demo/gameplay/gameplay_power_core.tscn`
+    - `scenes/demo/gameplay/gameplay_comms_array.tscn`
+    - `scenes/demo/gameplay/gameplay_nav_nexus.tscn`
   - Preserved archetype-specific behavior via per-scene `C_AIBrainComponent.brain_settings` overrides and custom visual nodes.
   - Preserved M12 guardrail: NPC visual CSG nodes explicitly keep `use_collision = false`.
 - Expanded/updated regression coverage:
@@ -649,7 +649,7 @@
 - [x] `test_style_enforcement.gd` passes
 
 **M14 Completion Notes (2026-04-05)**:
-- Authored `scenes/gameplay/gameplay_ai_showcase.tscn` — single 60×30 room with three color-coded zones separated by partial CSG walls with 6m-wide passages.
+- Authored `scenes/demo/gameplay/gameplay_ai_showcase.tscn` — single 60×30 room with three color-coded zones separated by partial CSG walls with 6m-wide passages.
 - **Patrol zone** (left, x −29 to −10): 2 patrol drones sharing waypoints A–D + `Inter_ActivatableNode` trigger for investigate goal.
 - **Guard zone** (center, x −10 to 10): 1 sentry with guard waypoints A–C + `Inter_NoiseSourceA` trigger for investigate_disturbance goal.
 - **Guide zone** (right, x 10 to 29): 1 guide prism with path markers A–D.
@@ -696,20 +696,20 @@
   - `tests/unit/ai/resources/test_ai_showcase_scene.gd` expanded to `18/18` with M15 wiring assertions
   - `tests/integration/gameplay/test_ai_interaction_triggers.gd` (`9/9`) — integration test for detection→flag→event→relay pipeline
 - Implemented:
-  - `scripts/ecs/components/c_detection_component.gd`
-  - `scripts/ecs/systems/s_ai_detection_system.gd` (`execution_priority = -12`)
-  - `scripts/demo/gameplay/s_demo_alarm_relay_system.gd` (`execution_priority = -11`, moved from `scripts/ecs/systems/s_ai_demo_alarm_relay_system.gd` during R8)
+  - `scripts/core/ecs/components/c_detection_component.gd`
+  - `scripts/core/ecs/systems/s_ai_detection_system.gd` (`execution_priority = -12`)
+  - `scripts/demo/gameplay/s_demo_alarm_relay_system.gd` (`execution_priority = -11`, moved from `scripts/core/ecs/systems/s_ai_demo_alarm_relay_system.gd` during R8)
   - `scripts/demo/gameplay/inter_ai_demo_guard_barrier.gd`
-  - `resources/ai/guide_prism/cfg_goal_idle_showcase.tres`
-  - `resources/ai/guide_prism/cfg_goal_show_path_showcase.tres`
-  - `resources/ai/guide_prism/cfg_guide_showcase_brain.tres`
-  - `resources/ai/sentry/cfg_goal_investigate_disturbance.tres` to publish `ai_alarm_triggered`
-  - `resources/ai/patrol_drone/cfg_goal_investigate_proximity.tres` — proximity-flag variant
-  - `resources/ai/sentry/cfg_goal_investigate_disturbance_proximity.tres` — proximity-flag variant
-  - Updated `resources/ai/patrol_drone/cfg_patrol_drone_brain.tres` (adds proximity goal)
-  - Updated `resources/ai/sentry/cfg_sentry_brain.tres` (adds proximity goal)
-  - Updated `scenes/prefabs/prefab_demo_npc.tscn` (adds `C_DetectionComponent`)
-  - Updated `scenes/gameplay/gameplay_ai_showcase.tscn` with M15 systems + interaction nodes
+  - `resources/demo/ai/guide_prism/cfg_goal_idle_showcase.tres`
+  - `resources/demo/ai/guide_prism/cfg_goal_show_path_showcase.tres`
+  - `resources/demo/ai/guide_prism/cfg_guide_showcase_brain.tres`
+  - `resources/demo/ai/sentry/cfg_goal_investigate_disturbance.tres` to publish `ai_alarm_triggered`
+  - `resources/demo/ai/patrol_drone/cfg_goal_investigate_proximity.tres` — proximity-flag variant
+  - `resources/demo/ai/sentry/cfg_goal_investigate_disturbance_proximity.tres` — proximity-flag variant
+  - Updated `resources/demo/ai/patrol_drone/cfg_patrol_drone_brain.tres` (adds proximity goal)
+  - Updated `resources/demo/ai/sentry/cfg_sentry_brain.tres` (adds proximity goal)
+  - Updated `scenes/core/prefabs/prefab_demo_npc.tscn` (adds `C_DetectionComponent`)
+  - Updated `scenes/demo/gameplay/gameplay_ai_showcase.tscn` with M15 systems + interaction nodes
 - **Flag ID separation (2026-04-09)**: Detection proximity uses separate flag IDs to prevent zone-triggered flags from being cleared on detection exit:
   - Proximity flags (transient): `power_core_proximity`, `comms_disturbance_proximity`
   - Zone flags (durable): `power_core_activated`, `comms_disturbance_heard`

@@ -5,9 +5,9 @@
 This contract defines the runtime math and stability rules for character-zone lighting in Phase 8.
 It is the authoritative reference for blending behavior used by:
 
-- `res://scripts/utils/lighting/u_character_lighting_blend_math.gd`
-- `res://scripts/managers/m_character_lighting_manager.gd`
-- `res://scripts/gameplay/inter_character_light_zone.gd`
+- `res://scripts/core/utils/lighting/u_character_lighting_blend_math.gd`
+- `res://scripts/core/managers/m_character_lighting_manager.gd`
+- `res://scripts/demo/gameplay/inter_character_light_zone.gd`
 
 ## Value Ranges and Clamp Rules
 

@@ -16,7 +16,7 @@
 - Added Debugging Guide for development without debug overlay
 - Added FAQ with answers to common questions
 - Expanded Prerequisites with concrete decisions and effort estimates
-- Corrected file structure (resources/state/ instead of scripts/state/resources/)
+- Corrected file structure (resources/core/state/ instead of scripts/core/state/resources/)
 - Added U_StateUtils, StateHandoff, and other missing components
 - Expanded Phase 0 with alternatives if refactor fails
 - Expanded Phase 1a and 1h with complete implementations
@@ -48,7 +48,7 @@ Implement a centralized Redux-style state management system for the Godot 4.5 ga
 
 **Storage**:
 - State persistence: JSON files (user://saves/*.json)
-- Initial state: Godot Resource files (.tres) in `resources/state/`
+- Initial state: Godot Resource files (.tres) in `resources/core/state/`
 - Configuration: RS_StateStoreSettings resource
 
 **Testing**:
@@ -127,9 +127,9 @@ The following architectural decisions have been made to address critical gaps in
 ### Decision 2: Resource File Organization
 
 **Where .tres Files Live:**
-- **Location**: `resources/state/` (NEW directory)
-- **NOT**: `scripts/state/resources/` (this mixes code and data)
-- **Pattern**: Follows existing `resources/base_settings/` convention
+- **Location**: `resources/core/state/` (NEW directory)
+- **NOT**: `scripts/core/state/resources/` (this mixes code and data)
+- **Pattern**: Follows existing `resources/core/base_settings/` convention
 
 **File Structure:**
 ```
@@ -143,7 +143,7 @@ resources/
     ├── default_jump_settings.tres
     └── ...
 
-scripts/state/resources/                      # .gd scripts ONLY
+scripts/core/state/resources/                      # .gd scripts ONLY
 ├── rs_gameplay_initial_state.gd
 └── ...
 ```
@@ -161,7 +161,7 @@ scripts/state/resources/                      # .gd scripts ONLY
 
 **Implementation** (no autoload):
 ```gdscript
-# scripts/state/utils/u_state_handoff.gd
+# scripts/core/state/utils/u_state_handoff.gd
 class_name U_StateHandoff
 
 static var _preserved_slices: Dictionary = {}
@@ -194,7 +194,7 @@ static func clear_all() -> void:
 
 **Implementation**:
 ```gdscript
-# scripts/state/utils/u_state_utils.gd
+# scripts/core/state/utils/u_state_utils.gd
 class_name U_StateUtils
 
 static func get_store(node: Node) -> M_StateStore:
@@ -276,16 +276,16 @@ Create new directories for state management:
 
 ```bash
 # Create state management directories
-mkdir -p scripts/state/reducers
-mkdir -p scripts/state/selectors
-mkdir -p scripts/state/resources
+mkdir -p scripts/core/state/reducers
+mkdir -p scripts/core/state/selectors
+mkdir -p scripts/core/state/resources
 mkdir -p resources/state
 mkdir -p scenes/debug
 mkdir -p tests/unit/state/integration
 
 # Verify structure
-ls -la scripts/state/
-ls -la resources/state/
+ls -la scripts/core/state/
+ls -la resources/core/state/
 ls -la tests/unit/state/
 ```
 
@@ -336,7 +336,7 @@ Chosen path: Option C (Dual‑bus via abstract base). Alternatives are documente
 2. Find `Managers/` node
 3. Right-click → Add Child Node → Search "Node"
 4. Rename to "M_StateStore"
-5. Attach new script → Create `scripts/state/m_state_store.gd`
+5. Attach new script → Create `scripts/core/state/m_state_store.gd`
 6. Save scene template
 
 **5b. Verify M_ECSManager Pattern** (10 min)
@@ -374,7 +374,7 @@ docs/state_store/
 ### Source Code
 
 ```
-scripts/state/                                # NEW DIRECTORY
+scripts/core/state/                                # NEW DIRECTORY
 ├── m_state_store.gd                          # Core store manager (Node)
 ├── resources/rs_state_slice_config.gd        # Slice metadata resource
 │
@@ -413,20 +413,20 @@ scripts/state/                                # NEW DIRECTORY
     ├── rs_menu_initial_state.gd
     └── rs_state_store_settings.gd
 
-resources/state/                              # NEW DIRECTORY (.tres files)
+resources/core/state/                              # NEW DIRECTORY (.tres files)
 ├── default_gameplay_initial_state.tres
 ├── default_boot_initial_state.tres
 ├── default_menu_initial_state.tres
 └── default_state_store_settings.tres
 
-scripts/
+scripts/core/
 scripts/core/events/                               # NEW DIRECTORY (shared infra)
 └── base_event_bus.gd                         # Abstract base class for event buses
 
-scripts/state/
+scripts/core/state/
 └── u_state_event_bus.gd                        # State domain bus (extends base)
 
-scenes/debug/                                 # NEW DIRECTORY
+scenes/core/debug/                                 # NEW DIRECTORY
 ├── sc_state_debug_overlay.tscn               # Debug UI scene
 └── sc_state_debug_overlay.gd                # Debug UI script
 
@@ -489,11 +489,11 @@ Implement the chosen option from Prerequisites step 4. Recommended: Option C (Du
 **Objective**: Create foundational M_StateStore node with dispatch/subscribe infrastructure, U_StateUtils helper, and scene integration.
 
 **Files Created**:
-- `scripts/state/m_state_store.gd` (store skeleton)
-- `scripts/state/utils/u_state_utils.gd` (access helper - NEW)
-- `scripts/state/resources/rs_state_slice_config.gd` (slice metadata)
-- `scripts/state/resources/rs_state_store_settings.gd` (store config)
-- `resources/state/cfg_default_state_store_settings.tres` (default config)
+- `scripts/core/state/m_state_store.gd` (store skeleton)
+- `scripts/core/state/utils/u_state_utils.gd` (access helper - NEW)
+- `scripts/core/state/resources/rs_state_slice_config.gd` (slice metadata)
+- `scripts/core/state/resources/rs_state_store_settings.gd` (store config)
+- `resources/core/state/cfg_default_state_store_settings.tres` (default config)
 - `tests/unit/state/test_m_state_store.gd` (store tests)
 - `tests/unit/state/test_u_state_utils.gd` (utility tests - NEW)
 
@@ -503,7 +503,7 @@ Implement the chosen option from Prerequisites step 4. Recommended: Option C (Du
 **Implementation**: M_StateStore Skeleton
 
 ```gdscript
-# scripts/state/m_state_store.gd
+# scripts/core/state/m_state_store.gd
 @icon("res://assets/editor_icons/state_store.svg")
 extends Node
 class_name M_StateStore
@@ -526,7 +526,7 @@ signal validation_failed(action: Dictionary, error: String)
 const PROJECT_SETTING_HISTORY_SIZE := "state/debug/history_size"
 const PROJECT_SETTING_ENABLE_PERSISTENCE := "state/runtime/enable_persistence"
 
-const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
+const U_STATE_UTILS := preload("res://scripts/core/state/utils/u_state_utils.gd")
 
 @export var settings: RS_StateStoreSettings
 
@@ -605,7 +605,7 @@ func _exit_tree() -> void:
 **Implementation**: U_StateUtils
 
 ```gdscript
-# scripts/state/utils/u_state_utils.gd
+# scripts/core/state/utils/u_state_utils.gd
 class_name U_StateUtils
 
 ## Utility functions for state management (similar to U_ECSUtils)
@@ -645,7 +645,7 @@ static func benchmark(name: String, callable: Callable) -> float:
 **Implementation**: RS_StateSliceConfig
 
 ```gdscript
-# scripts/state/resources/rs_state_slice_config.gd
+# scripts/core/state/resources/rs_state_slice_config.gd
 extends Resource
 class_name RS_StateSliceConfig
 
@@ -663,7 +663,7 @@ func _init(p_slice_name: StringName = StringName()) -> void:
 **Implementation**: RS_StateStoreSettings
 
 ```gdscript
-# scripts/state/resources/rs_state_store_settings.gd
+# scripts/core/state/resources/rs_state_store_settings.gd
 extends Resource
 class_name RS_StateStoreSettings
 
@@ -688,7 +688,7 @@ class_name RS_StateStoreSettings
 Create default .tres file:
 1. Open Godot editor
 2. Create new `RS_StateStoreSettings` resource
-3. Save as `resources/state/cfg_default_state_store_settings.tres`
+3. Save as `resources/core/state/cfg_default_state_store_settings.tres`
 4. Set default values (max_history_size=1000, etc.)
 
 **Tests**: test_m_state_store.gd
@@ -826,18 +826,18 @@ func test_benchmark_measures_time():
 **Objective**: Implement save/load with JSON serialization, Godot type conversion, selective persistence, save slot management, metadata, and validation.
 
 **Files Created**:
-- `scripts/state/utils/u_serialization_helper.gd`
-- `scripts/state/utils/u_state_handoff.gd` (static utility — no autoload)
+- `scripts/core/state/utils/u_serialization_helper.gd`
+- `scripts/core/state/utils/u_state_handoff.gd` (static utility — no autoload)
 - `tests/unit/state/test_state_persistence.gd`
 
 **Files Modified**:
-- `scripts/state/resources/rs_state_slice_config.gd` (add transient_fields if not present)
-- `scripts/state/m_state_store.gd` (add save/load methods)
+- `scripts/core/state/resources/rs_state_slice_config.gd` (add transient_fields if not present)
+- `scripts/core/state/m_state_store.gd` (add save/load methods)
 
 **Implementation**: StateHandoff (No autoload)
 
 ```gdscript
-# scripts/state/utils/u_state_handoff.gd
+# scripts/core/state/utils/u_state_handoff.gd
 class_name U_StateHandoff
 
 ## Static utility that preserves state between scene changes
@@ -871,7 +871,7 @@ Note: No autoload entries or project settings changes are required.
 **Implementation**: Expanded M_StateStore with Persistence
 
 ```gdscript
-# scripts/state/m_state_store.gd additions
+# scripts/core/state/m_state_store.gd additions
 
 const SAVE_DIRECTORY := "user://saves/"
 const MAX_SAVE_SLOTS := 10
@@ -1051,7 +1051,7 @@ func _ready() -> void:
 **Implementation**: SerializationHelper
 
 ```gdscript
-# scripts/state/utils/u_serialization_helper.gd
+# scripts/core/state/utils/u_serialization_helper.gd
 class_name U_SerializationHelper
 
 ## Utility for converting Godot types to/from JSON-compatible structures
@@ -1274,7 +1274,7 @@ These step-by-step workflows guide you through common development tasks. **Use t
 **Step 1: Add Action Constant & Creator** (5 min)
 
 ```gdscript
-# scripts/state/actions/u_gameplay_actions.gd
+# scripts/core/state/actions/u_gameplay_actions.gd
 const ACTION_UPDATE_AMMO := StringName("gameplay/update_ammo")
 
 static func update_ammo(ammo: int) -> Dictionary:
@@ -1287,14 +1287,14 @@ static func update_ammo(ammo: int) -> Dictionary:
 **Step 2: Register Action** (1 min)
 
 ```gdscript
-# scripts/state/m_state_store.gd _ready()
+# scripts/core/state/m_state_store.gd _ready()
 _action_registry.register_action(U_GameplayActions.ACTION_UPDATE_AMMO)
 ```
 
 **Step 3: Update Initial State Resource** (2 min)
 
 ```gdscript
-# scripts/state/resources/rs_gameplay_initial_state.gd
+# scripts/core/state/resources/rs_gameplay_initial_state.gd
 @export var default_ammo: int = 30  # Add field
 
 func to_dictionary() -> Dictionary:
@@ -1304,12 +1304,12 @@ func to_dictionary() -> Dictionary:
 	}
 ```
 
-Open `resources/state/cfg_default_gameplay_initial_state.tres` in Godot, set `default_ammo = 30`, save.
+Open `resources/core/state/cfg_default_gameplay_initial_state.tres` in Godot, set `default_ammo = 30`, save.
 
 **Step 4: Add Reducer Case** (3 min)
 
 ```gdscript
-# scripts/state/reducers/u_gameplay_reducer.gd
+# scripts/core/state/reducers/u_gameplay_reducer.gd
 static func reduce(current_state: Dictionary, action: Dictionary) -> Dictionary:
 	var next_state: Dictionary = current_state.duplicate(true)
 
@@ -1343,7 +1343,7 @@ Run tests: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s 
 **Step 6 (Optional): Add Selector** (5 min)
 
 ```gdscript
-# scripts/state/selectors/u_gameplay_selectors.gd
+# scripts/core/state/selectors/u_gameplay_selectors.gd
 static func select_ammo(state: Dictionary) -> int:
 	var gameplay: Dictionary = state.get("gameplay", {})
 	return gameplay.get("ammo", 0)
@@ -1372,7 +1372,7 @@ static func select_is_out_of_ammo(state: Dictionary) -> bool:
 **Step 1: Add Store Reference** (2 min)
 
 ```gdscript
-# scripts/ecs/systems/s_movement_system.gd
+# scripts/core/ecs/systems/s_movement_system.gd
 extends BaseECSSystem
 class_name S_MovementSystem
 
@@ -1452,7 +1452,7 @@ func _on_state_changed(action: Dictionary, new_state: Dictionary) -> void:
 **Step 1: Get Store Reference** (2 min)
 
 ```gdscript
-# scripts/ecs/systems/s_input_system.gd
+# scripts/core/ecs/systems/s_input_system.gd
 var _state_store: M_StateStore
 
 func _ready() -> void:
@@ -1496,7 +1496,7 @@ Complete working examples showing how ECS systems integrate with the state store
 ### Example 1: Movement System Reading Pause State
 
 ```gdscript
-# scripts/ecs/systems/s_movement_system.gd
+# scripts/core/ecs/systems/s_movement_system.gd
 @icon("res://assets/editor_icons/system.svg")
 extends BaseECSSystem
 class_name S_MovementSystem
@@ -1568,7 +1568,7 @@ func _on_state_changed(action: Dictionary, new_state: Dictionary) -> void:
 ### Example 2: Input System Dispatching Actions
 
 ```gdscript
-# scripts/ecs/systems/s_input_system.gd
+# scripts/core/ecs/systems/s_input_system.gd
 @icon("res://assets/editor_icons/system.svg")
 extends BaseECSSystem
 class_name S_InputSystem
@@ -1677,7 +1677,7 @@ How to debug state issues **before** Phase 2 debug overlay exists.
 ### Technique 1: Print Statements in Reducer
 
 ```gdscript
-# scripts/state/reducers/u_gameplay_reducer.gd
+# scripts/core/state/reducers/u_gameplay_reducer.gd
 static func reduce(current_state: Dictionary, action: Dictionary) -> Dictionary:
 	if OS.is_debug_build():
 		print("════════════════════════════════════════")
@@ -1702,7 +1702,7 @@ static func reduce(current_state: Dictionary, action: Dictionary) -> Dictionary:
 ### Technique 2: Print Statements in Dispatch
 
 ```gdscript
-# scripts/state/m_state_store.gd
+# scripts/core/state/m_state_store.gd
 func dispatch(action: Dictionary) -> void:
 	if OS.is_debug_build():
 		print("[DISPATCH] ", action.get("type"), " | Payload: ", action.get("payload"))
@@ -1713,7 +1713,7 @@ func dispatch(action: Dictionary) -> void:
 ### Technique 3: Verify Action Registration
 
 ```gdscript
-# scripts/state/m_state_store.gd _ready()
+# scripts/core/state/m_state_store.gd _ready()
 func _ready() -> void:
 	# ... normal setup
 
@@ -1803,7 +1803,7 @@ func process_tick(delta: float) -> void:
 
 ### Q: Where do .tres files go?
 
-**A**: In `resources/state/` (NOT `scripts/state/resources/`). Follows ECS pattern of `resources/base_settings/*.tres`.
+**A**: In `resources/core/state/` (NOT `scripts/core/state/resources/`). Follows ECS pattern of `resources/core/base_settings/*.tres`.
 
 ---
 

@@ -264,19 +264,19 @@ scene_manager.transition_to_scene("main_menu")  # ❌ Violates architecture
 
 All UI scripts now comply with the UI → Redux → Scene Manager rule. The following violations were fixed:
 
-1. **`scripts/ui/ui_settings_menu.gd`** ✅ FIXED
+1. **`scripts/core/ui/ui_settings_menu.gd`** ✅ FIXED
    - Removed `M_SceneManager` import
    - Replaced `_transition_to_scene()` with `U_NavigationActions.navigate_to_ui_screen()`
 
-2. **`scripts/ui/ui_input_profile_selector.gd`** ✅ FIXED
+2. **`scripts/core/ui/ui_input_profile_selector.gd`** ✅ FIXED
    - Removed `M_SceneManager` import
    - Refactored `_transition_back_to_settings_scene()` to use Redux action
 
-3. **`scripts/ui/ui_input_rebinding_overlay.gd`** ✅ FIXED
+3. **`scripts/core/ui/ui_input_rebinding_overlay.gd`** ✅ FIXED
    - Removed `M_SceneManager` import
    - Refactored `_transition_back_to_settings_scene()` to use Redux action
 
-4. **`scripts/ui/ui_touchscreen_settings_overlay.gd`** ✅ FIXED
+4. **`scripts/core/ui/ui_touchscreen_settings_overlay.gd`** ✅ FIXED
    - Simplified back navigation to use `U_NavigationActions.navigate_to_ui_screen()`
    - Removed direct `M_SceneManager` calls
 

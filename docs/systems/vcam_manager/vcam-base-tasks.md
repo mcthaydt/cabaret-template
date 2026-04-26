@@ -11,17 +11,17 @@ Before starting Phase 0, verify:
 - [x] **PRE-1**: Read required documentation
   - Read `AGENTS.md`, `docs/guides/pitfalls/`, `docs/guides/STYLE_GUIDE.md`
   - Read `docs/vcam_manager/vcam-manager-plan.md`, `vcam-manager-overview.md`, `vcam-manager-prd.md`
-  - Read `scripts/managers/m_camera_manager.gd` and `scripts/interfaces/i_camera_manager.gd`
-  - Read `scripts/ecs/systems/s_input_system.gd` and `scripts/ecs/systems/s_touchscreen_system.gd`
-  - Read `scripts/state/utils/u_state_slice_manager.gd`
+  - Read `scripts/core/managers/m_camera_manager.gd` and `scripts/core/interfaces/i_camera_manager.gd`
+  - Read `scripts/core/ecs/systems/s_input_system.gd` and `scripts/core/ecs/systems/s_touchscreen_system.gd`
+  - Read `scripts/core/state/utils/u_state_slice_manager.gd`
   - Completion note (2026-03-10): Required reading completed before Phase 0 implementation edits.
 
 - [x] **PRE-2**: Understand existing patterns by reading:
-  - `scripts/state/m_state_store.gd` (export pattern, initialize_slices call)
-  - `scripts/resources/state/rs_vfx_initial_state.gd` (existing vfx initial state pattern)
-  - `scripts/managers/m_camera_manager.gd` (shake-parent hierarchy, transition blends)
-  - `scripts/ui/hud/ui_mobile_controls.gd` (existing touch control flow)
-  - `scripts/utils/display/u_color_grading_preview.gd` (editor preview pattern)
+  - `scripts/core/state/m_state_store.gd` (export pattern, initialize_slices call)
+  - `scripts/core/resources/state/rs_vfx_initial_state.gd` (existing vfx initial state pattern)
+  - `scripts/core/managers/m_camera_manager.gd` (shake-parent hierarchy, transition blends)
+  - `scripts/core/ui/hud/ui_mobile_controls.gd` (existing touch control flow)
+  - `scripts/core/utils/display/u_color_grading_preview.gd` (editor preview pattern)
   - `tests/mocks/mock_camera_manager.gd` (mock pattern for camera manager)
   - Completion note (2026-03-10): Existing input/camera/settings patterns were reviewed and reused for Phase 0A/0A2.
 
@@ -62,9 +62,9 @@ Before starting Phase 0, verify:
   - Completion note (2026-03-10): Added/updated assertions in `test_u_input_reducer.gd` and `test_rs_touchscreen_settings.gd` for `look_drag_sensitivity` and `invert_look_y` defaults/behavior.
 
 - [x] **Task 0A.2 (Green)**: Implement touchscreen drag-look settings
-  - Modify `scripts/resources/input/rs_touchscreen_settings.gd`: add `look_drag_sensitivity: float = 1.0`, `invert_look_y: bool = false`
-  - Modify `resources/input/touchscreen_settings/cfg_default_touchscreen_settings.tres`: set new defaults
-  - Modify `scripts/state/reducers/u_input_reducer.gd`: add action handling
+  - Modify `scripts/core/resources/input/rs_touchscreen_settings.gd`: add `look_drag_sensitivity: float = 1.0`, `invert_look_y: bool = false`
+  - Modify `resources/core/input/touchscreen_settings/cfg_default_touchscreen_settings.tres`: set new defaults
+  - Modify `scripts/core/state/reducers/u_input_reducer.gd`: add action handling
   - All tests should pass
   - Completion note (2026-03-10): Added touchscreen look settings fields and reducer/state sanitization support in input reducer and serialization.
 
@@ -80,7 +80,7 @@ Before starting Phase 0, verify:
   - Completion note (2026-03-10): Updated touchscreen overlay/unit localization tests to cover the new look sensitivity slider and invert-Y toggle.
 
 - [x] **Task 0A.4 (Green)**: Implement touchscreen settings overlay changes
-  - Modify `scripts/ui/overlays/ui_touchscreen_settings_overlay.gd`: add drag-look sensitivity slider and invert-Y toggle
+  - Modify `scripts/core/ui/overlays/ui_touchscreen_settings_overlay.gd`: add drag-look sensitivity slider and invert-Y toggle
   - Modify UI locale resources for the new touchscreen look strings
   - All tests should pass
   - Completion note (2026-03-10): Added overlay controls/wiring, theme/localization/tooltips, and dispatch handling for touchscreen drag-look settings.
@@ -91,12 +91,12 @@ Before starting Phase 0, verify:
 
 - [x] **Task 0A2.1**: Register dedicated look actions in project.godot and input profiles
   - Add `look_left`, `look_right`, `look_up`, `look_down` input actions to `project.godot`
-  - Modify `scripts/input/u_input_map_bootstrapper.gd`: add `look_*` actions to `REQUIRED_ACTIONS`
+  - Modify `scripts/core/input/u_input_map_bootstrapper.gd`: add `look_*` actions to `REQUIRED_ACTIONS`
   - Modify `tests/unit/input/test_input_map.gd`: verify bootstrap/runtime input-map coverage for the new actions
   - Default bindings: arrow keys (matching default keyboard profile convention)
-  - Update `resources/input/profiles/cfg_default_keyboard.tres`: bind `look_left/right/up/down` to arrow keys
-  - Update `resources/input/profiles/cfg_alternate_keyboard.tres`: bind `look_left/right/up/down` to WASD (the non-movement keys in that layout)
-  - Update `resources/input/profiles/cfg_accessibility_keyboard.tres`: match default or alternate as appropriate
+  - Update `resources/core/input/profiles/cfg_default_keyboard.tres`: bind `look_left/right/up/down` to arrow keys
+  - Update `resources/core/input/profiles/cfg_alternate_keyboard.tres`: bind `look_left/right/up/down` to WASD (the non-movement keys in that layout)
+  - Update `resources/core/input/profiles/cfg_accessibility_keyboard.tres`: match default or alternate as appropriate
   - Gamepad and touchscreen profiles: leave `look_*` unbound (right stick and drag-look already feed `look_input` directly)
   - Completion note (2026-03-10): Added `look_*` actions to `project.godot`, bootstrapper required-actions, input-map tests, and keyboard profile bindings (default/accessibility arrows, alternate WASD).
 
@@ -112,27 +112,27 @@ Before starting Phase 0, verify:
   - Completion note (2026-03-10): Added reducer tests for keyboard-look defaults, update actions, and clamping.
 
 - [x] **Task 0A2.3 (Green)**: Implement keyboard look settings
-  - Modify `scripts/state/reducers/u_input_reducer.gd`: add `keyboard_look_enabled: false` and `keyboard_look_speed: 2.0` to `DEFAULT_INPUT_SETTINGS_STATE.mouse_settings`
-  - Modify `scripts/state/actions/u_input_actions.gd`: add `ACTION_SET_KEYBOARD_LOOK_ENABLED` and `ACTION_SET_KEYBOARD_LOOK_SPEED`
-  - Modify `scripts/state/reducers/u_input_reducer.gd`: add action handling
-  - Modify `scripts/utils/u_global_settings_serialization.gd`: add the keyboard-look settings actions to `INPUT_SETTINGS_ACTIONS`
+  - Modify `scripts/core/state/reducers/u_input_reducer.gd`: add `keyboard_look_enabled: false` and `keyboard_look_speed: 2.0` to `DEFAULT_INPUT_SETTINGS_STATE.mouse_settings`
+  - Modify `scripts/core/state/actions/u_input_actions.gd`: add `ACTION_SET_KEYBOARD_LOOK_ENABLED` and `ACTION_SET_KEYBOARD_LOOK_SPEED`
+  - Modify `scripts/core/state/reducers/u_input_reducer.gd`: add action handling
+  - Modify `scripts/core/utils/u_global_settings_serialization.gd`: add the keyboard-look settings actions to `INPUT_SETTINGS_ACTIONS`
   - All tests should pass
   - Completion note (2026-03-10): Added keyboard-look actions/reducer handling and persisted-settings trigger wiring.
 
 - [x] **Task 0A2.4 (Green)**: Implement keyboard look in KeyboardMouseSource
-  - Modify `scripts/input/sources/keyboard_mouse_source.gd`:
+  - Modify `scripts/core/input/sources/keyboard_mouse_source.gd`:
     - Add `keyboard_look_enabled: bool = false` and `keyboard_look_speed: float = 2.0` properties
     - In `capture_input(delta)`, when `keyboard_look_enabled`, read `look_left`/`look_right`/`look_up`/`look_down` action strength and produce a keyboard look delta: `Vector2(look_x, look_y) * keyboard_look_speed * delta`
     - Add keyboard look delta to `look_delta` (additive with mouse)
     - Respect `invert_y_axis` from `mouse_settings` for the keyboard look Y component
-  - Modify `scripts/ecs/systems/s_input_system.gd`: read `keyboard_look_enabled` and `keyboard_look_speed` from `mouse_settings` state and pass to `KeyboardMouseSource` each tick (same pattern as `mouse_sensitivity`)
+  - Modify `scripts/core/ecs/systems/s_input_system.gd`: read `keyboard_look_enabled` and `keyboard_look_speed` from `mouse_settings` state and pass to `KeyboardMouseSource` each tick (same pattern as `mouse_sensitivity`)
   - Completion note (2026-03-10): Implemented additive keyboard-look path in `KeyboardMouseSource` and state-driven wiring in `S_InputSystem` (including look-action names).
 
 - [x] **Task 0A2.5**: Expose keyboard look in settings UI
-  - Create `scripts/ui/overlays/ui_keyboard_mouse_settings_overlay.gd`
+  - Create `scripts/core/ui/overlays/ui_keyboard_mouse_settings_overlay.gd`
   - Create `scenes/ui/overlays/ui_keyboard_mouse_settings_overlay.tscn`
-  - Create `resources/ui_screens/cfg_keyboard_mouse_settings_overlay.tres`
-  - Modify `scripts/ui/menus/ui_settings_menu.gd` and `scenes/ui/menus/ui_settings_menu.tscn` to open the new overlay
+  - Create `resources/core/ui_screens/cfg_keyboard_mouse_settings_overlay.tres`
+  - Modify `scripts/core/ui/menus/ui_settings_menu.gd` and `scenes/ui/menus/ui_settings_menu.tscn` to open the new overlay
   - Expose:
     - Toggle for "Keyboard Camera Rotation" (maps to `keyboard_look_enabled`)
     - Slider for "Keyboard Look Speed" (maps to `keyboard_look_speed`, range 0.1–10.0)
@@ -141,8 +141,8 @@ Before starting Phase 0, verify:
   - Completion note (2026-03-10): Added new keyboard/mouse settings overlay scene/script/registry entries, linked from settings menu, with enabled-state gating and dedicated unit coverage.
 
 - [x] **Task 0A2.6**: Patch rebinding UI and localization for `look_*`
-  - Modify `scripts/ui/helpers/u_rebind_action_list_builder.gd`: replace legacy `camera_*` coverage with `look_*` under the camera category
-  - Modify `resources/localization/cfg_locale_*_ui.tres`: add `input.action.look_left`, `input.action.look_right`, `input.action.look_up`, `input.action.look_down`
+  - Modify `scripts/core/ui/helpers/u_rebind_action_list_builder.gd`: replace legacy `camera_*` coverage with `look_*` under the camera category
+  - Modify `resources/core/localization/cfg_locale_*_ui.tres`: add `input.action.look_left`, `input.action.look_right`, `input.action.look_up`, `input.action.look_down`
   - Modify `tests/unit/ui/test_input_rebinding_overlay.gd` and `tests/unit/integration/test_rebinding_flow.gd` to cover the new camera action names
   - Completion note (2026-03-10): Added `look_*` actions to the camera rebind category, added locale strings across all UI locales, and updated rebind overlay/integration tests.
 
@@ -158,7 +158,7 @@ Before starting Phase 0, verify:
   - Completion note (2026-03-10): Added initial-state coverage for `occlusion_silhouette_enabled` field presence/type and dictionary export.
 
 - [x] **Task 0B.2 (Green)**: Add field to RS_VFXInitialState
-  - Modify `scripts/resources/state/rs_vfx_initial_state.gd`: add `@export var occlusion_silhouette_enabled: bool = true`
+  - Modify `scripts/core/resources/state/rs_vfx_initial_state.gd`: add `@export var occlusion_silhouette_enabled: bool = true`
   - All tests should pass
   - Completion note (2026-03-10): Added exported occlusion silhouette default field and included it in `to_dictionary()`.
 
@@ -172,8 +172,8 @@ Before starting Phase 0, verify:
   - Completion note (2026-03-10): Added action-structure and reducer true/false coverage, plus default/preservation assertions for the new field.
 
 - [x] **Task 0B.4 (Green)**: Implement VFX action and reducer
-  - Modify `scripts/state/actions/u_vfx_actions.gd`: add `ACTION_SET_OCCLUSION_SILHOUETTE_ENABLED`
-  - Modify `scripts/state/reducers/u_vfx_reducer.gd`: handle action
+  - Modify `scripts/core/state/actions/u_vfx_actions.gd`: add `ACTION_SET_OCCLUSION_SILHOUETTE_ENABLED`
+  - Modify `scripts/core/state/reducers/u_vfx_reducer.gd`: handle action
   - All tests should pass
   - Completion note (2026-03-10): Added action constant/creator registration and reducer handling with default-state merge support.
 
@@ -186,7 +186,7 @@ Before starting Phase 0, verify:
   - Completion note (2026-03-10): Added selector coverage for enabled/disabled and missing-slice/field default behavior.
 
 - [x] **Task 0B.6 (Green)**: Implement VFX selector
-  - Modify `scripts/state/selectors/u_vfx_selectors.gd`: add `is_occlusion_silhouette_enabled(state)`
+  - Modify `scripts/core/state/selectors/u_vfx_selectors.gd`: add `is_occlusion_silhouette_enabled(state)`
   - All tests should pass
   - Completion note (2026-03-10): Implemented `U_VFXSelectors.is_occlusion_silhouette_enabled(...)` with safe default `true`.
 
@@ -201,9 +201,9 @@ Before starting Phase 0, verify:
   - Completion note (2026-03-10): Expanded integration/localization coverage for silhouette toggle init/apply/cancel/reset and localized label/tooltip updates.
 
 - [x] **Task 0B.8 (Green)**: Implement VFX settings overlay silhouette toggle
-  - Modify `scripts/ui/settings/ui_vfx_settings_overlay.gd`: add control wiring, apply/reset/localization handling
+  - Modify `scripts/core/ui/settings/ui_vfx_settings_overlay.gd`: add control wiring, apply/reset/localization handling
   - Modify `scenes/ui/overlays/settings/ui_vfx_settings_overlay.tscn`: add silhouette toggle row
-  - Modify all UI locale resources under `resources/localization/cfg_locale_*_ui.tres` for new silhouette label/tooltip keys
+  - Modify all UI locale resources under `resources/core/localization/cfg_locale_*_ui.tres` for new silhouette label/tooltip keys
   - All tests should pass
   - Completion note (2026-03-10): Added silhouette toggle UI row and controller wiring, localized strings across all UI locales, and global-settings apply dispatch support.
 
@@ -229,13 +229,13 @@ Before starting Phase 0, verify:
   - Completion note (2026-03-10): Added `test_vcam_initial_state.gd` with 12 assertions covering all expected dictionary defaults and key count.
 
 - [x] **Task 0C.2 (Green)**: Implement RS_VCamInitialState
-  - Create `scripts/resources/state/rs_vcam_initial_state.gd`
+  - Create `scripts/core/resources/state/rs_vcam_initial_state.gd`
   - Implement `to_dictionary()` returning all 11 fields (including `in_fov_zone: false`)
   - All tests should pass
   - Completion note (2026-03-10): Added `RS_VCamInitialState` with exported runtime observability fields and `to_dictionary()` output matching the Phase 0C contract.
 
 - [x] **Task 0C.3**: Create default resource instance
-  - Create `resources/state/cfg_default_vcam_initial_state.tres`
+  - Create `resources/core/state/cfg_default_vcam_initial_state.tres`
   - Set all fields to defaults
   - Completion note (2026-03-10): Added `cfg_default_vcam_initial_state.tres` bound to `RS_VCamInitialState` for root/store wiring in the next phase.
 
@@ -257,7 +257,7 @@ Before starting Phase 0, verify:
   - Completion note (2026-03-10): Added `test_vcam_actions.gd` with 8 action-structure tests covering all Phase 0D creators, including `update_fov_zone`.
 
 - [x] **Task 0D.2 (Green)**: Implement U_VCamActions
-  - Create `scripts/state/actions/u_vcam_actions.gd`
+  - Create `scripts/core/state/actions/u_vcam_actions.gd`
   - Add 8 action type constants and static creator functions (including `update_fov_zone`)
   - All tests should pass
   - Completion note (2026-03-10): Added `U_VCamActions` constants, registry registration in `_static_init()`, and immediate action creators for runtime/blend/silhouette/target/recovery/FOV-zone updates.
@@ -291,7 +291,7 @@ Before starting Phase 0, verify:
   - Completion note (2026-03-10): Added `test_vcam_reducer.gd` with 13 tests covering blend lifecycle, clamps, recovery/target/FOV updates, unknown-action behavior, and immutability.
 
 - [x] **Task 0D.4 (Green)**: Implement U_VCamReducer
-  - Create `scripts/state/reducers/u_vcam_reducer.gd`
+  - Create `scripts/core/state/reducers/u_vcam_reducer.gd`
   - Implement `reduce(state, action)` with match statement
   - All tests should pass
   - Completion note (2026-03-10): Added `U_VCamReducer` defaults + reducer branches for all vCam actions with blend-progress and silhouette clamps, safe payload normalization, and unchanged-state return on unknown actions.
@@ -327,14 +327,14 @@ Before starting Phase 0, verify:
   - Completion note (2026-03-10): Added `test_vcam_selectors.gd` with 23 tests covering all selector defaults/fields and state immutability.
 
 - [x] **Task 0E.2 (Green)**: Implement U_VCamSelectors
-  - Create `scripts/state/selectors/u_vcam_selectors.gd`
+  - Create `scripts/core/state/selectors/u_vcam_selectors.gd`
   - All selectors null-safe and slice-safe (including 4 debug-field selectors: `get_blend_from_vcam_id`, `get_blend_to_vcam_id`, `is_active_target_valid`, `get_last_recovery_reason`, plus `is_in_fov_zone`)
   - All tests should pass
   - Completion note (2026-03-10): Added `U_VCamSelectors` with null-safe accessors for all runtime and debug fields, including `is_in_fov_zone`.
 
 - [x] **Task 0E.3**: Integrate vcam slice with M_StateStore
-  - Modify `scripts/state/m_state_store.gd`: add `@export var vcam_initial_state: Resource`
-  - Modify `scripts/state/utils/u_state_slice_manager.gd`: add `vcam` slice registration with `is_transient = true`
+  - Modify `scripts/core/state/m_state_store.gd`: add `@export var vcam_initial_state: Resource`
+  - Modify `scripts/core/state/utils/u_state_slice_manager.gd`: add `vcam` slice registration with `is_transient = true`
   - Modify `scenes/root.tscn`: assign `cfg_default_vcam_initial_state.tres`
   - Completion note (2026-03-10): Wired `vcam_initial_state` through `M_StateStore`/`U_StateSliceManager`, registered `vcam` as transient, and assigned `cfg_default_vcam_initial_state.tres` in `scenes/root.tscn`.
 
@@ -352,7 +352,7 @@ Before starting Phase 0, verify:
 > **Context:** Phase 0F migrated `in_fov_zone` reads to `state.vcam.in_fov_zone` and retired legacy runtime/test reads of `state.camera.in_fov_zone`.
 
 - [x] **Task 0F.1**: Migrate `S_CameraStateSystem` reads of `state.camera.in_fov_zone`
-  - Modify `scripts/ecs/systems/s_camera_state_system.gd`: replace reads of `state.camera.in_fov_zone` with `U_VCamSelectors.is_in_fov_zone(state)` (or `state.vcam.in_fov_zone`)
+  - Modify `scripts/core/ecs/systems/s_camera_state_system.gd`: replace reads of `state.camera.in_fov_zone` with `U_VCamSelectors.is_in_fov_zone(state)` (or `state.vcam.in_fov_zone`)
   - Update any `S_CameraStateSystem` code that dispatches `set_slice("camera", ...)` for `in_fov_zone` to use `U_VCamActions.update_fov_zone(in_zone)` instead
   - Completion note (2026-03-10): `S_CameraStateSystem._is_fov_zone_active(...)` now reads through `U_VCamSelectors.is_in_fov_zone(state)`.
 
@@ -383,7 +383,7 @@ Before starting Phase 0, verify:
 ### Phase 1A: RS_VCamSoftZone
 
 - [x] **Task 1A.1 (Red)**: Write tests for RS_VCamSoftZone
-  - Create `tests/unit/resources/display/vcam/test_vcam_soft_zone.gd`
+  - Create `tests/unit/resources/core/display/vcam/test_vcam_soft_zone.gd`
   - Test `dead_zone_width` field exists with default (e.g. 0.1)
   - Test `dead_zone_height` field exists with default (e.g. 0.1)
   - Test `soft_zone_width` field exists with default (e.g. 0.4)
@@ -395,7 +395,7 @@ Before starting Phase 0, verify:
   - Completion note (2026-03-10): Added `test_vcam_soft_zone.gd` with 7 assertions covering defaults, non-negative bounds, and zone-size ordering.
 
 - [x] **Task 1A.2 (Green)**: Implement RS_VCamSoftZone
-  - Create `scripts/resources/display/vcam/rs_vcam_soft_zone.gd`
+  - Create `scripts/core/resources/display/vcam/rs_vcam_soft_zone.gd`
   - All `@export` fields with sensible defaults
   - All tests should pass
   - Completion note (2026-03-10): Added `RS_VCamSoftZone` with exported dead-zone/soft-zone dimensions and damping defaults.
@@ -405,7 +405,7 @@ Before starting Phase 0, verify:
 ### Phase 1B: RS_VCamBlendHint
 
 - [x] **Task 1B.1 (Red)**: Write tests for RS_VCamBlendHint
-  - Create `tests/unit/resources/display/vcam/test_vcam_blend_hint.gd`
+  - Create `tests/unit/resources/core/display/vcam/test_vcam_blend_hint.gd`
   - Test `blend_duration` field exists with default (e.g. 1.0)
   - Test `ease_type` field exists with default (e.g. `Tween.EASE_IN_OUT`)
   - Test `trans_type` field exists with default (e.g. `Tween.TRANS_CUBIC`)
@@ -417,7 +417,7 @@ Before starting Phase 0, verify:
   - Completion note (2026-03-10): Added `test_vcam_blend_hint.gd` with 7 assertions for defaults, bounds, and instant-cut behavior.
 
 - [x] **Task 1B.2 (Green)**: Implement RS_VCamBlendHint
-  - Create `scripts/resources/display/vcam/rs_vcam_blend_hint.gd`
+  - Create `scripts/core/resources/display/vcam/rs_vcam_blend_hint.gd`
   - All `@export` fields with sensible defaults
   - All tests should pass
   - Completion note (2026-03-10): Added `RS_VCamBlendHint` with blend/tween fields and `is_instant_cut()` helper.
@@ -427,8 +427,8 @@ Before starting Phase 0, verify:
 ### Phase 1C: Default Preset Resources
 
 - [x] **Task 1C.1**: Create default resource instances
-  - Create `resources/display/vcam/cfg_default_soft_zone.tres`
-  - Create `resources/display/vcam/cfg_default_blend_hint.tres`
+  - Create `resources/core/display/vcam/cfg_default_soft_zone.tres`
+  - Create `resources/core/display/vcam/cfg_default_blend_hint.tres`
   - Verify resources load without errors
   - Completion note (2026-03-10): Added both default vCam resource presets and validated via new resource unit suites + style gate.
 
@@ -457,7 +457,7 @@ Before starting Phase 0, verify:
   - Completion note (2026-03-10): Added `test_second_order_dynamics.gd` with 13 tests covering convergence, damping regimes, stability guards, reset behavior, and response tuning.
 
 - [x] **Task 1D.2 (Green)**: Implement U_SecondOrderDynamics
-  - Create `scripts/utils/math/u_second_order_dynamics.gd`
+  - Create `scripts/core/utils/math/u_second_order_dynamics.gd`
   - Add `class_name U_SecondOrderDynamics`
   - Instance-based (not static) — each consumer creates its own instance with independent state
   - Constructor: `func _init(f: float, zeta: float, r: float, initial_value: float = 0.0)`
@@ -498,8 +498,8 @@ Before starting Phase 0, verify:
 
 - [x] **Task 1D.3**: Run style enforcement tests
   - `tests/unit/style/test_style_enforcement.gd` passes with new files
-  - Verify `u_second_order_dynamics.gd` is in `scripts/utils/math/`
-  - Completion note (2026-03-10): `tests/unit/style/test_style_enforcement.gd` passed after adding `scripts/utils/math/u_second_order_dynamics.gd`.
+  - Verify `u_second_order_dynamics.gd` is in `scripts/core/utils/math/`
+  - Completion note (2026-03-10): `tests/unit/style/test_style_enforcement.gd` passed after adding `scripts/core/utils/math/u_second_order_dynamics.gd`.
 
 ---
 
@@ -518,7 +518,7 @@ Before starting Phase 0, verify:
   - Completion note (2026-03-10): Added `test_second_order_dynamics_3d.gd` with 7 tests covering convergence, axis independence, reset semantics, and damping-regime behavior.
 
 - [x] **Task 1E.2 (Green)**: Implement U_SecondOrderDynamics3D
-  - Create `scripts/utils/math/u_second_order_dynamics_3d.gd`
+  - Create `scripts/core/utils/math/u_second_order_dynamics_3d.gd`
   - Add `class_name U_SecondOrderDynamics3D`
   - Wraps three `U_SecondOrderDynamics` instances (x, y, z)
   - Constructor: `func _init(f: float, zeta: float, r: float, initial_value: Vector3 = Vector3.ZERO)`
@@ -537,7 +537,7 @@ Before starting Phase 0, verify:
 ### Phase 1F: RS_VCamResponse Resource
 
 - [x] **Task 1F.1 (Red)**: Write tests for RS_VCamResponse
-  - Create `tests/unit/resources/display/vcam/test_vcam_response.gd`
+  - Create `tests/unit/resources/core/display/vcam/test_vcam_response.gd`
   - **Second-order dynamics tuning:**
   - Test `follow_frequency` field exists with default `3.0`
   - Test `follow_damping` field exists with default `0.7` (slightly underdamped for natural feel)
@@ -551,7 +551,7 @@ Before starting Phase 0, verify:
   - Completion note (2026-03-10): Added `test_vcam_response.gd` with 8 tests for defaults and resolved clamp behavior.
 
 - [x] **Task 1F.2 (Green)**: Implement RS_VCamResponse
-  - Create `scripts/resources/display/vcam/rs_vcam_response.gd`
+  - Create `scripts/core/resources/display/vcam/rs_vcam_response.gd`
   - Extend `Resource`
   - Add `class_name RS_VCamResponse`
   - All `@export` fields with sensible defaults:
@@ -566,7 +566,7 @@ Before starting Phase 0, verify:
   - Completion note (2026-03-10): Added `RS_VCamResponse` with base follow/rotation fields and `get_resolved_values()` clamp contract for frequency/damping safety.
 
 - [x] **Task 1F.3**: Create default response resource instance
-  - Create `resources/display/vcam/cfg_default_response.tres`
+  - Create `resources/core/display/vcam/cfg_default_response.tres`
   - Set all fields to defaults (follow: f=3.0, z=0.7, r=1.0; rotation: f=4.0, z=1.0, r=1.0)
   - Verify resource loads without errors
   - Completion note (2026-03-10): Added `cfg_default_response.tres` with Phase 1F defaults.
@@ -603,20 +603,20 @@ Before starting Phase 0, verify:
   - Completion note (2026-03-10): Added `tests/unit/ecs/components/test_vcam_component.gd` with 15 assertions covering component type and all required exports/defaults.
 
 - [x] **Task 5A.2 (Green)**: Implement C_VCamComponent
-  - Create `scripts/ecs/components/c_vcam_component.gd`
+  - Create `scripts/core/ecs/components/c_vcam_component.gd`
   - Extend `BaseECSComponent`, set `COMPONENT_TYPE`
   - Add all exports (including `response: RS_VCamResponse`, `follow_target_entity_id`, `follow_target_tag`, `path_node_path: NodePath`) and runtime-only `runtime_yaw`, `runtime_pitch` vars
   - Implement null-safe `get_follow_target()` and `get_look_at_target()` typed getters
   - Target resolution priority in `S_VCamSystem`: NodePath → entity ID → tag → null (recovery)
   - All tests should pass
-  - Completion note (2026-03-10): Added `scripts/ecs/components/c_vcam_component.gd` with full export surface (including entity-id/tag/path fallbacks), `RS_VCamResponse`-typed export hint + runtime guard for `response`, runtime yaw/pitch fields, null-safe target/anchor/path getters, mode-name helper, and auto register/unregister integration with `M_VCamManager`.
+  - Completion note (2026-03-10): Added `scripts/core/ecs/components/c_vcam_component.gd` with full export surface (including entity-id/tag/path fallbacks), `RS_VCamResponse`-typed export hint + runtime guard for `response`, runtime yaw/pitch fields, null-safe target/anchor/path getters, mode-name helper, and auto register/unregister integration with `M_VCamManager`.
 
 ---
 
 ### Phase 5B: I_VCamManager Interface
 
 - [x] **Task 5B.1**: Create I_VCamManager interface
-  - Create `scripts/interfaces/i_vcam_manager.gd`
+  - Create `scripts/core/interfaces/i_vcam_manager.gd`
   - Define all 8 interface methods with `push_error` defaults:
     - `register_vcam(vcam)`
     - `unregister_vcam(vcam)`
@@ -626,7 +626,7 @@ Before starting Phase 0, verify:
     - `submit_evaluated_camera(vcam_id, result)`
     - `get_blend_progress()`
     - `is_blending()`
-  - Completion note (2026-03-10): Added `scripts/interfaces/i_vcam_manager.gd` with all 8 required methods and `push_error` default implementations.
+  - Completion note (2026-03-10): Added `scripts/core/interfaces/i_vcam_manager.gd` with all 8 required methods and `push_error` default implementations.
 
 ---
 
@@ -646,7 +646,7 @@ Before starting Phase 0, verify:
   - Completion note (2026-03-10): Added registration-focused coverage in `tests/unit/managers/test_vcam_manager.gd` (interface extension, service registration, duplicate rejection, unregister/reset paths).
 
 - [x] **Task 5C.2 (Green)**: Implement M_VCamManager registration
-  - Create `scripts/managers/m_vcam_manager.gd` extending `I_VCamManager`
+  - Create `scripts/core/managers/m_vcam_manager.gd` extending `I_VCamManager`
   - Implement registration dictionary, ServiceLocator registration
   - All tests should pass
   - Completion note (2026-03-10): Implemented `M_VCamManager` core registry maps (`_vcams_by_id`, `_registered_vcams`), ServiceLocator registration as `vcam_manager`, and unregister/runtime-state cleanup behavior.
@@ -706,7 +706,7 @@ Before starting Phase 0, verify:
   - Completion note (2026-03-10): Added `tests/unit/ecs/systems/test_vcam_system.gd` with 17 focused tests covering manager resolution, look-input rotation updates, active/outgoing evaluation, NodePath/entity/tag target resolution order, path-helper behavior, and no-op guard paths.
 
 - [x] **Task 6A.2 (Green)**: Implement S_VCamSystem
-  - Create `scripts/ecs/systems/s_vcam_system.gd`
+  - Create `scripts/core/ecs/systems/s_vcam_system.gd`
   - Extend `BaseECSSystem`, implement `process_tick(delta)`
   - Order the system after gameplay input/movement so current-frame state and target transforms are available before camera evaluation
   - Resolve manager, read look input, evaluate modes, submit results
@@ -714,7 +714,7 @@ Before starting Phase 0, verify:
   - Keep any `PathFollow3D` helper scene-local in the gameplay world
   - Submit results as the same-frame handoff to `M_VCamManager`; do not rely on root `_physics_process` ordering
   - All tests should pass
-  - Completion note (2026-03-10): Added `scripts/ecs/systems/s_vcam_system.gd` with ServiceLocator/injection manager resolution, Redux look-input consumption, orbit/first-person runtime angle updates (`rotation_speed`/`look_multiplier` system-owned), active+previous blend evaluation/submission, NodePath→entity ID→tag target fallback, and gameplay-local `PathFollow3D` helper management for fixed `use_path`.
+  - Completion note (2026-03-10): Added `scripts/core/ecs/systems/s_vcam_system.gd` with ServiceLocator/injection manager resolution, Redux look-input consumption, orbit/first-person runtime angle updates (`rotation_speed`/`look_multiplier` system-owned), active+previous blend evaluation/submission, NodePath→entity ID→tag target fallback, and gameplay-local `PathFollow3D` helper management for fixed `use_path`.
 
 ### Phase 6A2: Second-Order Dynamics Integration in S_VCamSystem
 
@@ -807,7 +807,7 @@ Before starting Phase 0, verify:
   - Completion note (2026-03-10): Added `tests/unit/ecs/components/test_camera_state_component.gd` with default/export coverage for `landing_impact_offset`, `landing_impact_recovery_speed`, `speed_fov_bonus`, and `speed_fov_max_bonus`.
 
 - [x] **Task 6A3a.2 (Green)**: Implement new fields on C_CameraStateComponent
-  - Modify `scripts/ecs/components/c_camera_state_component.gd`:
+  - Modify `scripts/core/ecs/components/c_camera_state_component.gd`:
     - `@export var landing_impact_offset: Vector3 = Vector3.ZERO` — transient vertical offset applied to camera on landing
     - `@export var landing_impact_recovery_speed: float = 8.0` — second-order dynamics frequency for offset recovery
     - `@export var speed_fov_bonus: float = 0.0` — current speed-driven FOV addition (set by QB rule)
@@ -840,18 +840,18 @@ Before starting Phase 0, verify:
   - Completion note (2026-03-10): Expanded `tests/unit/qb/test_camera_state_system.gd` with six 6A3b assertions covering speed-rule score application, stationary reset, `speed_fov_bonus` clamping, target-FOV composition, and blend smoothing.
 
 - [x] **Task 6A3b.2 (Green)**: Implement FOV breathing
-  - Modify `scripts/ecs/systems/s_camera_state_system.gd`:
+  - Modify `scripts/core/ecs/systems/s_camera_state_system.gd`:
     - `_resolve_target_fov()` adds `camera_state.speed_fov_bonus` to the resolved FOV
     - Clamp `speed_fov_bonus` to `[0.0, speed_fov_max_bonus]` before adding
   - Create QB rule `.tres`:
-    - Create `resources/qb/camera/cfg_camera_speed_fov_rule.tres`
+    - Create `resources/core/qb/camera/cfg_camera_speed_fov_rule.tres`
     - Trigger: `tick` mode (evaluated every frame)
     - Condition: `RS_ConditionComponentField` — read movement velocity magnitude, normalize to 0.0–1.0 range (min=0, max=sprint speed)
     - Optional `response_curve: Curve` — ease-in curve so FOV ramps gently at low speeds, aggressively at sprint
     - Effect: `RS_EffectSetField` — `component_type = C_CameraStateComponent`, `field = speed_fov_bonus`, `operation = set`, `value = 15.0` (max bonus, scaled by condition score)
   - Add rule to `S_CameraStateSystem.DEFAULT_RULE_DEFINITIONS` or inject via export
   - All tests should pass
-  - Completion note (2026-03-10): Added `resources/qb/camera/cfg_camera_speed_fov_rule.tres`, registered it in `S_CameraStateSystem.DEFAULT_RULE_DEFINITIONS`, added movement-speed context plumbing for `RS_ConditionComponentField`, and extended `RS_EffectSetField` + camera rule execution context with rule-score scaling so `speed_fov_bonus` tracks normalized speed continuously.
+  - Completion note (2026-03-10): Added `resources/core/qb/camera/cfg_camera_speed_fov_rule.tres`, registered it in `S_CameraStateSystem.DEFAULT_RULE_DEFINITIONS`, added movement-speed context plumbing for `RS_ConditionComponentField`, and extended `RS_EffectSetField` + camera rule execution context with rule-score scaling so `speed_fov_bonus` tracks normalized speed continuously.
 
   **Existing infrastructure reused:**
   - `RS_ConditionComponentField` (reads component field, normalizes to 0–1)
@@ -885,7 +885,7 @@ Before starting Phase 0, verify:
 
 - [x] **Task 6A3c.3 (Green)**: Implement landing impact
   - Create QB rule `.tres`:
-    - Create `resources/qb/camera/cfg_camera_landing_impact_rule.tres`
+    - Create `resources/core/qb/camera/cfg_camera_landing_impact_rule.tres`
     - Trigger: `event` mode
     - Condition: `RS_ConditionEventName` matching `EVENT_ENTITY_LANDED`
     - Condition: `RS_ConditionEventPayload` — `field = fall_speed`, `normalize_min = 5.0`, `normalize_max = 30.0`
@@ -923,12 +923,12 @@ Before starting Phase 0, verify:
   - Completion note (2026-03-10): Added `M_VCamManager` to `scenes/root.tscn`, registered `vcam_manager` service in `scripts/core/root.gd`, and declared `vcam_manager -> {state_store, camera_manager}` service dependencies.
 
 - [x] **Task 6B.2**: Wire S_VCamSystem to gameplay scenes
-  - Modify `scenes/templates/tmpl_base_scene.tscn`: add `S_VCamSystem` under `Systems/Core`
-  - Modify `scenes/gameplay/gameplay_base.tscn`: add `S_VCamSystem` if not inherited
+  - Modify `scenes/core/templates/tmpl_base_scene.tscn`: add `S_VCamSystem` under `Systems/Core`
+  - Modify `scenes/demo/gameplay/gameplay_base.tscn`: add `S_VCamSystem` if not inherited
   - Completion note (2026-03-10): Added `S_VCamSystem` to template and gameplay scene system trees under `Systems/Core` with `execution_priority = 100` so it runs after movement systems and before feedback systems (`tmpl_base_scene`, `gameplay_base`, `gameplay_bar`, `gameplay_alleyway`).
 
 - [x] **Task 6B.3**: Wire C_VCamComponent to camera template
-  - Modify `scenes/templates/tmpl_camera.tscn`: add default `C_VCamComponent` with `cfg_default_orbit.tres`
+  - Modify `scenes/core/templates/tmpl_camera.tscn`: add default `C_VCamComponent` with `cfg_default_orbit.tres`
   - Verify template remains backward compatible with `C_CameraStateComponent`
   - Completion note (2026-03-10): Added `C_VCamComponent` to `tmpl_camera.tscn` with `cfg_default_orbit.tres` plus default soft-zone/blend/response resources and `follow_target_entity_id = &"player"`; existing `C_CameraStateComponent` remained intact.
 
@@ -986,7 +986,7 @@ Before starting Phase 0, verify:
   - Completion note (2026-03-15): Expanded `test_mobile_controls.gd` with drag-look coverage for delta emission/consume lifecycle and settings-driven sensitivity/invert behavior.
 
 - [x] **Task 7A.2 (Green)**: Implement look touch tracking
-  - Modify `scripts/ui/hud/ui_mobile_controls.gd`
+  - Modify `scripts/core/ui/hud/ui_mobile_controls.gd`
   - Track dedicated `_look_touch_id` separate from joystick and button touches
   - Expose per-frame `look_delta: Vector2`
   - Clear delta after each consumption
@@ -1007,7 +1007,7 @@ Before starting Phase 0, verify:
   - Completion note (2026-03-15): Added drag-look dispatch tests in `test_s_touchscreen_system.gd` for look dispatch, sensitivity/invert behavior, one-shot delta consumption, and touch-look active lifecycle.
 
 - [x] **Task 7B.2 (Green)**: Implement touchscreen look dispatch
-  - Modify `scripts/ecs/systems/s_touchscreen_system.gd`
+  - Modify `scripts/core/ecs/systems/s_touchscreen_system.gd`
   - Read `look_delta` from `UI_MobileControls`
   - Apply sensitivity and invert-Y from settings
   - Dispatch via `U_InputActions.update_look_input()`
@@ -1021,21 +1021,21 @@ Before starting Phase 0, verify:
 > **Context:** Touch input gating uses `gameplay.touch_look_active` so `S_InputSystem` can deterministically skip look dispatch when touchscreen drag-look is active, without relying on device-type heuristics.
 
 - [x] **Task 7B2.1**: Add `touch_look_active` to gameplay slice
-  - Modify `scripts/resources/state/rs_gameplay_initial_state.gd` (or relevant initial state): add `touch_look_active: bool = false`
+  - Modify `scripts/core/resources/state/rs_gameplay_initial_state.gd` (or relevant initial state): add `touch_look_active: bool = false`
   - Add action `U_GameplayActions.set_touch_look_active(active: bool)`
   - Add reducer case in `u_gameplay_reducer.gd`
   - Add selector `U_GameplaySelectors.is_touch_look_active(state) -> bool` (returns `false` when missing)
-  - Modify `scripts/state/utils/u_state_slice_manager.gd`: add `touch_look_active` to gameplay `transient_fields` so it never persists through save/load or shell handoff
+  - Modify `scripts/core/state/utils/u_state_slice_manager.gd`: add `touch_look_active` to gameplay `transient_fields` so it never persists through save/load or shell handoff
   - Completion note (2026-03-15): Added gameplay touch-look flag state/action/reducer/selector wiring and marked `touch_look_active` transient in `U_StateSliceManager`.
 
 - [x] **Task 7B2.2**: Dispatch flag from S_TouchscreenSystem
-  - Modify `scripts/ecs/systems/s_touchscreen_system.gd`:
+  - Modify `scripts/core/ecs/systems/s_touchscreen_system.gd`:
     - Dispatch `set_touch_look_active(true)` when drag-look gesture begins
     - Dispatch `set_touch_look_active(false)` when drag-look gesture ends (touch released)
   - Completion note (2026-03-15): `S_TouchscreenSystem` now dispatches `U_GameplayActions.set_touch_look_active(...)` on state transitions via `_dispatch_touch_look_active_if_changed(...)`.
 
 - [x] **Task 7B2.3**: Gate S_InputSystem look dispatch
-  - Modify `scripts/ecs/systems/s_input_system.gd`:
+  - Modify `scripts/core/ecs/systems/s_input_system.gd`:
     - Read `U_GameplaySelectors.is_touch_look_active(state)` each tick
     - When `true`, skip look input dispatch (touchscreen owns look)
     - When `false`, dispatch look input normally
@@ -1064,7 +1064,7 @@ Before starting Phase 0, verify:
   - Completion note (2026-03-15): Added guard coverage in `test_input_system.gd` for touchscreen no-clobber behavior and touch-look-active preservation.
 
 - [x] **Task 7C.2 (Green)**: Implement input system guard
-  - Modify `scripts/ecs/systems/s_input_system.gd`
+  - Modify `scripts/core/ecs/systems/s_input_system.gd`
   - Gate `TouchscreenSource` dispatch when touchscreen is the active device type
   - All tests should pass
   - Completion note (2026-03-15): `S_InputSystem` now exits early when `active_device == TOUCHSCREEN`, keeping `S_TouchscreenSystem` as the sole owner of touch-driven move/look/button dispatch.
@@ -1123,7 +1123,7 @@ Settings checks (mode-agnostic):
   - Completion note (March 15, 2026): Added `test_vcam_blend_evaluator.gd` with 10 assertions covering transform/FOV interpolation endpoints, easing behavior, cut-threshold behavior, and empty-input fallbacks.
 
 - [x] **Task 9A.2 (Green)**: Implement U_VCamBlendEvaluator
-  - Create `scripts/managers/helpers/u_vcam_blend_evaluator.gd`
+  - Create `scripts/core/managers/helpers/u_vcam_blend_evaluator.gd`
   - Implement `static func blend(from_result, to_result, hint, progress) -> Dictionary`
   - All tests should pass
   - Completion note (March 15, 2026): Added `U_VCamBlendEvaluator` with hint-aware transform/FOV blending, distance-cut handling, and null/empty fallback behavior.
@@ -1170,8 +1170,8 @@ Settings checks (mode-agnostic):
   - Completion note (March 15, 2026): Added three camera-manager integration assertions for shake-safe transform application and `is_blend_active()` true/false behavior.
 
 - [x] **Task 9C.2 (Green)**: Implement camera-manager API (new methods)
-  - Modify `scripts/interfaces/i_camera_manager.gd`: add method signatures for `apply_main_camera_transform()` and `is_blend_active()`
-  - Modify `scripts/managers/m_camera_manager.gd`: implement `apply_main_camera_transform()` and `is_blend_active()`
+  - Modify `scripts/core/interfaces/i_camera_manager.gd`: add method signatures for `apply_main_camera_transform()` and `is_blend_active()`
+  - Modify `scripts/core/managers/m_camera_manager.gd`: implement `apply_main_camera_transform()` and `is_blend_active()`
   - Modify `tests/mocks/mock_camera_manager.gd`: add mock implementations
   - All tests should pass
   - Completion note (March 15, 2026): Existing API wiring was retained; `M_CameraManager.is_blend_active()` now keys off active transition tween state (`_camera_blend_tween.is_running()`) so idle transition-camera current-state does not report false positives.
@@ -1198,7 +1198,7 @@ Settings checks (mode-agnostic):
   - Completion note (March 15, 2026): `M_VCamManager` now consumes frame-stamped submissions (`Engine.get_physics_frames`) and skips stale-frame data; gameplay camera writes remain routed exclusively through `camera_manager.apply_main_camera_transform()`.
 
 - [x] **Task 9D.3**: Enrich `S_CameraStateSystem` QB rule context with vCam state
-  - Modify `scripts/ecs/systems/s_camera_state_system.gd` `_build_camera_context()` method
+  - Modify `scripts/core/ecs/systems/s_camera_state_system.gd` `_build_camera_context()` method
   - Add `vcam_active_mode` from `U_VCamSelectors.get_active_mode(state)`
   - Add `vcam_is_blending` from `U_VCamSelectors.is_blending(state)`
   - Add `vcam_active_vcam_id` from `U_VCamSelectors.get_active_vcam_id(state)`
@@ -1268,7 +1268,7 @@ Completion note (March 22, 2026): Manual blend validation checklist passed acros
 ### Phase 10A: U_VCamCollisionDetector
 
 - [x] **Task 10A.0 (Pre-requisite)**: Inventory occludable geometry in gameplay scenes
-  - Before implementing collision detection, audit all gameplay scenes (`scenes/gameplay/`, `scenes/prefabs/`) for geometry that should occlude camera-to-target line of sight
+  - Before implementing collision detection, audit all gameplay scenes (`scenes/demo/gameplay/`, `scenes/core/prefabs/`) for geometry that should occlude camera-to-target line of sight
   - Document which `MeshInstance3D` and `CSGShape3D` nodes need layer 6 (`vcam_occludable`) migration
   - Identify any geometry that should NOT be on the occlusion layer (triggers, zones, small detail props)
   - This audit prevents discovering missing occluder assignments late in Phase 10A.3
@@ -1286,7 +1286,7 @@ Completion note (March 22, 2026): Manual blend validation checklist passed acros
   - Completion note (March 15, 2026): Added `test_vcam_collision_detector.gd` with 6 Red assertions covering empty rays, mesh/CSG occluder detection, wrong-layer filtering, freed-collider safety, and multi-hit aggregation.
 
 - [x] **Task 10A.2 (Green)**: Implement U_VCamCollisionDetector
-  - Create `scripts/managers/helpers/u_vcam_collision_detector.gd`
+  - Create `scripts/core/managers/helpers/u_vcam_collision_detector.gd`
   - Modify `project.godot`: name physics layer 6 as `vcam_occludable`
   - Implement `static func detect_occluders(space_state, from, to, collision_mask) -> Array`
   - All tests should pass
@@ -1294,10 +1294,10 @@ Completion note (March 22, 2026): Manual blend validation checklist passed acros
   - Validation note (March 15, 2026): `tests/unit/managers/helpers/test_vcam_collision_detector.gd` (`6/6`) and `tests/unit/style/test_style_enforcement.gd` (`17/17`) pass.
 
 - [x] **Task 10A.3**: Roll out layer-6 occluder tagging in authored scenes
-  - Modify `scenes/gameplay/gameplay_base.tscn` and any gameplay/prefab scenes used in vCam flows where geometry should occlude camera line-of-sight
+  - Modify `scenes/demo/gameplay/gameplay_base.tscn` and any gameplay/prefab scenes used in vCam flows where geometry should occlude camera line-of-sight
   - Ensure only camera-blocking geometry uses layer 6 `vcam_occludable` (do not move trigger/zone-only nodes onto this layer)
   - Re-run scene/style gates after scene edits
-  - Completion note (March 15, 2026): Applied `collision_layer = 33` migration for audited occluders in `scenes/gameplay/gameplay_base.tscn`, `scenes/gameplay/gameplay_exterior.tscn`, `scenes/gameplay/gameplay_interior_base.tscn`, `scenes/gameplay/gameplay_interior_house.tscn`, `scenes/gameplay/gameplay_interior_a.tscn`, `scenes/prefabs/prefab_alleyway.tscn`, and `scenes/prefabs/prefab_bar.tscn`; post-migration audit reports `missing_count=0`.
+  - Completion note (March 15, 2026): Applied `collision_layer = 33` migration for audited occluders in `scenes/demo/gameplay/gameplay_base.tscn`, `scenes/demo/gameplay/gameplay_exterior.tscn`, `scenes/demo/gameplay/gameplay_interior_base.tscn`, `scenes/demo/gameplay/gameplay_interior_house.tscn`, `scenes/demo/gameplay/gameplay_interior_a.tscn`, `scenes/core/prefabs/prefab_alleyway.tscn`, and `scenes/core/prefabs/prefab_bar.tscn`; post-migration audit reports `missing_count=0`.
   - Validation note (March 15, 2026): `tests/unit/style/test_style_enforcement.gd` remains at the known pre-existing HUD inline-theme failure (`16/17`, `scenes/ui/hud/ui_hud_overlay.tscn`) with no new scene organization failures.
 
 ---
@@ -1318,7 +1318,7 @@ Completion note (March 22, 2026): Manual blend validation checklist passed acros
   - Completion note (March 15, 2026): Added `test_vcam_silhouette_helper.gd` with 6 Red assertions covering apply/restore lifecycle, tracked-count observability, and freed-node safety handling.
 
 - [x] **Task 10B.2 (Green)**: Implement U_VCamSilhouetteHelper
-  - Create `scripts/managers/helpers/u_vcam_silhouette_helper.gd`
+  - Create `scripts/core/managers/helpers/u_vcam_silhouette_helper.gd`
   - Create `assets/shaders/sh_vcam_silhouette_shader.gdshader`
   - Store original transparency/material state, apply silhouette visibility state, restore on removal
   - All tests should pass
@@ -1337,13 +1337,13 @@ Completion note (March 22, 2026): Manual blend validation checklist passed acros
   - Completion note (March 15, 2026): Added `EVENT_SILHOUETTE_UPDATE_REQUEST` to `U_ECSEventNames` for vCam→VFX silhouette routing.
 
 - [x] **Task 10B2.2**: Publish silhouette requests from M_VCamManager
-  - Modify `scripts/managers/m_vcam_manager.gd`:
+  - Modify `scripts/core/managers/m_vcam_manager.gd`:
     - After occlusion detection each tick, publish `EVENT_SILHOUETTE_UPDATE_REQUEST` through `U_ECSEventBus` with the current occluder set plus `entity_id`
     - Do NOT apply silhouettes directly — delegate to VFX manager
   - Completion note (March 15, 2026): `M_VCamManager` now resolves per-tick occluders via `U_VCamCollisionDetector.detect_occluders(...)` during active-camera submission and publishes `EVENT_SILHOUETTE_UPDATE_REQUEST` payloads (`entity_id`, `occluders`, `enabled`) through `U_ECSEventBus` without applying materials directly.
 
 - [x] **Task 10B2.3**: Subscribe and delegate in M_VFXManager
-  - Modify `scripts/managers/m_vfx_manager.gd`:
+  - Modify `scripts/core/managers/m_vfx_manager.gd`:
     - Subscribe to `EVENT_SILHOUETTE_UPDATE_REQUEST`
     - Delegate to `U_VCamSilhouetteHelper` for actual material override application/removal
     - Apply standard player gating (`_is_player_entity()`) and transition blocking (`_is_transition_blocked()`) before processing; `entity_id` in the payload is what makes existing player gating work
@@ -1421,7 +1421,7 @@ Completion note (March 22, 2026): Manual occlusion/silhouette checklist passed (
 **Exit Criteria:** Rule-of-thirds preview visible in editor, absent at runtime, style tests pass
 
 - [x] **Task 11.1**: Create U_VCamRuleOfThirdsPreview
-  - Create `scripts/utils/display/u_vcam_rule_of_thirds_preview.gd`
+  - Create `scripts/core/utils/display/u_vcam_rule_of_thirds_preview.gd`
   - `@tool`, extends `Node`
   - Creates `CanvasLayer` + drawing child internally
   - `queue_free()` outside editor (zero runtime cost)
@@ -1429,9 +1429,9 @@ Completion note (March 22, 2026): Manual occlusion/silhouette checklist passed (
   - Completion note (March 22, 2026): Added `U_VCamRuleOfThirdsPreview` as an editor-only helper (`@tool`) with an internal `CanvasLayer` + drawing control that renders a rule-of-thirds grid and `queue_free()` runtime teardown when `Engine.is_editor_hint()` is false.
 
 - [x] **Task 11.2**: Add preview to camera template
-  - Modify `scenes/templates/tmpl_camera.tscn`: add preview helper node
+  - Modify `scenes/core/templates/tmpl_camera.tscn`: add preview helper node
   - Verify preview node frees itself at runtime
-  - Completion note (March 22, 2026): Wired `U_VCamRuleOfThirdsPreview` into `scenes/templates/tmpl_camera.tscn` at the camera-root level so authors see framing guides in-editor while runtime instances self-remove.
+  - Completion note (March 22, 2026): Wired `U_VCamRuleOfThirdsPreview` into `scenes/core/templates/tmpl_camera.tscn` at the camera-root level so authors see framing guides in-editor while runtime instances self-remove.
 
 - [x] **Task 11.3**: Run style enforcement tests
   - `tests/unit/style/test_style_enforcement.gd` passes with new files
@@ -1681,7 +1681,7 @@ Unit tests for shared infrastructure (state, ECS components/systems, managers) l
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/utils -gselect=test_second_order -ginclude_subdirs=true -gexit
 
 # Run vcam unit tests (resources including RS_VCamResponse)
-/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/resources/display/vcam -ginclude_subdirs=true -gexit
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/resources/core/display/vcam -ginclude_subdirs=true -gexit
 
 # Run vcam unit tests (manager + helpers)
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/managers -gselect=test_vcam -ginclude_subdirs=true -gexit

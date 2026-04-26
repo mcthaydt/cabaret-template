@@ -134,7 +134,7 @@ The system SHALL implement `U_VFXReducer` with:
 class_name U_VFXReducer
 extends RefCounted
 
-const U_VFX_ACTIONS := preload("res://scripts/state/actions/u_vfx_actions.gd")
+const U_VFX_ACTIONS := preload("res://scripts/core/state/actions/u_vfx_actions.gd")
 
 static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 	var action_type: StringName = action.get("type", StringName(""))
@@ -426,7 +426,7 @@ The system SHALL implement `U_DamageFlash` extending `RefCounted`:
 class_name U_DamageFlash
 extends RefCounted
 
-const U_VFX_SELECTORS := preload("res://scripts/state/selectors/u_vfx_selectors.gd")
+const U_VFX_SELECTORS := preload("res://scripts/core/state/selectors/u_vfx_selectors.gd")
 
 @export var flash_color := Color(1.0, 0.0, 0.0, 0.3)  # Red, 30% alpha
 @export var fade_duration := 0.4  # Seconds
@@ -654,10 +654,10 @@ func _on_apply_pressed() -> void:
 **Objective**: Implement VFX Redux layer with immutable state management
 
 **Deliverables**:
-1. `scripts/resources/state/rs_vfx_initial_state.gd` - Initial state resource
-2. `scripts/state/actions/u_vfx_actions.gd` - 3 action creators
-3. `scripts/state/reducers/u_vfx_reducer.gd` - Reducer with clamping
-4. `scripts/state/selectors/u_vfx_selectors.gd` - 3 selector functions
+1. `scripts/core/resources/state/rs_vfx_initial_state.gd` - Initial state resource
+2. `scripts/core/state/actions/u_vfx_actions.gd` - 3 action creators
+3. `scripts/core/state/reducers/u_vfx_reducer.gd` - Reducer with clamping
+4. `scripts/core/state/selectors/u_vfx_selectors.gd` - 3 selector functions
 5. `tests/unit/state/test_vfx_reducer.gd` - 15 unit tests
 
 **Commit 1: VFX Initial State Resource**
@@ -686,7 +686,7 @@ func _on_apply_pressed() -> void:
 **Objective**: Implement M_VFXManager with event subscriptions and trauma state
 
 **Deliverables**:
-1. `scripts/managers/m_vfx_manager.gd` - Core manager
+1. `scripts/core/managers/m_vfx_manager.gd` - Core manager
 2. Update `scenes/root.tscn` - Add M_VFXManager node (persistent root scene)
 3. Update `scripts/core/root.gd` - ServiceLocator registration (Root bootstrap)
 4. `tests/unit/managers/test_vfx_manager.gd` - 20 unit tests
@@ -717,7 +717,7 @@ func _on_apply_pressed() -> void:
 **Objective**: Implement trauma-based shake calculation with FastNoiseLite
 
 **Deliverables**:
-1. `scripts/managers/helpers/u_screen_shake.gd` - Shake helper
+1. `scripts/core/managers/helpers/u_screen_shake.gd` - Shake helper
 2. Shake algorithm integration in M_VFXManager
 3. `tests/unit/managers/helpers/test_screen_shake.gd` - 15 unit tests
 
@@ -747,7 +747,7 @@ func _on_apply_pressed() -> void:
 **Objective**: Add shake offset methods to M_CameraManager
 
 **Deliverables**:
-1. Update `scripts/managers/m_camera_manager.gd` - Add shake methods
+1. Update `scripts/core/managers/m_camera_manager.gd` - Add shake methods
 2. `tests/unit/managers/test_camera_manager_shake.gd` - 10 integration tests
 
 **Commit 1: Camera Shake Methods**
@@ -776,7 +776,7 @@ func _on_apply_pressed() -> void:
 **Objective**: Implement damage flash overlay with fade animation
 
 **Deliverables**:
-1. `scripts/managers/helpers/u_damage_flash.gd` - Flash helper
+1. `scripts/core/managers/helpers/u_damage_flash.gd` - Flash helper
 2. `scenes/ui/overlays/ui_damage_flash_overlay.tscn` - CanvasLayer scene
 3. `tests/unit/managers/helpers/test_damage_flash.gd` - 10 unit tests
 
@@ -1171,26 +1171,26 @@ func test_ui_reflects_redux_state():
 ## File Structure
 
 ```
-scripts/managers/
+scripts/core/managers/
   m_vfx_manager.gd                     # Core VFX orchestration manager
 
-scripts/managers/helpers/
+scripts/core/managers/helpers/
   u_screen_shake.gd                    # Trauma-based shake calculation
   u_damage_flash.gd                    # Flash overlay helper
 
-scripts/state/resources/
+scripts/core/state/resources/
   rs_vfx_initial_state.gd              # Initial Redux state resource
 
-scripts/state/actions/
+scripts/core/state/actions/
   u_vfx_actions.gd                     # VFX action creators (3 actions)
 
-scripts/state/reducers/
+scripts/core/state/reducers/
   u_vfx_reducer.gd                     # VFX state reducer with clamping
 
-scripts/state/selectors/
+scripts/core/state/selectors/
   u_vfx_selectors.gd                   # VFX state selectors (3 selectors)
 
-scenes/ui/
+scenes/core/ui/
   ui_damage_flash_overlay.tscn         # CanvasLayer with ColorRect
 
 tests/unit/state/
@@ -1212,7 +1212,7 @@ tests/integration/vfx/
 
 ### Existing Code Modifications
 
-**1. M_CameraManager** (`scripts/managers/m_camera_manager.gd`):
+**1. M_CameraManager** (`scripts/core/managers/m_camera_manager.gd`):
 - **Add Fields**:
   - `var _shake_offset: Vector2 = Vector2.ZERO`
   - `var _shake_rotation: float = 0.0`
@@ -1235,10 +1235,10 @@ tests/integration/vfx/
   U_ServiceLocator.register(StringName("vfx_manager"), vfx_manager)
   ```
 
-**4. M_StateStore** (`scripts/state/m_state_store.gd`):
+**4. M_StateStore** (`scripts/core/state/m_state_store.gd`):
 - **Add Reducer Preload** (after line 27):
   ```gdscript
-  const U_VFX_REDUCER := preload("res://scripts/state/reducers/u_vfx_reducer.gd")
+  const U_VFX_REDUCER := preload("res://scripts/core/state/reducers/u_vfx_reducer.gd")
   ```
 - **Add Export Variable** (after line 56):
   ```gdscript

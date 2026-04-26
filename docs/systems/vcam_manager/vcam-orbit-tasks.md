@@ -17,9 +17,9 @@ Before starting Phase 2, verify:
   - Read `docs/vcam_manager/vcam-manager-prd.md` (orbit requirements)
   - Read `docs/guides/pitfalls/` and `docs/guides/STYLE_GUIDE.md`
 - [x] **PRE-3**: Understand existing patterns by reading:
-  - `scripts/resources/display/vcam/rs_vcam_soft_zone.gd` (resource pattern from Phase 1)
-  - `scripts/resources/display/vcam/rs_vcam_blend_hint.gd` (resource pattern from Phase 1)
-  - Any existing `tests/unit/resources/display/vcam/` tests (test pattern from Phase 1)
+  - `scripts/core/resources/display/vcam/rs_vcam_soft_zone.gd` (resource pattern from Phase 1)
+  - `scripts/core/resources/display/vcam/rs_vcam_blend_hint.gd` (resource pattern from Phase 1)
+  - Any existing `tests/unit/resources/core/display/vcam/` tests (test pattern from Phase 1)
 - [x] **PRE-4**: Verify branch is `vcam` and working tree is clean
 
 ---
@@ -36,7 +36,7 @@ Before starting Phase 2, verify:
 
 ### Post-0f51 Retune Audit (March 10, 2026)
 
-- [x] Added preset coverage for `cfg_default_response.tres` tuned orbit response values in `tests/unit/resources/display/vcam/test_vcam_mode_presets.gd`
+- [x] Added preset coverage for `cfg_default_response.tres` tuned orbit response values in `tests/unit/resources/core/display/vcam/test_vcam_mode_presets.gd`
 - [x] Added style guard to fail on authored `debug_rotation_logging = true` overrides in gameplay/template scenes (`tests/unit/style/test_style_enforcement.gd`)
 
 ---
@@ -48,7 +48,7 @@ Before starting Phase 2, verify:
 ### Phase 2A: RS_VCamModeOrbit Resource
 
 - [x] **Task 2A.1 (Red)**: Write tests for RS_VCamModeOrbit
-  - Create `tests/unit/resources/display/vcam/test_vcam_mode_orbit.gd`
+  - Create `tests/unit/resources/core/display/vcam/test_vcam_mode_orbit.gd`
   - Test `distance` field exists with default (e.g. 5.0)
   - Test `authored_pitch` field exists with default (e.g. -20.0 degrees)
   - Test `authored_yaw` field exists with default (e.g. 0.0)
@@ -60,7 +60,7 @@ Before starting Phase 2, verify:
   - **Target: 11 tests** (8 baseline + 3 resolved-value safety checks)
 
 - [x] **Task 2A.2 (Green)**: Implement RS_VCamModeOrbit
-  - Create `scripts/resources/display/vcam/rs_vcam_mode_orbit.gd`
+  - Create `scripts/core/resources/display/vcam/rs_vcam_mode_orbit.gd`
   - Extend `Resource`
   - Add `class_name RS_VCamModeOrbit`
   - All `@export` fields with sensible defaults:
@@ -75,7 +75,7 @@ Before starting Phase 2, verify:
 - [x] **Task 2A.3**: Run style enforcement tests
   - `tests/unit/style/test_style_enforcement.gd` passes with new files
   - Verify file naming follows `rs_` prefix convention
-  - Verify script is in `scripts/resources/display/vcam/` per style guide
+  - Verify script is in `scripts/core/resources/display/vcam/` per style guide
 
 ---
 
@@ -120,7 +120,7 @@ Before starting Phase 2, verify:
   ```
 
 - [x] **Task 2B.2 (Green)**: Implement orbit evaluation in U_VCamModeEvaluator
-  - Create `scripts/managers/helpers/u_vcam_mode_evaluator.gd`
+  - Create `scripts/core/managers/helpers/u_vcam_mode_evaluator.gd`
   - Add `class_name U_VCamModeEvaluator`
   - Implement `static func evaluate(mode: Resource, follow_target: Node3D, look_at_target: Node3D, runtime_yaw: float, runtime_pitch: float, fixed_anchor: Node3D = null) -> Dictionary`
   - Handle orbit mode branch:
@@ -146,18 +146,18 @@ Before starting Phase 2, verify:
   ```
 
 - [x] **Task 2B.3**: Create default orbit resource instance
-  - Create `resources/display/vcam/cfg_default_orbit.tres`
+  - Create `resources/core/display/vcam/cfg_default_orbit.tres`
   - Set all fields to resource defaults (distance=5.0, authored_pitch=-20.0, authored_yaw=0.0, allow_player_rotation=true, rotation_speed=2.0, fov=75.0)
   - Verify resource loads without errors:
     ```gdscript
-    var res := load("res://resources/display/vcam/cfg_default_orbit.tres")
+    var res := load("res://resources/core/display/vcam/cfg_default_orbit.tres")
     assert_not_null(res)
     assert_is(res, RS_VCamModeOrbit)
     ```
 
 - [x] **Task 2B.4**: Run style enforcement tests
   - `tests/unit/style/test_style_enforcement.gd` passes with all new files
-  - Verify `u_vcam_mode_evaluator.gd` is in `scripts/managers/helpers/` per file structure
+  - Verify `u_vcam_mode_evaluator.gd` is in `scripts/core/managers/helpers/` per file structure
   - Verify test file is in `tests/unit/managers/helpers/`
 
 **Completion notes (March 10, 2026):**
@@ -178,12 +178,12 @@ Before starting Phase 2, verify:
 > **Why:** In third-person orbit, the camera trails behind the player. Look-ahead offsets the camera ahead in the movement direction so the player can see more of where they're going. This is an orbit-only concept — OTS cameras already have their own shoulder-offset framing and don't need predictive offset.
 
 - [x] **Task 2C1.1**: Add look-ahead fields to RS_VCamResponse
-  - Modify `scripts/resources/display/vcam/rs_vcam_response.gd`:
+  - Modify `scripts/core/resources/display/vcam/rs_vcam_response.gd`:
     - `@export var look_ahead_distance: float = 0.0` — max world-space offset in the follow target's movement direction (0 = disabled)
     - `@export var look_ahead_smoothing: float = 3.0` — Hz for look-ahead offset second-order dynamics (prevents jitter on direction changes)
   - Add tests verifying fields exist with defaults and non-negative validation
   - **Target: 3 tests**
-  - Completion note (2026-03-10): Added `look_ahead_distance` and `look_ahead_smoothing` exports to `RS_VCamResponse`, added resolved-value clamping, and expanded `tests/unit/resources/display/vcam/test_vcam_response.gd` with defaults/clamp coverage.
+  - Completion note (2026-03-10): Added `look_ahead_distance` and `look_ahead_smoothing` exports to `RS_VCamResponse`, added resolved-value clamping, and expanded `tests/unit/resources/core/display/vcam/test_vcam_response.gd` with defaults/clamp coverage.
 
 - [x] **Task 2C1.2 (Red)**: Write tests for look-ahead in S_VCamSystem
   - Add to `tests/unit/ecs/systems/test_vcam_system.gd`
@@ -228,7 +228,7 @@ Before starting Phase 2, verify:
 > **Why:** In orbit mode, the camera can drift to awkward pitch angles after the player stops actively looking. Auto-level gradually returns the camera pitch to the horizon when no look input is active. This is orbit-specific because OTS pitch drift is the player's own aimed view direction (resetting it feels like the game is fighting the player).
 
 - [x] **Task 2C2.1**: Add auto-level fields to RS_VCamResponse
-  - Modify `scripts/resources/display/vcam/rs_vcam_response.gd`:
+  - Modify `scripts/core/resources/display/vcam/rs_vcam_response.gd`:
     - `@export var auto_level_speed: float = 0.0` — degrees/sec pitch decays toward horizon when no look input active (0 = disabled)
     - `@export var auto_level_delay: float = 1.0` — seconds of zero look input before auto-level begins
   - Add tests verifying fields exist with defaults and non-negative validation
@@ -279,7 +279,7 @@ Before starting Phase 2, verify:
   - Completion note (2026-03-10): Added `tests/unit/managers/helpers/test_vcam_soft_zone.gd` with 10 projection/damping/depth/viewport baseline tests plus the 2C4 hysteresis scenarios (14 total helper tests).
 
 - [x] **Task 2C3.2 (Green)**: Implement U_VCamSoftZone
-  - Create `scripts/managers/helpers/u_vcam_soft_zone.gd`
+  - Create `scripts/core/managers/helpers/u_vcam_soft_zone.gd`
   - Implement `static func compute_camera_correction(camera, follow_world_pos, desired_transform, soft_zone, delta) -> Vector3`
   - **Projection method contract:**
     - Use the active gameplay camera viewport inside `GameViewport`; never use the persistent root manager node's viewport for this helper
@@ -291,7 +291,7 @@ Before starting Phase 2, verify:
   - Project follow target, test zone membership, reproject correction
   - **Note:** The `damping` field on `RS_VCamSoftZone` controls correction magnitude (how aggressively the camera corrects when the target enters the soft zone). The temporal smoothing of that correction is handled by the second-order dynamics in `S_VCamSystem` (Phase 6A2) — the soft zone helper computes the instantaneous correction vector, and the dynamics smooth the resulting camera position over time.
   - All tests should pass
-  - Completion note (2026-03-10): Added `scripts/managers/helpers/u_vcam_soft_zone.gd` with projection-aware correction (`unproject_position` + `project_position`), near-plane guard, damping-scaled soft-zone correction, hard-zone clamp, and optional dead-zone state handoff for hysteresis.
+  - Completion note (2026-03-10): Added `scripts/core/managers/helpers/u_vcam_soft_zone.gd` with projection-aware correction (`unproject_position` + `project_position`), near-plane guard, damping-scaled soft-zone correction, hard-zone clamp, and optional dead-zone state handoff for hysteresis.
 
 ---
 
@@ -300,10 +300,10 @@ Before starting Phase 2, verify:
 > **Why:** Without hysteresis, a target oscillating exactly at the dead zone boundary causes per-frame correction toggling (jitter). Hysteresis uses slightly different enter/exit thresholds — the dead zone is smaller to enter (correction starts) and larger to exit (correction stops), preventing boundary flutter.
 
 - [x] **Task 2C4.1**: Add `hysteresis_margin` field to RS_VCamSoftZone
-  - Modify `scripts/resources/display/vcam/rs_vcam_soft_zone.gd`:
+  - Modify `scripts/core/resources/display/vcam/rs_vcam_soft_zone.gd`:
     - `@export var hysteresis_margin: float = 0.02` — fraction of screen space added/subtracted to dead zone for enter/exit thresholds
   - Modify existing tests to verify field exists with default
-  - Completion note (2026-03-10): Extended `RS_VCamSoftZone` with `hysteresis_margin` and `get_resolved_values()` clamping; updated `tests/unit/resources/display/vcam/test_vcam_soft_zone.gd` for default/non-negative coverage.
+  - Completion note (2026-03-10): Extended `RS_VCamSoftZone` with `hysteresis_margin` and `get_resolved_values()` clamping; updated `tests/unit/resources/core/display/vcam/test_vcam_soft_zone.gd` for default/non-negative coverage.
 
 - [x] **Task 2C4.2 (Red)**: Write tests for hysteresis behavior
   - Add to `tests/unit/managers/helpers/test_vcam_soft_zone.gd`
@@ -327,7 +327,7 @@ Before starting Phase 2, verify:
 ### Phase 2C5: Soft Zone Integration
 
 - [x] **Task 2C5.1**: Integrate soft-zone correction into S_VCamSystem
-  - Modify `scripts/ecs/systems/s_vcam_system.gd`: apply correction to evaluated transform before submitting
+  - Modify `scripts/core/ecs/systems/s_vcam_system.gd`: apply correction to evaluated transform before submitting
   - Gate: only apply when active mode is orbit and component has a soft zone resource
   - Add regression tests to `test_vcam_system.gd`:
     - Test soft zone correction is applied when orbit component has soft zone resource
@@ -342,14 +342,14 @@ Before starting Phase 2, verify:
 > **Why:** Orbit camera height tied directly to player/root transform can bob during jumps or jitter on uneven ground. Ground-relative anchoring keeps the camera's vertical reference stable while airborne and only re-anchors when the player lands on meaningfully different terrain.
 
 - [x] **Task 2C6.1**: Add ground-relative fields to RS_VCamResponse
-  - Modify `scripts/resources/display/vcam/rs_vcam_response.gd`:
+  - Modify `scripts/core/resources/display/vcam/rs_vcam_response.gd`:
     - `@export var ground_relative_enabled: bool = false` — enables dual-anchor ground-relative orbit height behavior
     - `@export var ground_reanchor_min_height_delta: float = 0.5` — minimum landed height delta (meters) required before re-anchoring camera ground baseline
     - `@export var ground_probe_max_distance: float = 12.0` — max downward probe distance used to detect ground reference
     - `@export var ground_anchor_blend_hz: float = 4.0` — smoothing frequency for ground-anchor updates/re-anchors
   - Add tests verifying fields exist, defaults are stable, and resolved-value clamps are non-negative where applicable
   - **Target: 5 tests**
-  - Completion note (2026-03-11): Added all four ground-relative exports to `RS_VCamResponse` and extended resolved-value clamping/coverage in `tests/unit/resources/display/vcam/test_vcam_response.gd` (`20/20` passing).
+  - Completion note (2026-03-11): Added all four ground-relative exports to `RS_VCamResponse` and extended resolved-value clamping/coverage in `tests/unit/resources/core/display/vcam/test_vcam_response.gd` (`20/20` passing).
 
 - [x] **Task 2C6.2 (Red)**: Write tests for ground-relative positioning in S_VCamSystem
   - Add to `tests/unit/ecs/systems/test_vcam_system.gd`
@@ -379,7 +379,7 @@ Before starting Phase 2, verify:
 > **Why:** Orbit look release can feel abrupt if rotation immediately stops when input drops to zero. A release-damping pass should decelerate rotation naturally, with axis-specific control and explicit stop-threshold clamping to avoid drift.
 
 - [x] **Task 2C7.1**: Add look-release damping fields to RS_VCamResponse
-  - Modify `scripts/resources/display/vcam/rs_vcam_response.gd`:
+  - Modify `scripts/core/resources/display/vcam/rs_vcam_response.gd`:
     - `@export var look_release_yaw_damping: float = 10.0` — damping applied to yaw velocity after look input release
     - `@export var look_release_pitch_damping: float = 12.0` — damping applied to pitch velocity after look input release
     - `@export var look_release_stop_threshold: float = 0.05` — absolute velocity threshold below which release velocity snaps to zero
@@ -444,7 +444,7 @@ Before starting Phase 2, verify:
 
 - [x] **Task 2C8F.1**: Lock default bindings to intent (`camera_center=R3`, `sprint=L3`)
   - Updated `project.godot` `camera_center` joypad default from index `10` to `JOY_BUTTON_RIGHT_STICK` (`8`).
-  - Updated `resources/input/profiles/cfg_default_gamepad.tres` and `cfg_accessibility_gamepad.tres` to bind `camera_center` to `JOY_BUTTON_RIGHT_STICK` (`8`).
+  - Updated `resources/core/input/profiles/cfg_default_gamepad.tres` and `cfg_accessibility_gamepad.tres` to bind `camera_center` to `JOY_BUTTON_RIGHT_STICK` (`8`).
   - Left `sprint` bound to `JOY_BUTTON_LEFT_STICK` (`7`) unchanged.
 
 - [x] **Task 2C8F.2**: Canonicalize gamepad label mapping and prompt icon behavior
@@ -489,7 +489,7 @@ Before starting Phase 2, verify:
 **Exit Criteria:** All ~18 tests pass (7 resource + 11 component), resource exposes resolved values, component collects mesh targets and provides world-space fade normal
 
 - [x] **Task 2C9.1 (Red)**: Write tests for RS_RoomFadeSettings resource
-  - Create `tests/unit/resources/display/vcam/test_room_fade_settings.gd`
+  - Create `tests/unit/resources/core/display/vcam/test_room_fade_settings.gd`
   - Test `fade_dot_threshold` field exists with default (e.g. `0.3`)
   - Test `fade_speed` field exists with default (e.g. `4.0`)
   - Test `min_alpha` field exists with default (e.g. `0.05`)
@@ -498,10 +498,10 @@ Before starting Phase 2, verify:
   - Test `min_alpha` is clamped to `0.0..1.0` by `get_resolved_values()`
   - Test `get_resolved_values()` returns dictionary with all expected keys
   - **Target: 7 tests**
-  - Completion note (2026-03-14): Added `tests/unit/resources/display/vcam/test_room_fade_settings.gd` with 7 tests covering defaults, clamp behavior, and resolved-key contract (`7/7` passing).
+  - Completion note (2026-03-14): Added `tests/unit/resources/core/display/vcam/test_room_fade_settings.gd` with 7 tests covering defaults, clamp behavior, and resolved-key contract (`7/7` passing).
 
 - [x] **Task 2C9.2 (Green)**: Implement RS_RoomFadeSettings resource
-  - Create `scripts/resources/display/vcam/rs_room_fade_settings.gd`
+  - Create `scripts/core/resources/display/vcam/rs_room_fade_settings.gd`
   - Extend `Resource`
   - Add `class_name RS_RoomFadeSettings`
   - All `@export` fields with sensible defaults:
@@ -529,7 +529,7 @@ Before starting Phase 2, verify:
   - Completion note (2026-03-14): Added `tests/unit/ecs/components/test_room_fade_group_component.gd` with 11 tests covering export defaults, mesh-target collection, world-normal transform, normalization, base inheritance, and snapshot fields (`11/11` passing).
 
 - [x] **Task 2C9.4 (Green)**: Implement C_RoomFadeGroupComponent
-  - Create `scripts/ecs/components/c_room_fade_group_component.gd`
+  - Create `scripts/core/ecs/components/c_room_fade_group_component.gd`
   - Extend `BaseECSComponent`
   - Add `class_name C_RoomFadeGroupComponent`
   - `const COMPONENT_TYPE := StringName("RoomFadeGroup")`
@@ -547,10 +547,10 @@ Before starting Phase 2, verify:
   - Completion note (2026-03-14): Implemented `C_RoomFadeGroupComponent` with `COMPONENT_TYPE = "RoomFadeGroup"`, `RS_RoomFadeSettings`-guarded nullable settings export, `current_alpha` runtime field, recursive mesh-target collection, parent-basis world-normal conversion, and snapshot reporting.
 
 - [x] **Task 2C9.5**: Create default RS_RoomFadeSettings resource instance
-  - Create `resources/display/vcam/cfg_default_room_fade.tres`
+  - Create `resources/core/display/vcam/cfg_default_room_fade.tres`
   - Set all fields to resource defaults (`fade_dot_threshold=0.3`, `fade_speed=4.0`, `min_alpha=0.05`)
   - Verify resource loads without errors
-  - Completion note (2026-03-14): Added `resources/display/vcam/cfg_default_room_fade.tres` with default room-fade values and verified load via resource test execution.
+  - Completion note (2026-03-14): Added `resources/core/display/vcam/cfg_default_room_fade.tres` with default room-fade values and verified load via resource test execution.
 
 - [x] **Task 2C9.6**: Run style enforcement tests
   - `tests/unit/style/test_style_enforcement.gd` run completed with pre-existing unrelated failure (`16/17`; existing `scenes/ui/hud/ui_hud_overlay.tscn` inline `theme_override_*` issue)
@@ -594,7 +594,7 @@ Before starting Phase 2, verify:
   - Completion note (2026-03-14): Added `tests/unit/lighting/test_room_fade_material_applier.gd` with 6 assertions covering shader replacement, albedo carry-forward, cache/restore lifecycle, and restore no-op safety.
 
 - [x] **Task 2C10.3 (Green)**: Implement U_RoomFadeMaterialApplier
-  - Create `scripts/utils/lighting/u_room_fade_material_applier.gd`
+  - Create `scripts/core/utils/lighting/u_room_fade_material_applier.gd`
   - Add `class_name U_RoomFadeMaterialApplier`
   - Follow `U_CharacterLightingMaterialApplier` pattern:
     - Cache original `material_override` per `MeshInstance3D` (dictionary keyed by instance ID) — note: this caches `material_override` only, not per-surface-slot materials
@@ -621,7 +621,7 @@ Before starting Phase 2, verify:
   - Completion note (2026-03-14): Expanded `tests/unit/ecs/systems/test_room_fade_system.gd` to 12 tests, including orbit fade/restore behavior, default-settings fallback, stale-target cleanup, non-orbit immediate-restore gating, and viewport-camera fallback when camera-manager main camera is absent.
 
 - [x] **Task 2C10.5 (Green)**: Implement S_RoomFadeSystem
-  - Create `scripts/ecs/systems/s_room_fade_system.gd`
+  - Create `scripts/core/ecs/systems/s_room_fade_system.gd`
   - Extend `BaseECSSystem`
   - Add `class_name S_RoomFadeSystem`
   - `execution_priority` after `S_VCamSystem` (e.g. `110`)
@@ -717,7 +717,7 @@ Before starting Phase 2, verify:
 
 - [x] **Task 2C11A.2 (Red)**: Add gameplay scene ownership audit test
   - Create `tests/unit/ecs/systems/test_room_fade_scene_audit.gd`
-  - Load `scenes/gameplay/gameplay_interior_a.tscn`
+  - Load `scenes/demo/gameplay/gameplay_interior_a.tscn`
   - Assert all room-fade targets have single-group ownership with explicit diagnostics
   - Assert all six room-fade groups exist and have explicit unique `group_tag` values
   - Completion note (2026-03-21): Added scene-audit coverage with duplicate-target + `group_tag` validation.
@@ -899,7 +899,7 @@ Completion note (March 22, 2026): Orbit manual blend checklist passed (`MT-19/21
 
 ```bash
 # Run orbit resource tests
-/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/resources/display/vcam -gselect=test_vcam_mode_orbit -ginclude_subdirs=true -gexit
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/resources/core/display/vcam -gselect=test_vcam_mode_orbit -ginclude_subdirs=true -gexit
 
 # Run orbit evaluator tests
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/managers/helpers -gselect=test_vcam_mode_evaluator -ginclude_subdirs=true -gexit
@@ -911,7 +911,7 @@ Completion note (March 22, 2026): Orbit manual blend checklist passed (`MT-19/21
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/style -ginclude_subdirs=true -gexit
 
 # Run room fade settings resource tests
-/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/resources/display/vcam -gselect=test_room_fade_settings -ginclude_subdirs=true -gexit
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/resources/core/display/vcam -gselect=test_room_fade_settings -ginclude_subdirs=true -gexit
 
 # Run room fade group component tests
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ecs/components -gselect=test_room_fade_group_component -ginclude_subdirs=true -gexit
@@ -961,13 +961,13 @@ Completion note (March 22, 2026): Orbit manual blend checklist passed (`MT-19/21
 
 | File | Type | Directory |
 |------|------|-----------|
-| `rs_room_fade_settings.gd` | Resource script | `scripts/resources/display/vcam/` |
-| `cfg_default_room_fade.tres` | Resource instance | `resources/display/vcam/` |
-| `c_room_fade_group_component.gd` | Component script | `scripts/ecs/components/` |
-| `s_room_fade_system.gd` | System script | `scripts/ecs/systems/` |
-| `u_room_fade_material_applier.gd` | Utility script | `scripts/utils/lighting/` |
+| `rs_room_fade_settings.gd` | Resource script | `scripts/core/resources/display/vcam/` |
+| `cfg_default_room_fade.tres` | Resource instance | `resources/core/display/vcam/` |
+| `c_room_fade_group_component.gd` | Component script | `scripts/core/ecs/components/` |
+| `s_room_fade_system.gd` | System script | `scripts/core/ecs/systems/` |
+| `u_room_fade_material_applier.gd` | Utility script | `scripts/core/utils/lighting/` |
 | `sh_room_fade.gdshader` | Shader | `assets/shaders/` |
-| `test_room_fade_settings.gd` | Test | `tests/unit/resources/display/vcam/` |
+| `test_room_fade_settings.gd` | Test | `tests/unit/resources/core/display/vcam/` |
 | `test_room_fade_group_component.gd` | Test | `tests/unit/ecs/components/` |
 | `test_room_fade_system.gd` | Test | `tests/unit/ecs/systems/` |
 | `test_room_fade_material_applier.gd` | Test | `tests/unit/lighting/` |

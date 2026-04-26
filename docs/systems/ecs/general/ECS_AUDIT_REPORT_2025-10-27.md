@@ -30,13 +30,13 @@ All core ECS architectural elements are **fully implemented and operational**:
 
 | Component | Status | Location | Notes |
 |-----------|--------|----------|-------|
-| **M_ECSManager** | ✅ Complete | `scripts/managers/m_ecs_manager.gd` | 482 lines, full query system, caching, metrics |
-| **BaseECSComponent** | ✅ Complete | `scripts/ecs/base_ecs_component.gd` | Base class with validation hooks |
-| **BaseECSSystem** | ✅ Complete | `scripts/ecs/base_ecs_system.gd` | Priority-based execution, query API |
-| **U_EntityQuery** | ✅ Complete | `scripts/ecs/u_entity_query.gd` | Query result wrapper with type safety |
+| **M_ECSManager** | ✅ Complete | `scripts/core/managers/m_ecs_manager.gd` | 482 lines, full query system, caching, metrics |
+| **BaseECSComponent** | ✅ Complete | `scripts/core/ecs/base_ecs_component.gd` | Base class with validation hooks |
+| **BaseECSSystem** | ✅ Complete | `scripts/core/ecs/base_ecs_system.gd` | Priority-based execution, query API |
+| **U_EntityQuery** | ✅ Complete | `scripts/core/ecs/u_entity_query.gd` | Query result wrapper with type safety |
 | **U_ECSEventBus** | ✅ Complete | `scripts/core/events/ecs/u_ecs_event_bus.gd` | Pub/sub with history buffer |
-| **ECSEntity** | ✅ Complete | `scripts/ecs/base_ecs_entity.gd` | Entity root marker |
-| **U_ECSUtils** | ✅ Complete | `scripts/utils/ecs/u_ecs_utils.gd` | Centralized utilities |
+| **ECSEntity** | ✅ Complete | `scripts/core/ecs/base_ecs_entity.gd` | Entity root marker |
+| **U_ECSUtils** | ✅ Complete | `scripts/core/utils/ecs/u_ecs_utils.gd` | Centralized utilities |
 
 ### 1.2 Component Implementations ✅
 
@@ -152,7 +152,7 @@ All patterns from `docs/ecs/ecs_architecture.md` are **fully implemented**:
 **Technical Debt**: ✅ **ZERO**
 ```bash
 # Search for TODOs, FIXMEs, HACKs, XXXs, BUGs
-$ grep -r "TODO\|FIXME\|HACK\|XXX\|BUG" scripts/ecs/
+$ grep -r "TODO\|FIXME\|HACK\|XXX\|BUG" scripts/core/ecs/
 # Result: 0 matches (only debug-related code present)
 ```
 
@@ -355,14 +355,14 @@ $ grep -i "component.*path\|nodepath.*component" templates/*.tscn
 **Quick Reference** (from AGENTS.md):
 ```gdscript
 # Add new component
-1. Create scripts/ecs/components/c_your_component.gd
+1. Create scripts/core/ecs/components/c_your_component.gd
 2. Extend ECSComponent with COMPONENT_TYPE
 3. Add exported NodePaths for same-entity references
 4. Override _validate_required_settings()
 5. Update scene to wire NodePaths
 
 # Add new system
-1. Create scripts/ecs/systems/s_your_system.gd
+1. Create scripts/core/ecs/systems/s_your_system.gd
 2. Extend ECSSystem
 3. Set execution_priority
 4. Implement process_tick(delta)
@@ -392,7 +392,7 @@ $ grep -i "component.*path\|nodepath.*component" templates/*.tscn
 
 **Directory Structure**:
 ```
-scripts/ecs/
+scripts/core/ecs/
 ├── base_ecs_component.gd (base)
 ├── base_ecs_system.gd (base)
 ├── u_entity_query.gd (query wrapper)
@@ -402,10 +402,10 @@ scripts/ecs/
 ├── systems/ (12 files)
 └── resources/ (8 files)
 
-scripts/managers/
+scripts/core/managers/
 └── m_ecs_manager.gd
 
-scripts/utils/
+scripts/core/utils/
 └── u_ecs_utils.gd
 
 templates/
@@ -664,14 +664,14 @@ The ECS system is **ready for production use** with:
 ## Appendix A: File Inventory
 
 ### Core Files (8)
-- `scripts/managers/m_ecs_manager.gd` (482 lines)
-- `scripts/ecs/base_ecs_component.gd` (49 lines)
-- `scripts/ecs/base_ecs_system.gd` (101 lines)
-- `scripts/ecs/u_entity_query.gd` (28 lines)
+- `scripts/core/managers/m_ecs_manager.gd` (482 lines)
+- `scripts/core/ecs/base_ecs_component.gd` (49 lines)
+- `scripts/core/ecs/base_ecs_system.gd` (101 lines)
+- `scripts/core/ecs/u_entity_query.gd` (28 lines)
 - `scripts/core/events/ecs/u_ecs_event_bus.gd` (60 lines)
-- `scripts/ecs/base_ecs_entity.gd` (13 lines)
-- `scripts/utils/ecs/u_ecs_utils.gd` (193 lines)
-- `scripts/ecs/event_vfx_system.gd` (77 lines)
+- `scripts/core/ecs/base_ecs_entity.gd` (13 lines)
+- `scripts/core/utils/ecs/u_ecs_utils.gd` (193 lines)
+- `scripts/core/ecs/event_vfx_system.gd` (77 lines)
 
 ### Components (7)
 - `c_movement_component.gd` (64 lines)

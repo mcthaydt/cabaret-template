@@ -6,7 +6,7 @@ This directory contains scene registration resources that allow non-coders to ad
 
 ### Option 1: Via Godot Editor (Recommended for Non-Coders)
 
-1. In Godot editor, go to: `FileSystem` → `resources/scene_registry/`
+1. In Godot editor, go to: `FileSystem` → `resources/core/scene_registry/`
 2. Right-click → `New Resource`
 3. Search for and select: `RS_SceneRegistryEntry`
 4. Configure the resource properties:
@@ -27,7 +27,7 @@ entry.scene_path = "res://scenes/levels/my_level.tscn"
 entry.scene_type = 1  # GAMEPLAY
 entry.default_transition = "fade"
 entry.preload_priority = 5
-ResourceSaver.save(entry, "res://resources/scene_registry/cfg_my_level_entry.tres")
+ResourceSaver.save(entry, "res://resources/core/scene_registry/cfg_my_level_entry.tres")
 ```
 
 ## Scene Type Guide

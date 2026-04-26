@@ -15,7 +15,7 @@ Current implementation state (2026-02-18): All phases are complete (core refacto
 ## Repo Reality Checks
 
 - Main scene is `scenes/root.tscn`; service registration bootstrapped by `scripts/core/root.gd` via `U_ServiceLocator`.
-- `M_TimeManager` is live at `scripts/managers/m_time_manager.gd`, registered as both `"time_manager"` and backward-compatible `"pause_manager"` in ServiceLocator.
+- `M_TimeManager` is live at `scripts/core/managers/m_time_manager.gd`, registered as both `"time_manager"` and backward-compatible `"pause_manager"` in ServiceLocator.
 - Pause state is derived from `scene.scene_stack` size AND `UIOverlayStack` child count (OR logic). Engine pause applied via `get_tree().paused`.
 - `M_TimeManager` coordinates cursor state with `M_CursorManager` based on pause state AND scene type.
 - `M_TimeManager` uses `process_mode = PROCESS_MODE_ALWAYS` and polls overlay state every `_process()` frame (not `_physics_process`) for pause resync.
@@ -47,13 +47,13 @@ Current implementation state (2026-02-18): All phases are complete (core refacto
 ## Architecture
 
 ```
-M_TimeManager (scripts/managers/m_time_manager.gd)  [extends Node]
-  ├── U_PauseSystem (scripts/managers/helpers/time/u_pause_system.gd)  [extends RefCounted]
+M_TimeManager (scripts/core/managers/m_time_manager.gd)  [extends Node]
+  ├── U_PauseSystem (scripts/core/managers/helpers/time/u_pause_system.gd)  [extends RefCounted]
   │     Layered pause channels, derives final pause bool
   │     M_TimeManager applies get_tree().paused = <result>
-  ├── U_TimescaleController (scripts/managers/helpers/time/u_timescale_controller.gd)  [extends RefCounted]
+  ├── U_TimescaleController (scripts/core/managers/helpers/time/u_timescale_controller.gd)  [extends RefCounted]
   │     Timescale multiplier, provides scaled delta
-  └── U_WorldClock (scripts/managers/helpers/time/u_world_clock.gd)  [extends RefCounted]
+  └── U_WorldClock (scripts/core/managers/helpers/time/u_world_clock.gd)  [extends RefCounted]
         In-game world simulation clock (hours/minutes, day/night)
         Uses Callable callbacks instead of signals (RefCounted limitation)
 ```
@@ -310,11 +310,11 @@ Controlled by `RS_StateSliceConfig.transient_fields` (an `Array[StringName]`). `
 
 | File | Class | Purpose |
 |------|-------|---------|
-| `scripts/state/actions/u_time_actions.gd` | `U_TimeActions` | Action creators |
-| `scripts/state/reducers/u_time_reducer.gd` | `U_TimeReducer` | Pure reducer |
-| `scripts/state/selectors/u_time_selectors.gd` | `U_TimeSelectors` | State selectors |
-| `scripts/resources/state/rs_time_initial_state.gd` | `RS_TimeInitialState` | Initial state resource class |
-| `resources/base_settings/state/cfg_time_initial_state.tres` | — | Default instance |
+| `scripts/core/state/actions/u_time_actions.gd` | `U_TimeActions` | Action creators |
+| `scripts/core/state/reducers/u_time_reducer.gd` | `U_TimeReducer` | Pure reducer |
+| `scripts/core/state/selectors/u_time_selectors.gd` | `U_TimeSelectors` | State selectors |
+| `scripts/core/resources/state/rs_time_initial_state.gd` | `RS_TimeInitialState` | Initial state resource class |
+| `resources/core/base_settings/state/cfg_time_initial_state.tres` | — | Default instance |
 
 ### Actions
 
@@ -342,30 +342,30 @@ U_TimeSelectors.is_daytime(state: Dictionary) -> bool
 ## File Structure
 
 ```
-scripts/managers/
+scripts/core/managers/
     m_time_manager.gd                          # Main manager (replaces m_pause_manager.gd)
 
-scripts/interfaces/
+scripts/core/interfaces/
     i_time_manager.gd                          # Interface for dependency injection
 
-scripts/managers/helpers/time/
+scripts/core/managers/helpers/time/
     u_pause_system.gd                          # Layered pause channels (RefCounted)
     u_timescale_controller.gd                  # Timescale multiplier (RefCounted)
     u_world_clock.gd                           # World simulation clock (RefCounted, Callable callbacks)
 
-scripts/state/actions/
+scripts/core/state/actions/
     u_time_actions.gd                          # Time slice action creators
 
-scripts/state/reducers/
+scripts/core/state/reducers/
     u_time_reducer.gd                          # Time slice reducer
 
-scripts/state/selectors/
+scripts/core/state/selectors/
     u_time_selectors.gd                        # Time slice selectors
 
-scripts/resources/state/
+scripts/core/resources/state/
     rs_time_initial_state.gd                   # Initial state resource class
 
-resources/base_settings/state/
+resources/core/base_settings/state/
     cfg_time_initial_state.tres                # Default initial state instance
 
 tests/unit/managers/
@@ -391,7 +391,7 @@ tests/unit/managers/
    - Line 67: remove `# m_ for M_PauseManager` exception from ECS systems prefix map (delete `"m_"` from that entry).
    - Lines 303/322–323/337: rename `has_pause_manager` → `has_time_manager`, update the node name check to `"M_TimeManager"`, update the assert message.
 7. Update all compile-time test references to `M_PauseManager` class name or `m_pause_manager.gd` path (see list below; verify with repo-wide `rg` before deleting the old file).
-8. Delete `scripts/managers/m_pause_manager.gd`.
+8. Delete `scripts/core/managers/m_pause_manager.gd`.
 
 **All test files to update** (complete list from codebase scan):
 
@@ -443,9 +443,9 @@ tests/unit/managers/
 
 **Files to modify** (3 files, not 1):
 
-1. `scripts/resources/state/rs_time_initial_state.gd` — new resource class with `to_dictionary()`.
-2. `scripts/state/m_state_store.gd` — add `@export var time_initial_state: RS_TimeInitialState` and pass it to `U_StateSliceManager.initialize_slices(...)`.
-3. `scripts/state/utils/u_state_slice_manager.gd` — extend `initialize_slices()` signature with `time_initial_state: Resource = null` parameter; add a `time` slice block with `transient_fields = [StringName("is_paused"), StringName("active_channels"), StringName("timescale")]`.
+1. `scripts/core/resources/state/rs_time_initial_state.gd` — new resource class with `to_dictionary()`.
+2. `scripts/core/state/m_state_store.gd` — add `@export var time_initial_state: RS_TimeInitialState` and pass it to `U_StateSliceManager.initialize_slices(...)`.
+3. `scripts/core/state/utils/u_state_slice_manager.gd` — extend `initialize_slices()` signature with `time_initial_state: Resource = null` parameter; add a `time` slice block with `transient_fields = [StringName("is_paused"), StringName("active_channels"), StringName("timescale")]`.
 
 **Steps**:
 

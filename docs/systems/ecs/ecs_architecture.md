@@ -132,7 +132,7 @@ Scene Tree
 
 ### 3.1 M_ECSManager
 
-**Location**: `scripts/managers/m_ecs_manager.gd`
+**Location**: `scripts/core/managers/m_ecs_manager.gd`
 
 **Purpose**: Central registry for all components and systems. Provides type-based component queries.
 
@@ -196,7 +196,7 @@ var _systems: Array[BaseECSSystem] = []
 
 ### 3.2 ECSComponent (Base Class)
 
-**Location**: `scripts/ecs/base_ecs_component.gd`
+**Location**: `scripts/core/ecs/base_ecs_component.gd`
 
 **Purpose**: Base class for all data components. Handles auto-registration with manager.
 
@@ -263,7 +263,7 @@ Component destroyed
 
 ### 3.3 ECSSystem (Base Class)
 
-**Location**: `scripts/ecs/base_ecs_system.gd`
+**Location**: `scripts/core/ecs/base_ecs_system.gd`
 
 **Purpose**: Base class for all logic systems. Provides component query API.
 
@@ -326,7 +326,7 @@ func process_tick(delta: float) -> void:
 
 ### 3.4 Concrete Components
 
-#### C_MovementComponent (`scripts/ecs/components/c_movement_component.gd`)
+#### C_MovementComponent (`scripts/core/ecs/components/c_movement_component.gd`)
 
 **Data**:
 ```gdscript
@@ -348,7 +348,7 @@ var _last_debug_snapshot: Dictionary = {}
 
 ---
 
-#### C_InputComponent (`scripts/ecs/components/c_input_component.gd`)
+#### C_InputComponent (`scripts/core/ecs/components/c_input_component.gd`)
 
 **Data**:
 ```gdscript
@@ -369,7 +369,7 @@ var _last_debug_snapshot: Dictionary = {}
 
 ---
 
-#### C_JumpComponent (`scripts/ecs/components/c_jump_component.gd`)
+#### C_JumpComponent (`scripts/core/ecs/components/c_jump_component.gd`)
 
 **Data**:
 ```gdscript
@@ -393,7 +393,7 @@ var _debug_snapshot: Dictionary = {}
 
 ---
 
-#### C_FloatingComponent (`scripts/ecs/components/c_floating_component.gd`)
+#### C_FloatingComponent (`scripts/core/ecs/components/c_floating_component.gd`)
 
 **Data**:
 ```gdscript
@@ -413,7 +413,7 @@ var _debug_snapshot: Dictionary = {}  # For debugging
 
 ---
 
-#### C_AlignWithSurfaceComponent (`scripts/ecs/components/c_align_with_surface_component.gd`)
+#### C_AlignWithSurfaceComponent (`scripts/core/ecs/components/c_align_with_surface_component.gd`)
 
 **Data**:
 ```gdscript
@@ -427,7 +427,7 @@ var _debug_snapshot: Dictionary = {}  # For debugging
 
 ---
 
-#### C_RotateToInputComponent (`scripts/ecs/components/c_rotate_to_input_component.gd`)
+#### C_RotateToInputComponent (`scripts/core/ecs/components/c_rotate_to_input_component.gd`)
 
 **Data**:
 ```gdscript
@@ -450,7 +450,7 @@ All components use `Resource` classes (prefixed with `RS_`) to store configurati
 - **Hot-reload**: Changes persist without recompiling
 - **Serialization**: Saved as `.tres` files in `resources/` folder
 
-**Location**: `scripts/ecs/resources/`
+**Location**: `scripts/core/ecs/resources/`
 
 #### RS_MovementSettings (`rs_movement_settings.gd`)
 ```gdscript
@@ -564,7 +564,7 @@ func _ready():
 
 ### 3.6 Concrete Systems
 
-#### S_InputSystem (`scripts/ecs/systems/s_input_system.gd`)
+#### S_InputSystem (`scripts/core/ecs/systems/s_input_system.gd`)
 
 **Purpose**: Reads Godot `Input` singleton, writes to `C_InputComponent`
 
@@ -591,7 +591,7 @@ func process_tick(_delta: float) -> void:
 
 ---
 
-#### S_MovementSystem (`scripts/ecs/systems/s_movement_system.gd`)
+#### S_MovementSystem (`scripts/core/ecs/systems/s_movement_system.gd`)
 
 **Purpose**: Applies movement based on input, handles acceleration/friction
 
@@ -608,7 +608,7 @@ func process_tick(_delta: float) -> void:
 
 ---
 
-#### S_JumpSystem (`scripts/ecs/systems/s_jump_system.gd`)
+#### S_JumpSystem (`scripts/core/ecs/systems/s_jump_system.gd`)
 
 **Purpose**: Implements jump logic with coyote time and jump buffering
 
@@ -628,7 +628,7 @@ func process_tick(_delta: float) -> void:
 
 ---
 
-#### S_GravitySystem (`scripts/ecs/systems/s_gravity_system.gd`)
+#### S_GravitySystem (`scripts/core/ecs/systems/s_gravity_system.gd`)
 
 **Purpose**: Applies gravity to movement components (unless floating)
 
@@ -642,7 +642,7 @@ func process_tick(_delta: float) -> void:
 
 ---
 
-#### S_FloatingSystem (`scripts/ecs/systems/s_floating_system.gd`)
+#### S_FloatingSystem (`scripts/core/ecs/systems/s_floating_system.gd`)
 
 **Purpose**: Maintains entity at specified height above ground using spring physics
 
@@ -657,7 +657,7 @@ func process_tick(_delta: float) -> void:
 
 ---
 
-#### S_RotateToInputSystem (`scripts/ecs/systems/s_rotate_to_input_system.gd`)
+#### S_RotateToInputSystem (`scripts/core/ecs/systems/s_rotate_to_input_system.gd`)
 
 **Purpose**: Rotates entity to face input direction
 
@@ -934,7 +934,7 @@ func test_movement_system_applies_velocity():
 **Trade-off**: Entities must be in scene tree (can't have "abstract" entities).
 
 **Entity Identification Contract**:
-- Attach `scripts/ecs/base_ecs_entity.gd` to every gameplay entity root. The script registers the node with the ECS manager so component discovery becomes deterministic without relying on naming.
+- Attach `scripts/core/ecs/base_ecs_entity.gd` to every gameplay entity root. The script registers the node with the ECS manager so component discovery becomes deterministic without relying on naming.
 - Entities are discovered via `BaseECSEntity` and the `E_` prefix; the legacy `ecs_entity` group fallback has been removed.
 - The manager caches discovered roots in its instance-id dictionary, so reparenting or renaming should continue to satisfy the script/prefix contract without relying on metadata.
 
@@ -1636,27 +1636,27 @@ func build_entity_snapshot(entity: Node) -> Dictionary
 
 | Prefab | Entity Node | entity_id | tags | Notes |
 |---|---|---|---|---|
-| scenes/prefabs/prefab_checkpoint_safe_zone.tscn | E_Checkpoint_SafeZone | `checkpoint_safezone` | `[checkpoint, objective]` | Passive respawn/restore volume |
-| scenes/prefabs/prefab_player.tscn | E_PlayerRoot | `player` | `[player, character]` | Player prefab (character template + input/gamepad/player tag) |
-| scenes/prefabs/prefab_death_zone.tscn | E_DeathZone | `deathzone` | `[hazard, death]` | Instant-death hazard volume |
-| scenes/prefabs/prefab_spike_trap.tscn | E_SpikeTrap | `spiketrap` | `[hazard, trap]` | Reusable spike trap hazard |
-| scenes/prefabs/prefab_goal_zone.tscn | E_GoalZone | `goalzone` | `[objective, goal]` | Area completion objective |
-| scenes/prefabs/prefab_door_trigger.tscn | E_DoorTrigger | `doortrigger` | `[trigger, door]` | Scene transition door; configure door_id/targets per instance |
+| scenes/core/prefabs/prefab_checkpoint_safe_zone.tscn | E_Checkpoint_SafeZone | `checkpoint_safezone` | `[checkpoint, objective]` | Passive respawn/restore volume |
+| scenes/core/prefabs/prefab_player.tscn | E_PlayerRoot | `player` | `[player, character]` | Player prefab (character template + input/gamepad/player tag) |
+| scenes/core/prefabs/prefab_death_zone.tscn | E_DeathZone | `deathzone` | `[hazard, death]` | Instant-death hazard volume |
+| scenes/core/prefabs/prefab_spike_trap.tscn | E_SpikeTrap | `spiketrap` | `[hazard, trap]` | Reusable spike trap hazard |
+| scenes/core/prefabs/prefab_goal_zone.tscn | E_GoalZone | `goalzone` | `[objective, goal]` | Area completion objective |
+| scenes/core/prefabs/prefab_door_trigger.tscn | E_DoorTrigger | `doortrigger` | `[trigger, door]` | Scene transition door; configure door_id/targets per instance |
 
 **Gameplay scenes**
 
 | Scene | Entity Node | entity_id | tags | Notes |
 |---|---|---|---|---|
-| scenes/gameplay/gameplay_exterior.tscn | E_DoorTrigger | `door_to_house` | `[trigger, door]` | Transition to `interior_house` |
-| scenes/gameplay/gameplay_exterior.tscn | E_DeathZone | `deathzone_exterior` | `[hazard, death]` | Pit/kill floor |
-| scenes/gameplay/gameplay_exterior.tscn | E_SpikeTrapA / E_SpikeTrapB | `spiketrap_a` / `spiketrap_b` | `[hazard, trap]` | Dual spike traps using shared settings |
-| scenes/gameplay/gameplay_exterior.tscn | E_Checkpoint_SafeZone | `checkpoint_exterior` | `[checkpoint, objective]` | Exterior checkpoint near spawn |
-| scenes/gameplay/gameplay_exterior.tscn | E_TutorialSign | `tutorial_exterior` | `[interactable, tutorial]` | Signpost dialogue on exterior path |
-| scenes/gameplay/gameplay_exterior.tscn | E_FinalGoal | `finalgoal` | `[objective, endgame]` | Final victory trigger for exterior |
-| scenes/gameplay/gameplay_interior_house.tscn | E_DoorTrigger | `door_to_exterior` | `[trigger, door]` | Transition back to exterior |
-| scenes/gameplay/gameplay_interior_house.tscn | E_DeathZone | `deathzone_interior` | `[hazard, death]` | Interior pit hazard |
-| scenes/gameplay/gameplay_interior_house.tscn | E_GoalZone | `goalzone_interior` | `[objective, goal]` | Interior objective target |
-| scenes/gameplay/gameplay_interior_house.tscn | E_TutorialSign_Interior | `tutorial_interior` | `[interactable, tutorial]` | Interior signpost hint |
+| scenes/demo/gameplay/gameplay_exterior.tscn | E_DoorTrigger | `door_to_house` | `[trigger, door]` | Transition to `interior_house` |
+| scenes/demo/gameplay/gameplay_exterior.tscn | E_DeathZone | `deathzone_exterior` | `[hazard, death]` | Pit/kill floor |
+| scenes/demo/gameplay/gameplay_exterior.tscn | E_SpikeTrapA / E_SpikeTrapB | `spiketrap_a` / `spiketrap_b` | `[hazard, trap]` | Dual spike traps using shared settings |
+| scenes/demo/gameplay/gameplay_exterior.tscn | E_Checkpoint_SafeZone | `checkpoint_exterior` | `[checkpoint, objective]` | Exterior checkpoint near spawn |
+| scenes/demo/gameplay/gameplay_exterior.tscn | E_TutorialSign | `tutorial_exterior` | `[interactable, tutorial]` | Signpost dialogue on exterior path |
+| scenes/demo/gameplay/gameplay_exterior.tscn | E_FinalGoal | `finalgoal` | `[objective, endgame]` | Final victory trigger for exterior |
+| scenes/demo/gameplay/gameplay_interior_house.tscn | E_DoorTrigger | `door_to_exterior` | `[trigger, door]` | Transition back to exterior |
+| scenes/demo/gameplay/gameplay_interior_house.tscn | E_DeathZone | `deathzone_interior` | `[hazard, death]` | Interior pit hazard |
+| scenes/demo/gameplay/gameplay_interior_house.tscn | E_GoalZone | `goalzone_interior` | `[objective, goal]` | Interior objective target |
+| scenes/demo/gameplay/gameplay_interior_house.tscn | E_TutorialSign_Interior | `tutorial_interior` | `[interactable, tutorial]` | Interior signpost hint |
 
 **Tagging strategy**
 - `hazard` pairs with context tags (`death` for lethal volume, `trap` for spike traps) so systems can filter by severity.
@@ -1666,7 +1666,7 @@ func build_entity_snapshot(entity: Node) -> Dictionary
 - `interactable` + `tutorial` marks non-lethal interactables (signposts) that surface tutorial text.
 - `player` and `camera` remain reserved for the controllable character and active camera; treat them as unique IDs per scene.
 
-**Implementation**: `scripts/ecs/base_ecs_entity.gd`, `scripts/managers/m_ecs_manager.gd`
+**Implementation**: `scripts/core/ecs/base_ecs_entity.gd`, `scripts/core/managers/m_ecs_manager.gd`
 **Tests**: `tests/unit/ecs/test_entity_ids.gd` (27 tests, all passing)
 **Documentation**: Phase 6 of style/scene cleanup project
 

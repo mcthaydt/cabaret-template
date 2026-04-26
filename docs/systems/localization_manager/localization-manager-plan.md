@@ -24,12 +24,12 @@ The Localization Manager handles runtime locale switching, `.tres` translation c
 
 Before implementation, study these reference files:
 
-- `scripts/managers/m_audio_manager.gd` — hash-based optimization, store discovery, preview mode
-- `scripts/managers/m_display_manager.gd` — same pattern, most recent implementation
-- `scripts/state/utils/u_state_slice_manager.gd` — slice registration pattern; localization is the 13th parameter
-- `scripts/state/m_state_store.gd` — export pattern, `_initialize_slices()` call
+- `scripts/core/managers/m_audio_manager.gd` — hash-based optimization, store discovery, preview mode
+- `scripts/core/managers/m_display_manager.gd` — same pattern, most recent implementation
+- `scripts/core/state/utils/u_state_slice_manager.gd` — slice registration pattern; localization is the 13th parameter
+- `scripts/core/state/m_state_store.gd` — export pattern, `_initialize_slices()` call
 - `scripts/core/root.gd` — ServiceLocator registration (lines 28–41)
-- `scripts/state/actions/u_audio_actions.gd` — `_static_init()` action registry pattern
+- `scripts/core/state/actions/u_audio_actions.gd` — `_static_init()` action registry pattern
 
 ---
 
@@ -41,8 +41,8 @@ Before implementation, study these reference files:
 
 **Files to create**:
 
-- `scripts/resources/state/rs_localization_initial_state.gd`
-- `resources/base_settings/state/cfg_localization_initial_state.tres`
+- `scripts/core/resources/state/rs_localization_initial_state.gd`
+- `resources/core/base_settings/state/cfg_localization_initial_state.tres`
 - `tests/unit/state/test_localization_initial_state.gd`
 
 **Implementation**:
@@ -78,7 +78,7 @@ func to_dictionary() -> Dictionary:
 
 **Files to create**:
 
-- `scripts/state/actions/u_localization_actions.gd`
+- `scripts/core/state/actions/u_localization_actions.gd`
 - `tests/unit/state/test_localization_actions.gd`
 
 **Implementation**:
@@ -119,7 +119,7 @@ static func set_ui_scale_override(scale: float) -> Dictionary:
 
 **Files to create**:
 
-- `scripts/state/reducers/u_localization_reducer.gd`
+- `scripts/core/state/reducers/u_localization_reducer.gd`
 - `tests/unit/state/test_localization_reducer.gd`
 
 **Implementation**:
@@ -183,14 +183,14 @@ static func _with_values(state: Dictionary, values: Dictionary) -> Dictionary:
 
 **Files to create**:
 
-- `scripts/state/selectors/u_localization_selectors.gd`
+- `scripts/core/state/selectors/u_localization_selectors.gd`
 - `tests/unit/state/test_localization_selectors.gd`
 
 **Files to modify**:
 
-**1. `scripts/resources/state/rs_localization_initial_state.gd`** — already created above.
+**1. `scripts/core/resources/state/rs_localization_initial_state.gd`** — already created above.
 
-**2. `scripts/state/m_state_store.gd`**:
+**2. `scripts/core/state/m_state_store.gd`**:
 
 ```gdscript
 # Add const near the other RS_ preloads:
@@ -218,11 +218,11 @@ U_STATE_SLICE_MANAGER.initialize_slices(
 )
 ```
 
-**3. `scripts/state/utils/u_state_slice_manager.gd`**:
+**3. `scripts/core/state/utils/u_state_slice_manager.gd`**:
 
 ```gdscript
 # Add const near the other reducer preloads:
-const U_LOCALIZATION_REDUCER := preload("res://scripts/state/reducers/u_localization_reducer.gd")
+const U_LOCALIZATION_REDUCER := preload("res://scripts/core/state/reducers/u_localization_reducer.gd")
 
 # Add 13th parameter to initialize_slices():
 static func initialize_slices(
@@ -251,7 +251,7 @@ if localization_initial_state != null:
     register_slice(slice_configs, state, loc_config)
 ```
 
-**4. `scripts/utils/u_global_settings_serialization.gd`** (4 methods need changes):
+**4. `scripts/core/utils/u_global_settings_serialization.gd`** (4 methods need changes):
 
 ```gdscript
 # 1. In is_global_settings_action(), add after the vfx/ check (line ~130):
@@ -276,7 +276,7 @@ if data.has("localization") and data["localization"] is Dictionary:
 
 **5. `scenes/root.tscn`**:
 
-- Assign `resources/base_settings/state/cfg_localization_initial_state.tres` to `M_StateStore.localization_initial_state` in the inspector.
+- Assign `resources/core/base_settings/state/cfg_localization_initial_state.tres` to `M_StateStore.localization_initial_state` in the inspector.
 
 **Selectors**:
 
@@ -314,7 +314,7 @@ static func get_ui_scale_override(state: Dictionary) -> float:
 
 **Files to create**:
 
-- `scripts/interfaces/i_localization_manager.gd`
+- `scripts/core/interfaces/i_localization_manager.gd`
 
 ```gdscript
 extends Node
@@ -343,7 +343,7 @@ func unregister_ui_root(_root: Node) -> void:
 
 **Files to create**:
 
-- `scripts/managers/m_localization_manager.gd`
+- `scripts/core/managers/m_localization_manager.gd`
 - `tests/unit/managers/test_localization_manager.gd`
 
 **Manager Structure**:
@@ -354,8 +354,8 @@ class_name M_LocalizationManager
 extends I_LocalizationManager
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
-const U_LOCALIZATION_SELECTORS := preload("res://scripts/state/selectors/u_localization_selectors.gd")
+const U_STATE_UTILS := preload("res://scripts/core/state/utils/u_state_utils.gd")
+const U_LOCALIZATION_SELECTORS := preload("res://scripts/core/state/selectors/u_localization_selectors.gd")
 
 @export var state_store: I_StateStore = null
 
@@ -433,7 +433,7 @@ _register_if_exists(managers_node, "M_LocalizationManager", StringName("localiza
 
 **Files to create**:
 
-- `scripts/managers/helpers/u_locale_file_loader.gd`
+- `scripts/core/managers/helpers/u_locale_file_loader.gd`
 - `tests/unit/managers/helpers/test_locale_file_loader.gd`
 
 **Implementation**:
@@ -443,16 +443,16 @@ class_name U_LocaleFileLoader
 extends RefCounted
 
 const _LOCALE_FILE_PATHS: Dictionary = {
-    &"en":    ["res://resources/localization/en/ui.json",
-               "res://resources/localization/en/hud.json"],
-    &"es":    ["res://resources/localization/es/ui.json",
-               "res://resources/localization/es/hud.json"],
-    &"pt":    ["res://resources/localization/pt/ui.json",
-               "res://resources/localization/pt/hud.json"],
-    &"zh_CN": ["res://resources/localization/zh_CN/ui.json",
-               "res://resources/localization/zh_CN/hud.json"],
-    &"ja":    ["res://resources/localization/ja/ui.json",
-               "res://resources/localization/ja/hud.json"],
+    &"en":    ["res://resources/core/localization/en/ui.json",
+               "res://resources/core/localization/en/hud.json"],
+    &"es":    ["res://resources/core/localization/es/ui.json",
+               "res://resources/core/localization/es/hud.json"],
+    &"pt":    ["res://resources/core/localization/pt/ui.json",
+               "res://resources/core/localization/pt/hud.json"],
+    &"zh_CN": ["res://resources/core/localization/zh_CN/ui.json",
+               "res://resources/core/localization/zh_CN/hud.json"],
+    &"ja":    ["res://resources/core/localization/ja/ui.json",
+               "res://resources/core/localization/ja/hud.json"],
 }
 
 static func load_locale(locale: StringName) -> Dictionary:
@@ -484,7 +484,7 @@ static func load_locale(locale: StringName) -> Dictionary:
 
 **Files to create**:
 
-- `scripts/utils/localization/u_localization_utils.gd`
+- `scripts/core/utils/localization/u_localization_utils.gd`
 - `tests/unit/utils/test_localization_utils.gd`
 
 **Implementation**:
@@ -532,7 +532,7 @@ static func _get_manager() -> M_LocalizationManager:
 
 **Files to modify**:
 
-- `scripts/managers/m_localization_manager.gd`
+- `scripts/core/managers/m_localization_manager.gd`
 
 Add locale loading and `translate()` method:
 
@@ -572,7 +572,7 @@ func _apply_localization_settings(state: Dictionary) -> void:
 
 **Files to modify**:
 
-- `scripts/managers/m_localization_manager.gd`
+- `scripts/core/managers/m_localization_manager.gd`
 
 ```gdscript
 const CJK_LOCALES: Array[StringName] = [&"zh_CN", &"ja"]
@@ -652,7 +652,7 @@ func _notify_ui_roots() -> void:
 
 ### Commit 1: HUD Controller Update
 
-**File to modify**: `scripts/ui/hud/ui_hud_controller.gd`
+**File to modify**: `scripts/core/ui/hud/ui_hud_controller.gd`
 
 The existing signpost flow:
 
@@ -703,23 +703,23 @@ The localization settings follow the same overlay + embedded tab architecture as
 **Files to create**:
 
 - `scenes/ui/overlays/settings/ui_localization_settings_overlay.tscn`
-- `scripts/ui/settings/ui_localization_settings_overlay.gd`
+- `scripts/core/ui/settings/ui_localization_settings_overlay.gd`
 - `scenes/ui/overlays/settings/ui_localization_settings_tab.tscn`
-- `scripts/ui/settings/ui_localization_settings_tab.gd`
-- `resources/ui_screens/cfg_localization_settings_overlay.tres`
-- `resources/scene_registry/cfg_ui_localization_settings_entry.tres`
+- `scripts/core/ui/settings/ui_localization_settings_tab.gd`
+- `resources/core/ui_screens/cfg_localization_settings_overlay.tres`
+- `resources/core/scene_registry/cfg_ui_localization_settings_entry.tres`
 
 **Files to modify**:
 
-- `scripts/ui/utils/u_ui_registry.gd` — add preload + registration
+- `scripts/core/ui/utils/u_ui_registry.gd` — add preload + registration
 - `scenes/ui/menus/ui_settings_menu.tscn` — add "Language" button
-- `scripts/ui/menus/ui_settings_menu.gd` — wire button, overlay constant, focus neighbors
+- `scripts/core/ui/menus/ui_settings_menu.gd` — wire button, overlay constant, focus neighbors
 
 **Overlay controller** (follows `ui_audio_settings_overlay.gd` pattern):
 
 ```gdscript
 @icon("res://assets/editor_icons/icn_utility.svg")
-extends "res://scripts/ui/base/base_overlay.gd"
+extends "res://scripts/core/ui/base/base_overlay.gd"
 class_name UI_LocalizationSettingsOverlay
 
 func _on_back_pressed() -> void:
@@ -758,8 +758,8 @@ ScrollContainer
 class_name UI_LocalizationSettingsTab
 extends VBoxContainer  # Matches UI_DisplaySettingsTab / UI_AudioSettingsTab pattern
 
-const U_LOCALIZATION_ACTIONS := preload("res://scripts/state/actions/u_localization_actions.gd")
-const U_LOCALIZATION_SELECTORS := preload("res://scripts/state/selectors/u_localization_selectors.gd")
+const U_LOCALIZATION_ACTIONS := preload("res://scripts/core/state/actions/u_localization_actions.gd")
+const U_LOCALIZATION_SELECTORS := preload("res://scripts/core/state/selectors/u_localization_selectors.gd")
 
 const SUPPORTED_LOCALES: Array[StringName] = [&"en", &"es", &"pt", &"zh_CN", &"ja"]
 const LOCALE_DISPLAY_NAMES: Array[String] = ["English", "Español", "Português", "中文 (简体)", "日本語"]
@@ -799,7 +799,7 @@ preload_priority = 5
 
 ```gdscript
 # Add const after AUDIO_SETTINGS_OVERLAY:
-const LOCALIZATION_SETTINGS_OVERLAY := preload("res://resources/ui_screens/cfg_localization_settings_overlay.tres")
+const LOCALIZATION_SETTINGS_OVERLAY := preload("res://resources/core/ui_screens/cfg_localization_settings_overlay.tres")
 
 # Add registration after _register_definition(AUDIO_SETTINGS_OVERLAY):
 _register_definition(LOCALIZATION_SETTINGS_OVERLAY as RS_UIScreenDefinition)
@@ -952,31 +952,31 @@ text = "Language"
 ## File Structure
 
 ```text
-scripts/interfaces/
+scripts/core/interfaces/
   i_localization_manager.gd
 
-scripts/managers/
+scripts/core/managers/
   m_localization_manager.gd
 
-scripts/managers/helpers/
+scripts/core/managers/helpers/
   u_locale_file_loader.gd
 
-scripts/utils/localization/
+scripts/core/utils/localization/
   u_localization_utils.gd
 
-scripts/resources/state/
+scripts/core/resources/state/
   rs_localization_initial_state.gd
 
-scripts/state/actions/
+scripts/core/state/actions/
   u_localization_actions.gd
 
-scripts/state/reducers/
+scripts/core/state/reducers/
   u_localization_reducer.gd
 
-scripts/state/selectors/
+scripts/core/state/selectors/
   u_localization_selectors.gd
 
-scripts/ui/settings/
+scripts/core/ui/settings/
   ui_localization_settings_overlay.gd
   ui_localization_settings_tab.gd
 
@@ -985,22 +985,22 @@ assets/fonts/
   fnt_dyslexia.ttf
   fnt_cjk.ttf
 
-resources/base_settings/state/
+resources/core/base_settings/state/
   cfg_localization_initial_state.tres
 
-resources/localization/
+resources/core/localization/
   en/  es/  pt/  zh_CN/  ja/
     ui.json
     hud.json
 
-scenes/ui/overlays/settings/
+scenes/core/ui/overlays/settings/
   ui_localization_settings_overlay.tscn
   ui_localization_settings_tab.tscn
 
-resources/ui_screens/
+resources/core/ui_screens/
   cfg_localization_settings_overlay.tres
 
-resources/scene_registry/
+resources/core/scene_registry/
   cfg_ui_localization_settings_entry.tres
 
 tests/unit/state/

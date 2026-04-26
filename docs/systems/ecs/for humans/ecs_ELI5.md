@@ -69,7 +69,7 @@ Think of this as the **master instruction booklet** that knows where all your LE
 - Makes sure pieces register when added
 - Makes sure pieces unregister when removed
 
-**Where it lives:** `scripts/managers/m_ecs_manager.gd`
+**Where it lives:** `scripts/core/managers/m_ecs_manager.gd`
 
 **How to find it:**
 ```gdscript
@@ -109,7 +109,7 @@ Components are like **individual LEGO pieces**. Each piece stores information bu
 @export var floating_spring_strength: float = 10.0  # How strong is the float?
 ```
 
-**Where they live:** `scripts/ecs/components/`
+**Where they live:** `scripts/core/ecs/components/`
 
 ### 3. Systems - The Instructions
 
@@ -137,7 +137,7 @@ func process_tick(delta: float):
             movement_comp.velocity.x = movement_comp.max_speed
 ```
 
-**Where they live:** `scripts/ecs/systems/`
+**Where they live:** `scripts/core/ecs/systems/`
 
 ### 4. Entities - The Complete Toys
 
@@ -325,7 +325,7 @@ func _ready():
 
 **Step 1: Create the file**
 ```gdscript
-# scripts/ecs/components/c_my_new_component.gd
+# scripts/core/ecs/components/c_my_new_component.gd
 extends BaseECSComponent
 class_name C_MyNewComponent
 
@@ -355,7 +355,7 @@ const COMPONENT_TYPE := StringName("C_MyNewComponent")
 
 **Step 1: Create the file**
 ```gdscript
-# scripts/ecs/systems/s_my_new_system.gd
+# scripts/core/ecs/systems/s_my_new_system.gd
 extends BaseECSSystem
 class_name S_MyNewSystem
 
@@ -419,7 +419,7 @@ func process_tick(delta: float) -> void:
 
 **Step 1: Create a settings resource**
 ```gdscript
-# scripts/ecs/components/floating_settings.gd
+# scripts/core/ecs/components/floating_settings.gd
 extends Resource
 class_name FloatingSettings
 
@@ -937,7 +937,7 @@ Want to learn more? Check out:
 - **docs/ecs/ecs_architecture.md** - Detailed technical architecture
 - **docs/ecs/for humans/ecs_tradeoffs.md** - Pros and cons analysis
 - **docs/ecs/refactor recommendations/ecs_refactor_recommendations.md** - Improvement proposals
-- **scripts/ecs/** - Actual implementation files
+- **scripts/core/ecs/** - Actual implementation files
 - **tests/unit/ecs/** - Example usage in tests
 
 **Happy coding!**

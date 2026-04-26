@@ -27,15 +27,15 @@
 - [x] Task 0.4: Prototype Touchscreen Input (TDD) - FR-046, FR-047, FR-048 *(tests/prototypes/prototype_touch.gd + tests/unit/prototypes/test_prototype_touch.gd)*
 - [x] Task 0.5: Measure Baseline Input Latency - FR-116 *(tests/prototypes/benchmark_input_latency.gd + tests/unit/prototypes/test_benchmark_input_latency.gd)*
 - [x] Task 0.6: Validate InputMap Modification Safety (TDD) - FR-015, FR-017 *(tests/prototypes/prototype_inputmap_safety.gd + tests/unit/prototypes/test_prototype_inputmap_safety.gd)*
-- [x] Task 0.7: Design File Structure (Resources in `scripts/resources/input/`, NO `scripts/input/`) *(docs/input_manager/general/input-manager-file-structure.md)*
+- [x] Task 0.7: Design File Structure (Resources in `scripts/core/resources/input/`, NO `scripts/core/input/`) *(docs/input_manager/general/input-manager-file-structure.md)*
 - [x] Task 0.8: Create Research Documentation *(docs/input_manager/general/input-manager-research.md)*
 - [x] Task 0.9: Integration Point Validation (TDD) - Test manager discovery, state dispatch, ECS registration *(tests/unit/integration/test_input_manager_integration_points.gd)*
 
 ## Phase 1: Enhanced Keyboard/Mouse + State Integration
 
-- [x] Task 1.1: Create Input Actions (TDD) - FR-075, FR-076 *(2025-11-07, scripts/state/actions/u_input_actions.gd + tests/unit/input_manager/test_u_input_actions.gd)*
-- [x] Task 1.2: Create Input Selectors (TDD) - FR-077 *(2025-11-07, scripts/state/selectors/u_input_selectors.gd + tests/unit/input_manager/test_u_input_selectors.gd)*
-- [x] Task 1.3: Extend Gameplay Reducer for Input Actions (TDD) - FR-076 *(2025-11-07, scripts/state/reducers/u_input_reducer.gd + u_gameplay_reducer.gd + rs_gameplay_initial_state.gd + tests/unit/input_manager/test_u_input_reducer.gd)*
+- [x] Task 1.1: Create Input Actions (TDD) - FR-075, FR-076 *(2025-11-07, scripts/core/state/actions/u_input_actions.gd + tests/unit/input_manager/test_u_input_actions.gd)*
+- [x] Task 1.2: Create Input Selectors (TDD) - FR-077 *(2025-11-07, scripts/core/state/selectors/u_input_selectors.gd + tests/unit/input_manager/test_u_input_selectors.gd)*
+- [x] Task 1.3: Extend Gameplay Reducer for Input Actions (TDD) - FR-076 *(2025-11-07, scripts/core/state/reducers/u_input_reducer.gd + u_gameplay_reducer.gd + rs_gameplay_initial_state.gd + tests/unit/input_manager/test_u_input_reducer.gd)*
 - [x] Task 1.4: Create Settings Reducer for Input Settings (TDD) - FR-076, FR-078 *(2025-11-06, added RS_SettingsInitialState + settings slice reducer)*
 - [x] Task 1.5: Enhance S_InputSystem with State Dispatch - FR-006 *(2025-11-06, cached store dispatch + new unit coverage)*
 - [x] Task 1.6: Add Mouse Sensitivity Setting - FR-100 *(2025-11-06, settings-driven sensitivity w/ tests)*
@@ -49,29 +49,29 @@
 
 - [x] Task 2.1: Create RS_InputProfile Resource (TDD) - FR-011, FR-012
   - Notes (2025-11-07): Implemented resource and unit tests:
-    - Resource: `scripts/resources/input/rs_input_profile.gd`
+    - Resource: `scripts/core/resources/input/rs_input_profile.gd`
     - Tests: `tests/unit/resources/test_rs_input_profile.gd`
 - [x] Task 2.2: Create Default Input Profiles - FR-012
-  - Notes (2025-11-07): Added built-in profiles under `resources/input/profiles/`:
+  - Notes (2025-11-07): Added built-in profiles under `resources/core/input/profiles/`:
     - `cfg_default_keyboard.tres`, `cfg_alternate_keyboard.tres`, `cfg_accessibility_keyboard.tres`
     - Profiles include metadata; action mappings will be expanded alongside manager TDD.
 - [x] Task 2.3: Create M_InputProfileManager (TDD) - FR-014, FR-015, FR-089
   - Notes (2025-11-07): Scaffolded manager, wired to root, and added unit tests:
-    - Manager: `scripts/managers/m_input_profile_manager.gd`
+    - Manager: `scripts/core/managers/m_input_profile_manager.gd`
     - Wiring: `scenes/root.tscn`
     - Tests: `tests/unit/managers/test_m_input_profile_manager.gd`
 - [x] Task 2.4: Add M_InputProfileManager to Root Scene - FR-089
   - Notes (2025-11-07): `M_InputProfileManager` node added under `Managers` in `scenes/root.tscn` and joins `input_profile_manager` group at runtime.
 - [x] Task 2.5: Create Profile Selection UI - FR-014
-  - Notes (2025-11-07): Added `scenes/ui/overlays/ui_input_profile_selector.tscn` with `scripts/ui/overlays/ui_input_profile_selector.gd`. Lists available profiles and calls manager `switch_profile()`.
+  - Notes (2025-11-07): Added `scenes/ui/overlays/ui_input_profile_selector.tscn` with `scripts/core/ui/overlays/ui_input_profile_selector.gd`. Lists available profiles and calls manager `switch_profile()`.
 - [x] Task 2.6: Integration Testing - FR-133
   - Notes (2025-11-07): Added `tests/unit/integration/test_profile_switching_flow.gd` to validate pause-gated switching, signal emission, and settings slice update.
 
 - [x] Task 2.7: Wire Profile Selector Overlay - FR-014
   - Notes (2025-11-07): Registered `input_profile_selector` in Scene Registry and wired into Pause Menu.
-    - Scene registry entry: `resources/scene_registry/cfg_ui_input_profile_selector_entry.tres`
+    - Scene registry entry: `resources/core/scene_registry/cfg_ui_input_profile_selector_entry.tres`
     - Pause Menu: Added button and handler to open overlay with return.
-    - Overlay scene: `scenes/ui/overlays/ui_input_profile_selector.tscn` with script `scripts/ui/overlays/ui_input_profile_selector.gd`
+    - Overlay scene: `scenes/ui/overlays/ui_input_profile_selector.tscn` with script `scripts/core/ui/overlays/ui_input_profile_selector.gd`
     - Integration test: `tests/unit/integration/test_input_profile_selector_overlay.gd` (push pause → open selector → verify overlay active)
 
 - [x] Task 2.8: Manual QA — Open Profile Selector from Pause Menu
@@ -97,17 +97,17 @@
 ## Phase 3: Gamepad Support
 
 - [x] Task 3.1: Create RS_GamepadSettings resource (TDD) - FR-036, FR-037, FR-038
-  - Notes (2025-11-07): Added `scripts/resources/input/rs_gamepad_settings.gd` plus default tuning at `resources/input/gamepad_settings/cfg_default_gamepad_settings.tres`; exercised via `tests/unit/resources/test_rs_gamepad_settings.gd`.
+  - Notes (2025-11-07): Added `scripts/core/resources/input/rs_gamepad_settings.gd` plus default tuning at `resources/core/input/gamepad_settings/cfg_default_gamepad_settings.tres`; exercised via `tests/unit/resources/test_rs_gamepad_settings.gd`.
 - [x] Task 3.2: Create C_GamepadComponent (TDD) - FR-039, FR-084
-  - Notes (2025-11-07): Implemented `scripts/ecs/components/c_gamepad_component.gd` with stick state, deadzone helpers, vibration callables, and dictionary-based settings application. Covered by `tests/unit/ecs/components/test_c_gamepad_component.gd`.
+  - Notes (2025-11-07): Implemented `scripts/core/ecs/components/c_gamepad_component.gd` with stick state, deadzone helpers, vibration callables, and dictionary-based settings application. Covered by `tests/unit/ecs/components/test_c_gamepad_component.gd`.
 - [x] Task 3.3: Extend S_InputSystem for Gamepad Input (TDD) - FR-034, FR-035, FR-036, FR-037
-  - Notes (2025-11-07): `scripts/ecs/systems/s_input_system.gd` now reads joypad axes, dispatches gamepad state through `U_InputActions`, and respects per-stick deadzones. Updated coverage in `tests/unit/ecs/systems/test_input_system.gd` + reducer/action suites.
+  - Notes (2025-11-07): `scripts/core/ecs/systems/s_input_system.gd` now reads joypad axes, dispatches gamepad state through `U_InputActions`, and respects per-stick deadzones. Updated coverage in `tests/unit/ecs/systems/test_input_system.gd` + reducer/action suites.
 - [x] Task 3.4: Implement Gamepad Vibration Support (TDD) - FR-038, FR-045
-  - Notes (2025-11-07): Added `scripts/ecs/systems/s_gamepad_vibration_system.gd`, tied into `U_ECSEventBus` + gameplay actions. Validated by `tests/unit/ecs/systems/test_gamepad_vibration_system.gd` and integration flow `tests/unit/integration/test_gamepad_vibration_flow.gd`.
+  - Notes (2025-11-07): Added `scripts/core/ecs/systems/s_gamepad_vibration_system.gd`, tied into `U_ECSEventBus` + gameplay actions. Validated by `tests/unit/ecs/systems/test_gamepad_vibration_system.gd` and integration flow `tests/unit/integration/test_gamepad_vibration_flow.gd`.
 - [x] Task 3.5: Handle Gamepad Connect/Disconnect (TDD) - FR-033, FR-040, FR-041, FR-042
   - Notes (2025-11-07): Hot-plug + active-device tracking lives in `S_InputSystem` with new actions (`gamepad_connected`, `device_changed`, `gamepad_disconnected`) and reducer assertions (`tests/unit/input_manager/test_u_input_actions.gd`, `test_u_input_reducer.gd`).
 - [x] Task 3.6: Add Gamepad Settings UI - FR-036, FR-038
-  - Notes (2025-11-07): Created `scenes/ui/overlays/ui_gamepad_settings_overlay.tscn`, `scripts/ui/overlays/ui_gamepad_settings_overlay.gd`, and `scripts/ui/overlays/ui_gamepad_stick_preview.gd`; overlay wired via Scene Registry + Pause Menu CTA. Verified with `tests/unit/ui/test_gamepad_settings_overlay.gd`.
+  - Notes (2025-11-07): Created `scenes/ui/overlays/ui_gamepad_settings_overlay.tscn`, `scripts/core/ui/overlays/ui_gamepad_settings_overlay.gd`, and `scripts/core/ui/overlays/ui_gamepad_stick_preview.gd`; overlay wired via Scene Registry + Pause Menu CTA. Verified with `tests/unit/ui/test_gamepad_settings_overlay.gd`.
 - [x] Task 3.7: Integration Testing - FR-133
   - Notes (2025-11-07): Added vibration + hot-plug end-to-end tests (`tests/unit/integration/test_gamepad_vibration_flow.gd`) and expanded ECS/unit coverage. Suites run headless with `--log-file` to avoid log rotation crashes.
 
@@ -181,7 +181,7 @@
 
 - [x] Task 4.1: Create M_InputDeviceManager (TDD) - FR-057, FR-058, FR-059, FR-060, FR-090
   - Notes (2025-11-10): Implemented device manager with auto-detection for keyboard/mouse, gamepad, and touchscreen inputs.
-    - Manager: `scripts/managers/m_input_device_manager.gd`
+    - Manager: `scripts/core/managers/m_input_device_manager.gd`
     - Tests: `tests/unit/managers/test_m_input_device_manager.gd`
     - Wiring: Added to `scenes/root.tscn` under `Managers` (joins `input_device_manager` group)
     - Features: Device switching on input activity, gamepad hot-plug handling, last-used device tracking, state store integration
@@ -194,7 +194,7 @@
     - State dispatch: Emits `device_changed` signal and dispatches `U_InputActions.device_changed()` to state store
 - [x] Task 4.3: Create U_ButtonPromptRegistry (TDD) - FR-066, FR-067, FR-068
   - Notes (2025-11-10): Static registry utility for mapping actions to button prompt icons and labels.
-    - Utility: `scripts/ui/u_button_prompt_registry.gd`
+    - Utility: `scripts/core/ui/u_button_prompt_registry.gd`
     - Tests: `tests/unit/input_manager/test_u_button_prompt_registry.gd`
     - Features: Lazy texture loading/caching, action→texture path mapping per device type, fallback label generation from InputMap, texture path label derivation
     - Registered actions: interact, jump, sprint, pause, move_forward/backward/left/right, toggle_inventory
@@ -206,8 +206,8 @@
     - Import settings: Configured for UI usage (64x64 PNG, mipmaps disabled)
 - [x] Task 4.5: Integrate Button Prompts with HUD - FR-069, FR-070
   - Notes (2025-11-10): Created reusable ButtonPrompt component and integrated with HUD.
-    - Component: `scripts/ui/button_prompt.gd` + `scenes/ui/button_prompt.tscn`
-    - HUD integration: `scripts/ui/hud_controller.gd` + `scenes/ui/hud_overlay.tscn`
+    - Component: `scripts/core/ui/button_prompt.gd` + `scenes/ui/button_prompt.tscn`
+    - HUD integration: `scripts/core/ui/hud_controller.gd` + `scenes/ui/hud_overlay.tscn`
     - Features: Auto-updates on device change, shows icon + text, falls back to text-only if icon missing
     - Tests: `tests/unit/ui/test_button_prompt.gd`, `tests/unit/ui/test_hud_button_prompts.gd`
     - Behavior: Listens to `M_InputDeviceManager.device_changed` signal, refreshes prompt texture/label dynamically
@@ -224,13 +224,13 @@
 ## Phase 5: Rebinding System + Persistence
 
 - [x] Task 5.1: Create RS_RebindSettings resource (TDD) - FR-022
-  - Notes (2025-11-11): Added `scripts/resources/input/rs_rebind_settings.gd`, default settings resource at `resources/input/rebind_settings/cfg_default_rebind_settings.tres`, and unit coverage in `tests/unit/resources/test_rs_rebind_settings.gd`.
+  - Notes (2025-11-11): Added `scripts/core/resources/input/rs_rebind_settings.gd`, default settings resource at `resources/core/input/rebind_settings/cfg_default_rebind_settings.tres`, and unit coverage in `tests/unit/resources/test_rs_rebind_settings.gd`.
 - [x] Task 5.2: Create U_InputRebindUtils (TDD) - FR-021, FR-023, FR-027
-  - Notes (2025-11-11): Implemented `scripts/utils/input/u_input_rebind_utils.gd` for validation, conflict detection, InputMap/profile rebinding, and event serialization. Added unit tests at `tests/unit/utils/test_u_input_rebind_utils.gd`.
+  - Notes (2025-11-11): Implemented `scripts/core/utils/input/u_input_rebind_utils.gd` for validation, conflict detection, InputMap/profile rebinding, and event serialization. Added unit tests at `tests/unit/utils/test_u_input_rebind_utils.gd`.
 - [x] Task 5.3: Create Rebinding UI - FR-021, FR-024, FR-025, FR-026
-  - Notes (2025-11-11): Added `scenes/ui/overlays/ui_input_rebinding_overlay.tscn` with `scripts/ui/overlays/ui_input_rebinding_overlay.gd`, conflict/error dialogs, and action list rendering powered by `U_InputRebindUtils`. Automated UI coverage lives at `tests/unit/ui/test_input_rebinding_overlay.gd`.
+  - Notes (2025-11-11): Added `scenes/ui/overlays/ui_input_rebinding_overlay.tscn` with `scripts/core/ui/overlays/ui_input_rebinding_overlay.gd`, conflict/error dialogs, and action list rendering powered by `U_InputRebindUtils`. Automated UI coverage lives at `tests/unit/ui/test_input_rebinding_overlay.gd`.
 - [x] Task 5.4: Implement Input Settings Persistence (TDD) - FR-094, FR-095, FR-096, FR-102, FR-103
-  - Notes (2025-11-11): Added `scripts/utils/input/u_input_serialization.gd`, persistence hooks in `scripts/managers/m_input_profile_manager.gd`, new bulk-load action in `scripts/state/actions/u_input_actions.gd`, reducer merge logic, and unit coverage in `tests/unit/managers/test_m_input_profile_manager.gd`.
+  - Notes (2025-11-11): Added `scripts/core/utils/input/u_input_serialization.gd`, persistence hooks in `scripts/core/managers/m_input_profile_manager.gd`, new bulk-load action in `scripts/core/state/actions/u_input_actions.gd`, reducer merge logic, and unit coverage in `tests/unit/managers/test_m_input_profile_manager.gd`.
 - [x] Task 5.5: Handle Custom Bindings Load/Save (TDD) - FR-029, FR-098
   - Notes (2025-11-12): `M_InputProfileManager.load_custom_bindings()` now resolves saved or fallback profiles and reapplies pending bindings before clearing cache. Added explicit save payload assertions in `tests/unit/managers/test_m_input_profile_manager.gd`; new coverage validates reload path and JSON serialization includes `custom_bindings`.
 - [x] Task 5.6: Implement Reset to Default (TDD) - FR-030
@@ -301,39 +301,39 @@
 ## Phase 0-5: Critical Architecture Refactors
 
 ### Issue 1: Consolidate Device Detection
-- [x] Task 1.1: Add Redux selectors for active device + gamepad ID *(2025-11-11; scripts/state/selectors/u_input_selectors.gd, tests/unit/input_manager/test_u_input_selectors.gd)*
-- [x] Task 1.2: Remove device tracking from S_InputSystem *(2025-11-11; scripts/ecs/systems/s_input_system.gd, tests/unit/ecs/systems/test_input_system.gd, tests/unit/integration/test_gamepad_vibration_flow.gd)*
-- [x] Task 1.3: Update M_InputDeviceManager to dispatch before emitting `device_changed` *(2025-11-11; scripts/managers/m_input_device_manager.gd, tests/unit/managers/test_m_input_device_manager.gd — added ordering/state-visibility assertions)*
+- [x] Task 1.1: Add Redux selectors for active device + gamepad ID *(2025-11-11; scripts/core/state/selectors/u_input_selectors.gd, tests/unit/input_manager/test_u_input_selectors.gd)*
+- [x] Task 1.2: Remove device tracking from S_InputSystem *(2025-11-11; scripts/core/ecs/systems/s_input_system.gd, tests/unit/ecs/systems/test_input_system.gd, tests/unit/integration/test_gamepad_vibration_flow.gd)*
+- [x] Task 1.3: Update M_InputDeviceManager to dispatch before emitting `device_changed` *(2025-11-11; scripts/core/managers/m_input_device_manager.gd, tests/unit/managers/test_m_input_device_manager.gd — added ordering/state-visibility assertions)*
  - [x] Task 1.4: Add integration suite for device detection flow *(2025-11-11; tests/unit/integration/test_device_detection_flow.gd, connection-state dispatch + multi-device scenarios)*
  - [x] Task 1.5: Refresh existing suites to rely on manager as single source *(2025-11-11; vibration/UI/prompt suites now drive M_InputDeviceManager with real input events)*
 
 ### Issue 2: Fix State Synchronization
-- [x] Task 2.1: Add synchronous Redux apply for rebinds *(2025-11-15; `scripts/state/m_state_store.gd` adds `immediate` flag handling with new coverage in `tests/unit/state/test_m_state_store.gd`)*
-- [x] Task 2.2: Update U_InputActions to mark rebind/reset as immediate *(2025-11-15; `scripts/state/actions/u_input_actions.gd` serializes events + immediate flag, overlay tests updated for new payloads)*
-- [x] Task 2.3: Refactor M_InputProfileManager to derive InputMap from Redux *(2025-11-15; `scripts/managers/m_input_profile_manager.gd` rebuilds bindings from store, tests/unit/managers suite refreshed)*
-- [x] Task 2.4: Rewrite InputRebindingOverlay to dispatch-first *(2025-11-15; `scripts/ui/overlays/ui_input_rebinding_overlay.gd` now dispatches before UI updates, store-driven assertions added to overlay tests)*
+- [x] Task 2.1: Add synchronous Redux apply for rebinds *(2025-11-15; `scripts/core/state/m_state_store.gd` adds `immediate` flag handling with new coverage in `tests/unit/state/test_m_state_store.gd`)*
+- [x] Task 2.2: Update U_InputActions to mark rebind/reset as immediate *(2025-11-15; `scripts/core/state/actions/u_input_actions.gd` serializes events + immediate flag, overlay tests updated for new payloads)*
+- [x] Task 2.3: Refactor M_InputProfileManager to derive InputMap from Redux *(2025-11-15; `scripts/core/managers/m_input_profile_manager.gd` rebuilds bindings from store, tests/unit/managers suite refreshed)*
+- [x] Task 2.4: Rewrite InputRebindingOverlay to dispatch-first *(2025-11-15; `scripts/core/ui/overlays/ui_input_rebinding_overlay.gd` now dispatches before UI updates, store-driven assertions added to overlay tests)*
 - [x] Task 2.5: Simplify save/load to read/write Redux only *(2025-11-15; `save_custom_bindings()` / `load_custom_bindings()` now operate on settings slice with updated manager tests)*
-- [x] Task 2.6: Move conflict resolution into reducer *(2025-11-15; enhanced `scripts/state/reducers/u_input_reducer.gd` plus expanded reducer coverage)*
+- [x] Task 2.6: Move conflict resolution into reducer *(2025-11-15; enhanced `scripts/core/state/reducers/u_input_reducer.gd` plus expanded reducer coverage)*
 - [x] Task 2.7: Integration testing for state synchronization *(2025-11-16; `tests/unit/integration/test_state_synchronization_flow.gd` now covers conflict swaps, save/load roundtrip, and dispatch failure safeguards)*
 
 ### Issue 3: Fix Profile Manager Initialization
-- [x] Task 3.1: Add ready signal to M_StateStore *(2025-11-19; `scripts/state/m_state_store.gd` now emits `store_ready` + `is_ready()` helper with new coverage in `tests/unit/state/test_m_state_store.gd` and `U_StateUtils.await_store_ready` utility)*
-- [x] Task 3.2: Refactor M_InputProfileManager initialization *(2025-11-19; `scripts/managers/m_input_profile_manager.gd` awaits the store-ready signal, removes retry logic, and `tests/unit/managers/test_m_input_profile_manager.gd` asserts single-pass startup + load/save flow)*
+- [x] Task 3.1: Add ready signal to M_StateStore *(2025-11-19; `scripts/core/state/m_state_store.gd` now emits `store_ready` + `is_ready()` helper with new coverage in `tests/unit/state/test_m_state_store.gd` and `U_StateUtils.await_store_ready` utility)*
+- [x] Task 3.2: Refactor M_InputProfileManager initialization *(2025-11-19; `scripts/core/managers/m_input_profile_manager.gd` awaits the store-ready signal, removes retry logic, and `tests/unit/managers/test_m_input_profile_manager.gd` asserts single-pass startup + load/save flow)*
 - [x] Task 3.3: Update M_InputDeviceManager to use store.ready pattern *(2025-11-19; manager now queues device events until the store is ready, updates action order, and extends `tests/unit/managers/test_m_input_device_manager.gd` for pending-event flush assertions)*
 - [x] Task 3.4: Integration testing *(2025-11-19; new `tests/unit/integration/test_manager_initialization_order.gd` exercises store-first / manager-first sequencing, hot reloads, and 100-iteration stress runs)*
 
 ### Issue 4: Consolidate Event Serialization
-- [x] Task 4.1: Audit U_InputRebindUtils serialization *(2025-11-19; `scripts/utils/input/u_input_rebind_utils.gd` now roundtrips keyboard/mouse/gamepad/touch events, preserves modifiers/pressure, and `tests/unit/utils/test_input_event_serialization_roundtrip.gd` covers each type + legacy schemas)*
-- [x] Task 4.2: Delete RS_InputProfile serialization *(2025-11-19; `scripts/resources/input/rs_input_profile.gd` delegates to U_InputRebindUtils for both directions, keeping action dictionaries canonical)*
-- [x] Task 4.3: Update U_InputSerialization / reducers to normalize via canonical schema *(2025-11-19; `scripts/utils/input/u_input_serialization.gd` and `scripts/state/reducers/u_input_reducer.gd` now sanitize dictionaries through the shared helper and recognize new device types)*
+- [x] Task 4.1: Audit U_InputRebindUtils serialization *(2025-11-19; `scripts/core/utils/input/u_input_rebind_utils.gd` now roundtrips keyboard/mouse/gamepad/touch events, preserves modifiers/pressure, and `tests/unit/utils/test_input_event_serialization_roundtrip.gd` covers each type + legacy schemas)*
+- [x] Task 4.2: Delete RS_InputProfile serialization *(2025-11-19; `scripts/core/resources/input/rs_input_profile.gd` delegates to U_InputRebindUtils for both directions, keeping action dictionaries canonical)*
+- [x] Task 4.3: Update U_InputSerialization / reducers to normalize via canonical schema *(2025-11-19; `scripts/core/utils/input/u_input_serialization.gd` and `scripts/core/state/reducers/u_input_reducer.gd` now sanitize dictionaries through the shared helper and recognize new device types)*
 - [x] Task 4.4: Simplify reducer normalization *(2025-11-19; reducer + selectors treat `screen_touch` / `screen_drag` as touch device type, avoiding divergent schemas)*
 - [x] Task 4.5: Add comprehensive roundtrip tests *(2025-11-19; new utils test suite validates event dicts ⇄ InputEvent conversions and RS_InputProfile serialization uses the shared helper)*
 
 ### Issue 5: Deduplicate Deadzone Logic
-- [x] Task 5.1: Standardize RS_GamepadSettings.apply_deadzone *(2025-11-19; `scripts/resources/input/rs_gamepad_settings.gd` exposes a static canonical helper with curve/Curve support and additional unit coverage)*
+- [x] Task 5.1: Standardize RS_GamepadSettings.apply_deadzone *(2025-11-19; `scripts/core/resources/input/rs_gamepad_settings.gd` exposes a static canonical helper with curve/Curve support and additional unit coverage)*
 - [x] Task 5.2: Remove S_InputSystem._apply_deadzone *(2025-11-19; system now calls the resource helper directly and `tests/unit/ecs/systems/test_input_system.gd` re-ran green)*
 - [x] Task 5.3: Remove C_GamepadComponent._apply_deadzone_manual *(2025-11-19; component delegates to RS_GamepadSettings and the component test suite verifies curve usage)*
-- [x] Task 5.4: Verify consistency across codebase *(2025-11-19; `scripts/ui/overlays/ui_gamepad_settings_overlay.gd` and related previews use the shared helper, with UI + integration suites rerun)*
+- [x] Task 5.4: Verify consistency across codebase *(2025-11-19; `scripts/core/ui/overlays/ui_gamepad_settings_overlay.gd` and related previews use the shared helper, with UI + integration suites rerun)*
 
 ## Phase 6: Touchscreen Support
 
@@ -373,7 +373,7 @@
   - **TDD RED:** Write test in `tests/unit/resources/test_rs_input_profile.gd`
     - Test touchscreen profile roundtrip: create profile with virtual_buttons → to_dict() → from_dict() → verify fields match
     - Test save/load: save profile with touchscreen data → load from disk → verify virtual_buttons and virtual_joystick_position restored
-  - **TDD GREEN:** Fix `scripts/resources/input/rs_input_profile.gd`
+  - **TDD GREEN:** Fix `scripts/core/resources/input/rs_input_profile.gd`
     - Add to `to_dictionary()` (around line 53):
       ```gdscript
       "virtual_buttons": virtual_buttons.duplicate(true),
@@ -393,7 +393,7 @@
   - Extend `tests/unit/resources/test_rs_input_profile.gd` with:
     ```gdscript
     func test_touchscreen_profile_loads_with_virtual_buttons():
-        var profile: RS_InputProfile = load("res://resources/input/profiles/cfg_default_touchscreen.tres")
+        var profile: RS_InputProfile = load("res://resources/core/input/profiles/cfg_default_touchscreen.tres")
         assert_not_null(profile, "Touchscreen profile should load")
         assert_eq(profile.device_type, 2, "Device type should be touchscreen")
         assert_eq(profile.virtual_buttons.size(), 4, "Should have 4 virtual buttons")
@@ -403,13 +403,13 @@
             assert_true(button.has("position"), "Button should have position")
 
     func test_touchscreen_profile_has_joystick_position():
-        var profile: RS_InputProfile = load("res://resources/input/profiles/cfg_default_touchscreen.tres")
+        var profile: RS_InputProfile = load("res://resources/core/input/profiles/cfg_default_touchscreen.tres")
         assert_ne(profile.virtual_joystick_position, Vector2(-1, -1), "Should have joystick position")
     ```
   - **Expected result:** Tests FAIL (profile doesn't exist yet) ❌
 
-- [x] Task 6.0.2: **GREEN** - Create minimal profile to pass tests *(2025-11-16, resources/input/profiles/cfg_default_touchscreen.tres created)*
-  - Create `resources/input/profiles/cfg_default_touchscreen.tres`
+- [x] Task 6.0.2: **GREEN** - Create minimal profile to pass tests *(2025-11-16, resources/core/input/profiles/cfg_default_touchscreen.tres created)*
+  - Create `resources/core/input/profiles/cfg_default_touchscreen.tres`
   - Set minimum fields to make tests pass:
     - `profile_name: "Default (Touchscreen)"`
     - `device_type: 2` (TOUCHSCREEN)
@@ -433,10 +433,10 @@
   - **Expected result:** Test FAILS (manager doesn't load touchscreen yet) ❌
 
 - [x] Task 6.0.4: **GREEN** - Add touchscreen profile loading to manager *(2025-11-16)*
-  - Edit `scripts/managers/m_input_profile_manager.gd`
+  - Edit `scripts/core/managers/m_input_profile_manager.gd`
   - Add to `_load_available_profiles()`:
     ```gdscript
-    var default_touchscreen_res := load("res://resources/input/profiles/cfg_default_touchscreen.tres")
+    var default_touchscreen_res := load("res://resources/core/input/profiles/cfg_default_touchscreen.tres")
     if default_touchscreen_res is RS_InputProfile:
         available_profiles["default_touchscreen"] = default_touchscreen_res
     ```
@@ -499,14 +499,14 @@
   - **Result:** Tests FAILED as expected (class doesn't exist) ❌
 
 - [x] Task 6.1.2: **GREEN** - Create minimal RS_TouchscreenSettings to pass tests *(2025-11-16)*
-  - Created `scripts/resources/input/rs_touchscreen_settings.gd`
+  - Created `scripts/core/resources/input/rs_touchscreen_settings.gd`
   - Implemented static `apply_touch_deadzone()` helper method
   - Added exports for virtual_joystick_size, joystick_deadzone, button_opacity
   - **Result:** Tests PASSED ✅
 
 - [x] Task 6.1.3: **REFACTOR** - Add remaining exports and default resource *(2025-11-16)*
   - Added full exports: `virtual_joystick_opacity`, `button_size`, `button_opacity`
-  - Created `resources/input/touchscreen_settings/cfg_default_touchscreen_settings.tres`
+  - Created `resources/core/input/touchscreen_settings/cfg_default_touchscreen_settings.tres`
   - **Result:** Tests still PASSED (4/4 tests, 11 assertions) ✅
 
 ### Task 6.2: Add Redux State Integration (TDD)
@@ -570,7 +570,7 @@
 
 ### Task 6.3: Create VirtualJoystick UI Component (TDD) - FR-047, FR-049, FR-050, FR-051
 
-**Status (2025-11-19):** ✅ Implemented `scripts/ui/virtual_joystick.gd` + `scenes/ui/virtual_joystick.tscn` with full test coverage in `tests/unit/ui/test_virtual_joystick.gd` (press/drag/deadzone/multi-touch/reposition + Redux save hook). Regression coverage updated via `tests/unit/integration/test_button_prompt_flow.gd` and the headless unit/integration suite now passes when run with a local HOME override (`HOME="$PWD/.home_tmp" ... gut_cmdln.gd ... -gdir=res://tests/unit -ginclude_subdirs -gexit`).
+**Status (2025-11-19):** ✅ Implemented `scripts/core/ui/virtual_joystick.gd` + `scenes/ui/virtual_joystick.tscn` with full test coverage in `tests/unit/ui/test_virtual_joystick.gd` (press/drag/deadzone/multi-touch/reposition + Redux save hook). Regression coverage updated via `tests/unit/integration/test_button_prompt_flow.gd` and the headless unit/integration suite now passes when run with a local HOME override (`HOME="$PWD/.home_tmp" ... gut_cmdln.gd ... -gdir=res://tests/unit -ginclude_subdirs -gexit`).
 
 **TDD Approach:** Feature-by-feature cycles (User Decision: 2025-11-16)
 
@@ -582,7 +582,7 @@
     - Test `joystick_released` signal emitted on release
     - **Expected:** FAIL (VirtualJoystick class doesn't exist) ❌ *(fulfilled 2025-11-19 via new GUT suite)*
   - **GREEN:** Create minimal implementation
-    - Create `scripts/ui/virtual_joystick.gd` (extends Control, class_name VirtualJoystick)
+    - Create `scripts/core/ui/virtual_joystick.gd` (extends Control, class_name VirtualJoystick)
     - Implement `_input()` handler for InputEventScreenTouch
     - Track `_touch_id: int` and `_is_active: bool` state
     - Emit `joystick_released()` signal on touch release
@@ -664,7 +664,7 @@
 
 ### Task 6.4: Create VirtualButton UI Component (TDD) - FR-048
 
-**Status (2025-11-20):** ✅ Implemented `scripts/ui/virtual_button.gd` + `scenes/ui/virtual_button.tscn` with full coverage in `tests/unit/ui/test_virtual_button.gd` (11 tests / 73 assertions covering press/release, drag-out, action types, multi-touch, reposition save, and visual feedback). Regression suite executed via `Godot --headless ... -gtest=res://tests/unit/ui/test_virtual_button.gd -gexit`.
+**Status (2025-11-20):** ✅ Implemented `scripts/core/ui/virtual_button.gd` + `scenes/ui/virtual_button.tscn` with full coverage in `tests/unit/ui/test_virtual_button.gd` (11 tests / 73 assertions covering press/release, drag-out, action types, multi-touch, reposition save, and visual feedback). Regression suite executed via `Godot --headless ... -gtest=res://tests/unit/ui/test_virtual_button.gd -gexit`.
 
 **User Decisions (2025-11-20):**
 - ✅ **TDD Structure:** 5 detailed cycles (same as VirtualJoystick)
@@ -683,7 +683,7 @@
     - Test `button_released(action)` signal emitted on release
     - **Expected:** FAIL (VirtualButton class doesn't exist) ❌ *(captured 2025-11-20 before script stub existed)*
   - **GREEN:** Create minimal implementation
-    - Create `scripts/ui/virtual_button.gd` (extends Control, class_name VirtualButton)
+    - Create `scripts/core/ui/virtual_button.gd` (extends Control, class_name VirtualButton)
     - Implement `_input()` handler for InputEventScreenTouch
     - Track `_touch_id: int` and `_is_pressed: bool` state
     - Add `@export var action: StringName` for action binding
@@ -771,8 +771,8 @@
   - Test conditional instantiation, device detection, pause menu hiding, opacity changes
   - **Expected:** FAIL ❌
 
-- [x] Task 6.5.2: **GREEN** - Create minimal MobileControls to pass tests *(scripts/ui/mobile_controls.gd initial implementation)*
-  - Create `scripts/ui/mobile_controls.gd` with minimum implementation
+- [x] Task 6.5.2: **GREEN** - Create minimal MobileControls to pass tests *(scripts/core/ui/mobile_controls.gd initial implementation)*
+  - Create `scripts/core/ui/mobile_controls.gd` with minimum implementation
   - **Expected:** Tests PASS ✅
 
 - [x] Task 6.5.3: **REFACTOR** - Add metadata-driven buttons and create scene *(mobile_controls.tscn + root wiring + Tween fade)*
@@ -810,7 +810,7 @@
 
 - [x] Task 6.6.1: **RED** - Write failing tests for S_TouchscreenSystem *(2025-11-20, added `tests/unit/ecs/systems/test_s_touchscreen_system.gd`)*
 - [x] Task 6.6.2: **GREEN** - Create minimal S_TouchscreenSystem to pass tests *(2025-11-20, device/emulation guards + debug flag check + state dispatch)*
-- [x] Task 6.6.3: **REFACTOR** - Add to gameplay scene *(2025-11-20, system node added under Systems/Core in `scenes/gameplay/gameplay_base.tscn`)*
+- [x] Task 6.6.3: **REFACTOR** - Add to gameplay scene *(2025-11-20, system node added under Systems/Core in `scenes/demo/gameplay/gameplay_base.tscn`)*
 - [x] Task 6.6.4: **NEW** - Add debug.disable_touchscreen emergency flag *(2025-11-20, new debug slice/actions/selectors + default resource wired to M_StateStore)*
 
 ### Task 6.8: Integration Testing - FR-133
@@ -890,7 +890,7 @@
   - Slider: Joystick Deadzone (0.0-0.5)
   - Live preview: VirtualJoystick + VirtualButton visualization (like GamepadSettingsOverlay stick preview)
   - Buttons: Apply, Cancel, Reset to Defaults
-- [x] Task 6.10.2: Create `scripts/ui/touchscreen_settings_overlay.gd`
+- [x] Task 6.10.2: Create `scripts/core/ui/touchscreen_settings_overlay.gd`
   - Extend `Control`, similar to `GamepadSettingsOverlay` pattern
   - Subscribe to state store for current settings
   - Update live preview on slider changes
@@ -913,7 +913,7 @@
   - Visual feedback: Semi-transparent grid overlay, snap-to-grid guidelines
   - Instructions label: "Drag controls to reposition. Tap 'Save' when done."
   - Buttons: Save Positions, Reset to Defaults, Cancel
-- [x] Task 6.11.2: Create `scripts/ui/edit_touch_controls_overlay.gd`
+- [x] Task 6.11.2: Create `scripts/core/ui/edit_touch_controls_overlay.gd`
   - Extend `Control`
   - Communicate with MobileControls via signals or direct reference
   - Toggle drag mode: Set `can_reposition = true` on VirtualJoystick/VirtualButton
@@ -956,8 +956,8 @@
   - Result: Added coverage for defaults merge + Vector2 dict deserialization (pass)
 
 - [x] Task 6.12.2: **GREEN** - Fix `_sanitize_loaded_settings()` to merge with defaults
-  - Update `scripts/utils/input/u_input_serialization.gd`
-  - Import: `const U_InputReducer = preload("res://scripts/state/reducers/u_input_reducer.gd")`
+  - Update `scripts/core/utils/input/u_input_serialization.gd`
+  - Import: `const U_InputReducer = preload("res://scripts/core/state/reducers/u_input_reducer.gd")`
   - After deserializing touchscreen_settings, merge with defaults:
 
     ```gdscript
@@ -1024,7 +1024,7 @@ The following tasks were deferred or absorbed into UI Manager:
 - **Redux patterns**: All state via actions/reducers/selectors (U_InputActions, U_InputSelectors)
 - **StateHandoff compatible**: Settings persist across scene transitions via settings reducer
 - **TDD approach**: Write tests FIRST, then implementation (90%+ code coverage target, qualitative line-by-line review)
-- **File organization**: Follow existing repo patterns - Resources in `scripts/resources/input/`, utilities in `scripts/`, systems in `scripts/ecs/systems/`, NO new `scripts/input/` directory
+- **File organization**: Follow existing repo patterns - Resources in `scripts/core/resources/input/`, utilities in `scripts/`, systems in `scripts/core/ecs/systems/`, NO new `scripts/core/input/` directory
 - **Input processing**: ALL input types (keyboard, mouse, gamepad, touch) processed in `_physics_process()` for consistent 60Hz timing
 - **Performance targets** (Non-Negotiable):
   - Input latency: < 16ms (one frame @ 60 FPS)

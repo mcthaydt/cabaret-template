@@ -80,73 +80,73 @@ You are implementing a Scene Director and Objectives Manager for a Godot 4.6 ECS
 ## Key Files to Reference
 
 ### v2 QB types used by objectives/beats:
-- `scripts/resources/qb/rs_base_condition.gd` -- base condition class; subclasses self-evaluate via `evaluate(context) -> float`
-- `scripts/resources/qb/conditions/rs_condition_redux_field.gd` -- reads Redux state paths (primary condition type for objectives)
-- `scripts/resources/qb/conditions/rs_condition_event_payload.gd` -- reads event payload fields
-- `scripts/resources/qb/conditions/rs_condition_constant.gd` -- fixed score for unconditional beats
-- `scripts/resources/qb/conditions/rs_condition_composite.gd` -- nested `ALL`/`ANY` grouping for OR/AND condition graphs
-- `scripts/resources/qb/rs_base_effect.gd` -- base effect class; subclasses self-execute via `execute(context)`
-- `scripts/resources/qb/effects/rs_effect_dispatch_action.gd` -- dispatches Redux action
-- `scripts/resources/qb/effects/rs_effect_publish_event.gd` -- publishes ECS event
+- `scripts/core/resources/qb/rs_base_condition.gd` -- base condition class; subclasses self-evaluate via `evaluate(context) -> float`
+- `scripts/core/resources/qb/conditions/rs_condition_redux_field.gd` -- reads Redux state paths (primary condition type for objectives)
+- `scripts/core/resources/qb/conditions/rs_condition_event_payload.gd` -- reads event payload fields
+- `scripts/core/resources/qb/conditions/rs_condition_constant.gd` -- fixed score for unconditional beats
+- `scripts/core/resources/qb/conditions/rs_condition_composite.gd` -- nested `ALL`/`ANY` grouping for OR/AND condition graphs
+- `scripts/core/resources/qb/rs_base_effect.gd` -- base effect class; subclasses self-execute via `execute(context)`
+- `scripts/core/resources/qb/effects/rs_effect_dispatch_action.gd` -- dispatches Redux action
+- `scripts/core/resources/qb/effects/rs_effect_publish_event.gd` -- publishes ECS event
 
 ### Existing patterns to follow:
-- `scripts/state/actions/u_gameplay_actions.gd` -- pattern for action creators
-- `scripts/state/reducers/u_gameplay_reducer.gd` -- pattern for reducers
-- `scripts/state/selectors/u_gameplay_selectors.gd` -- pattern for selectors
-- `scripts/resources/state/rs_gameplay_initial_state.gd` -- pattern for initial state resources
-- `scripts/state/utils/u_state_slice_manager.gd` -- add new slices here
-- `scripts/state/m_state_store.gd` -- add @export for new initial state resources
+- `scripts/core/state/actions/u_gameplay_actions.gd` -- pattern for action creators
+- `scripts/core/state/reducers/u_gameplay_reducer.gd` -- pattern for reducers
+- `scripts/core/state/selectors/u_gameplay_selectors.gd` -- pattern for selectors
+- `scripts/core/resources/state/rs_gameplay_initial_state.gd` -- pattern for initial state resources
+- `scripts/core/state/utils/u_state_slice_manager.gd` -- add new slices here
+- `scripts/core/state/m_state_store.gd` -- add @export for new initial state resources
 
 ### Files to modify:
-- `scripts/state/utils/u_state_slice_manager.gd` -- add objectives + scene_director slices
-- `scripts/state/m_state_store.gd` -- add @export for objectives + scene_director initial state
+- `scripts/core/state/utils/u_state_slice_manager.gd` -- add objectives + scene_director slices
+- `scripts/core/state/m_state_store.gd` -- add @export for objectives + scene_director initial state
 - `scripts/core/root.gd` -- register M_ObjectivesManager + M_RunCoordinator + M_SceneDirector with ServiceLocator (keys: `"objectives_manager"`, `"run_coordinator"`, `"scene_director"`)
 - `scripts/core/events/ecs/u_ecs_event_names.gd` -- add objective/directive event constants
-- `scripts/managers/m_scene_manager.gd` -- remove victory handling, add objective_victory subscription
+- `scripts/core/managers/m_scene_manager.gd` -- remove victory handling, add objective_victory subscription
 - `scenes/root.tscn` -- add M_ObjectivesManager + M_SceneDirector nodes
 - `AGENTS.md` -- keep Quick How-Tos service list aligned with `root.gd` registrations (`"objectives_manager"`, `"run_coordinator"`, `"scene_director"`, etc.)
 
 ### Files that stay unchanged:
-- `scripts/ecs/systems/s_victory_handler_system.gd` -- stays as-is (93 lines)
-- `scripts/ecs/systems/s_checkpoint_handler_system.gd` -- stays as-is
-- `scripts/ecs/systems/s_game_event_system.gd` -- stays as-is (v2 name)
+- `scripts/core/ecs/systems/s_victory_handler_system.gd` -- stays as-is (93 lines)
+- `scripts/core/ecs/systems/s_checkpoint_handler_system.gd` -- stays as-is
+- `scripts/core/ecs/systems/s_game_event_system.gd` -- stays as-is (v2 name)
 - All v2 QB core code
 
 ### New files created by this feature:
 
 **Resources** (Phase 1):
-- `scripts/resources/scene_director/rs_objective_definition.gd`
-- `scripts/resources/scene_director/rs_objective_set.gd`
-- `scripts/resources/scene_director/rs_beat_definition.gd`
-- `scripts/resources/scene_director/rs_scene_directive.gd`
+- `scripts/core/resources/scene_director/rs_objective_definition.gd`
+- `scripts/core/resources/scene_director/rs_objective_set.gd`
+- `scripts/core/resources/scene_director/rs_beat_definition.gd`
+- `scripts/core/resources/scene_director/rs_scene_directive.gd`
 
 **State -- Objectives** (Phase 1):
-- `scripts/state/actions/u_objectives_actions.gd`
-- `scripts/state/reducers/u_objectives_reducer.gd`
-- `scripts/state/selectors/u_objectives_selectors.gd`
-- `scripts/resources/state/rs_objectives_initial_state.gd`
+- `scripts/core/state/actions/u_objectives_actions.gd`
+- `scripts/core/state/reducers/u_objectives_reducer.gd`
+- `scripts/core/state/selectors/u_objectives_selectors.gd`
+- `scripts/core/resources/state/rs_objectives_initial_state.gd`
 
 **State -- Scene Director** (Phase 1):
-- `scripts/state/actions/u_scene_director_actions.gd`
-- `scripts/state/reducers/u_scene_director_reducer.gd`
-- `scripts/state/selectors/u_scene_director_selectors.gd`
-- `scripts/resources/state/rs_scene_director_initial_state.gd`
+- `scripts/core/state/actions/u_scene_director_actions.gd`
+- `scripts/core/state/reducers/u_scene_director_reducer.gd`
+- `scripts/core/state/selectors/u_scene_director_selectors.gd`
+- `scripts/core/resources/state/rs_scene_director_initial_state.gd`
 
 **Helpers** (Phase 2-3):
-- `scripts/utils/scene_director/u_objective_graph.gd`
-- `scripts/utils/scene_director/u_objective_event_log.gd`
-- `scripts/utils/scene_director/u_beat_runner.gd`
-- `scripts/utils/scene_director/u_beat_graph.gd`
+- `scripts/core/utils/scene_director/u_objective_graph.gd`
+- `scripts/core/utils/scene_director/u_objective_event_log.gd`
+- `scripts/core/utils/scene_director/u_beat_runner.gd`
+- `scripts/core/utils/scene_director/u_beat_graph.gd`
 
 **Managers** (Phase 2-3):
-- `scripts/managers/m_objectives_manager.gd`
-- `scripts/managers/m_scene_director.gd`
+- `scripts/core/managers/m_objectives_manager.gd`
+- `scripts/core/managers/m_scene_director.gd`
 
 **Resource Instances** (created through Phase 5):
-- `resources/scene_director/objectives/cfg_obj_level_complete.tres`
-- `resources/scene_director/objectives/cfg_obj_game_complete.tres`
-- `resources/scene_director/sets/cfg_objset_default.tres`
-- `resources/scene_director/directives/cfg_directive_gameplay_base.tres`
+- `resources/core/scene_director/objectives/cfg_obj_level_complete.tres`
+- `resources/core/scene_director/objectives/cfg_obj_game_complete.tres`
+- `resources/core/scene_director/sets/cfg_objset_default.tres`
+- `resources/core/scene_director/directives/cfg_directive_gameplay_base.tres`
 
 **Tests**:
 - `tests/unit/scene_director/test_objectives_selectors.gd`

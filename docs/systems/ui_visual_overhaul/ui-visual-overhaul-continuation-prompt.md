@@ -33,7 +33,7 @@
 - **2026-03-06: Phase 4 Screen 19 implemented (`ui_loading_screen.tscn`)**
   - Loading screen migrated off inline scene overrides:
     - Removed all Screen 19 inline `theme_override_*` entries (VBox separation + 4 label font-size overrides).
-    - Added `UI_LoadingScreen` controller (`scripts/ui/hud/ui_loading_screen.gd`) to apply tokenized styling from `U_UIThemeBuilder.active_config`.
+    - Added `UI_LoadingScreen` controller (`scripts/core/ui/hud/ui_loading_screen.gd`) to apply tokenized styling from `U_UIThemeBuilder.active_config`.
   - Screen 19 token mapping now centralized in script:
     - `margin_outer` for loading-stack spacing
     - `title` for logo text, `heading` for spinner glyph, `body_small` for status, `section_header` for tip text
@@ -76,9 +76,9 @@
     - Added token application in `UI_HudController._apply_theme_tokens()` for margins/typography/signpost styling.
     - Health bar background now comes from themed `ProgressBar.background`; fill remains palette-driven (`_update_health_bar_colors`) for color-blind accessibility.
   - Motion extraction completed for HUD feedback channels:
-    - `resources/ui/motions/cfg_motion_hud_checkpoint_toast.tres`
-    - `resources/ui/motions/cfg_motion_hud_signpost_fade_in.tres`
-    - `resources/ui/motions/cfg_motion_hud_signpost_fade_out.tres`
+    - `resources/core/ui/motions/cfg_motion_hud_checkpoint_toast.tres`
+    - `resources/core/ui/motions/cfg_motion_hud_signpost_fade_in.tres`
+    - `resources/core/ui/motions/cfg_motion_hud_signpost_fade_out.tres`
     - `UI_HudController` now consumes these resources instead of hardcoded checkpoint/signpost fade timings.
   - Added Screen 17 regression coverage:
     - `tests/unit/ui/test_hud_theme.gd`
@@ -218,7 +218,7 @@
 - **"UI, Layers & Transitions Refactor" completed** — all 7 phases done on branch `UI-Looksmaxxing`
 - **2026-03-05: Plan revised** — replaced framework-first approach (8 phases) with screen-by-screen approach (6 phases: 0-5). Deferred HUD widgets, @tool previews, and number ticker. Focus is on polishing all existing screens + enhancing existing HUD.
 - **2026-03-05: Phase 0A-0C implemented**
-  - Added `RS_UIThemeConfig` + default config resource (`resources/ui/cfg_ui_theme_default.tres`)
+  - Added `RS_UIThemeConfig` + default config resource (`resources/core/ui/cfg_ui_theme_default.tres`)
   - Added `U_UIThemeBuilder` and static `active_config` wiring in `root.gd`
   - Unified theme pipeline: localization font applier composes fonts+theme; display theme applier feeds active palette and rebuilds via builder
   - Added `tests/unit/ui/test_ui_theme_builder.gd` (16 tests) including 0C integration coverage
@@ -228,9 +228,9 @@
   - Added motion utility: `U_UIMotion.play/play_enter/play_exit/bind_interactive`
   - Added `tests/unit/ui/test_ui_motion.gd` (12 tests) covering sequential, parallel, interval, and signal binding behavior
   - Authored default motion sets:
-    - `resources/ui/motions/cfg_motion_fade_slide.tres`
-    - `resources/ui/motions/cfg_motion_button_default.tres`
-    - `resources/ui/motions/cfg_motion_hud_pop.tres`
+    - `resources/core/ui/motions/cfg_motion_fade_slide.tres`
+    - `resources/core/ui/motions/cfg_motion_button_default.tres`
+    - `resources/core/ui/motions/cfg_motion_hud_pop.tres`
   - Verified new motion tests, theme builder tests, and style suite all pass
 - **2026-03-05: Phase 0F implemented**
   - Added motion integration tests to `tests/unit/ui/test_base_ui_classes.gd` (null-bind, bind, menu enter/no-enter, overlay dim)
@@ -245,7 +245,7 @@
   - Follow-up hardening patch applied:
     - `U_UIThemeBuilder` now applies config text colors when palette is not yet available and the base theme has no colors.
     - Builder kept `Resource` typing for `active_config`/palette parameters to maintain headless parser compatibility.
-    - `resources/ui/cfg_ui_theme_default.tres` now pins primitive default tokens explicitly.
+    - `resources/core/ui/cfg_ui_theme_default.tres` now pins primitive default tokens explicitly.
 - **2026-03-05: Phase 1 Screen 1 implemented (`ui_main_menu.tscn`)**
   - Scene composition updated: full-screen `Background` (`bg_base`) + centered `PanelContainer` for the main button group.
   - Assigned `motion_set = cfg_motion_fade_slide` on `UI_MainMenu` root and trigger `play_enter_animation()` on panel ready.
@@ -759,15 +759,15 @@ Updated next action (2026-03-06): Story complete; no pending UI Visual Overhaul 
 
 | File | Purpose |
 |------|---------|
-| `scripts/resources/ui/rs_ui_theme_config.gd` | Master theme config resource |
-| `resources/ui/cfg_ui_theme_default.tres` | Default theme instance |
-| `scripts/ui/utils/u_ui_theme_builder.gd` | Theme merge utility |
-| `scripts/resources/ui/rs_ui_motion_preset.gd` | Single tween recipe |
-| `scripts/resources/ui/rs_ui_motion_set.gd` | Motion preset collection |
-| `resources/ui/motions/cfg_motion_fade_slide.tres` | Screen enter/exit preset |
-| `resources/ui/motions/cfg_motion_button_default.tres` | Button hover/press preset |
-| `resources/ui/motions/cfg_motion_hud_pop.tres` | HUD widget pop-in preset |
-| `scripts/ui/utils/u_ui_motion.gd` | Motion playback utility |
+| `scripts/core/resources/ui/rs_ui_theme_config.gd` | Master theme config resource |
+| `resources/core/ui/cfg_ui_theme_default.tres` | Default theme instance |
+| `scripts/core/ui/utils/u_ui_theme_builder.gd` | Theme merge utility |
+| `scripts/core/resources/ui/rs_ui_motion_preset.gd` | Single tween recipe |
+| `scripts/core/resources/ui/rs_ui_motion_set.gd` | Motion preset collection |
+| `resources/core/ui/motions/cfg_motion_fade_slide.tres` | Screen enter/exit preset |
+| `resources/core/ui/motions/cfg_motion_button_default.tres` | Button hover/press preset |
+| `resources/core/ui/motions/cfg_motion_hud_pop.tres` | HUD widget pop-in preset |
+| `scripts/core/ui/utils/u_ui_motion.gd` | Motion playback utility |
 
 ### Tests (Phase 0)
 
@@ -780,14 +780,14 @@ Updated next action (2026-03-06): Story complete; no pending UI Visual Overhaul 
 
 | File | Phase | Change |
 |------|-------|--------|
-| `scripts/managers/helpers/localization/u_localization_font_applier.gd` | 0C | Call through `U_UIThemeBuilder` when `active_config` set |
-| `scripts/managers/m_display_manager.gd` | 0C | Stop independent theme application, trigger unified rebuild |
-| `scripts/managers/helpers/display/u_display_ui_theme_applier.gd` | 0C | Feeds palette into builder instead of applying independently |
-| `scripts/ui/base/base_panel.gd` | 0F | Add `@export var motion_set` + bind interactive children |
-| `scripts/ui/base/base_menu_screen.gd` | 0F | Add enter/exit animation methods |
-| `scripts/ui/base/base_overlay.gd` | 0F | Animate dim background with content motion |
-| `scripts/ui/hud/ui_hud_controller.gd` | 4 | Extract tween params to motion resources |
-| `scripts/ui/hud/ui_button_prompt.gd` | 4 | Apply button-prompt token overrides from active theme config |
+| `scripts/core/managers/helpers/localization/u_localization_font_applier.gd` | 0C | Call through `U_UIThemeBuilder` when `active_config` set |
+| `scripts/core/managers/m_display_manager.gd` | 0C | Stop independent theme application, trigger unified rebuild |
+| `scripts/core/managers/helpers/display/u_display_ui_theme_applier.gd` | 0C | Feeds palette into builder instead of applying independently |
+| `scripts/core/ui/base/base_panel.gd` | 0F | Add `@export var motion_set` + bind interactive children |
+| `scripts/core/ui/base/base_menu_screen.gd` | 0F | Add enter/exit animation methods |
+| `scripts/core/ui/base/base_overlay.gd` | 0F | Animate dim background with content motion |
+| `scripts/core/ui/hud/ui_hud_controller.gd` | 4 | Extract tween params to motion resources |
+| `scripts/core/ui/hud/ui_button_prompt.gd` | 4 | Apply button-prompt token overrides from active theme config |
 | 14 `.tscn` files with overrides (124 total) | 1-4 | Remove inline `theme_override_*` values, apply theme |
 | 4 settings overlay wrappers | 2 | Theme application, dim standardization |
 | `AGENTS.md` | 5C | New patterns |
@@ -797,9 +797,9 @@ Updated next action (2026-03-06): Story complete; no pending UI Visual Overhaul 
 
 These were in the original plan but are deferred to a future pass:
 
-- `scripts/ui/utils/u_ui_number_ticker.gd` — animated number counting utility
-- `scripts/ui/hud/base_hud_widget.gd` — HUD widget base class
-- `scripts/resources/ui/rs_hud_widget_config.gd` — per-widget config
+- `scripts/core/ui/utils/u_ui_number_ticker.gd` — animated number counting utility
+- `scripts/core/ui/hud/base_hud_widget.gd` — HUD widget base class
+- `scripts/core/resources/ui/rs_hud_widget_config.gd` — per-widget config
 - 5 HUD widgets: notification queue, objective tracker, currency/score, timer, minimap slot
 - `@tool` editor preview scripts for themes and motion
 - All corresponding tests and `.tres` configs for the above

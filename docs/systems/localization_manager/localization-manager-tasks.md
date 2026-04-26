@@ -18,12 +18,12 @@ Before starting Phase 0, verify:
   - Verify display slice is registered (run existing display tests)
 
 - [ ] **PRE-2**: Understand existing patterns by reading:
-  - `scripts/state/utils/u_state_slice_manager.gd` (slice registration)
-  - `scripts/managers/m_audio_manager.gd` (hash-based optimization, store discovery)
-  - `scripts/managers/m_display_manager.gd` (most recent implementation)
-  - `scripts/state/m_state_store.gd` (export pattern, initialize_slices call)
+  - `scripts/core/state/utils/u_state_slice_manager.gd` (slice registration)
+  - `scripts/core/managers/m_audio_manager.gd` (hash-based optimization, store discovery)
+  - `scripts/core/managers/m_display_manager.gd` (most recent implementation)
+  - `scripts/core/state/m_state_store.gd` (export pattern, initialize_slices call)
   - `scripts/core/root.gd` (ServiceLocator registration, lines 28–41)
-  - `scripts/state/actions/u_audio_actions.gd` (_static_init() action registry pattern)
+  - `scripts/core/state/actions/u_audio_actions.gd` (_static_init() action registry pattern)
 
 ---
 
@@ -43,7 +43,7 @@ Before starting Phase 0, verify:
   - **Target: 5 tests** (becomes 6 after Phase 0.5A)
 
 - [x] **Task 0A.2 (Green)**: Implement RS_LocalizationInitialState resource
-  - Create `scripts/resources/state/rs_localization_initial_state.gd`
+  - Create `scripts/core/resources/state/rs_localization_initial_state.gd`
   - `@export_enum("en", "es", "pt", "zh_CN", "ja") var current_locale: String = "en"`
   - `@export var dyslexia_font_enabled: bool = false`
   - `@export_range(0.5, 2.0, 0.05) var ui_scale_override: float = 1.0`
@@ -52,7 +52,7 @@ Before starting Phase 0, verify:
   - All tests should pass
 
 - [x] **Task 0A.3**: Create default resource instance
-  - Create `resources/base_settings/state/cfg_localization_initial_state.tres`
+  - Create `resources/core/base_settings/state/cfg_localization_initial_state.tres`
   - Leave all fields at defaults (en, false, 1.0, false)
 
 ---
@@ -68,7 +68,7 @@ Before starting Phase 0, verify:
   - **Target: 4 tests**
 
 - [x] **Task 0B.2 (Green)**: Implement U_LocalizationActions
-  - Create `scripts/state/actions/u_localization_actions.gd`
+  - Create `scripts/core/state/actions/u_localization_actions.gd`
   - `const ACTION_SET_LOCALE := StringName("localization/set_locale")`
   - `const ACTION_SET_DYSLEXIA_FONT_ENABLED := StringName("localization/set_dyslexia_font_enabled")`
   - `const ACTION_SET_UI_SCALE_OVERRIDE := StringName("localization/set_ui_scale_override")`
@@ -95,7 +95,7 @@ Before starting Phase 0, verify:
   - **Target: 15 tests**
 
 - [x] **Task 0C.2 (Green)**: Implement U_LocalizationReducer
-  - Create `scripts/state/reducers/u_localization_reducer.gd`
+  - Create `scripts/core/state/reducers/u_localization_reducer.gd`
   - `SUPPORTED_LOCALES: Array[StringName] = [&"en", &"es", &"pt", &"zh_CN", &"ja"]`
   - `CJK_LOCALES: Array[StringName] = [&"zh_CN", &"ja"]`
   - `CJK_SCALE_OVERRIDE: float = 1.1`, `DEFAULT_SCALE_OVERRIDE: float = 1.0`
@@ -119,7 +119,7 @@ Before starting Phase 0, verify:
   - **Target: 7 tests**
 
 - [x] **Task 0D.2 (Green)**: Implement U_LocalizationSelectors
-  - Create `scripts/state/selectors/u_localization_selectors.gd`
+  - Create `scripts/core/state/selectors/u_localization_selectors.gd`
   - Add private helper `static func _get_localization_slice(state: Dictionary) -> Dictionary` (follows `_get_audio_slice` pattern: null guard, `.get("localization", {})`, type check)
   - `static func get_locale(state)` → `StringName` default `&"en"`
   - `static func is_dyslexia_font_enabled(state)` → `bool` default `false`
@@ -128,21 +128,21 @@ Before starting Phase 0, verify:
   - All tests should pass
 
 - [x] **Task 0D.3**: Integrate localization slice with M_StateStore
-  - Modify `scripts/state/m_state_store.gd`:
+  - Modify `scripts/core/state/m_state_store.gd`:
     - Add `const RS_LOCALIZATION_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_localization_initial_state.gd")`
     - Add `@export var localization_initial_state: Resource`
     - Add `localization_initial_state` as **13th argument** to `initialize_slices()` call
-  - Modify `scripts/state/utils/u_state_slice_manager.gd`:
-    - Add `const U_LOCALIZATION_REDUCER := preload("res://scripts/state/reducers/u_localization_reducer.gd")`
+  - Modify `scripts/core/state/utils/u_state_slice_manager.gd`:
+    - Add `const U_LOCALIZATION_REDUCER := preload("res://scripts/core/state/reducers/u_localization_reducer.gd")`
     - Add `localization_initial_state: Resource` as 13th parameter
     - After display slice block: register localization slice with `RS_StateSliceConfig` (name `"localization"`, no transient fields)
-  - Modify `scripts/utils/u_global_settings_serialization.gd` (4 methods):
+  - Modify `scripts/core/utils/u_global_settings_serialization.gd` (4 methods):
     - `is_global_settings_action()`: add `localization/` prefix check
     - `build_settings_from_state()`: extract localization slice
     - `_prepare_save_payload()`: include localization in payload
     - `_sanitize_loaded_settings()`: accept localization from disk
-  - **CRITICAL — Modify `scripts/state/utils/u_global_settings_applier.gd`**:
-    - Add `const U_LOCALIZATION_ACTIONS := preload("res://scripts/state/actions/u_localization_actions.gd")`
+  - **CRITICAL — Modify `scripts/core/state/utils/u_global_settings_applier.gd`**:
+    - Add `const U_LOCALIZATION_ACTIONS := preload("res://scripts/core/state/actions/u_localization_actions.gd")`
     - In `apply()`: extract `"localization"` from settings Dictionary, call `_apply_localization(store, localization_dict)`
     - Add `static func _apply_localization(store: I_StateStore, settings: Dictionary)`:
       - Dispatch `U_LOCALIZATION_ACTIONS.set_locale()` if `"current_locale"` key present
@@ -150,7 +150,7 @@ Before starting Phase 0, verify:
       - Dispatch `U_LOCALIZATION_ACTIONS.set_ui_scale_override()` if `"ui_scale_override"` key present
       - Dispatch `U_LOCALIZATION_ACTIONS.mark_language_selected()` if `"has_selected_language"` is `true`
     - **Without this, `has_selected_language` saves to disk but never restores — breaking the first-run skip entirely**
-  - Assign `resources/base_settings/state/cfg_localization_initial_state.tres` to `M_StateStore.localization_initial_state` in `scenes/root.tscn` inspector
+  - Assign `resources/core/base_settings/state/cfg_localization_initial_state.tres` to `M_StateStore.localization_initial_state` in `scenes/root.tscn` inspector
 
 - [x] **Task 0D.4**: Verify integration
   - Run existing state tests (no regressions)
@@ -170,12 +170,12 @@ Before starting Phase 0, verify:
 ### Phase 0.5A: Redux Additions
 
 - [x] **Task 0.5A.1**: Add `has_selected_language` to RS_LocalizationInitialState
-  - Open `scripts/resources/state/rs_localization_initial_state.gd`
+  - Open `scripts/core/resources/state/rs_localization_initial_state.gd`
   - Add `@export var has_selected_language: bool = false`
   - Add `"has_selected_language": has_selected_language` to `to_dictionary()` return
 
 - [x] **Task 0.5A.2**: Add `ACTION_MARK_LANGUAGE_SELECTED` to U_LocalizationActions
-  - Open `scripts/state/actions/u_localization_actions.gd`
+  - Open `scripts/core/state/actions/u_localization_actions.gd`
   - Add `const ACTION_MARK_LANGUAGE_SELECTED := StringName("localization/mark_language_selected")`
   - Register it in `_static_init()` via `U_ActionRegistry.register_action(ACTION_MARK_LANGUAGE_SELECTED)`
   - Add `static func mark_language_selected() -> Dictionary`
@@ -184,7 +184,7 @@ Before starting Phase 0, verify:
     ```
 
 - [x] **Task 0.5A.3**: Handle new action in U_LocalizationReducer
-  - Open `scripts/state/reducers/u_localization_reducer.gd`
+  - Open `scripts/core/state/reducers/u_localization_reducer.gd`
   - Add match case:
     ```gdscript
     U_LocalizationActions.ACTION_MARK_LANGUAGE_SELECTED:
@@ -192,7 +192,7 @@ Before starting Phase 0, verify:
     ```
 
 - [x] **Task 0.5A.4**: Add `has_selected_language()` selector to U_LocalizationSelectors
-  - Open `scripts/state/selectors/u_localization_selectors.gd`
+  - Open `scripts/core/state/selectors/u_localization_selectors.gd`
   - Add:
     ```gdscript
     static func has_selected_language(state: Dictionary) -> bool:
@@ -216,7 +216,7 @@ Before starting Phase 0, verify:
 
 ### Phase 0.5B: Language Selector Scene & Controller
 
-- [x] **Task 0.5B.1**: Create `scripts/ui/menus/ui_language_selector.gd`
+- [x] **Task 0.5B.1**: Create `scripts/core/ui/menus/ui_language_selector.gd`
   - `class_name UI_LanguageSelector extends BaseMenuScreen`
   - `const SUPPORTED_LOCALES: Array[StringName] = [&"en", &"es", &"pt", &"zh_CN", &"ja"]`
   - `@onready` vars for all five buttons (unique names: `%EnButton`, `%EsButton`, etc.)
@@ -239,7 +239,7 @@ Before starting Phase 0, verify:
 
 ### Phase 0.5C: Registry & Initial Scene
 
-- [x] **Task 0.5C.1**: Register `language_selector` scene in `scripts/scene_management/u_scene_registry.gd`
+- [x] **Task 0.5C.1**: Register `language_selector` scene in `scripts/core/scene_management/u_scene_registry.gd`
   - Add in `_register_scenes()` before or alongside `main_menu`:
     ```gdscript
     _register_scene(
@@ -275,7 +275,7 @@ Before starting Phase 0, verify:
 ### Phase 1A: Interface Definition
 
 - [x] **Task 1A.1**: Create I_LocalizationManager interface
-  - Create `scripts/interfaces/i_localization_manager.gd`
+  - Create `scripts/core/interfaces/i_localization_manager.gd`
   - Methods (all `push_error` stubs):
     - `set_locale(_locale: StringName) -> void`
     - `get_locale() -> StringName` (returns `&""`)
@@ -298,7 +298,7 @@ Before starting Phase 0, verify:
   - **Target: 6 tests**
 
 - [x] **Task 1B.2 (Green)**: Implement M_LocalizationManager scaffold
-  - Create `scripts/managers/m_localization_manager.gd` extending `I_LocalizationManager`
+  - Create `scripts/core/managers/m_localization_manager.gd` extending `I_LocalizationManager`
   - `@export var state_store: I_StateStore = null`
   - `var _active_locale: StringName = &"en"`
   - `var _translations: Dictionary = {}`
@@ -332,7 +332,7 @@ Before starting Phase 0, verify:
   - **Target: 5 tests**
 
 - [x] **Task 2A.2 (Green)**: Implement U_LocaleFileLoader
-  - Create `scripts/managers/helpers/u_locale_file_loader.gd`
+  - Create `scripts/core/managers/helpers/u_locale_file_loader.gd`
   - `const _LOCALE_FILE_PATHS: Dictionary` maps each locale to `[ui.json, hud.json]` paths
   - `static func load_locale(locale: StringName) -> Dictionary` using `FileAccess.open()` (NOT preload — preload on .json is a compile error)
   - Merge with `true` (last file wins on duplicate keys)
@@ -340,11 +340,11 @@ Before starting Phase 0, verify:
   - All tests should pass
 
 - [x] **Task 2A.3**: Create locale JSON stub files
-  - Create `resources/localization/en/ui.json` and `hud.json`
-  - Create `resources/localization/es/ui.json` and `hud.json`
-  - Create `resources/localization/pt/ui.json` and `hud.json`
-  - Create `resources/localization/zh_CN/ui.json` and `hud.json`
-  - Create `resources/localization/ja/ui.json` and `hud.json`
+  - Create `resources/core/localization/en/ui.json` and `hud.json`
+  - Create `resources/core/localization/es/ui.json` and `hud.json`
+  - Create `resources/core/localization/pt/ui.json` and `hud.json`
+  - Create `resources/core/localization/zh_CN/ui.json` and `hud.json`
+  - Create `resources/core/localization/ja/ui.json` and `hud.json`
   - Stub content: `{}` (empty objects — content added per project needs)
 
 ---
@@ -361,7 +361,7 @@ Before starting Phase 0, verify:
   - **Target: 5 tests**
 
 - [x] **Task 2B.2 (Green)**: Implement U_LocalizationUtils
-  - Create `scripts/utils/localization/u_localization_utils.gd`
+  - Create `scripts/core/utils/localization/u_localization_utils.gd`
   - `static func localize(key: StringName) -> String` — calls `manager.translate(key)`, falls back to `str(key)`
   - `static func localize_fmt(key: StringName, args: Array) -> String` — calls `localize()` then replaces `{0}`, `{1}`, etc. using `str(args[i])`
   - `static func register_ui_root(root: Node) -> void` — delegates to manager
@@ -375,7 +375,7 @@ Before starting Phase 0, verify:
 ### Phase 2C: Locale Loading in Manager
 
 - [x] **Task 2C.1**: Add locale loading methods to M_LocalizationManager
-  - Add `const U_LOCALE_FILE_LOADER := preload("res://scripts/managers/helpers/u_locale_file_loader.gd")`
+  - Add `const U_LOCALE_FILE_LOADER := preload("res://scripts/core/managers/helpers/u_locale_file_loader.gd")`
   - `func _load_locale(locale: StringName) -> void` — calls `U_LOCALE_FILE_LOADER.load_locale()`, updates `_translations`, calls `_notify_ui_roots()`
   - `func translate(key: StringName) -> String` — returns `_translations.get(String(key), String(key))`
   - `func get_locale() -> StringName` — returns `_active_locale`
@@ -433,7 +433,7 @@ Before starting Phase 0, verify:
   - **Completed: 2 tests** (both green after 4A.2)
 
 - [x] **Task 4A.2 (Green)**: Update HUD controller
-  - Modified `scripts/ui/hud/ui_hud_controller.gd`
+  - Modified `scripts/core/ui/hud/ui_hud_controller.gd`
   - `_on_signpost_message()`: raw string now wrapped through `U_LocalizationUtils.localize(StringName(raw))`
   - `_on_slice_updated()`: added `localization` to the slice name filter so locale changes refresh HUD labels
   - All 3 signpost tests pass; full UI suite 187/187 green
@@ -448,10 +448,10 @@ Before starting Phase 0, verify:
 
 - [x] **Task 5A.1**: Create localization settings tab scene and controller
   - Created `scenes/ui/overlays/settings/ui_localization_settings_tab.tscn`
-  - Created `scripts/ui/settings/ui_localization_settings_tab.gd`
+  - Created `scripts/core/ui/settings/ui_localization_settings_tab.gd`
   - Auto-save pattern; populates OptionButton + CheckButton from store state on `_ready()`
   - Create `scenes/ui/overlays/settings/ui_localization_settings_tab.tscn`
-  - Create `scripts/ui/settings/ui_localization_settings_tab.gd`
+  - Create `scripts/core/ui/settings/ui_localization_settings_tab.gd`
   - `class_name UI_LocalizationSettingsTab extends VBoxContainer` (matches audio/display tab pattern)
   - `SUPPORTED_LOCALES: Array[StringName] = [&"en", &"es", &"pt", &"zh_CN", &"ja"]`
   - `LOCALE_DISPLAY_NAMES: Array[String] = ["English", "Español", "Português", "中文 (简体)", "日本語"]`
@@ -474,30 +474,30 @@ Before starting Phase 0, verify:
 
 - [x] **Task 5A.2**: Create localization settings overlay wrapper
   - Created `scenes/ui/overlays/settings/ui_localization_settings_overlay.tscn`
-  - Created `scripts/ui/settings/ui_localization_settings_overlay.gd`
+  - Created `scripts/core/ui/settings/ui_localization_settings_overlay.gd`
   - Follows `ui_audio_settings_overlay.gd` pattern exactly
   - Create `scenes/ui/overlays/settings/ui_localization_settings_overlay.tscn`
-  - Create `scripts/ui/settings/ui_localization_settings_overlay.gd`
+  - Create `scripts/core/ui/settings/ui_localization_settings_overlay.gd`
   - `class_name UI_LocalizationSettingsOverlay extends BaseOverlay`
   - `_on_back_pressed()` → play cancel sound, close overlay (follows `ui_audio_settings_overlay.gd` pattern exactly)
   - Overlay scene embeds the tab scene as a child
 
 - [x] **Task 5A.3**: Create UI screen definition and scene registry entry
-  - Created `resources/ui_screens/cfg_localization_settings_overlay.tres`
-  - Created `resources/scene_registry/cfg_ui_localization_settings_entry.tres`
+  - Created `resources/core/ui_screens/cfg_localization_settings_overlay.tres`
+  - Created `resources/core/scene_registry/cfg_ui_localization_settings_entry.tres`
   - SceneRegistryEntry auto-loaded via `_load_resource_entries()` directory scan (no code change needed)
-  - Create `resources/ui_screens/cfg_localization_settings_overlay.tres`
+  - Create `resources/core/ui_screens/cfg_localization_settings_overlay.tres`
     - `screen_id = &"localization_settings"`, `kind = 1` (OVERLAY), `scene_id = &"localization_settings"`
     - `allowed_shells = [&"gameplay"]`, `allowed_parents = [&"pause_menu", &"settings_menu_overlay"]`, `close_mode = 0`
-  - Create `resources/scene_registry/cfg_ui_localization_settings_entry.tres`
+  - Create `resources/core/scene_registry/cfg_ui_localization_settings_entry.tres`
     - `scene_id = "localization_settings"`, `scene_path = "res://scenes/ui/overlays/settings/ui_localization_settings_overlay.tscn"`
     - `scene_type = 2` (UI), `default_transition = "instant"`, `preload_priority = 5`
 
 - [x] **Task 5A.4**: Register overlay in U_UIRegistry
   - Added `LOCALIZATION_SETTINGS_OVERLAY` preload and `_register_definition()` call
   - Updated `test_ui_registry.gd` expected overlay count from 11 → 12
-  - Modify `scripts/ui/utils/u_ui_registry.gd`:
-    - Add `const LOCALIZATION_SETTINGS_OVERLAY := preload("res://resources/ui_screens/cfg_localization_settings_overlay.tres")` after `AUDIO_SETTINGS_OVERLAY`
+  - Modify `scripts/core/ui/utils/u_ui_registry.gd`:
+    - Add `const LOCALIZATION_SETTINGS_OVERLAY := preload("res://resources/core/ui_screens/cfg_localization_settings_overlay.tres")` after `AUDIO_SETTINGS_OVERLAY`
     - Add `_register_definition(LOCALIZATION_SETTINGS_OVERLAY as RS_UIScreenDefinition)` in `_register_all_screens()`
 
 ### Phase 5B: Settings Menu Button Wiring
@@ -507,7 +507,7 @@ Before starting Phase 0, verify:
   - Added `OVERLAY_LOCALIZATION_SETTINGS` constant, `@onready` var, handler, and focus-neighbor entry to `ui_settings_menu.gd`
   - Modify `scenes/ui/menus/ui_settings_menu.tscn`:
     - Add `LanguageSettingsButton` (Button, `unique_name_in_owner = true`, text = "Language") after `AudioSettingsButton`, before `RebindControlsButton`
-  - Modify `scripts/ui/menus/ui_settings_menu.gd`:
+  - Modify `scripts/core/ui/menus/ui_settings_menu.gd`:
     - Add `const OVERLAY_LOCALIZATION_SETTINGS := StringName("localization_settings")`
     - Add `@onready var _language_settings_button: Button = %LanguageSettingsButton`
     - Wire button in `_on_panel_ready()` following existing pattern
@@ -731,36 +731,36 @@ patterns from the audio/display/VFX tabs and do not require additional test cove
 
 | File | Type | Description |
 |------|------|-------------|
-| `scripts/resources/state/rs_localization_initial_state.gd` | Resource | Initial state for localization slice (4 fields incl. `has_selected_language`) |
-| `resources/base_settings/state/cfg_localization_initial_state.tres` | Instance | Default localization settings instance |
-| `scripts/state/actions/u_localization_actions.gd` | Actions | Localization action creators (4 actions incl. `mark_language_selected`) |
-| `scripts/state/reducers/u_localization_reducer.gd` | Reducer | Localization state reducer |
-| `scripts/state/selectors/u_localization_selectors.gd` | Selectors | Localization state selectors (4 selectors incl. `has_selected_language`) |
-| `scripts/interfaces/i_localization_manager.gd` | Interface | Localization manager interface |
-| `scripts/managers/m_localization_manager.gd` | Manager | Main localization manager |
-| `scripts/managers/helpers/u_locale_file_loader.gd` | Helper | JSON locale file loader |
-| `scripts/utils/localization/u_localization_utils.gd` | Utility | Static tr() / tr_fmt() helper |
+| `scripts/core/resources/state/rs_localization_initial_state.gd` | Resource | Initial state for localization slice (4 fields incl. `has_selected_language`) |
+| `resources/core/base_settings/state/cfg_localization_initial_state.tres` | Instance | Default localization settings instance |
+| `scripts/core/state/actions/u_localization_actions.gd` | Actions | Localization action creators (4 actions incl. `mark_language_selected`) |
+| `scripts/core/state/reducers/u_localization_reducer.gd` | Reducer | Localization state reducer |
+| `scripts/core/state/selectors/u_localization_selectors.gd` | Selectors | Localization state selectors (4 selectors incl. `has_selected_language`) |
+| `scripts/core/interfaces/i_localization_manager.gd` | Interface | Localization manager interface |
+| `scripts/core/managers/m_localization_manager.gd` | Manager | Main localization manager |
+| `scripts/core/managers/helpers/u_locale_file_loader.gd` | Helper | JSON locale file loader |
+| `scripts/core/utils/localization/u_localization_utils.gd` | Utility | Static tr() / tr_fmt() helper |
 | `scenes/ui/menus/ui_language_selector.tscn` | Scene | First-run language selection screen (Phase 0.5) |
-| `scripts/ui/menus/ui_language_selector.gd` | UI | Language selector controller (Phase 0.5) |
-| `resources/localization/en/ui.json` | Data | English UI strings |
-| `resources/localization/en/hud.json` | Data | English HUD strings |
-| `resources/localization/es/ui.json` | Data | Spanish UI strings |
-| `resources/localization/es/hud.json` | Data | Spanish HUD strings |
-| `resources/localization/pt/ui.json` | Data | Portuguese UI strings |
-| `resources/localization/pt/hud.json` | Data | Portuguese HUD strings |
-| `resources/localization/zh_CN/ui.json` | Data | Simplified Chinese UI strings |
-| `resources/localization/zh_CN/hud.json` | Data | Simplified Chinese HUD strings |
-| `resources/localization/ja/ui.json` | Data | Japanese UI strings |
-| `resources/localization/ja/hud.json` | Data | Japanese HUD strings |
+| `scripts/core/ui/menus/ui_language_selector.gd` | UI | Language selector controller (Phase 0.5) |
+| `resources/core/localization/en/ui.json` | Data | English UI strings |
+| `resources/core/localization/en/hud.json` | Data | English HUD strings |
+| `resources/core/localization/es/ui.json` | Data | Spanish UI strings |
+| `resources/core/localization/es/hud.json` | Data | Spanish HUD strings |
+| `resources/core/localization/pt/ui.json` | Data | Portuguese UI strings |
+| `resources/core/localization/pt/hud.json` | Data | Portuguese HUD strings |
+| `resources/core/localization/zh_CN/ui.json` | Data | Simplified Chinese UI strings |
+| `resources/core/localization/zh_CN/hud.json` | Data | Simplified Chinese HUD strings |
+| `resources/core/localization/ja/ui.json` | Data | Japanese UI strings |
+| `resources/core/localization/ja/hud.json` | Data | Japanese HUD strings |
 | `assets/fonts/fnt_ui_default.ttf` | Font | Default UI font |
 | `assets/fonts/fnt_dyslexia.ttf` | Font | Dyslexia-friendly font |
 | `assets/fonts/fnt_cjk.ttf` | Font | CJK (Chinese/Japanese) font |
 | `scenes/ui/overlays/settings/ui_localization_settings_overlay.tscn` | Scene | Localization settings overlay wrapper |
-| `scripts/ui/settings/ui_localization_settings_overlay.gd` | UI | Localization settings overlay controller |
+| `scripts/core/ui/settings/ui_localization_settings_overlay.gd` | UI | Localization settings overlay controller |
 | `scenes/ui/overlays/settings/ui_localization_settings_tab.tscn` | Scene | Localization settings tab content |
-| `scripts/ui/settings/ui_localization_settings_tab.gd` | UI | Localization settings tab controller |
-| `resources/ui_screens/cfg_localization_settings_overlay.tres` | UIScreen | UI screen definition for localization overlay |
-| `resources/scene_registry/cfg_ui_localization_settings_entry.tres` | SceneEntry | Scene registry entry for localization overlay |
+| `scripts/core/ui/settings/ui_localization_settings_tab.gd` | UI | Localization settings tab controller |
+| `resources/core/ui_screens/cfg_localization_settings_overlay.tres` | UIScreen | UI screen definition for localization overlay |
+| `resources/core/scene_registry/cfg_ui_localization_settings_entry.tres` | SceneEntry | Scene registry entry for localization overlay |
 | `tests/unit/state/test_localization_initial_state.gd` | Test | Initial state tests (6 after Phase 0.5) |
 | `tests/unit/state/test_localization_actions.gd` | Test | Actions tests (5 after Phase 0.5) |
 | `tests/unit/state/test_localization_reducer.gd` | Test | Reducer tests (16 after Phase 0.5) |
@@ -776,14 +776,14 @@ patterns from the audio/display/VFX tabs and do not require additional test cove
 
 | File | Changes | Phase |
 |------|---------|-------|
-| `scripts/state/m_state_store.gd` | Add RS_LOCALIZATION_INITIAL_STATE const, localization_initial_state export, pass as 13th param to initialize_slices() | 0D |
-| `scripts/state/utils/u_state_slice_manager.gd` | Add U_LOCALIZATION_REDUCER const, localization_initial_state as 13th param, register localization slice after display | 0D |
-| `scripts/utils/u_global_settings_serialization.gd` | Update 4 methods: is_global_settings_action(), build_settings_from_state(), _prepare_save_payload(), _sanitize_loaded_settings() | 0D |
-| `scripts/state/utils/u_global_settings_applier.gd` | Add _apply_localization() — dispatches localization actions from loaded settings. **Without this, settings save but never restore.** | 0D |
+| `scripts/core/state/m_state_store.gd` | Add RS_LOCALIZATION_INITIAL_STATE const, localization_initial_state export, pass as 13th param to initialize_slices() | 0D |
+| `scripts/core/state/utils/u_state_slice_manager.gd` | Add U_LOCALIZATION_REDUCER const, localization_initial_state as 13th param, register localization slice after display | 0D |
+| `scripts/core/utils/u_global_settings_serialization.gd` | Update 4 methods: is_global_settings_action(), build_settings_from_state(), _prepare_save_payload(), _sanitize_loaded_settings() | 0D |
+| `scripts/core/state/utils/u_global_settings_applier.gd` | Add _apply_localization() — dispatches localization actions from loaded settings. **Without this, settings save but never restore.** | 0D |
 | `scenes/root.tscn` | Assign cfg_localization_initial_state.tres to M_StateStore; add M_LocalizationManager node (Phase 1); change M_SceneManager.initial_scene_id to `"language_selector"` (Phase 0.5) | 0D, 0.5, 1 |
 | `scripts/core/root.gd` | Register M_LocalizationManager with ServiceLocator via `_register_if_exists()` | 1B |
-| `scripts/scene_management/u_scene_registry.gd` | Register `language_selector` scene (SceneType.MENU, preload priority 10) | 0.5C |
-| `scripts/ui/hud/ui_hud_controller.gd` | Wrap signpost message through U_LocalizationUtils.tr(); add localization to _on_slice_updated() filter | 4A |
-| `scripts/ui/utils/u_ui_registry.gd` | Add LOCALIZATION_SETTINGS_OVERLAY preload + _register_definition() call | 5A |
+| `scripts/core/scene_management/u_scene_registry.gd` | Register `language_selector` scene (SceneType.MENU, preload priority 10) | 0.5C |
+| `scripts/core/ui/hud/ui_hud_controller.gd` | Wrap signpost message through U_LocalizationUtils.tr(); add localization to _on_slice_updated() filter | 4A |
+| `scripts/core/ui/utils/u_ui_registry.gd` | Add LOCALIZATION_SETTINGS_OVERLAY preload + _register_definition() call | 5A |
 | `scenes/ui/menus/ui_settings_menu.tscn` | Add "Language" button (LanguageSettingsButton) after AudioSettingsButton | 5B |
-| `scripts/ui/menus/ui_settings_menu.gd` | Add overlay constant, @onready button, wiring, handler, focus neighbor entry | 5B |
+| `scripts/core/ui/menus/ui_settings_menu.gd` | Add overlay constant, @onready button, wiring, handler, focus neighbor entry | 5B |

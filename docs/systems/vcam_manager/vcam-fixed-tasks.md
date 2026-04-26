@@ -17,9 +17,9 @@ Before starting Phase 4, verify:
   - Read `AGENTS.md` (vCam Runtime Contracts — fixed-mode anchor resolution)
   - Read `docs/guides/pitfalls/` and `docs/guides/STYLE_GUIDE.md`
 - [x] **PRE-3**: Understand existing patterns by reading:
-  - `scripts/resources/display/vcam/rs_vcam_mode_orbit.gd` (resource pattern from Phase 2)
-  - `scripts/resources/display/vcam/rs_vcam_mode_ots.gd` (resource pattern from Phase 3)
-  - `scripts/managers/helpers/u_vcam_mode_evaluator.gd` (evaluator with orbit + OTS branches)
+  - `scripts/core/resources/display/vcam/rs_vcam_mode_orbit.gd` (resource pattern from Phase 2)
+  - `scripts/core/resources/display/vcam/rs_vcam_mode_ots.gd` (resource pattern from Phase 3)
+  - `scripts/core/managers/helpers/u_vcam_mode_evaluator.gd` (evaluator with orbit + OTS branches)
   - `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd` (existing evaluator tests)
 - [x] **PRE-4**: Verify branch is `vcam` and working tree is clean
 - [x] **PRE-5**: Verify orbit + OTS tests still pass before extending the evaluator:
@@ -48,7 +48,7 @@ Before starting Phase 4, verify:
 ### Phase 4A: RS_VCamModeFixed Resource
 
 - [x] **Task 4A.1 (Red)**: Write tests for RS_VCamModeFixed
-  - Create `tests/unit/resources/display/vcam/test_vcam_mode_fixed.gd`
+  - Create `tests/unit/resources/core/display/vcam/test_vcam_mode_fixed.gd`
   - Test `use_world_anchor` field exists with default `true`
     - Verify type is `bool`
     - Verify default means the camera stays at its authored world position
@@ -84,7 +84,7 @@ Before starting Phase 4, verify:
   - **Target: 13 tests**
 
 - [x] **Task 4A.2 (Green)**: Implement RS_VCamModeFixed
-  - Create `scripts/resources/display/vcam/rs_vcam_mode_fixed.gd`
+  - Create `scripts/core/resources/display/vcam/rs_vcam_mode_fixed.gd`
   - Extend `Resource`
   - Add `class_name RS_VCamModeFixed`
   - All `@export` fields with sensible defaults:
@@ -101,7 +101,7 @@ Before starting Phase 4, verify:
 - [x] **Task 4A.3**: Run style enforcement tests
   - `tests/unit/style/test_style_enforcement.gd` passes with new files
   - Verify file naming follows `rs_` prefix convention
-  - Verify script is in `scripts/resources/display/vcam/` per style guide
+  - Verify script is in `scripts/core/resources/display/vcam/` per style guide
 
 ---
 
@@ -193,7 +193,7 @@ Before starting Phase 4, verify:
   - If `fixed_anchor` is null and `use_world_anchor = true`, return `{}`
 
 - [x] **Task 4B.2 (Green)**: Implement fixed evaluation in U_VCamModeEvaluator
-  - Extend `scripts/managers/helpers/u_vcam_mode_evaluator.gd` with fixed mode branch
+  - Extend `scripts/core/managers/helpers/u_vcam_mode_evaluator.gd` with fixed mode branch
   - Handle fixed mode branch:
     - Guard: return `{}` if mode is null
     - When `mode.use_path == true`: treat as `use_world_anchor = true` + `track_target = false` (camera uses path-resolved anchor position and basis); return `{}` if `fixed_anchor` is null
@@ -246,11 +246,11 @@ Before starting Phase 4, verify:
   **Note on `tracking_damping`**: The damping value is NOT consumed by the evaluator. Damping is applied by `S_VCamSystem` (Phase 6) which interpolates the tracking rotation over time. The evaluator computes the instantaneous target rotation for the current frame.
 
 - [x] **Task 4B.3**: Create default fixed resource instance
-  - Create `resources/display/vcam/cfg_default_fixed.tres`
+  - Create `resources/core/display/vcam/cfg_default_fixed.tres`
   - Set all fields to resource defaults (use_world_anchor=true, track_target=false, fov=75.0, tracking_damping=5.0, follow_offset=Vector3(0,3,5))
   - Verify resource loads without errors:
     ```gdscript
-    var res := load("res://resources/display/vcam/cfg_default_fixed.tres")
+    var res := load("res://resources/core/display/vcam/cfg_default_fixed.tres")
     assert_not_null(res)
     assert_is(res, RS_VCamModeFixed)
     ```
@@ -388,7 +388,7 @@ Completion note (March 22, 2026): Fixed manual blend checklist passed (`MT-19/20
 
 ```bash
 # Run fixed resource tests
-/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/resources/display/vcam -gselect=test_vcam_mode_fixed -ginclude_subdirs=true -gexit
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/resources/core/display/vcam -gselect=test_vcam_mode_fixed -ginclude_subdirs=true -gexit
 
 # Run evaluator tests (includes orbit + OTS + fixed)
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/managers/helpers -gselect=test_vcam_mode_evaluator -ginclude_subdirs=true -gexit

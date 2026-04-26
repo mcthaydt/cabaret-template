@@ -23,20 +23,20 @@ The Audio Manager provides comprehensive audio system with music, SFX, footsteps
 ### 9-Field Audio Slice
 
 **Files to create**:
-- `scripts/state/resources/rs_audio_initial_state.gd`
-- `scripts/state/actions/u_audio_actions.gd` (12 action creators)
-- `scripts/state/reducers/u_audio_reducer.gd`
-- `scripts/state/selectors/u_audio_selectors.gd`
+- `scripts/core/state/resources/rs_audio_initial_state.gd`
+- `scripts/core/state/actions/u_audio_actions.gd` (12 action creators)
+- `scripts/core/state/reducers/u_audio_reducer.gd`
+- `scripts/core/state/selectors/u_audio_selectors.gd`
 - `tests/unit/state/test_audio_reducer.gd` (25 tests)
 - `tests/unit/state/test_audio_selectors.gd` (15 tests)
 
 **Files to modify**:
-- `scripts/state/m_state_store.gd`:
-  - Add `const U_AUDIO_REDUCER := preload("res://scripts/state/reducers/u_audio_reducer.gd")`
+- `scripts/core/state/m_state_store.gd`:
+  - Add `const U_AUDIO_REDUCER := preload("res://scripts/core/state/reducers/u_audio_reducer.gd")`
   - Add `@export var audio_initial_state: RS_AudioInitialState`
   - Add `audio_initial_state` to `initialize_slices()` call
 
-- `scripts/state/utils/u_state_slice_manager.gd`:
+- `scripts/core/state/utils/u_state_slice_manager.gd`:
   - **Add parameter** to `initialize_slices()` function signature:
     ```gdscript
     static func initialize_slices(
@@ -58,7 +58,7 @@ The Audio Manager provides comprehensive audio system with music, SFX, footsteps
     ```
   - **Add reducer preload** at top of file:
     ```gdscript
-    const U_AUDIO_REDUCER := preload("res://scripts/state/reducers/u_audio_reducer.gd")
+    const U_AUDIO_REDUCER := preload("res://scripts/core/state/reducers/u_audio_reducer.gd")
     ```
 
 **State Shape**:
@@ -88,7 +88,7 @@ The Audio Manager provides comprehensive audio system with music, SFX, footsteps
 ### Audio Bus Hierarchy
 
 **Files to create**:
-- `scripts/managers/m_audio_manager.gd`
+- `scripts/core/managers/m_audio_manager.gd`
 - `tests/unit/managers/test_audio_manager.gd` (30 tests)
 
 **Bus Structure**:
@@ -165,9 +165,9 @@ func _apply_audio_settings() -> void:
 ### Dual-Player Crossfading
 
 **Placeholder Assets** (create with Audacity: Generate > Silence, export as OGG):
-- `resources/audio/music/placeholders/placeholder_main_menu.ogg` (5s silent loop)
-- `resources/audio/music/placeholders/placeholder_gameplay.ogg` (5s silent loop)
-- `resources/audio/music/placeholders/placeholder_pause.ogg` (5s silent loop)
+- `resources/demo/audio/music/placeholders/placeholder_main_menu.ogg` (5s silent loop)
+- `resources/demo/audio/music/placeholders/placeholder_gameplay.ogg` (5s silent loop)
+- `resources/demo/audio/music/placeholders/placeholder_pause.ogg` (5s silent loop)
 
 **Music Registry**:
 ```gdscript
@@ -279,7 +279,7 @@ func _remove_pause_filter() -> void:
 ### Mirror BaseEventVFXSystem
 
 **Files to create**:
-- `scripts/ecs/base_event_sfx_system.gd`
+- `scripts/core/ecs/base_event_sfx_system.gd`
 - `tests/unit/ecs/test_base_event_sfx_system.gd` (15 tests)
 
 **Structure** (identical to BaseEventVFXSystem):
@@ -324,7 +324,7 @@ func _on_event(event_data: Dictionary) -> void:
 ### U_SFXSpawner Utility
 
 **Files to create**:
-- `scripts/managers/helpers/u_sfx_spawner.gd`
+- `scripts/core/managers/helpers/u_sfx_spawner.gd`
 - `tests/unit/managers/helpers/test_sfx_spawner.gd` (10 tests)
 
 **AudioStreamPlayer3D Pool**:
@@ -357,7 +357,7 @@ static func spawn_3d(config: Dictionary) -> AudioStreamPlayer3D:
 
 ### Individual SFX Systems (5 systems)
 
-**NOTE**: `S_JumpSoundSystem` exists at `scripts/ecs/systems/s_jump_sound_system.gd` and serves as reference for event-driven SFX systems.
+**NOTE**: `S_JumpSoundSystem` exists at `scripts/core/ecs/systems/s_jump_sound_system.gd` and serves as reference for event-driven SFX systems.
 
 Implement one system per commit:
 1. `S_JumpSoundSystem` (entity_jumped) - **MODIFY existing stub**
@@ -428,7 +428,7 @@ extends Resource
 ### Surface Detection Component
 
 **Files to create**:
-- `scripts/ecs/components/c_surface_detector_component.gd`
+- `scripts/core/ecs/components/c_surface_detector_component.gd`
 - `tests/unit/ecs/components/test_surface_detector.gd` (15 tests)
 
 **Surface Types**:
@@ -457,8 +457,8 @@ func detect_surface() -> SurfaceType:
 ### Footstep Sound System
 
 **Files to create**:
-- `scripts/ecs/systems/s_footstep_sound_system.gd`
-- `scripts/ecs/resources/rs_footstep_sound_settings.gd`
+- `scripts/core/ecs/systems/s_footstep_sound_system.gd`
+- `scripts/core/ecs/resources/rs_footstep_sound_settings.gd`
 - `tests/unit/ecs/systems/test_footstep_sound_system.gd` (20 tests)
 
 **Pattern**: Per-tick system (NOT event-driven)
@@ -493,7 +493,7 @@ func _play_footstep(position: Vector3, surface: SurfaceType) -> void:
 ```
 
 **Placeholder Assets** (create 24 files):
-- `resources/audio/footsteps/placeholder_grass_01.wav` through `_04.wav`
+- `resources/demo/audio/footsteps/placeholder_grass_01.wav` through `_04.wav`
 - Same for stone, wood, metal, water, default (6 surfaces × 4 variations = 24 files)
 
 ---
@@ -503,8 +503,8 @@ func _play_footstep(position: Vector3, surface: SurfaceType) -> void:
 ### Ambient Sound System
 
 **Files to create**:
-- `scripts/ecs/systems/s_ambient_sound_system.gd`
-- `scripts/ecs/resources/rs_ambient_sound_settings.gd`
+- `scripts/core/ecs/systems/s_ambient_sound_system.gd`
+- `scripts/core/ecs/resources/rs_ambient_sound_settings.gd`
 - `tests/unit/ecs/systems/test_ambient_sound_system.gd` (10 tests)
 
 **Pattern**: Dual players (like music), scene-based crossfade
@@ -539,7 +539,7 @@ func _on_state_changed(action: Dictionary, _state: Dictionary) -> void:
 ### U_UISoundPlayer Utility
 
 **Files to create**:
-- `scripts/ui/utils/u_ui_sound_player.gd`
+- `scripts/core/ui/utils/u_ui_sound_player.gd`
 - `tests/unit/ui/test_ui_sound_player.gd` (5 tests)
 
 **API**:
@@ -567,7 +567,7 @@ static func play_slider_tick() -> void:
 ### BasePanel Integration
 
 **Files to modify**:
-- `scripts/ui/base/base_panel.gd`: Input-gated focus sound via `Viewport.gui_focus_changed`
+- `scripts/core/ui/base/base_panel.gd`: Input-gated focus sound via `Viewport.gui_focus_changed`
 - Button handlers: Add confirm/cancel sounds
 - Sliders: Add throttled tick sound
 
@@ -600,11 +600,11 @@ func _on_slider_value_changed(value: float) -> void:
 
 **Files to create**:
 - `scenes/ui/settings/ui_audio_settings_tab.tscn`
-- `scripts/ui/settings/ui_audio_settings_tab.gd`
+- `scripts/core/ui/settings/ui_audio_settings_tab.gd`
 - `scenes/ui/ui_audio_settings_overlay.tscn`
-- `scripts/ui/settings/ui_audio_settings_overlay.gd`
-- `resources/ui_screens/cfg_audio_settings_overlay.tres`
-- `resources/scene_registry/cfg_ui_audio_settings_entry.tres`
+- `scripts/core/ui/settings/ui_audio_settings_overlay.gd`
+- `resources/core/ui_screens/cfg_audio_settings_overlay.tres`
+- `resources/core/scene_registry/cfg_ui_audio_settings_entry.tres`
 
 **Scene Structure**:
 ```
@@ -732,18 +732,18 @@ tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true
 ## File Structure
 
 ```
-scripts/managers/
+scripts/core/managers/
   m_audio_manager.gd
   helpers/
     u_sfx_spawner.gd
-scripts/ui/
+scripts/core/ui/
   utils/
     u_ui_sound_player.gd
   settings/
     ui_audio_settings_tab.gd
     ui_audio_settings_overlay.gd
 
-scripts/ecs/
+scripts/core/ecs/
   base_event_sfx_system.gd
   systems/
     s_jump_sound_system.gd
@@ -760,13 +760,13 @@ scripts/ecs/
     rs_landing_sound_settings.gd
     [etc.]
 
-scripts/state/
+scripts/core/state/
   resources/rs_audio_initial_state.gd
   actions/u_audio_actions.gd
   reducers/u_audio_reducer.gd
   selectors/u_audio_selectors.gd
 
-resources/audio/
+resources/demo/audio/
   music/
     main_menu.mp3
     exterior.mp3

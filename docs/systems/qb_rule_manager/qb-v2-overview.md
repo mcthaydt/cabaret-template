@@ -55,7 +55,7 @@ Rule = Conditions[] + Effects[] + metadata
 
 ## Game Event Handler Contracts
 
-- `S_GameEventSystem` hosts default forwarding rules from `resources/qb/game/*.tres`, evaluates event/both rules on subscribed ECS events, and can optionally evaluate global tick/both rules.
+- `S_GameEventSystem` hosts default forwarding rules from `resources/core/qb/game/*.tres`, evaluates event/both rules on subscribed ECS events, and can optionally evaluate global tick/both rules.
 - Event-forwarding publish effects merge incoming event payloads into outgoing payloads, then apply configured payload overrides and entity-id injection.
 - `S_CheckpointHandlerSystem` subscribes to `U_ECSEventNames.EVENT_CHECKPOINT_ACTIVATION_REQUESTED`, validates `checkpoint` and `spawn_point_id`, dispatches `set_last_checkpoint`, then publishes `Evn_CheckpointActivated`.
 - `S_VictoryHandlerSystem` subscribes to `U_ECSEventNames.EVENT_VICTORY_EXECUTION_REQUESTED` at priority `10`, enforces `game_config.required_final_area`, dispatches gameplay victory actions, calls `trigger.set_triggered()`, then publishes `U_ECSEventNames.EVENT_VICTORY_EXECUTED`.
@@ -432,7 +432,7 @@ Renamed to reflect its actual responsibility: computing character brain data. St
 var _tracker := RuleStateTracker.new()
 
 const DEFAULT_RULES: Array[RS_Rule] = [
-    preload("res://resources/qb/character/cfg_pause_gate_paused.tres"),
+    preload("res://resources/core/qb/character/cfg_pause_gate_paused.tres"),
     # ...
 ]
 
@@ -541,47 +541,47 @@ Some domains execute effects. Others interpret the winning rule's identity:
 
 | File | Class | Lines (est.) |
 |---|---|---|
-| `scripts/resources/qb/rs_rule.gd` | `RS_Rule` | ~40 |
-| `scripts/resources/qb/rs_base_condition.gd` | `RS_BaseCondition` | ~15 |
-| `scripts/resources/qb/conditions/rs_condition_component_field.gd` | `RS_ConditionComponentField` | ~40 |
-| `scripts/resources/qb/conditions/rs_condition_redux_field.gd` | `RS_ConditionReduxField` | ~45 |
-| `scripts/resources/qb/conditions/rs_condition_entity_tag.gd` | `RS_ConditionEntityTag` | ~15 |
-| `scripts/resources/qb/conditions/rs_condition_event_name.gd` | `RS_ConditionEventName` | ~30 |
-| `scripts/resources/qb/conditions/rs_condition_event_payload.gd` | `RS_ConditionEventPayload` | ~40 |
-| `scripts/resources/qb/conditions/rs_condition_constant.gd` | `RS_ConditionConstant` | ~10 |
-| `scripts/resources/qb/rs_base_effect.gd` | `RS_BaseEffect` | ~10 |
-| `scripts/resources/qb/effects/rs_effect_dispatch_action.gd` | `RS_EffectDispatchAction` | ~20 |
-| `scripts/resources/qb/effects/rs_effect_publish_event.gd` | `RS_EffectPublishEvent` | ~25 |
-| `scripts/resources/qb/effects/rs_effect_set_field.gd` | `RS_EffectSetField` | ~60 |
-| `scripts/resources/qb/effects/rs_effect_set_context_value.gd` | `RS_EffectSetContextValue` | ~25 |
-| `scripts/utils/qb/u_rule_scorer.gd` | `U_RuleScorer` | ~50 |
-| `scripts/utils/qb/u_rule_selector.gd` | `U_RuleSelector` | ~50 |
-| `scripts/utils/qb/u_rule_state_tracker.gd` | `RuleStateTracker` | ~100 |
-| `scripts/utils/qb/u_rule_validator.gd` | `U_RuleValidator` | ~80 |
-| `scripts/utils/qb/u_path_resolver.gd` | `U_PathResolver` | ~50 |
+| `scripts/core/resources/qb/rs_rule.gd` | `RS_Rule` | ~40 |
+| `scripts/core/resources/qb/rs_base_condition.gd` | `RS_BaseCondition` | ~15 |
+| `scripts/core/resources/qb/conditions/rs_condition_component_field.gd` | `RS_ConditionComponentField` | ~40 |
+| `scripts/core/resources/qb/conditions/rs_condition_redux_field.gd` | `RS_ConditionReduxField` | ~45 |
+| `scripts/core/resources/qb/conditions/rs_condition_entity_tag.gd` | `RS_ConditionEntityTag` | ~15 |
+| `scripts/core/resources/qb/conditions/rs_condition_event_name.gd` | `RS_ConditionEventName` | ~30 |
+| `scripts/core/resources/qb/conditions/rs_condition_event_payload.gd` | `RS_ConditionEventPayload` | ~40 |
+| `scripts/core/resources/qb/conditions/rs_condition_constant.gd` | `RS_ConditionConstant` | ~10 |
+| `scripts/core/resources/qb/rs_base_effect.gd` | `RS_BaseEffect` | ~10 |
+| `scripts/core/resources/qb/effects/rs_effect_dispatch_action.gd` | `RS_EffectDispatchAction` | ~20 |
+| `scripts/core/resources/qb/effects/rs_effect_publish_event.gd` | `RS_EffectPublishEvent` | ~25 |
+| `scripts/core/resources/qb/effects/rs_effect_set_field.gd` | `RS_EffectSetField` | ~60 |
+| `scripts/core/resources/qb/effects/rs_effect_set_context_value.gd` | `RS_EffectSetContextValue` | ~25 |
+| `scripts/core/utils/qb/u_rule_scorer.gd` | `U_RuleScorer` | ~50 |
+| `scripts/core/utils/qb/u_rule_selector.gd` | `U_RuleSelector` | ~50 |
+| `scripts/core/utils/qb/u_rule_state_tracker.gd` | `RuleStateTracker` | ~100 |
+| `scripts/core/utils/qb/u_rule_validator.gd` | `U_RuleValidator` | ~80 |
+| `scripts/core/utils/qb/u_path_resolver.gd` | `U_PathResolver` | ~50 |
 
 ### Deleted Files (v1)
 
 | File | Reason |
 |---|---|
-| `scripts/ecs/systems/base_qb_rule_manager.gd` | Replaced by library + per-domain systems |
-| `scripts/resources/qb/rs_qb_condition.gd` | Replaced by typed condition subclasses |
-| `scripts/resources/qb/rs_qb_effect.gd` | Replaced by typed effect subclasses |
-| `scripts/resources/qb/rs_qb_rule_definition.gd` | Replaced by `RS_Rule` |
-| `scripts/utils/qb/u_qb_rule_evaluator.gd` | Replaced by `U_RuleScorer` |
-| `scripts/utils/qb/u_qb_quality_provider.gd` | Replaced by condition subclass `evaluate()` methods |
-| `scripts/utils/qb/u_qb_effect_executor.gd` | Replaced by effect subclass `execute()` methods |
-| `scripts/utils/qb/u_qb_variant_utils.gd` | Replaced by `U_PathResolver` |
-| `scripts/utils/qb/u_qb_rule_validator.gd` | Replaced by `U_RuleValidator` |
+| `scripts/core/ecs/systems/base_qb_rule_manager.gd` | Replaced by library + per-domain systems |
+| `scripts/core/resources/qb/rs_qb_condition.gd` | Replaced by typed condition subclasses |
+| `scripts/core/resources/qb/rs_qb_effect.gd` | Replaced by typed effect subclasses |
+| `scripts/core/resources/qb/rs_qb_rule_definition.gd` | Replaced by `RS_Rule` |
+| `scripts/core/utils/qb/u_qb_rule_evaluator.gd` | Replaced by `U_RuleScorer` |
+| `scripts/core/utils/qb/u_qb_quality_provider.gd` | Replaced by condition subclass `evaluate()` methods |
+| `scripts/core/utils/qb/u_qb_effect_executor.gd` | Replaced by effect subclass `execute()` methods |
+| `scripts/core/utils/qb/u_qb_variant_utils.gd` | Replaced by `U_PathResolver` |
+| `scripts/core/utils/qb/u_qb_rule_validator.gd` | Replaced by `U_RuleValidator` |
 
 ### Modified Files (migrated)
 
 | File | Change |
 |---|---|
-| `scripts/ecs/systems/s_character_rule_manager.gd` | Rename → `s_character_state_system.gd`, compose library instead of extending base |
-| `scripts/ecs/systems/s_game_rule_manager.gd` | Rename → `s_game_event_system.gd`, compose library, add global tick context |
-| `scripts/ecs/systems/s_camera_rule_manager.gd` | Rename → `s_camera_state_system.gd`, compose library instead of extending base |
-| All 9 `.tres` files in `resources/qb/` | Recreate with new resource types |
+| `scripts/core/ecs/systems/s_character_rule_manager.gd` | Rename → `s_character_state_system.gd`, compose library instead of extending base |
+| `scripts/core/ecs/systems/s_game_rule_manager.gd` | Rename → `s_game_event_system.gd`, compose library, add global tick context |
+| `scripts/core/ecs/systems/s_camera_rule_manager.gd` | Rename → `s_camera_state_system.gd`, compose library instead of extending base |
+| All 9 `.tres` files in `resources/core/qb/` | Recreate with new resource types |
 | `AGENTS.md` | Update QB sections |
 | `docs/guides/STYLE_GUIDE.md` | Remove `base_qb_rule_manager.gd` naming exception |
 | `docs/guides/pitfalls/GDSCRIPT_4_6.md` and this overview | Keep parser/runtime pitfalls current |
@@ -590,6 +590,6 @@ Some domains execute effects. Others interpret the winning rule's identity:
 
 | File | Why |
 |---|---|
-| `scripts/ecs/systems/s_checkpoint_handler_system.gd` | Subscribes to events — no coupling to rule engine internals |
-| `scripts/ecs/systems/s_victory_handler_system.gd` | Same — event subscriber |
-| `scripts/ecs/systems/s_death_handler_system.gd` | Same — event subscriber |
+| `scripts/core/ecs/systems/s_checkpoint_handler_system.gd` | Subscribes to events — no coupling to rule engine internals |
+| `scripts/core/ecs/systems/s_victory_handler_system.gd` | Same — event subscriber |
+| `scripts/core/ecs/systems/s_death_handler_system.gd` | Same — event subscriber |

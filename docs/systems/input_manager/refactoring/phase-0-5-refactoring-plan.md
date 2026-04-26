@@ -91,7 +91,7 @@ S_InputSystem was designed before M_InputDeviceManager existed (Phase 1 vs Phase
 **Estimated Time**: 30 minutes  
 **Status**: ✅ Completed (2025-11-11)
 
-**Files**: `scripts/state/selectors/u_input_selectors.gd`
+**Files**: `scripts/core/state/selectors/u_input_selectors.gd`
 
 **Changes**:
 ```gdscript
@@ -127,7 +127,7 @@ static func get_active_gamepad_id(state: Dictionary) -> int:
 **Estimated Time**: 2 hours  
 **Status**: ✅ Completed (2025-11-11)
 
-**Files**: `scripts/ecs/systems/s_input_system.gd`
+**Files**: `scripts/core/ecs/systems/s_input_system.gd`
 
 **Changes**:
 ```gdscript
@@ -172,7 +172,7 @@ gamepad_component.is_connected = is_gamepad_connected
 **Estimated Time**: 1 hour  
 **Status**: ✅ Completed (2025-11-11)
 
-**Files**: `scripts/managers/m_input_device_manager.gd`
+**Files**: `scripts/core/managers/m_input_device_manager.gd`
 
 **Changes**:
 ```gdscript
@@ -397,7 +397,7 @@ UI was designed to mutate InputMap directly for immediate feedback (Phase 5), be
 #### Task 2.1: Add synchronous Redux apply for rebinds (TDD)
 **Estimated Time**: 1 hour
 
-**Files**: `scripts/state/m_state_store.gd`
+**Files**: `scripts/core/state/m_state_store.gd`
 
 **Problem**: Current Redux batches updates to next physics frame (line 113). Rebinds need synchronous apply so InputMap updates immediately.
 
@@ -433,14 +433,14 @@ func _apply_action_immediately(action: Dictionary) -> void:
 - [x] State emits slice updates immediately
 - [x] All store tests pass
 
-**Status**: ✅ Completed (2025-11-15) — Added `ACTION_FLAG_IMMEDIATE` plumbing in `scripts/state/m_state_store.gd` with synchronous signal flushing and new coverage in `tests/unit/state/test_m_state_store.gd`.
+**Status**: ✅ Completed (2025-11-15) — Added `ACTION_FLAG_IMMEDIATE` plumbing in `scripts/core/state/m_state_store.gd` with synchronous signal flushing and new coverage in `tests/unit/state/test_m_state_store.gd`.
 
 ---
 
 #### Task 2.2: Update U_InputActions to mark rebind actions immediate (TDD)
 **Estimated Time**: 30 minutes
 
-**Files**: `scripts/state/actions/u_input_actions.gd`
+**Files**: `scripts/core/state/actions/u_input_actions.gd`
 
 **Changes**:
 ```gdscript
@@ -472,14 +472,14 @@ static func reset_bindings(action_name: StringName = StringName()) -> Dictionary
 - [x] Other input actions NOT immediate
 - [x] All action tests pass
 
-**Status**: ✅ Completed (2025-11-15) — `scripts/state/actions/u_input_actions.gd` now adds the `immediate` flag and canonical `events` array for rebind/reset flows, with coverage in `tests/unit/input_manager/test_u_input_actions.gd`.
+**Status**: ✅ Completed (2025-11-15) — `scripts/core/state/actions/u_input_actions.gd` now adds the `immediate` flag and canonical `events` array for rebind/reset flows, with coverage in `tests/unit/input_manager/test_u_input_actions.gd`.
 
 ---
 
 #### Task 2.3: Update M_InputProfileManager to derive InputMap from Redux (TDD)
 **Estimated Time**: 2-3 hours
 
-**Files**: `scripts/managers/m_input_profile_manager.gd`
+**Files**: `scripts/core/managers/m_input_profile_manager.gd`
 
 **Remove**:
 ```gdscript
@@ -562,14 +562,14 @@ func _events_match(a: InputEvent, b: InputEvent) -> bool:
 - [x] InputMap perfectly matches Redux state
 - [x] All manager tests pass
 
-**Status**: ✅ Completed (2025-11-15) — Manager now derives bindings directly from Redux (`scripts/managers/m_input_profile_manager.gd`) with updated unit coverage.
+**Status**: ✅ Completed (2025-11-15) — Manager now derives bindings directly from Redux (`scripts/core/managers/m_input_profile_manager.gd`) with updated unit coverage.
 
 ---
 
 #### Task 2.4: Update InputRebindingOverlay to dispatch-first (TDD)
 **Estimated Time**: 2-3 hours
 
-**Files**: `scripts/ui/input_rebinding_overlay.gd`
+**Files**: `scripts/core/ui/input_rebinding_overlay.gd`
 
 **Current Flow** (lines 481-624):
 ```gdscript
@@ -629,14 +629,14 @@ func _dispatch_rebind_to_redux(action: StringName, event: InputEvent, conflict: 
 - [x] Swaps handled by Redux reducer
 - [x] All overlay tests pass
 
-**Status**: ✅ Completed (2025-11-15) — `scripts/state/actions/u_input_actions.gd` now marks rebind/reset actions as immediate and serializes events, while `scripts/ui/input_rebinding_overlay.gd` was rewritten to dispatch-first and rely entirely on Redux with refreshed tests in `tests/unit/ui/test_input_rebinding_overlay.gd`.
+**Status**: ✅ Completed (2025-11-15) — `scripts/core/state/actions/u_input_actions.gd` now marks rebind/reset actions as immediate and serializes events, while `scripts/core/ui/input_rebinding_overlay.gd` was rewritten to dispatch-first and rely entirely on Redux with refreshed tests in `tests/unit/ui/test_input_rebinding_overlay.gd`.
 
 ---
 
 #### Task 2.5: Simplify save/load (now reads Redux only) (TDD)
 **Estimated Time**: 1 hour
 
-**Files**: `scripts/managers/m_input_profile_manager.gd`
+**Files**: `scripts/core/managers/m_input_profile_manager.gd`
 
 **Simplify** `_gather_settings_snapshot()` (lines 372-425):
 ```gdscript
@@ -690,7 +690,7 @@ func load_settings() -> bool:
 #### Task 2.6: Add reducer logic for conflict resolution (TDD)
 **Estimated Time**: 1 hour
 
-**Files**: `scripts/state/reducers/u_input_reducer.gd`
+**Files**: `scripts/core/state/reducers/u_input_reducer.gd`
 
 **Add**:
 ```gdscript
@@ -757,7 +757,7 @@ func _events_match_dicts(a: Dictionary, b: Dictionary) -> bool:
 - [x] No need for UI to handle swaps manually
 - [x] All reducer tests pass
 
-**Status**: ✅ Completed (2025-11-15) — Reworked `scripts/state/reducers/u_input_reducer.gd` to manage conflict resolution and serialized event arrays with expanded reducer coverage.
+**Status**: ✅ Completed (2025-11-15) — Reworked `scripts/core/state/reducers/u_input_reducer.gd` to manage conflict resolution and serialized event arrays with expanded reducer coverage.
 
 ---
 
@@ -917,8 +917,8 @@ func _complete_initialization() -> void:
 M_StateStore doesn't signal when it's ready. Managers use polling/retry pattern, creating fragile timing dependencies.
 
 ### Implementation Snapshot (2025-11-19)
-- `scripts/state/m_state_store.gd` now exposes a `store_ready` signal + `is_ready()` helper, and `scripts/state/utils/u_state_utils.gd` gained `await_store_ready()` so callers can deterministically await initialization (covered by `tests/unit/state/test_m_state_store.gd`).
-- `scripts/managers/m_input_profile_manager.gd` and `scripts/managers/m_input_device_manager.gd` await the store-ready signal, eliminate retry loops, and queue device events until the Redux dispatch layer is available; the corresponding manager unit suites assert single-pass init and pending-event flush order.
+- `scripts/core/state/m_state_store.gd` now exposes a `store_ready` signal + `is_ready()` helper, and `scripts/core/state/utils/u_state_utils.gd` gained `await_store_ready()` so callers can deterministically await initialization (covered by `tests/unit/state/test_m_state_store.gd`).
+- `scripts/core/managers/m_input_profile_manager.gd` and `scripts/core/managers/m_input_device_manager.gd` await the store-ready signal, eliminate retry loops, and queue device events until the Redux dispatch layer is available; the corresponding manager unit suites assert single-pass init and pending-event flush order.
 - `tests/unit/integration/test_manager_initialization_order.gd` exercises store-first vs. manager-first sequences, fast scene reloads, and a 100-iteration stress loop to ensure the readiness handshake is stable.
 ### Refactoring Strategy
 
@@ -935,7 +935,7 @@ M_StateStore doesn't signal when it's ready. Managers use polling/retry pattern,
 #### Task 3.1: Add ready signal to M_StateStore (TDD)
 **Estimated Time**: 30 minutes
 
-**Files**: `scripts/state/m_state_store.gd`
+**Files**: `scripts/core/state/m_state_store.gd`
 
 **Changes**:
 ```gdscript
@@ -973,7 +973,7 @@ func is_ready() -> bool:
 #### Task 3.2: Refactor M_InputProfileManager initialization (TDD)
 **Estimated Time**: 2 hours
 
-**Files**: `scripts/managers/m_input_profile_manager.gd`
+**Files**: `scripts/core/managers/m_input_profile_manager.gd`
 
 **Remove**:
 ```gdscript
@@ -1070,7 +1070,7 @@ func _apply_custom_bindings(bindings: Dictionary) -> void:
 #### Task 3.3: Update other managers to use store.ready pattern (TDD)
 **Estimated Time**: 1 hour
 
-**Files**: `scripts/managers/m_input_device_manager.gd`
+**Files**: `scripts/core/managers/m_input_device_manager.gd`
 
 **Changes**:
 ```gdscript
@@ -1265,8 +1265,8 @@ func _normalize_custom_bindings(bindings: Variant) -> Dictionary:
 RS_InputProfile was created first with minimal serialization. U_InputRebindUtils was added later with complete serialization. Code wasn't refactored to use single implementation.
 
 ### Implementation Snapshot (2025-11-19)
-- `scripts/utils/input/u_input_rebind_utils.gd` is now the canonical serializer/deserializer for keyboard, mouse, gamepad, and touchscreen events (modifiers, echo, pressure, vectors, legacy type strings), with exhaustive coverage in `tests/unit/utils/test_input_event_serialization_roundtrip.gd`.
-- `scripts/input/resources/rs_input_profile.gd`, `scripts/utils/input/u_input_serialization.gd`, and `scripts/state/reducers/u_input_reducer.gd` all delegate to the shared helper, ensuring saved profiles, Redux normalization, and custom bindings share one schema.
+- `scripts/core/utils/input/u_input_rebind_utils.gd` is now the canonical serializer/deserializer for keyboard, mouse, gamepad, and touchscreen events (modifiers, echo, pressure, vectors, legacy type strings), with exhaustive coverage in `tests/unit/utils/test_input_event_serialization_roundtrip.gd`.
+- `scripts/core/input/resources/rs_input_profile.gd`, `scripts/core/utils/input/u_input_serialization.gd`, and `scripts/core/state/reducers/u_input_reducer.gd` all delegate to the shared helper, ensuring saved profiles, Redux normalization, and custom bindings share one schema.
 - Integration suites (`tests/unit/integration/test_rebinding_flow.gd`, `test_state_synchronization_flow.gd`) now operate on the unified schema and verified save/load + UI flows continue to pass.
 ### Refactoring Strategy
 
@@ -1283,7 +1283,7 @@ RS_InputProfile was created first with minimal serialization. U_InputRebindUtils
 #### Task 4.1: Audit U_InputRebindUtils serialization (TDD)
 **Estimated Time**: 30 minutes
 
-**Files**: `scripts/utils/input/u_input_rebind_utils.gd`
+**Files**: `scripts/core/utils/input/u_input_rebind_utils.gd`
 
 **Verify Completeness**:
 ```gdscript
@@ -1336,7 +1336,7 @@ RS_InputProfile was created first with minimal serialization. U_InputRebindUtils
 #### Task 4.2: Delete RS_InputProfile serialization (TDD)
 **Estimated Time**: 30 minutes
 
-**Files**: `scripts/input/resources/rs_input_profile.gd`
+**Files**: `scripts/core/input/resources/rs_input_profile.gd`
 
 **Remove**:
 ```gdscript
@@ -1405,7 +1405,7 @@ static func from_dictionary(dict: Dictionary) -> RS_InputProfile:
 #### Task 4.3: Update U_InputSerialization to normalize schema (TDD)
 **Estimated Time**: 30 minutes
 
-**Files**: `scripts/utils/input/u_input_serialization.gd`
+**Files**: `scripts/core/utils/input/u_input_serialization.gd`
 
 **Ensure Consistency**:
 ```gdscript
@@ -1459,7 +1459,7 @@ func _validate_event_dict(event_dict: Dictionary) -> Dictionary:
 #### Task 4.4: Simplify U_InputReducer normalization (TDD)
 **Estimated Time**: 30 minutes
 
-**Files**: `scripts/state/reducers/u_input_reducer.gd`
+**Files**: `scripts/core/state/reducers/u_input_reducer.gd`
 
 **Simplify**:
 ```gdscript
@@ -1682,8 +1682,8 @@ static func apply_deadzone(input: Vector2, deadzone: float) -> Vector2:
 Each file implemented deadzone independently. RS_GamepadSettings was added last but other implementations weren't removed.
 
 ### Implementation Snapshot (2025-11-19)
-- `scripts/input/resources/rs_gamepad_settings.gd` now exposes a static `apply_deadzone()` helper with optional response curves/Curve resources and expanded unit coverage.
-- `scripts/ecs/systems/s_input_system.gd`, `scripts/ecs/components/c_gamepad_component.gd`, and `scripts/ui/gamepad_settings_overlay.gd` all call the shared helper; redundant `_apply_deadzone*` routines were deleted along with their bespoke tests.
+- `scripts/core/input/resources/rs_gamepad_settings.gd` now exposes a static `apply_deadzone()` helper with optional response curves/Curve resources and expanded unit coverage.
+- `scripts/core/ecs/systems/s_input_system.gd`, `scripts/core/ecs/components/c_gamepad_component.gd`, and `scripts/core/ui/gamepad_settings_overlay.gd` all call the shared helper; redundant `_apply_deadzone*` routines were deleted along with their bespoke tests.
 - Component/system/UI suites plus `tests/unit/integration/test_device_detection_flow.gd` were re-run to confirm behavior parity under the canonical helper.
 ### Refactoring Strategy
 
@@ -1700,7 +1700,7 @@ Each file implemented deadzone independently. RS_GamepadSettings was added last 
 #### Task 5.1: Standardize RS_GamepadSettings.apply_deadzone (TDD)
 **Estimated Time**: 30 minutes
 
-**Files**: `scripts/input/resources/rs_gamepad_settings.gd`
+**Files**: `scripts/core/input/resources/rs_gamepad_settings.gd`
 
 **Standardize**:
 ```gdscript
@@ -1767,7 +1767,7 @@ static func apply_deadzone(input: Vector2, deadzone: float, use_curve: bool = fa
 #### Task 5.2: Remove S_InputSystem._apply_deadzone (TDD)
 **Estimated Time**: 30 minutes
 
-**Files**: `scripts/ecs/systems/s_input_system.gd`
+**Files**: `scripts/core/ecs/systems/s_input_system.gd`
 
 **Remove**:
 ```gdscript
@@ -1808,7 +1808,7 @@ var filtered_right := RS_GamepadSettings.apply_deadzone(raw_right, right_deadzon
 #### Task 5.3: Remove C_GamepadComponent._apply_deadzone_manual (TDD)
 **Estimated Time**: 30 minutes
 
-**Files**: `scripts/ecs/components/c_gamepad_component.gd`
+**Files**: `scripts/core/ecs/components/c_gamepad_component.gd`
 
 **Remove**:
 ```gdscript

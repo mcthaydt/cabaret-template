@@ -776,7 +776,7 @@ class_name SceneReducer
 ## Pure function that takes current state and action, returns new state.
 ## NEVER mutates state directly - always uses .duplicate(true) for immutability.
 
-const U_SceneActions := preload("res://scripts/state/actions/u_scene_actions.gd")
+const U_SceneActions := preload("res://scripts/core/state/actions/u_scene_actions.gd")
 
 static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
     var action_type: StringName = action.get("type", StringName())
@@ -831,10 +831,10 @@ Add scene slice registration to `m_state_store.gd`:
 @export var gameplay_initial_state: RS_GameplayInitialState
 @export var scene_initial_state: RS_SceneInitialState  # NEW
 
-const BootReducer = preload("res://scripts/state/reducers/u_boot_reducer.gd")
-const MenuReducer = preload("res://scripts/state/reducers/u_menu_reducer.gd")
-const GameplayReducer = preload("res://scripts/state/reducers/u_gameplay_reducer.gd")
-const SceneReducer = preload("res://scripts/state/reducers/u_scene_reducer.gd")  # NEW
+const BootReducer = preload("res://scripts/core/state/reducers/u_boot_reducer.gd")
+const MenuReducer = preload("res://scripts/core/state/reducers/u_menu_reducer.gd")
+const GameplayReducer = preload("res://scripts/core/state/reducers/u_gameplay_reducer.gd")
+const SceneReducer = preload("res://scripts/core/state/reducers/u_scene_reducer.gd")  # NEW
 
 func _initialize_slices() -> void:
     # ... existing boot, menu, gameplay registrations ...
@@ -969,13 +969,13 @@ static var _scenes: Dictionary = {
 		"preload_priority": 10
 	},
 	"exterior": {
-		"path": "res://scenes/gameplay/exterior_template.tscn",
+		"path": "res://scenes/demo/gameplay/exterior_template.tscn",
 		"type": SceneType.GAMEPLAY,
 		"default_transition": "fade",
 		"preload_priority": 0
 	},
 	"interior_house": {
-		"path": "res://scenes/gameplay/interior_house.tscn",
+		"path": "res://scenes/demo/gameplay/interior_house.tscn",
 		"type": SceneType.GAMEPLAY,
 		"default_transition": "fade",
 		"preload_priority": 0
@@ -1335,8 +1335,8 @@ func process_tick(delta: float) -> void:
 ## Related Documentation
 
 - `/docs/ecs/ecs_architecture.md` - Existing ECS system design
-- `/scripts/state/m_state_store.gd` - Existing Redux state store implementation
-- `/scripts/state/utils/u_state_handoff.gd` - Existing state preservation utility
+- `/scripts/core/state/m_state_store.gd` - Existing Redux state store implementation
+- `/scripts/core/state/utils/u_state_handoff.gd` - Existing state preservation utility
 - `/docs/scene_manager/INTEGRATION_SUMMARY.md` - Integration details with existing systems
 - `/AGENTS.md` - Project quick reference
 

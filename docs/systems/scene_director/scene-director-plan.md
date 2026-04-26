@@ -6,7 +6,7 @@
 
 ### 1A: Objective Resources
 
-**RS_ObjectiveDefinition** (`scripts/resources/scene_director/rs_objective_definition.gd`):
+**RS_ObjectiveDefinition** (`scripts/core/resources/scene_director/rs_objective_definition.gd`):
 - `objective_id: StringName`
 - `description: String`
 - `objective_type: ObjectiveType` enum (STANDARD, VICTORY, CHECKPOINT)
@@ -17,14 +17,14 @@
 - `dependencies: Array[StringName]` -- objective IDs that must be completed first
 - `auto_activate: bool = false` -- activate immediately when set loads (regardless of dependencies; use for root-level objectives that have no prerequisites)
 
-**RS_ObjectiveSet** (`scripts/resources/scene_director/rs_objective_set.gd`):
+**RS_ObjectiveSet** (`scripts/core/resources/scene_director/rs_objective_set.gd`):
 - `set_id: StringName`
 - `description: String`
 - `objectives: Array[Resource]` -- entries should be `RS_ObjectiveDefinition`
 
 ### 1B: Scene Director Resources
 
-**RS_BeatDefinition** (`scripts/resources/scene_director/rs_beat_definition.gd`):
+**RS_BeatDefinition** (`scripts/core/resources/scene_director/rs_beat_definition.gd`):
 - `beat_id: StringName`
 - `description: String`
 - `preconditions: Array[Resource]` -- v2 typed conditions that gate beat execution
@@ -33,7 +33,7 @@
 - `duration: float = 0.0` -- for TIMED wait mode
 - `wait_event: StringName = &""` -- for SIGNAL wait mode
 
-**RS_SceneDirective** (`scripts/resources/scene_director/rs_scene_directive.gd`):
+**RS_SceneDirective** (`scripts/core/resources/scene_director/rs_scene_directive.gd`):
 - `directive_id: StringName`
 - `description: String`
 - `target_scene_id: StringName` -- which scene this directive applies to
@@ -43,39 +43,39 @@
 
 ### 1C: Redux Slices -- Objectives
 
-**Actions** (`scripts/state/actions/u_objectives_actions.gd`):
+**Actions** (`scripts/core/state/actions/u_objectives_actions.gd`):
 - `activate(objective_id)`, `complete(objective_id)`, `fail(objective_id)`
 - `set_active_set(set_id)`, `log_event(event_data)`
 - `reset_all()`, `bulk_activate(objective_ids)`
 
-**Reducer** (`scripts/state/reducers/u_objectives_reducer.gd`):
+**Reducer** (`scripts/core/state/reducers/u_objectives_reducer.gd`):
 - Handles objectives slice mutations (status transitions, event log append)
 
-**Selectors** (`scripts/state/selectors/u_objectives_selectors.gd`):
+**Selectors** (`scripts/core/state/selectors/u_objectives_selectors.gd`):
 - `get_objective_status(state, objective_id)`, `get_active_objectives(state)`
 - `is_completed(state, objective_id)`, `get_event_log(state)`
 - `get_active_set_id(state)`
 
-**Initial State** (`scripts/resources/state/rs_objectives_initial_state.gd`):
+**Initial State** (`scripts/core/resources/state/rs_objectives_initial_state.gd`):
 - `statuses: Dictionary = {}` -- objective_id -> status string
 - `active_set_id: StringName = &""`
 - `event_log: Array = []`
 
 ### 1D: Redux Slices -- Scene Director
 
-**Actions** (`scripts/state/actions/u_scene_director_actions.gd`):
+**Actions** (`scripts/core/state/actions/u_scene_director_actions.gd`):
 - `start_directive(directive_id)`, `advance_beat()` (no parameter — reducer increments index by 1)
 - `complete_directive()`, `reset()`
 
-**Reducer** (`scripts/state/reducers/u_scene_director_reducer.gd`):
+**Reducer** (`scripts/core/state/reducers/u_scene_director_reducer.gd`):
 - Handles scene_director slice mutations
 - `advance_beat`: increments `current_beat_index` by 1 (does not accept an index from the caller)
 
-**Selectors** (`scripts/state/selectors/u_scene_director_selectors.gd`):
+**Selectors** (`scripts/core/state/selectors/u_scene_director_selectors.gd`):
 - `get_active_directive_id(state)`, `get_current_beat_index(state)`
 - `is_running(state)`, `get_director_state(state)`
 
-**Initial State** (`scripts/resources/state/rs_scene_director_initial_state.gd`):
+**Initial State** (`scripts/core/resources/state/rs_scene_director_initial_state.gd`):
 - `active_directive_id: StringName = &""`
 - `current_beat_index: int = -1`
 - `state: String = "idle"` -- idle, running, completed
@@ -111,7 +111,7 @@ EVENT_DIRECTIVE_STARTED, EVENT_DIRECTIVE_COMPLETED, EVENT_BEAT_ADVANCED
 
 ### 2A: Helpers (TDD)
 
-**U_ObjectiveGraph** (`scripts/utils/scene_director/u_objective_graph.gd`):
+**U_ObjectiveGraph** (`scripts/core/utils/scene_director/u_objective_graph.gd`):
 - `static func build_graph(objectives: Array[Resource]) -> Dictionary` -- adjacency list keyed by objective_id; entries should be `RS_ObjectiveDefinition`
 - `static func validate_graph(graph: Dictionary, known_ids: Array[StringName]) -> Array[String]` -- cycle detection (DFS) + missing reference detection (dependency IDs not in known_ids); returns error strings, empty array = valid
 - `static func get_ready_dependents(objective_id: StringName, graph: Dictionary, statuses: Dictionary) -> Array[StringName]` -- dependents whose all prerequisites are completed
@@ -119,14 +119,14 @@ EVENT_DIRECTIVE_STARTED, EVENT_DIRECTIVE_COMPLETED, EVENT_BEAT_ADVANCED
 
 Note: `validate_graph` requires `known_ids` because the graph's adjacency list can detect cycles and forward-references, but cannot detect whether a dependency ID refers to an objective that simply doesn't exist in the set. Pass `objectives.map(func(o): return o.objective_id)` as `known_ids`.
 
-**U_ObjectiveEventLog** (`scripts/utils/scene_director/u_objective_event_log.gd`):
+**U_ObjectiveEventLog** (`scripts/core/utils/scene_director/u_objective_event_log.gd`):
 - `static func create_entry(objective_id: StringName, event_type: String, details: Dictionary = {}) -> Dictionary`
 - `static func format_log(entries: Array) -> String` -- human-readable debug output
 - Event types: `activated`, `completed`, `failed`, `dependency_met`, `condition_checked`
 
 ### 2B: M_ObjectivesManager (TDD)
 
-`scripts/managers/m_objectives_manager.gd` -- extends Node
+`scripts/core/managers/m_objectives_manager.gd` -- extends Node
 
 - `@export var state_store: I_StateStore = null` -- DI for testing
 - `@export var objective_sets: Array[Resource] = []` -- sets assigned in root.tscn via ExtResource; entries should be `RS_ObjectiveSet`
@@ -161,7 +161,7 @@ Note: `validate_graph` requires `known_ids` because the graph's adjacency list c
 
 ### 3A: Helper (TDD)
 
-**U_BeatRunner** (`scripts/utils/scene_director/u_beat_runner.gd`):
+**U_BeatRunner** (`scripts/core/utils/scene_director/u_beat_runner.gd`):
 - RefCounted state machine
 - `start(beats: Array[Resource])` -- initialize with beat list; entries should be `RS_BeatDefinition`
 - `execute_current_beat(context: Dictionary)` -- check preconditions via `condition.evaluate(context)`, execute effects via `effect.execute(context)`
@@ -177,7 +177,7 @@ Context requirements: The caller (M_SceneDirector) builds it: `{"state_store": _
 
 ### 3B: M_SceneDirector (TDD)
 
-`scripts/managers/m_scene_director.gd` -- extends Node
+`scripts/core/managers/m_scene_director.gd` -- extends Node
 
 - `@export var state_store: I_StateStore = null` -- DI for testing
 - `@export var directives: Array[Resource] = []` -- directives assigned in root.tscn via ExtResource; entries should be `RS_SceneDirective`
@@ -208,11 +208,11 @@ Context requirements: The caller (M_SceneDirector) builds it: `{"state_store": _
 ### 4A: Victory Objective Resources
 
 Create objective definitions for victory scenarios:
-- `resources/scene_director/objectives/cfg_obj_level_complete.tres` -- STANDARD type with `objective_id = &"bar_complete"`, `auto_activate: true`, event-payload condition (`trigger_node.objective_id == "goal_bar"`), and completion publish-effect routing to `{"target_scene": &"alleyway"}`.
-- `resources/scene_director/objectives/cfg_obj_game_complete.tres` -- VICTORY type with `objective_id = &"final_complete"`, `dependencies: [bar_complete]`, event-payload condition (`trigger_node.objective_id == "final_goal"`), `completion_effects: [RS_EffectDispatchAction: gameplay/game_complete]`, and `completion_event_payload: {"target_scene": StringName("victory")}`. M_ObjectivesManager forwards the payload in `EVENT_OBJECTIVE_VICTORY_TRIGGERED`; M_SceneManager reads `event.payload.get("target_scene")`.
+- `resources/core/scene_director/objectives/cfg_obj_level_complete.tres` -- STANDARD type with `objective_id = &"bar_complete"`, `auto_activate: true`, event-payload condition (`trigger_node.objective_id == "goal_bar"`), and completion publish-effect routing to `{"target_scene": &"alleyway"}`.
+- `resources/core/scene_director/objectives/cfg_obj_game_complete.tres` -- VICTORY type with `objective_id = &"final_complete"`, `dependencies: [bar_complete]`, event-payload condition (`trigger_node.objective_id == "final_goal"`), `completion_effects: [RS_EffectDispatchAction: gameplay/game_complete]`, and `completion_event_payload: {"target_scene": StringName("victory")}`. M_ObjectivesManager forwards the payload in `EVENT_OBJECTIVE_VICTORY_TRIGGERED`; M_SceneManager reads `event.payload.get("target_scene")`.
 
 Create objective set:
-- `resources/scene_director/sets/cfg_objset_default.tres` -- default progression set
+- `resources/core/scene_director/sets/cfg_objset_default.tres` -- default progression set
 
 ### 4B: M_SceneManager Refactor
 
@@ -262,7 +262,7 @@ Add to M_SceneManager:
 ### 5A: Directive Resources
 
 Create scene directives:
-- `resources/scene_director/directives/cfg_directive_gameplay_base.tres` -- base gameplay directive with introductory beats
+- `resources/core/scene_director/directives/cfg_directive_gameplay_base.tres` -- base gameplay directive with introductory beats
 
 ### 5B: Scene Integration
 
@@ -354,26 +354,26 @@ Create scene directives:
 
 ### 9A: QB Composite Condition Resource
 
-- Add `scripts/resources/qb/conditions/rs_condition_composite.gd` (`RS_ConditionComposite`)
+- Add `scripts/core/resources/qb/conditions/rs_condition_composite.gd` (`RS_ConditionComposite`)
   - `CompositeMode` enum: `ALL`, `ANY`
   - `children: Array[Resource]`
   - `_composite_depth` context key with max depth `8`
   - `ALL` scoring: multiplicative, short-circuit on `0.0`
   - `ANY` scoring: max child score, skip null children
   - Empty children returns `0.0`
-- Update `scripts/utils/qb/u_rule_validator.gd`
+- Update `scripts/core/utils/qb/u_rule_validator.gd`
   - recursive composite child validation with depth guard
   - recursive event-name condition detection for `trigger_mode == event|both`
 - No scorer changes (`U_RuleScorer` continues calling `condition.evaluate(context)` polymorphically).
 
 ### 9B: Beat Graph Contracts
 
-- Extend `scripts/resources/scene_director/rs_beat_definition.gd` with:
+- Extend `scripts/core/resources/scene_director/rs_beat_definition.gd` with:
   - `next_beat_id`
   - `next_beat_id_on_failure`
   - `parallel_beat_ids`
   - `parallel_join_beat_id`
-- Add `scripts/utils/scene_director/u_beat_graph.gd`
+- Add `scripts/core/utils/scene_director/u_beat_graph.gd`
   - unique/non-empty ID validation
   - target reference validation (`next`, `failure`, `parallel`, `join`)
   - parallel co-requirement (`parallel_beat_ids` <-> `parallel_join_beat_id`)
@@ -383,7 +383,7 @@ Create scene directives:
 
 ### 9C: Beat Runner + Scene Director Slice
 
-- Update `scripts/utils/scene_director/u_beat_runner.gd`
+- Update `scripts/core/utils/scene_director/u_beat_runner.gd`
   - jump-based branching (`next_beat_id`, `next_beat_id_on_failure`)
   - single-hop fork/join via per-lane sub-runners
   - parallel query methods: `is_waiting_parallel()`, `is_parallel_complete()`, `get_parallel_runners()`
@@ -397,7 +397,7 @@ Create scene directives:
 
 ### 9D: Manager Integration
 
-- Update `scripts/managers/m_scene_director.gd`
+- Update `scripts/core/managers/m_scene_director.gd`
   - validate beat graph on directive start; skip invalid directives
   - sync runner state with Redux via `set_beat_index` (branch-safe)
   - dispatch `start_parallel`/`complete_parallel`
@@ -419,60 +419,60 @@ Create scene directives:
 
 ### New Files (Resources)
 ```
-scripts/resources/scene_director/rs_objective_definition.gd
-scripts/resources/scene_director/rs_objective_set.gd
-scripts/resources/scene_director/rs_beat_definition.gd
-scripts/resources/scene_director/rs_scene_directive.gd
-scripts/resources/qb/conditions/rs_condition_composite.gd
+scripts/core/resources/scene_director/rs_objective_definition.gd
+scripts/core/resources/scene_director/rs_objective_set.gd
+scripts/core/resources/scene_director/rs_beat_definition.gd
+scripts/core/resources/scene_director/rs_scene_directive.gd
+scripts/core/resources/qb/conditions/rs_condition_composite.gd
 ```
 
 ### New Files (State)
 ```
-scripts/state/actions/u_objectives_actions.gd
-scripts/state/reducers/u_objectives_reducer.gd
-scripts/state/selectors/u_objectives_selectors.gd
-scripts/resources/state/rs_objectives_initial_state.gd
+scripts/core/state/actions/u_objectives_actions.gd
+scripts/core/state/reducers/u_objectives_reducer.gd
+scripts/core/state/selectors/u_objectives_selectors.gd
+scripts/core/resources/state/rs_objectives_initial_state.gd
 
-scripts/state/actions/u_scene_director_actions.gd
-scripts/state/reducers/u_scene_director_reducer.gd
-scripts/state/selectors/u_scene_director_selectors.gd
-scripts/resources/state/rs_scene_director_initial_state.gd
-scripts/state/actions/u_run_actions.gd
+scripts/core/state/actions/u_scene_director_actions.gd
+scripts/core/state/reducers/u_scene_director_reducer.gd
+scripts/core/state/selectors/u_scene_director_selectors.gd
+scripts/core/resources/state/rs_scene_director_initial_state.gd
+scripts/core/state/actions/u_run_actions.gd
 ```
 
 ### New Files (Managers + Helpers)
 ```
-scripts/managers/m_objectives_manager.gd
-scripts/managers/m_scene_director.gd
-scripts/managers/m_run_coordinator.gd
-scripts/utils/scene_director/u_objective_graph.gd
-scripts/utils/scene_director/u_objective_event_log.gd
-scripts/utils/scene_director/u_beat_runner.gd
-scripts/utils/scene_director/u_beat_graph.gd
+scripts/core/managers/m_objectives_manager.gd
+scripts/core/managers/m_scene_director.gd
+scripts/core/managers/m_run_coordinator.gd
+scripts/core/utils/scene_director/u_objective_graph.gd
+scripts/core/utils/scene_director/u_objective_event_log.gd
+scripts/core/utils/scene_director/u_beat_runner.gd
+scripts/core/utils/scene_director/u_beat_graph.gd
 ```
 
 ### New Files (Resource Instances)
 ```
-resources/scene_director/objectives/cfg_obj_level_complete.tres
-resources/scene_director/objectives/cfg_obj_game_complete.tres
-resources/scene_director/sets/cfg_objset_default.tres
-resources/scene_director/directives/cfg_directive_gameplay_base.tres
+resources/core/scene_director/objectives/cfg_obj_level_complete.tres
+resources/core/scene_director/objectives/cfg_obj_game_complete.tres
+resources/core/scene_director/sets/cfg_objset_default.tres
+resources/core/scene_director/directives/cfg_directive_gameplay_base.tres
 ```
 
 ### Modified Files
 ```
-scripts/state/utils/u_state_slice_manager.gd    -- Add 2 new slices (objectives, scene_director)
-scripts/state/m_state_store.gd                   -- Add @export for new initial state resources
+scripts/core/state/utils/u_state_slice_manager.gd    -- Add 2 new slices (objectives, scene_director)
+scripts/core/state/m_state_store.gd                   -- Add @export for new initial state resources
 scripts/core/root.gd                                  -- Register 2 new managers + dependencies
 scripts/core/events/ecs/u_ecs_event_names.gd          -- Add objective/directive event constants
-scripts/managers/m_scene_manager.gd              -- Remove victory handling, add objective_victory subscription
+scripts/core/managers/m_scene_manager.gd              -- Remove victory handling, add objective_victory subscription
 scenes/root.tscn                                 -- Add M_ObjectivesManager + M_SceneDirector nodes
-scripts/ui/menus/ui_victory.gd                   -- Continue now dispatches run/reset contract action
-scripts/utils/qb/u_rule_validator.gd             -- Composite condition recursive validation + nested EventName detection
-scripts/state/actions/u_scene_director_actions.gd -- Branch/fork actions + beat observability actions
-scripts/state/reducers/u_scene_director_reducer.gd -- Parallel lane + active beat state updates
-scripts/state/selectors/u_scene_director_selectors.gd -- Parallel/active beat selectors
-scripts/resources/state/rs_scene_director_initial_state.gd -- Current beat ID, active beat IDs, parallel lanes
+scripts/core/ui/menus/ui_victory.gd                   -- Continue now dispatches run/reset contract action
+scripts/core/utils/qb/u_rule_validator.gd             -- Composite condition recursive validation + nested EventName detection
+scripts/core/state/actions/u_scene_director_actions.gd -- Branch/fork actions + beat observability actions
+scripts/core/state/reducers/u_scene_director_reducer.gd -- Parallel lane + active beat state updates
+scripts/core/state/selectors/u_scene_director_selectors.gd -- Parallel/active beat selectors
+scripts/core/resources/state/rs_scene_director_initial_state.gd -- Current beat ID, active beat IDs, parallel lanes
 ```
 
 ### Test Files
@@ -500,14 +500,14 @@ tests/unit/scene_director/test_beat_graph.gd
 
 | Existing File | Relevance |
 |---------------|-----------|
-| `scripts/ecs/systems/s_victory_handler_system.gd` | Stays as-is; M_ObjectivesManager listens to its `victory_executed` events |
-| `scripts/ecs/systems/s_checkpoint_handler_system.gd` | Stays as-is; M_ObjectivesManager may listen to `checkpoint_activated` |
-| `scripts/managers/m_scene_manager.gd` | Remove victory handling (~20 lines), add objective_victory subscription |
-| `scripts/state/utils/u_state_slice_manager.gd` | Add objectives + scene_director slices |
-| `scripts/state/m_state_store.gd` | Add @export for objectives + scene_director initial state |
+| `scripts/core/ecs/systems/s_victory_handler_system.gd` | Stays as-is; M_ObjectivesManager listens to its `victory_executed` events |
+| `scripts/core/ecs/systems/s_checkpoint_handler_system.gd` | Stays as-is; M_ObjectivesManager may listen to `checkpoint_activated` |
+| `scripts/core/managers/m_scene_manager.gd` | Remove victory handling (~20 lines), add objective_victory subscription |
+| `scripts/core/state/utils/u_state_slice_manager.gd` | Add objectives + scene_director slices |
+| `scripts/core/state/m_state_store.gd` | Add @export for objectives + scene_director initial state |
 | `scripts/core/root.gd` | Register M_ObjectivesManager + M_SceneDirector with ServiceLocator |
 | `scripts/core/events/ecs/u_ecs_event_names.gd` | Add objective/directive event constants |
-| `scripts/resources/qb/rs_base_condition.gd` | Base class for typed conditions (v2) |
-| `scripts/resources/qb/rs_base_effect.gd` | Base class for typed effects (v2) |
+| `scripts/core/resources/qb/rs_base_condition.gd` | Base class for typed conditions (v2) |
+| `scripts/core/resources/qb/rs_base_effect.gd` | Base class for typed effects (v2) |
 | `scenes/root.tscn` | Add M_ObjectivesManager + M_SceneDirector nodes |
 | `tests/mocks/` | MockStateStore, MockECSManager for testing |

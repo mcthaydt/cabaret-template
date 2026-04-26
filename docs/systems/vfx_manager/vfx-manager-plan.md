@@ -27,7 +27,7 @@ The VFX Manager provides screen-level visual effects (screen shake, damage flash
 ### Commit 1: VFX Initial State Resource
 
 **Files to create**:
-- `scripts/resources/state/rs_vfx_initial_state.gd`
+- `scripts/core/resources/state/rs_vfx_initial_state.gd`
 - `tests/unit/state/test_vfx_initial_state.gd` (6 tests)
 
 **Implementation**:
@@ -68,8 +68,8 @@ func to_dictionary() -> Dictionary:
 ### Commit 2: VFX Actions & Reducer
 
 **Files to create**:
-- `scripts/state/actions/u_vfx_actions.gd`
-- `scripts/state/reducers/u_vfx_reducer.gd`
+- `scripts/core/state/actions/u_vfx_actions.gd`
+- `scripts/core/state/reducers/u_vfx_reducer.gd`
 - `tests/unit/state/test_vfx_reducer.gd` (15 tests)
 
 **Key Features**:
@@ -87,16 +87,16 @@ func to_dictionary() -> Dictionary:
 ### Commit 3: VFX Selectors & M_StateStore Integration
 
 **Files to create**:
-- `scripts/state/selectors/u_vfx_selectors.gd`
+- `scripts/core/state/selectors/u_vfx_selectors.gd`
 - `tests/unit/state/test_vfx_selectors.gd` (17 tests)
 
 **Files to modify**:
-- `scripts/state/m_state_store.gd`:
-  - Line ~27: Add `const U_VFX_REDUCER := preload("res://scripts/state/reducers/u_vfx_reducer.gd")`
+- `scripts/core/state/m_state_store.gd`:
+  - Line ~27: Add `const U_VFX_REDUCER := preload("res://scripts/core/state/reducers/u_vfx_reducer.gd")`
   - Line ~56: Add `@export var vfx_initial_state: RS_VFXInitialState`
   - Line ~164: Add `vfx_initial_state` to `initialize_slices()` call
 
-- `scripts/state/utils/u_state_slice_manager.gd`:
+- `scripts/core/state/utils/u_state_slice_manager.gd`:
   - **Add parameter** to `initialize_slices()` function signature:
     ```gdscript
     static func initialize_slices(
@@ -118,7 +118,7 @@ func to_dictionary() -> Dictionary:
     ```
   - **Add reducer preload** at top of file:
     ```gdscript
-    const U_VFX_REDUCER := preload("res://scripts/state/reducers/u_vfx_reducer.gd")
+    const U_VFX_REDUCER := preload("res://scripts/core/state/reducers/u_vfx_reducer.gd")
     ```
 
 **Selectors**:
@@ -134,7 +134,7 @@ func to_dictionary() -> Dictionary:
 ### Commit 1: Manager Scaffolding & Lifecycle
 
 **Files to create**:
-- `scripts/managers/m_vfx_manager.gd`
+- `scripts/core/managers/m_vfx_manager.gd`
 - `tests/unit/managers/test_vfx_manager.gd` (8 tests)
 
 **Manager Structure**:
@@ -187,7 +187,7 @@ func get_trauma() -> float:
 ### Commit 1: U_ScreenShake Helper
 
 **Files to create**:
-- `scripts/managers/helpers/u_screen_shake.gd`
+- `scripts/core/managers/helpers/u_screen_shake.gd`
 - `tests/unit/managers/helpers/test_screen_shake.gd` (15 tests)
 
 **Shake Algorithm**:
@@ -219,7 +219,7 @@ func calculate_shake(trauma: float, settings_multiplier: float, delta: float) ->
 
 ### Shake Parent Node Approach
 
-**Modify**: `scripts/managers/m_camera_manager.gd`
+**Modify**: `scripts/core/managers/m_camera_manager.gd`
 
 ```gdscript
 var _shake_parent: Node3D = null
@@ -253,7 +253,7 @@ func apply_shake_offset(offset: Vector2, rotation: float) -> void:
 
 **Files to create**:
 - `scenes/ui/overlays/ui_damage_flash_overlay.tscn`
-- `scripts/managers/helpers/u_damage_flash.gd`
+- `scripts/core/managers/helpers/u_damage_flash.gd`
 - `tests/unit/managers/helpers/test_damage_flash.gd` (10 tests)
 
 **Scene Structure**:
@@ -364,19 +364,19 @@ VBoxContainer
 ## File Structure
 
 ```
-scripts/managers/
+scripts/core/managers/
   m_vfx_manager.gd
   helpers/
     u_screen_shake.gd
     u_damage_flash.gd
 
-scripts/state/
+scripts/core/state/
   resources/rs_vfx_initial_state.gd
   actions/u_vfx_actions.gd
   reducers/u_vfx_reducer.gd
   selectors/u_vfx_selectors.gd
 
-scenes/ui/
+scenes/core/ui/
   ui_damage_flash_overlay.tscn
 
 tests/unit/

@@ -51,7 +51,7 @@ The Input Manager system provides comprehensive multi-device input support for t
 
 **Storage**:
 - Input settings: `user://global_settings.json` (JSON-based persistence)
-- Input profiles: `resources/input/profiles/*.tres` (Godot Resource files)
+- Input profiles: `resources/core/input/profiles/*.tres` (Godot Resource files)
 - Button prompts: `resources/button_prompts/{keyboard,gamepad}/*.png` (texture assets)
 
 **Testing**: GUT framework for unit/integration tests, manual in-game validation
@@ -148,7 +148,7 @@ scenes/
     └── M_InputDeviceManager    # NEW - Device detection and switching
 
 # Input Manager Scripts (following existing repo patterns)
-scripts/
+scripts/core/
 ├── managers/
 │   ├── m_input_profile_manager.gd     # NEW - Profile loading/switching coordinator
 │   └── m_input_device_manager.gd      # NEW - Device detection and auto-switching
@@ -176,7 +176,7 @@ scripts/
     │   └── c_gamepad_component.gd       # NEW - Gamepad state component
     ├── systems/
     │   ├── s_input_system.gd            # MODIFIED - Add gamepad/deadzone handling
-    │   └── s_touchscreen_system.gd      # NEW - Touchscreen input system (not scripts/input/)
+    │   └── s_touchscreen_system.gd      # NEW - Touchscreen input system (not scripts/core/input/)
     └── resources/
         ├── rs_input_profile.gd          # NEW - Input profile resource definition
         ├── rs_gamepad_settings.gd       # NEW - Gamepad settings resource
@@ -185,7 +185,7 @@ scripts/
         └── rs_touchscreen_settings.gd   # NEW - Touchscreen settings resource
 
 # Input Profile Resources
-resources/
+resources/core/
 └── input_profiles/             # NEW directory
     ├── default.tres                     # NEW - Default keyboard/mouse profile
     ├── alternate.tres                   # NEW - Alternate keyboard layout (arrow keys)
@@ -193,7 +193,7 @@ resources/
     └── gamepad_generic.tres             # NEW - Generic gamepad profile
 
 # Button Prompt Assets
-resources/
+resources/core/
 └── button_prompts/             # NEW directory
     ├── keyboard/                        # NEW - Keyboard key icons
     │   ├── key_space.png
@@ -217,7 +217,7 @@ resources/
         └── stick_right.png
 
 # UI Scenes
-scenes/
+scenes/core/
 └── ui/
     ├── input_settings_menu.tscn         # NEW - Input settings UI
     ├── rebind_dialog.tscn               # NEW - Rebind capture dialog
@@ -259,11 +259,11 @@ tests/
 - **MODIFIED files**: 4 (root.tscn, C_InputComponent, S_InputSystem, U_GameplayReducer)
 - **NEW tests**: 22 (14 unit + 8 integration)
 
-**Organization Note**: All files follow existing repo patterns - NO new `scripts/input/` directory:
-- Resources → `scripts/resources/input/`
+**Organization Note**: All files follow existing repo patterns - NO new `scripts/core/input/` directory:
+- Resources → `scripts/core/resources/input/`
 - Utilities → `scripts/` (root)
-- Systems → `scripts/ecs/systems/`
-- Managers → `scripts/managers/`
+- Systems → `scripts/core/ecs/systems/`
+- Managers → `scripts/core/managers/`
 
 ---
 
@@ -291,8 +291,8 @@ The following architectural decisions address integration with existing systems 
 ### Decision 2: Resource File Organization
 
 **Where Input Profile .tres Files Live:**
-- **Location**: `resources/input/profiles/` (NEW directory)
-- **Pattern**: Follows existing `resources/base_settings/` convention for ECS settings
+- **Location**: `resources/core/input/profiles/` (NEW directory)
+- **Pattern**: Follows existing `resources/core/base_settings/` convention for ECS settings
 - **File Structure**:
   ```
   resources/
@@ -308,7 +308,7 @@ The following architectural decisions address integration with existing systems 
       ├── default_jump_settings.tres
       └── ...
 
-  scripts/resources/input/               # .gd scripts ONLY
+  scripts/core/resources/input/               # .gd scripts ONLY
   ├── rs_input_profile.gd
   ├── rs_gamepad_settings.gd
   └── ...
@@ -686,9 +686,9 @@ static func validate_rebind(action: StringName, event: InputEvent, settings: RS_
 **Task 0.7: Design File Structure** (1 hour)
 - Create complete file tree for Input Manager (see Project Structure section above)
 - Annotate files as NEW vs MODIFIED
-- Plan directory creation: `resources/input/profiles/`, `resources/button_prompts/` (NO `scripts/input/` - follows existing patterns)
+- Plan directory creation: `resources/core/input/profiles/`, `resources/button_prompts/` (NO `scripts/core/input/` - follows existing patterns)
 - Plan test directory: `tests/unit/input_manager/`, `tests/integration/input_manager/`
-- **File organization**: Resources in `scripts/ecs/resources/`, utilities in `scripts/`, systems in `scripts/ecs/systems/`
+- **File organization**: Resources in `scripts/core/ecs/resources/`, utilities in `scripts/`, systems in `scripts/core/ecs/systems/`
 - **Deliverables**:
   - Complete file structure in research.md
   - Directory creation commands documented
@@ -768,7 +768,7 @@ static func validate_rebind(action: StringName, event: InputEvent, settings: RS_
   - Test ActionRegistry registration in _static_init()
   - Test action type constants are StringName
 - **Time estimate**: 30 min for tests, 1-1.5 hours for implementation
-- Create `scripts/state/actions/u_input_actions.gd`
+- Create `scripts/core/state/actions/u_input_actions.gd`
 - Define 14 action types as StringName constants:
   1. ACTION_UPDATE_MOVE_INPUT
   2. ACTION_UPDATE_LOOK_INPUT
@@ -798,7 +798,7 @@ static func validate_rebind(action: StringName, event: InputEvent, settings: RS_
   - Test selectors return correct values from state
   - Test selectors handle missing fields gracefully (return defaults)
 - **Time estimate**: 20 min for tests, 40 min for implementation
-- Create `scripts/state/selectors/u_input_selectors.gd`
+- Create `scripts/core/state/selectors/u_input_selectors.gd`
 - Implement selector functions (static methods):
   - `get_active_device(state: Dictionary) -> int`
   - `get_move_input(state: Dictionary) -> Vector2`
@@ -822,7 +822,7 @@ static func validate_rebind(action: StringName, event: InputEvent, settings: RS_
   - Test state updates immutable (use .duplicate(true))
   - Test transient fields excluded from persistence
 - **Time estimate**: 30 min for tests, 1-1.5 hours for implementation
-- Modify `scripts/state/reducers/u_gameplay_reducer.gd`
+- Modify `scripts/core/state/reducers/u_gameplay_reducer.gd`
 - Add input slice to initial state:
   ```gdscript
   "input": {
@@ -860,7 +860,7 @@ static func validate_rebind(action: StringName, event: InputEvent, settings: RS_
   - Test reducer handles input_settings actions
   - Test settings slice persists (included in save_state())
 - **Time estimate**: 30 min for tests, 1-1.5 hours for implementation
-- Modify or create `scripts/state/reducers/u_settings_reducer.gd`
+- Modify or create `scripts/core/state/reducers/u_settings_reducer.gd`
 - Add input_settings slice to initial state:
   ```gdscript
   "input_settings": {
@@ -908,7 +908,7 @@ static func validate_rebind(action: StringName, event: InputEvent, settings: RS_
 
 **Task 1.5: Enhance S_InputSystem with State Dispatch** (1 hour) - **Satisfies FR-006**
 - **Time estimate**: 1 hour (no new tests, extends existing system)
-- Modify `scripts/ecs/systems/s_input_system.gd`
+- Modify `scripts/core/ecs/systems/s_input_system.gd`
 - Add M_StateStore reference:
   ```gdscript
   var _state_store: M_StateStore = null
@@ -940,7 +940,7 @@ static func validate_rebind(action: StringName, event: InputEvent, settings: RS_
 
 **Task 1.6: Add Mouse Sensitivity Setting** (1 hour) - **Satisfies FR-100**
 - **Time estimate**: 1 hour
-- Modify `scripts/ecs/systems/s_input_system.gd`
+- Modify `scripts/core/ecs/systems/s_input_system.gd`
 - Add mouse sensitivity multiplier:
   ```gdscript
   var _mouse_sensitivity: float = 1.0
@@ -1040,7 +1040,7 @@ static func validate_rebind(action: StringName, event: InputEvent, settings: RS_
   - Test resource save/load (.tres file)
   - Test action_mappings dictionary structure
 - **Time estimate**: 30 min for tests, 1-1.5 hours for implementation
-- Create `scripts/resources/input/rs_input_profile.gd`
+- Create `scripts/core/resources/input/rs_input_profile.gd`
 - Define resource class:
   ```gdscript
   class_name RS_InputProfile extends Resource
@@ -1061,7 +1061,7 @@ static func validate_rebind(action: StringName, event: InputEvent, settings: RS_
 
 **Task 2.2: Create Default Input Profiles** (2-3 hours) - **Satisfies FR-012**
 - **Time estimate**: 2-3 hours (manual resource creation in Godot editor)
-- Create 4 profile .tres files in `resources/input/profiles/`:
+- Create 4 profile .tres files in `resources/core/input/profiles/`:
   1. **default.tres** (WASD, Space, Shift)
      ```
      profile_name = "Default"
@@ -1124,7 +1124,7 @@ static func validate_rebind(action: StringName, event: InputEvent, settings: RS_
      ```
 - **Files created**: default.tres, alternate.tres, accessibility.tres, gamepad_generic.tres
 - **Acceptance**:
-  - [ ] 4 profile .tres files created in `resources/input/profiles/`
+  - [ ] 4 profile .tres files created in `resources/core/input/profiles/`
   - [ ] All profiles loadable in Godot editor without errors
   - [ ] All required actions mapped in each profile
 
@@ -1135,7 +1135,7 @@ static func validate_rebind(action: StringName, event: InputEvent, settings: RS_
   - Test profile switching completes < 200ms
   - Test manager adds to "input_profile_manager" group
 - **Time estimate**: 1 hour for tests, 1-2 hours for implementation
-- Create `scripts/managers/m_input_profile_manager.gd`
+- Create `scripts/core/managers/m_input_profile_manager.gd`
 - Define manager class:
   ```gdscript
   class_name M_InputProfileManager extends Node
@@ -1209,7 +1209,7 @@ static func validate_rebind(action: StringName, event: InputEvent, settings: RS_
   func _load_active_profile() -> void:
     var state := _state_store.get_state()
     var profile_id := U_InputSelectors.get_active_profile_id(state)
-    var profile_path := "res://resources/input/profiles/%s.tres" % profile_id
+    var profile_path := "res://resources/core/input/profiles/%s.tres" % profile_id
     switch_profile(profile_path)
   ```
 - **Files created**: m_input_profile_manager.gd, test_input_profile_manager.gd
@@ -1241,7 +1241,7 @@ static func validate_rebind(action: StringName, event: InputEvent, settings: RS_
   func _on_profile_selected(index: int) -> void:
     var profile_names := ["default", "alternate", "accessibility", "gamepad_generic"]
     var profile_id := profile_names[index]
-    var profile_path := "res://resources/input/profiles/%s.tres" % profile_id
+    var profile_path := "res://resources/core/input/profiles/%s.tres" % profile_id
 
     var manager := get_tree().get_first_node_in_group("input_profile_manager") as M_InputProfileManager
     if manager:
@@ -1433,7 +1433,7 @@ For brevity in this document, I'm providing the task overview for Phases 3-7. Th
 ### Tasks Overview (Phase 6)
 
 **Task 6.0**: Create Default Touchscreen Profile (1-2 hours, TDD) - NEW
-  - Create `resources/input/profiles/cfg_default_touchscreen.tres`
+  - Create `resources/core/input/profiles/cfg_default_touchscreen.tres`
   - Metadata-driven buttons: Define `virtual_buttons` array with actions (jump, sprint, interact, pause) and positions
   - Extend M_InputProfileManager with `reset_touchscreen_positions()`
   - Position metadata: joystick bottom-left (120, 520), buttons bottom-right (920-820, 480-620)
@@ -1448,7 +1448,7 @@ For brevity in this document, I'm providing the task overview for Phases 3-7. Th
 **Task 6.1**: Create RS_TouchscreenSettings Resource (1-2 hours, TDD) - FR-101
   - Exports: joystick_size, opacity, deadzone, radius, button_size
   - Static helper: `apply_touch_deadzone(vector, deadzone) -> Vector2`
-  - Default resource: `resources/input/touchscreen_settings/cfg_default_touchscreen_settings.tres`
+  - Default resource: `resources/core/input/touchscreen_settings/cfg_default_touchscreen_settings.tres`
   - Unit tests for deadzone calculation and resource loading
 
 **Task 6.2**: Add Redux State Integration (2-3 hours, TDD)
@@ -1471,7 +1471,7 @@ For brevity in this document, I'm providing the task overview for Phases 3-7. Th
   - Drag-to-reposition with Redux save
   - Scene: `virtual_button.tscn` with Kenney.nl assets
   - Unit tests: press/release, drag-out, multi-touch, repositioning
-  - ✅ Status (2025-11-20): `scripts/ui/virtual_button.gd` + `scenes/ui/virtual_button.tscn` landed with 11-test GUT suite (`tests/unit/ui/test_virtual_button.gd`) covering press/release, drag-out, tap vs hold, multi-touch, reposition saves, and visual feedback (modulate/scale tween substitute).
+  - ✅ Status (2025-11-20): `scripts/core/ui/virtual_button.gd` + `scenes/ui/virtual_button.tscn` landed with 11-test GUT suite (`tests/unit/ui/test_virtual_button.gd`) covering press/release, drag-out, tap vs hold, multi-touch, reposition saves, and visual feedback (modulate/scale tween substitute).
 
 **Task 6.5**: Create MobileControls Scene + Visibility Logic (2-3 hours, TDD) - FR-046, FR-053, FR-054, FR-056-B, FR-056-C
   - Extend `CanvasLayer`, conditional instantiation (mobile or emulation mode)
@@ -1807,7 +1807,7 @@ func _ready() -> void:
 func _on_profile_selected(index: int) -> void:
 	var profile_names := ["default", "alternate", "accessibility", "gamepad_generic"]
 	var profile_id := profile_names[index]
-	var profile_path := "res://resources/input/profiles/%s.tres" % profile_id
+	var profile_path := "res://resources/core/input/profiles/%s.tres" % profile_id
 
 	# Find manager via group
 	var manager := get_tree().get_first_node_in_group("input_profile_manager") as M_InputProfileManager
@@ -1851,7 +1851,7 @@ func _input(event: InputEvent) -> void:
 	get_viewport().set_input_as_handled()  # Consume event
 
 	# Validate rebind
-	var rebind_settings := load("res://resources/input/rebind_settings/cfg_default_rebind_settings.tres") as RS_RebindSettings
+	var rebind_settings := load("res://resources/core/input/rebind_settings/cfg_default_rebind_settings.tres") as RS_RebindSettings
 	var validation := U_InputRebindUtils.validate_rebind(action_to_rebind, event, rebind_settings)
 
 	if not validation.valid:

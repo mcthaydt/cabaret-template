@@ -18,7 +18,7 @@ Register every scene in `U_SceneRegistry._register_all_scenes()` before use:
 ```gdscript
 _register_scene(
 	StringName("my_scene"),
-	"res://scenes/gameplay/my_scene.tscn",
+	"res://scenes/demo/gameplay/my_scene.tscn",
 	SceneType.GAMEPLAY,
 	"fade",
 	5

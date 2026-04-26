@@ -42,29 +42,29 @@ Phases & Tasks (TDD-first for base; tests-after for migrations)
 
 Phase A: Foundations (TDD)
 - [x] T-A01 Tests: `tests/unit/interactables/test_base_volume_controller.gd` (added)
-- [x] T-A02 Impl: `scripts/gameplay/base_volume_controller.gd` (tabs only)
+- [x] T-A02 Impl: `scripts/demo/gameplay/base_volume_controller.gd` (tabs only)
 - [x] T-A03 Tests: `tests/unit/interactables/test_base_interactable_controller.gd` (added)
-- [x] T-A04 Impl: `scripts/gameplay/base_interactable_controller.gd` (cooldown/lock + player detection)
+- [x] T-A04 Impl: `scripts/demo/gameplay/base_interactable_controller.gd` (cooldown/lock + player detection)
 - [x] T-A05 Tests: `tests/unit/interactables/test_triggered_interactable_controller.gd` (added)
-- [x] T-A06 Impl: `scripts/gameplay/triggered_interactable_controller.gd` (AUTO/INTERACT + input)
-- [x] T-A07 Validate `scripts/ecs/resources/rs_scene_trigger_settings.gd` covers all needs; extend conservatively and update default `.tres` as needed
+- [x] T-A06 Impl: `scripts/demo/gameplay/triggered_interactable_controller.gd` (AUTO/INTERACT + input)
+- [x] T-A07 Validate `scripts/core/ecs/resources/rs_scene_trigger_settings.gd` covers all needs; extend conservatively and update default `.tres` as needed
   - Include cases: spawn-inside handling (initial overlap), arming after first physics frame, and enable/disable toggling visuals
 
 Phase B: Controllers (Concrete; TDD)
 - [x] T-B00 Align naming: rename existing controllers to E_*-prefixed filenames and update scenes (scripts + exterior/interior scenes now reference new controllers)
-  - `scripts/gameplay/door_trigger.gd` → `scripts/gameplay/e_door_trigger_controller.gd`
-  - `scripts/gameplay/checkpoint_zone.gd` → `scripts/gameplay/e_checkpoint_zone.gd`
+  - `scripts/demo/gameplay/door_trigger.gd` → `scripts/demo/gameplay/e_door_trigger_controller.gd`
+  - `scripts/demo/gameplay/checkpoint_zone.gd` → `scripts/demo/gameplay/e_checkpoint_zone.gd`
   - Update references in `exterior.tscn`, `interior_house.tscn`, and any others
 - [x] T-B01 Tests: `tests/unit/interactables/test_e_door_trigger_controller.gd` (covers component wiring + activation delegation)
-- [x] T-B02 Impl: `scripts/gameplay/e_door_trigger_controller.gd` (extends BaseInteractable; AUTO default)
+- [x] T-B02 Impl: `scripts/demo/gameplay/e_door_trigger_controller.gd` (extends BaseInteractable; AUTO default)
 - [x] T-B03 Tests: `tests/unit/interactables/test_e_checkpoint_zone.gd` (verifies component reuse of controller area)
-- [x] T-B04 Impl: `scripts/gameplay/e_checkpoint_zone.gd` (extends BaseVolume; passive on enter)
+- [x] T-B04 Impl: `scripts/demo/gameplay/e_checkpoint_zone.gd` (extends BaseVolume; passive on enter)
 - [x] T-B05 Tests: `tests/unit/interactables/test_e_hazard_zone.gd` (validates damage config + shared area)
-- [x] T-B06 Impl: `scripts/gameplay/e_hazard_zone.gd` (extends BaseVolume; passive continuous)
+- [x] T-B06 Impl: `scripts/demo/gameplay/e_hazard_zone.gd` (extends BaseVolume; passive continuous)
 - [x] T-B07 Tests: `tests/unit/interactables/test_e_victory_zone.gd` (ensures objective + area wiring)
-- [x] T-B08 Impl: `scripts/gameplay/e_victory_zone.gd` (extends BaseVolume; passive on enter, supports `victory_type`)
+- [x] T-B08 Impl: `scripts/demo/gameplay/e_victory_zone.gd` (extends BaseVolume; passive on enter, supports `victory_type`)
 - [x] T-B09 Tests: `tests/unit/interactables/test_e_signpost.gd` (signal behaviour + locking)
-- [x] T-B10 Impl: `scripts/gameplay/e_signpost.gd` (extends TriggeredInteractable; INTERACT)
+- [x] T-B10 Impl: `scripts/demo/gameplay/e_signpost.gd` (extends TriggeredInteractable; INTERACT)
 
 Phase C: HUD/UI (Optional niceties; TDD optional)
 - [x] T-C01 Add prompt UI for INTERACT mode (“Press [E] to …”) showing while inside and hiding on exit (interact prompt events + HUD label wired)
@@ -77,7 +77,7 @@ Phase D: Scene Migration (tests-after)
 - [x] T-D04 Objectives: convert `checkpoint_safe_zone.tscn` to controller pattern (resource updated to use E_CheckpointZone)
 - [x] T-D05 Hazards: convert `scenes/hazards/*.tscn` to hazard controller (remove nested component/areas where simple) (death zone & spike trap now controller-driven)
 - [x] T-D06 Goals: ensure endgame goal enforces `GAME_COMPLETE` and routes to victory; convert to victory controller if appropriate (endgame goal extends E_VictoryZone)
-- [x] T-D07 De‑nest audit: `scenes/gameplay/*` contains no PackedScene instances under Entities (allow Camera/Player templates only where required) (exterior/interior inline hazard & goal nodes)
+- [x] T-D07 De‑nest audit: `scenes/demo/gameplay/*` contains no PackedScene instances under Entities (allow Camera/Player templates only where required) (exterior/interior inline hazard & goal nodes)
 - [x] T-D08 Remove exterior/interior as primary gameplay entries; mark as fixtures; update Scene Registry defaults to `gameplay_base` (hub scenes downgraded to fixture priority + flows now enter `gameplay_base`)
 - [x] T-D09 Normalize gameplay scene root naming/markers (e.g., `GameplayRoot`) to match templates and docs (exterior root renamed to `GameplayRoot`)
 

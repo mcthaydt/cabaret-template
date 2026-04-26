@@ -78,7 +78,7 @@ The ECS architecture refactor is **complete and production-ready**. All four bat
 ### Core Components
 
 ```
-scripts/
+scripts/core/
 ├── ecs/
 │   ├── base_ecs_component.gd          # Base component with validation
 │   ├── base_ecs_system.gd              # Base system with execution_priority
@@ -212,9 +212,9 @@ The current implementation is ready for:
 ```
 
 **Key files to review:**
-- `scripts/managers/m_ecs_manager.gd:209-272` - Query implementation
+- `scripts/core/managers/m_ecs_manager.gd:209-272` - Query implementation
 - `scripts/core/events/ecs/u_ecs_event_bus.gd` - Event system
-- `scripts/ecs/u_entity_query.gd` - Query results
+- `scripts/core/ecs/u_entity_query.gd` - Query results
 - `tests/integration/test_ecs_full_refactor.gd` - Integration test
 
 ---

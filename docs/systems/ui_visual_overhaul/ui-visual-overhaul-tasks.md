@@ -17,7 +17,7 @@ Build just enough shared infrastructure so screens have a common visual language
 
 ### 0A — Theme Config Resource
 
-- [x] Create `scripts/resources/ui/rs_ui_theme_config.gd` — `RS_UIThemeConfig extends Resource` with `@export_group` sections:
+- [x] Create `scripts/core/resources/ui/rs_ui_theme_config.gd` — `RS_UIThemeConfig extends Resource` with `@export_group` sections:
   - Typography: font sizes for title(48), heading(32), subheading(24), body(22), body_small(18), caption(16), section_header(14), caption_small(12)
   - Colors: Duel palette tokens — bg_base, bg_panel, bg_panel_light, bg_surface, text_primary, text_secondary, text_disabled, accent_primary, accent_hover, accent_pressed, accent_focus, section_header, danger, success, warning, golden, health_bg, slider_fill, slider_bg (note: `health_fill` excluded — dynamically palette-driven for color-blind accessibility)
   - Spacing: margin_outer(20), margin_section(16), margin_inner(12), separation_large(32), separation_medium(24), separation_default(12), separation_compact(8)
@@ -26,7 +26,7 @@ Build just enough shared infrastructure so screens have a common visual language
   - Bar Styles: progress_bar_bg, progress_bar_fill, slider_bg, slider_fill, slider_grabber, slider_grabber_highlight
   - Focus: focus_stylebox
   - Separator: separator_style
-- [x] Create `resources/ui/cfg_ui_theme_default.tres` — default instance with Duel palette values
+- [x] Create `resources/core/ui/cfg_ui_theme_default.tres` — default instance with Duel palette values
 
 ### 0B — Theme Builder Utility (TDD)
 
@@ -46,7 +46,7 @@ Build just enough shared infrastructure so screens have a common visual language
   - `test_build_theme_spacing_constants` — assert `theme.get_constant(&"separation", &"VBoxContainer") == config.separation_default`
   - `test_build_theme_merges_palette_colors` — pass palette, assert `theme.get_color(&"font_color", &"Label") == palette.text`
   - `test_build_theme_without_palette_preserves_font_theme` — pass null palette, assert font theme colors untouched
-- [x] Create `scripts/ui/utils/u_ui_theme_builder.gd` — static utility: `build_theme(config: Resource, base_font_theme: Theme = null, palette: Resource = null) -> Theme` with runtime validation (`RS_UIThemeConfig`/`RS_UIColorPalette`). Builder merges: fonts from base_font_theme + palette colors (font_color on text types, replaces what `U_DisplayUIThemeApplier._configure_ui_theme()` does) + styleboxes/spacing/sizes from config. Sets type variations for Button, Label, PanelContainer, ProgressBar, HSlider, HSeparator, VBoxContainer, HBoxContainer.
+- [x] Create `scripts/core/ui/utils/u_ui_theme_builder.gd` — static utility: `build_theme(config: Resource, base_font_theme: Theme = null, palette: Resource = null) -> Theme` with runtime validation (`RS_UIThemeConfig`/`RS_UIColorPalette`). Builder merges: fonts from base_font_theme + palette colors (font_color on text types, replaces what `U_DisplayUIThemeApplier._configure_ui_theme()` does) + styleboxes/spacing/sizes from config. Sets type variations for Button, Label, PanelContainer, ProgressBar, HSlider, HSeparator, VBoxContainer, HBoxContainer.
 - [x] Run tests — all `test_ui_theme_builder.gd` tests pass
 
 ### 0C — Unified Theme Pipeline Integration (TDD)
@@ -55,8 +55,8 @@ Build just enough shared infrastructure so screens have a common visual language
   - `test_font_applier_uses_theme_builder_when_config_set` — set `U_UIThemeBuilder.active_config`, call `apply_theme_to_root()`, assert the root's theme has both fonts AND styleboxes
   - `test_font_applier_unchanged_when_no_config_set` — do NOT set `U_UIThemeBuilder.active_config`, call `apply_theme_to_root()`, assert theme has fonts but NOT styleboxes (existing behavior preserved)
   - `test_palette_change_triggers_theme_rebuild` — change palette, assert resulting theme has both font AND palette colors
-- [x] Add `static var active_config` to `scripts/ui/utils/u_ui_theme_builder.gd` — set in `root.gd` via preload. No ServiceLocator involvement (ServiceLocator only accepts Node instances). Keep `Resource` typing for headless parser compatibility.
-- [x] Modify `scripts/managers/helpers/localization/u_localization_font_applier.gd` — after building the font-only theme, call `U_UIThemeBuilder.build_theme(active_config, font_theme, active_palette)` to compose the full theme when `U_UIThemeBuilder.active_config` is set. If not set, existing font-only behavior unchanged.
+- [x] Add `static var active_config` to `scripts/core/ui/utils/u_ui_theme_builder.gd` — set in `root.gd` via preload. No ServiceLocator involvement (ServiceLocator only accepts Node instances). Keep `Resource` typing for headless parser compatibility.
+- [x] Modify `scripts/core/managers/helpers/localization/u_localization_font_applier.gd` — after building the font-only theme, call `U_UIThemeBuilder.build_theme(active_config, font_theme, active_palette)` to compose the full theme when `U_UIThemeBuilder.active_config` is set. If not set, existing font-only behavior unchanged.
 - [x] Modify `M_DisplayManager._apply_accessibility_settings()` to trigger theme rebuild through the unified pipeline instead of calling `_ui_theme_applier.apply_theme_to_roots()` independently.
 - [x] Modify `U_DisplayUIThemeApplier.apply_theme_from_palette()` — still builds palette data, but the actual theme application goes through `U_UIThemeBuilder` instead of applying independently.
 - [x] Run tests — new tests pass, all existing localization and display tests still pass
@@ -105,9 +105,9 @@ Follow-up note (2026-03-06): Fixed mobile/export stylebox hydration gap in unifi
   - `test_play_enter_null_motion_set_returns_null` — `play_enter(node, null)` returns `null`, no-op
   - `test_bind_interactive_connects_signals` — call `bind_interactive(button, motion_set)`, assert `mouse_entered`/`mouse_exited`/`focus_entered`/`focus_exited` signals are connected
   - `test_bind_interactive_null_motion_set_no_op` — `bind_interactive(button, null)` does nothing, no crash
-- [x] Create `scripts/resources/ui/rs_ui_motion_preset.gd` — single tween recipe: property_path, from_value, to_value, relative, duration_sec, delay_sec, transition_type, ease_type, parallel, interval_sec
-- [x] Create `scripts/resources/ui/rs_ui_motion_set.gd` — collection per interaction: enter, exit, hover_in, hover_out, press, focus_in, focus_out, pulse
-- [x] Create `scripts/ui/utils/u_ui_motion.gd` — static utility: `play()`, `play_enter()`, `play_exit()`, `bind_interactive()`
+- [x] Create `scripts/core/resources/ui/rs_ui_motion_preset.gd` — single tween recipe: property_path, from_value, to_value, relative, duration_sec, delay_sec, transition_type, ease_type, parallel, interval_sec
+- [x] Create `scripts/core/resources/ui/rs_ui_motion_set.gd` — collection per interaction: enter, exit, hover_in, hover_out, press, focus_in, focus_out, pulse
+- [x] Create `scripts/core/ui/utils/u_ui_motion.gd` — static utility: `play()`, `play_enter()`, `play_exit()`, `bind_interactive()`
 - [x] Run tests — all `test_ui_motion.gd` tests pass
 
 Completion note (2026-03-05): Implemented 0D in commit `11571760` and validated with:
@@ -115,9 +115,9 @@ Completion note (2026-03-05): Implemented 0D in commit `11571760` and validated 
 
 ### 0E — Default Motion Presets
 
-- [x] Create `resources/ui/motions/cfg_motion_fade_slide.tres` — screen enter/exit (fade + slide-up)
-- [x] Create `resources/ui/motions/cfg_motion_button_default.tres` — button hover/press scale
-- [x] Create `resources/ui/motions/cfg_motion_hud_pop.tres` — HUD widget pop-in
+- [x] Create `resources/core/ui/motions/cfg_motion_fade_slide.tres` — screen enter/exit (fade + slide-up)
+- [x] Create `resources/core/ui/motions/cfg_motion_button_default.tres` — button hover/press scale
+- [x] Create `resources/core/ui/motions/cfg_motion_hud_pop.tres` — HUD widget pop-in
 
 Completion note (2026-03-05): Implemented 0E in commit `11571760` and validated with:
 - `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_ui_motion.gd -gtest=res://tests/unit/ui/test_ui_theme_builder.gd`
@@ -131,9 +131,9 @@ Completion note (2026-03-05): Implemented 0E in commit `11571760` and validated 
   - `test_base_menu_screen_play_enter_with_motion_set` — assign motion_set with enter presets, call `play_enter_animation()`, assert returns Tween, assert `modulate.a` changes (pattern: `test_mobile_controls.gd`)
   - `test_base_menu_screen_play_enter_without_motion_set_returns_null` — no motion_set assigned, `play_enter_animation()` returns null (no-op)
   - `test_base_overlay_animates_dim_on_enter` — assign motion_set to overlay, assert background `ColorRect.modulate.a` changes alongside content
-- [x] Modify `scripts/ui/base/base_panel.gd` — add `@export var motion_set: RS_UIMotionSet = null`; if set, call `U_UIMotion.bind_interactive()` on focusable children
-- [x] Modify `scripts/ui/base/base_menu_screen.gd` — add `play_enter_animation()` / `play_exit_animation()` delegating to `U_UIMotion`
-- [x] Modify `scripts/ui/base/base_overlay.gd` — animate dim ColorRect alongside content motion
+- [x] Modify `scripts/core/ui/base/base_panel.gd` — add `@export var motion_set: RS_UIMotionSet = null`; if set, call `U_UIMotion.bind_interactive()` on focusable children
+- [x] Modify `scripts/core/ui/base/base_menu_screen.gd` — add `play_enter_animation()` / `play_exit_animation()` delegating to `U_UIMotion`
+- [x] Modify `scripts/core/ui/base/base_overlay.gd` — animate dim ColorRect alongside content motion
 - [x] Run tests — new tests pass, all existing base UI tests still pass
 
 Completion note (2026-03-05): Implemented 0F in commit `3a011b62` and validated with:
@@ -225,7 +225,7 @@ Completion note (2026-03-05): Implemented Screen 4 in commit `c747d478` and vali
 - Manual smoke test completed (user-verified).
 
 Follow-up note (2026-03-05): Fixed black-screen regression when opening credits from Victory after overlay snap + instant transition.
-- `scripts/scene_management/u_transition_orchestrator.gd` now clears `TransitionColorRect` alpha after instant scene swap.
+- `scripts/core/scene_management/u_transition_orchestrator.gd` now clears `TransitionColorRect` alpha after instant scene swap.
 - Added integration coverage in `tests/integration/scene_manager/test_endgame_flows.gd` to assert overlay alpha is reset on Victory → Credits.
 
 ### Screen 5: Language Selector (`scenes/ui/menus/ui_language_selector.tscn`)
@@ -607,9 +607,9 @@ Completion note (2026-03-06): Implemented Screen 17 in commit `9e306d4d`.
 - Migrated `scenes/ui/hud/ui_hud_overlay.tscn` away from inline `theme_override_*` values (all 28 Screen 17 overrides removed from scene markup).
 - `UI_HudController` now applies HUD tokenized styling from `U_UIThemeBuilder.active_config` and keeps health fill palette-driven through runtime updates (`_update_health_bar_colors`).
 - Extracted checkpoint/signpost fade timings into HUD motion resources:
-  - `resources/ui/motions/cfg_motion_hud_checkpoint_toast.tres`
-  - `resources/ui/motions/cfg_motion_hud_signpost_fade_in.tres`
-  - `resources/ui/motions/cfg_motion_hud_signpost_fade_out.tres`
+  - `resources/core/ui/motions/cfg_motion_hud_checkpoint_toast.tres`
+  - `resources/core/ui/motions/cfg_motion_hud_signpost_fade_in.tres`
+  - `resources/core/ui/motions/cfg_motion_hud_signpost_fade_out.tres`
 - Added Screen 17 regression coverage in `tests/unit/ui/test_hud_theme.gd`:
   - `test_health_bar_uses_theme_styles`
   - `test_health_bar_no_inline_style_overrides`
@@ -660,7 +660,7 @@ Completion note (2026-03-06): Implemented Screen 18 in commit `1755bc5b`.
 - [x] **Manual smoke test:** Trigger scene transition, verify loading screen shows with bg_base background, progress bar fills with accent_primary color, text hierarchy visible, tip text shows in section_header size
 
 Completion note (2026-03-06): Implemented Screen 19 in commit `7be37ce9`.
-- Added `scripts/ui/hud/ui_loading_screen.gd` (`UI_LoadingScreen`) for tokenized loading-screen styling and fade-in-on-show behavior.
+- Added `scripts/core/ui/hud/ui_loading_screen.gd` (`UI_LoadingScreen`) for tokenized loading-screen styling and fade-in-on-show behavior.
 - Removed all inline `theme_override_*` entries from `scenes/ui/hud/ui_loading_screen.tscn` and wired the new controller script.
 - Added Screen 19 regression coverage in `tests/unit/ui/test_loading_screen_theme.gd`:
   - `test_loading_screen_applies_theme_tokens_when_active_config_set`

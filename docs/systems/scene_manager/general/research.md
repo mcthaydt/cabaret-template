@@ -59,7 +59,7 @@ scene_instance.free()  # Immediate removal
 
 **Phase 1: Request Loading**
 ```gdscript
-var path = "res://scenes/gameplay/large_area.tscn"
+var path = "res://scenes/demo/gameplay/large_area.tscn"
 var err = ResourceLoader.load_threaded_request(path)
 if err != OK:
     push_error("Failed to start loading: ", path)
@@ -312,7 +312,7 @@ This validates that scene restructuring is necessary and correctly planned!
 
 ### Current M_StateStore Structure
 
-**Location**: `scripts/state/m_state_store.gd`
+**Location**: `scripts/core/state/m_state_store.gd`
 
 **Existing Exported Properties** (lines 35-38):
 ```gdscript
@@ -349,8 +349,8 @@ if scene_initial_state != null:
 
 **Change 3: Add Preload** (after line 23):
 ```gdscript
-const SceneReducer = preload("res://scripts/state/reducers/u_scene_reducer.gd")
-const RS_SceneInitialState = preload("res://scripts/state/resources/rs_scene_initial_state.gd")
+const SceneReducer = preload("res://scripts/core/state/reducers/u_scene_reducer.gd")
+const RS_SceneInitialState = preload("res://scripts/core/state/resources/rs_scene_initial_state.gd")
 ```
 
 ### Safety Validation

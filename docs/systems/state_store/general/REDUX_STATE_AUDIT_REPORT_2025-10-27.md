@@ -84,7 +84,7 @@ The redux-state-store implementation has been audited for completeness, consiste
 - ❌ `get_completion_percentage()` - REMOVED from GameplaySelectors ✅
 
 **Removed Systems**:
-- ❌ `scripts/ecs/systems/s_health_system.gd` - REMOVED ✅
+- ❌ `scripts/core/ecs/systems/s_health_system.gd` - REMOVED ✅
 - ❌ `tests/unit/integration/test_poc_health_system.gd` - REMOVED ✅
 
 **Legitimate Health References Found** (NOT mock data):
@@ -159,7 +159,7 @@ The redux-state-store implementation has been audited for completeness, consiste
 - ✅ Event-driven communication (EventBus isolation)
 - ✅ Scene-based store lifecycle (not singleton)
 
-**State Files Count**: 30 .gd files in scripts/state/
+**State Files Count**: 30 .gd files in scripts/core/state/
 - All properly organized into subdirectories (actions, reducers, selectors, resources)
 - No orphaned or dead code files
 
@@ -541,12 +541,12 @@ Time:              6.526s
 ## Appendix B: File Inventory
 
 **State System Files** (30 total):
-- Core: scripts/state/m_state_store.gd, scripts/core/events/state/u_state_event_bus.gd, scripts/state/resources/rs_state_slice_config.gd, scripts/state/utils/u_state_handoff.gd
-- Actions: scripts/state/actions/u_boot_actions.gd, scripts/state/actions/u_menu_actions.gd, scripts/state/actions/u_gameplay_actions.gd, scripts/state/actions/u_transition_actions.gd, scripts/state/actions/u_entity_actions.gd, scripts/state/actions/u_input_actions.gd, scripts/state/actions/u_visual_actions.gd
-- Reducers: scripts/state/reducers/u_boot_reducer.gd, scripts/state/reducers/u_menu_reducer.gd, scripts/state/reducers/u_gameplay_reducer.gd, scripts/state/reducers/u_scene_reducer.gd
-- Selectors: scripts/state/selectors/u_boot_selectors.gd, scripts/state/selectors/u_menu_selectors.gd, scripts/state/selectors/u_gameplay_selectors.gd, scripts/state/selectors/u_entity_selectors.gd, scripts/state/selectors/u_input_selectors.gd, scripts/state/selectors/u_physics_selectors.gd, scripts/state/selectors/u_visual_selectors.gd
-- Resources: scripts/state/resources/rs_boot_initial_state.gd, scripts/state/resources/rs_menu_initial_state.gd, scripts/state/resources/rs_gameplay_initial_state.gd, scripts/state/resources/rs_state_store_settings.gd
-- Utils: scripts/state/utils/u_state_utils.gd, scripts/state/utils/u_action_registry.gd, scripts/state/utils/u_signal_batcher.gd, scripts/state/utils/u_serialization_helper.gd, scripts/state/u_state_action_types.gd
+- Core: scripts/core/state/m_state_store.gd, scripts/core/events/state/u_state_event_bus.gd, scripts/core/state/resources/rs_state_slice_config.gd, scripts/core/state/utils/u_state_handoff.gd
+- Actions: scripts/core/state/actions/u_boot_actions.gd, scripts/core/state/actions/u_menu_actions.gd, scripts/core/state/actions/u_gameplay_actions.gd, scripts/core/state/actions/u_transition_actions.gd, scripts/core/state/actions/u_entity_actions.gd, scripts/core/state/actions/u_input_actions.gd, scripts/core/state/actions/u_visual_actions.gd
+- Reducers: scripts/core/state/reducers/u_boot_reducer.gd, scripts/core/state/reducers/u_menu_reducer.gd, scripts/core/state/reducers/u_gameplay_reducer.gd, scripts/core/state/reducers/u_scene_reducer.gd
+- Selectors: scripts/core/state/selectors/u_boot_selectors.gd, scripts/core/state/selectors/u_menu_selectors.gd, scripts/core/state/selectors/u_gameplay_selectors.gd, scripts/core/state/selectors/u_entity_selectors.gd, scripts/core/state/selectors/u_input_selectors.gd, scripts/core/state/selectors/u_physics_selectors.gd, scripts/core/state/selectors/u_visual_selectors.gd
+- Resources: scripts/core/state/resources/rs_boot_initial_state.gd, scripts/core/state/resources/rs_menu_initial_state.gd, scripts/core/state/resources/rs_gameplay_initial_state.gd, scripts/core/state/resources/rs_state_store_settings.gd
+- Utils: scripts/core/state/utils/u_state_utils.gd, scripts/core/state/utils/u_action_registry.gd, scripts/core/state/utils/u_signal_batcher.gd, scripts/core/state/utils/u_serialization_helper.gd, scripts/core/state/u_state_action_types.gd
 
 **Test Files** (14 state + 2 integration = 16 total)
 

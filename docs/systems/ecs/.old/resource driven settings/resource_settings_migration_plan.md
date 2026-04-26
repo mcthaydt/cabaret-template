@@ -16,7 +16,7 @@ Objectives
 - Prepare helpers to speed up test updates.
 
 Actions
-- Scan for all tunable fields: use ripgrep on `scripts/ecs/components` to map current exports to settings fields.
+- Scan for all tunable fields: use ripgrep on `scripts/core/ecs/components` to map current exports to settings fields.
 - Confirm current test expectations (bounds, near‑equals) that depend on default values.
 - Prepare a tiny per‑test helper snippet (not a global util) to assign default settings within each test file to avoid cross‑test pollution.
 
@@ -31,7 +31,7 @@ Objectives
 - Create default `.tres` assets that mirror these defaults.
 
 Actions
-- Add `scripts/ecs/resources/` with the following Resource scripts (class_name provided for inspector convenience):
+- Add `scripts/core/ecs/resources/` with the following Resource scripts (class_name provided for inspector convenience):
   - `movement_settings.gd` → `class_name RS_MovementSettings`
   - `jump_settings.gd` → `class_name RS_JumpSettings`
   - `floating_settings.gd` → `class_name RS_FloatingSettings`
@@ -53,7 +53,7 @@ Objectives
 - Fail hard when settings are missing.
 
 Actions
-- For each component under `scripts/ecs/components/`:
+- For each component under `scripts/core/ecs/components/`:
   - Add `@export var settings: XxxSettings`.
   - Remove legacy per‑field exports completely (no dual‑path/legacy access).
   - Keep NodePaths and ephemeral runtime state (dynamics/rotation velocities, debug snapshots).
@@ -72,24 +72,24 @@ Objectives
 - Enforce design decisions (no grounded fallback; jump clears support timers).
 
 Actions
-- `scripts/ecs/systems/movement_system.gd`
+- `scripts/core/ecs/systems/movement_system.gd`
   - Replace all reads to component fields with `component.settings.*`.
   - Compute `support_active` only via `C_FloatingComponent` link:
     - `var support_active := false`
     - If `support_component != null`: `support_active = support_component.has_recent_support(now, settings.support_grace_time)`
     - Remove any fallback to `body.is_on_floor()` when calculating support‑aware damping/friction.
   - Keep speed clamps and second‑order dynamics logic as‑is, using settings values.
-- `scripts/ecs/systems/jump_system.gd`
+- `scripts/core/ecs/systems/jump_system.gd`
   - Replace uses of `jump_force`, `coyote_time`, `max_air_jumps`, `jump_buffer_time`, `apex_*` with `jump.settings.*`.
   - After a successful jump:
     - If there’s a `C_FloatingComponent` for the same body, clear support timers: set `update_support_state(false, now - jump.settings.coyote_time - 0.01)` to ensure `has_recent_support` returns false immediately.
-- `scripts/ecs/systems/floating_system.gd`
+- `scripts/core/ecs/systems/floating_system.gd`
   - Replace reads with `component.settings.*`; keep clamps and normal alignment logic.
-- `scripts/ecs/systems/rotate_to_input_system.gd`
+- `scripts/core/ecs/systems/rotate_to_input_system.gd`
   - Replace reads with `component.settings.*`; preserve max turn speed clamp to avoid overshoot.
-- `scripts/ecs/systems/align_with_surface_system.gd`
+- `scripts/core/ecs/systems/align_with_surface_system.gd`
   - Replace reads with `component.settings.*`.
-- `scripts/ecs/systems/landing_indicator_system.gd`
+- `scripts/core/ecs/systems/landing_indicator_system.gd`
   - Replace reads with `component.settings.*`.
 
 Validation
@@ -165,7 +165,7 @@ Objectives
 Actions
 - Keep `docs/resource_driven_settings_prd.md` as the authoritative design.
 - Add a brief migration note to `README.md` (link to the PRD and this plan).
-- Verify no lingering legacy fields via ripgrep (`rg "@export var .*: .* =" scripts/ecs/components | rg -v settings`).
+- Verify no lingering legacy fields via ripgrep (`rg "@export var .*: .* =" scripts/core/ecs/components | rg -v settings`).
 
 ## Phase 7 — Final QA and Stabilization
 
@@ -206,5 +206,5 @@ If critical regressions occur:
 Quick command references
 - Full tests: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ecs`
 - Ripgrep helpers:
-  - Find legacy exports: `rg "@export var (?!settings:)" scripts/ecs/components`
-  - Find direct field reads: `rg "\.(max_speed|acceleration|deceleration|jump_force|hover_height)\b" scripts/ecs/systems`
+  - Find legacy exports: `rg "@export var (?!settings:)" scripts/core/ecs/components`
+  - Find direct field reads: `rg "\.(max_speed|acceleration|deceleration|jump_force|hover_height)\b" scripts/core/ecs/systems`

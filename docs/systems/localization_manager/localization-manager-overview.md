@@ -17,7 +17,7 @@ Refactor outcome: catalog loading, font/theme application, root lifecycle, and p
 Baseline infrastructure exists and is active:
 
 - `assets/fonts/` contains `fnt_ui_default.ttf`, `fnt_dyslexia.ttf`, `fnt_cjk.otf`.
-- `resources/localization/` contains `cfg_locale_*_ui.tres` and `cfg_locale_*_hud.tres` resources (`RS_LocaleTranslations`).
+- `resources/core/localization/` contains `cfg_locale_*_ui.tres` and `cfg_locale_*_hud.tres` resources (`RS_LocaleTranslations`).
 - Localization slice (actions/reducer/selectors) is integrated in `M_StateStore` and global settings persistence.
 - `M_LocalizationManager` is a persistent manager in `root.tscn` and registered via `U_ServiceLocator`.
 - `U_LocalizationRoot` is used by UI scenes to register roots for locale changes and font overrides.
@@ -54,7 +54,7 @@ Baseline infrastructure exists and is active:
 
 ## Current Runtime Contracts
 
-- Translation resources are `RS_LocaleTranslations` instances under `resources/localization/cfg_locale_*_*.tres`.
+- Translation resources are `RS_LocaleTranslations` instances under `resources/core/localization/cfg_locale_*_*.tres`.
 - Use stable localization keys in UI/HUD code and resolve text through `U_LocalizationUtils.localize(...)` or `localize_fmt(...)`.
 - UI roots that need live updates register with `M_LocalizationManager` through `U_LocalizationRoot`.
 - Locale preview must stay visual-only until applied; clearing preview restores store-driven locale/font state.
@@ -123,12 +123,12 @@ U_LocalizationActions.mark_language_selected() -> Dictionary
 
 ## Migration Notes (Call Sites to Audit)
 
-- `scripts/ui/settings/ui_localization_settings_tab.gd`: depends on preview APIs (`set_localization_preview` / `clear_localization_preview`) and confirm timer flow.
-- `scripts/ui/helpers/u_localization_root.gd` + `LocalizationRoot` nodes in UI scenes: depend on `register_ui_root` / `unregister_ui_root` and `_on_locale_changed` callbacks.
+- `scripts/core/ui/settings/ui_localization_settings_tab.gd`: depends on preview APIs (`set_localization_preview` / `clear_localization_preview`) and confirm timer flow.
+- `scripts/core/ui/helpers/u_localization_root.gd` + `LocalizationRoot` nodes in UI scenes: depend on `register_ui_root` / `unregister_ui_root` and `_on_locale_changed` callbacks.
 - UI screens implementing `_on_locale_changed`: `ui_main_menu.gd`, `ui_settings_menu.gd`, `ui_pause_menu.gd`, `ui_game_over.gd`, `ui_victory.gd`, `ui_credits.gd`, `ui_save_load_menu.gd`, `ui_input_profile_selector.gd`, `ui_localization_settings_tab.gd`.
 - HUD/localized prompts: `ui_hud_controller.gd`, `ui_button_prompt.gd`, `ui_virtual_button.gd`.
 - Loading screen/tips: `trans_loading_screen.gd` uses localization keys for status/tips.
-- Input profiles: `resources/input/profiles/cfg_*.tres` now store localization keys; `ui_input_profile_selector.gd` localizes profile name/description and action labels.
+- Input profiles: `resources/core/input/profiles/cfg_*.tres` now store localization keys; `ui_input_profile_selector.gd` localizes profile name/description and action labels.
 - Persistence/restore: `u_global_settings_serialization.gd` + `u_global_settings_applier.gd` depend on localization slice shape (including `has_selected_language`).
 - UI scale coupling: Phase 6 completed. `M_DisplayManager` now owns effective UI scale (`display.ui_scale * localization.ui_scale_override`) and reacts to localization slice updates directly.
 
@@ -150,7 +150,7 @@ U_LocalizationActions.mark_language_selected() -> Dictionary
 ### File Layout per Locale
 
 ```text
-resources/localization/
+resources/core/localization/
   cfg_locale_en_ui.tres
   cfg_locale_en_hud.tres
   cfg_locale_es_ui.tres
@@ -211,15 +211,15 @@ var raw: String = String(data.get("message", ""))
 var text: String = U_LocalizationUtils.localize(StringName(raw))
 ```
 
-Signpost configs in `resources/interactions/` use the `signpost.*` key namespace:
+Signpost configs in `resources/demo/interactions/` use the `signpost.*` key namespace:
 
 ```text
-resources/interactions/
+resources/demo/interactions/
   cfg_signpost_ancient_door.tres   # message = "signpost.ancient_door"
   cfg_signpost_cave_warning.tres   # message = "signpost.cave_warning"
 ```
 
-Corresponding entries in `resources/localization/cfg_locale_en_hud.tres`:
+Corresponding entries in `resources/core/localization/cfg_locale_en_hud.tres`:
 
 ```gdscript
 translations = {
@@ -240,7 +240,7 @@ If a signpost config stores a literal string instead of a key (e.g., during prot
 
 Adding the `localization` Redux slice requires touching four files beyond the new slice scripts:
 
-### 1. `scripts/state/m_state_store.gd`
+### 1. `scripts/core/state/m_state_store.gd`
 
 Add the initial state resource constant and export:
 
@@ -251,12 +251,12 @@ const RS_LOCALIZATION_INITIAL_STATE := preload("res://scripts/core/resources/sta
 @export var localization_initial_state: Resource
 ```
 
-### 2. `scripts/state/utils/u_state_slice_manager.gd`
+### 2. `scripts/core/state/utils/u_state_slice_manager.gd`
 
 Add the reducer constant, extend the function signature, and add the localization slice block inside `initialize_slices()`:
 
 ```gdscript
-const U_LOCALIZATION_REDUCER := preload("res://scripts/state/reducers/u_localization_reducer.gd")
+const U_LOCALIZATION_REDUCER := preload("res://scripts/core/state/reducers/u_localization_reducer.gd")
 
 func initialize_slices(
     # ... existing parameters ...
@@ -270,7 +270,7 @@ func initialize_slices(
     )
 ```
 
-### 3. `scripts/utils/u_global_settings_serialization.gd`
+### 3. `scripts/core/utils/u_global_settings_serialization.gd`
 
 See Global Settings Persistence below.
 
@@ -369,28 +369,28 @@ Panels that do NOT display localized text (e.g., purely visual widgets) do not n
 ## File Structure
 
 ```text
-scripts/managers/
+scripts/core/managers/
   m_localization_manager.gd
 
-scripts/interfaces/
+scripts/core/interfaces/
   i_localization_manager.gd
 
-scripts/managers/helpers/
+scripts/core/managers/helpers/
   u_locale_file_loader.gd        # Compatibility shim
   localization/u_localization_catalog.gd   # Catalog merge + cache + fallback helper
   localization/u_localization_font_applier.gd   # Font selection + theme application helper
   localization/u_localization_root_registry.gd  # Root lifecycle + locale notification helper
   localization/u_localization_preview_controller.gd  # Preview lifecycle + store-update gating helper
 
-scripts/utils/localization/
+scripts/core/utils/localization/
   u_localization_utils.gd        # Static localize() and localize_fmt() helpers; register_ui_root()
 
-scripts/state/
+scripts/core/state/
   actions/u_localization_actions.gd
   reducers/u_localization_reducer.gd
   selectors/u_localization_selectors.gd
 
-scripts/resources/state/
+scripts/core/resources/state/
   rs_localization_initial_state.gd
 
 assets/fonts/
@@ -398,7 +398,7 @@ assets/fonts/
   fnt_dyslexia.ttf
   fnt_cjk.otf
 
-resources/localization/
+resources/core/localization/
   cfg_locale_en_ui.tres
   cfg_locale_en_hud.tres
   cfg_locale_es_ui.tres
@@ -410,18 +410,18 @@ resources/localization/
   cfg_locale_ja_ui.tres
   cfg_locale_ja_hud.tres
 
-scenes/ui/overlays/settings/
+scenes/core/ui/overlays/settings/
   ui_localization_settings_overlay.tscn
   ui_localization_settings_tab.tscn
 
-scripts/ui/settings/
+scripts/core/ui/settings/
   ui_localization_settings_overlay.gd
   ui_localization_settings_tab.gd
 
-resources/ui_screens/
+resources/core/ui_screens/
   cfg_localization_settings_overlay.tres
 
-resources/scene_registry/
+resources/core/scene_registry/
   cfg_ui_localization_settings_entry.tres
 ```
 
@@ -431,7 +431,7 @@ resources/scene_registry/
 
 Follows the same overlay + embedded tab pattern used by Audio, Display, and VFX settings:
 
-- **Overlay wrapper**: `UI_LocalizationSettingsOverlay` extends `BaseOverlay`, contains the tab scene as a child. Registered as a UI screen definition in `resources/ui_screens/cfg_localization_settings_overlay.tres` and as a scene entry in `resources/scene_registry/cfg_ui_localization_settings_entry.tres`.
+- **Overlay wrapper**: `UI_LocalizationSettingsOverlay` extends `BaseOverlay`, contains the tab scene as a child. Registered as a UI screen definition in `resources/core/ui_screens/cfg_localization_settings_overlay.tres` and as a scene entry in `resources/core/scene_registry/cfg_ui_localization_settings_entry.tres`.
 - **Tab content**: `UI_LocalizationSettingsTab` extends `VBoxContainer` (NOT `BaseMenuScreen` — see Unified Settings Panel anti-patterns in AGENTS.md). Exposes a language dropdown (`OptionButton` populated from `SUPPORTED_LOCALES`) and a dyslexia font toggle (`CheckButton`).
 - **Settings menu button**: A "Language" button is added to `ui_settings_menu.tscn` and wired in `ui_settings_menu.gd` following the same `_open_settings_target()` pattern as other settings buttons.
 - **Editing flow**: preview values apply live through `set_localization_preview(...)`; Redux is updated on explicit Apply/Reset, and Cancel discards pending edits.
@@ -442,19 +442,19 @@ Follows the same overlay + embedded tab pattern used by Audio, Display, and VFX 
 Adding the localization settings tab to the settings menu requires touching these files:
 
 1. **`scenes/ui/overlays/settings/ui_localization_settings_overlay.tscn`** — overlay wrapper scene (create)
-2. **`scripts/ui/settings/ui_localization_settings_overlay.gd`** — overlay controller with `_on_back_pressed()` (create)
+2. **`scripts/core/ui/settings/ui_localization_settings_overlay.gd`** — overlay controller with `_on_back_pressed()` (create)
 3. **`scenes/ui/overlays/settings/ui_localization_settings_tab.tscn`** — tab content scene (create)
-4. **`scripts/ui/settings/ui_localization_settings_tab.gd`** — tab controller (create)
-5. **`resources/ui_screens/cfg_localization_settings_overlay.tres`** — UI screen definition (create)
-6. **`resources/scene_registry/cfg_ui_localization_settings_entry.tres`** — scene registry entry (create)
-7. **`scripts/ui/utils/u_ui_registry.gd`** — add preload + registration for localization settings overlay (modify)
+4. **`scripts/core/ui/settings/ui_localization_settings_tab.gd`** — tab controller (create)
+5. **`resources/core/ui_screens/cfg_localization_settings_overlay.tres`** — UI screen definition (create)
+6. **`resources/core/scene_registry/cfg_ui_localization_settings_entry.tres`** — scene registry entry (create)
+7. **`scripts/core/ui/utils/u_ui_registry.gd`** — add preload + registration for localization settings overlay (modify)
 8. **`scenes/ui/menus/ui_settings_menu.tscn`** — add "Language" button (modify)
-9. **`scripts/ui/menus/ui_settings_menu.gd`** — wire button, add overlay constant, update focus neighbors (modify)
+9. **`scripts/core/ui/menus/ui_settings_menu.gd`** — wire button, add overlay constant, update focus neighbors (modify)
 
 ### Redux Actions for Settings
 
 ```gdscript
-const U_LocalizationActions = preload("res://scripts/state/actions/u_localization_actions.gd")
+const U_LocalizationActions = preload("res://scripts/core/state/actions/u_localization_actions.gd")
 
 # Switch locale
 store.dispatch(U_LocalizationActions.set_locale(&"es"))

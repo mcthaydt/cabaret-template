@@ -24,7 +24,7 @@ Use `U_NavigationSelectors` for reads. `U_NavigationSelectors.is_paused()` is th
 UI controllers dispatch navigation actions rather than calling scene-manager APIs directly.
 
 ```gdscript
-const U_NavigationActions = preload("res://scripts/state/actions/u_navigation_actions.gd")
+const U_NavigationActions = preload("res://scripts/core/state/actions/u_navigation_actions.gd")
 
 store.dispatch(U_NavigationActions.open_pause())
 store.dispatch(U_NavigationActions.open_overlay(StringName("settings_menu_overlay")))
@@ -34,7 +34,7 @@ store.dispatch(U_NavigationActions.set_menu_panel(StringName("menu/settings")))
 
 ## UI Registry
 
-- Screen definitions are resource-based and live in `resources/ui_screens/cfg_*.tres`.
+- Screen definitions are resource-based and live in `resources/core/ui_screens/cfg_*.tres`.
 - `RS_UIScreenDefinition` defines `screen_id`, `kind`, `scene_id`, `allowed_shells`, and `close_mode`.
 - `U_UIRegistry` validates parent-child relationships and scene references.
 - UI screen definitions are the authoritative data source for what can open in each shell.
@@ -53,7 +53,7 @@ Common contracts:
 
 ## Theme Pipeline
 
-`RS_UIThemeConfig` is the canonical theme contract. The default instance is `resources/ui/cfg_ui_theme_default.tres`.
+`RS_UIThemeConfig` is the canonical theme contract. The default instance is `resources/core/ui/cfg_ui_theme_default.tres`.
 
 `U_UIThemeBuilder` is the single composition point for UI themes:
 
@@ -83,7 +83,7 @@ Motion resources are data-driven and opt-in.
 
 - `RS_UIMotionPreset` defines one tween step: property, from/to, duration, delay, interval, transition/ease, and parallel flag.
 - `RS_UIMotionSet` groups motion sequences by interaction: `enter`, `exit`, `hover_in/out`, `press`, `focus_in/out`, and `pulse`.
-- Default authored presets live under `resources/ui/motions/` and are baseline feel, not hard requirements.
+- Default authored presets live under `resources/core/ui/motions/` and are baseline feel, not hard requirements.
 
 `U_UIMotion` is the canonical playback helper:
 

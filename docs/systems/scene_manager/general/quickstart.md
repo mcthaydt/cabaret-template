@@ -92,10 +92,10 @@ enum Priority {
 
 ### Step 1: Create the Scene File
 
-For **gameplay scenes**, duplicate `scenes/gameplay/gameplay_base.tscn`:
+For **gameplay scenes**, duplicate `scenes/demo/gameplay/gameplay_base.tscn`:
 
 ```bash
-scenes/gameplay/gameplay_base.tscn → scenes/gameplay/my_new_level.tscn
+scenes/demo/gameplay/gameplay_base.tscn → scenes/demo/gameplay/my_new_level.tscn
 ```
 
 **Required structure** (gameplay scenes):
@@ -117,7 +117,7 @@ Control (root)
 
 ### Step 2: Register the Scene
 
-Add your scene to `scripts/scene_management/u_scene_registry.gd`:
+Add your scene to `scripts/core/scene_management/u_scene_registry.gd`:
 
 ```gdscript
 func _register_all_scenes() -> void:
@@ -126,7 +126,7 @@ func _register_all_scenes() -> void:
 	# Register your new scene
 	_register_scene(
 		StringName("my_new_level"),              # Scene ID
-		"res://scenes/gameplay/my_new_level.tscn", # Path
+		"res://scenes/demo/gameplay/my_new_level.tscn", # Path
 		SceneType.GAMEPLAY,                       # Type
 		"fade",                                   # Default transition
 		5                                         # Preload priority (0-10)
@@ -241,7 +241,7 @@ Always use action creators:
 
 ```gdscript
 # Update player health
-const U_GameplayActions = preload("res://scripts/state/actions/u_gameplay_actions.gd")
+const U_GameplayActions = preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
 store.dispatch(U_GameplayActions.take_damage(player_id, 25.0))
 
 # Mark area completed
@@ -384,7 +384,7 @@ From game_over.tscn script:
 ```gdscript
 func _on_retry_pressed() -> void:
 	# Soft reset: restore health, keep progress
-	const U_GameplayActions = preload("res://scripts/state/actions/u_gameplay_actions.gd")
+	const U_GameplayActions = preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
 	var store := U_StateUtils.get_store(self)
 	store.dispatch(U_GameplayActions.heal(0, 100.0))  # Full health
 
@@ -561,22 +561,22 @@ scene_manager._scene_cache.erase(StringName("large_scene"))
 ### File Locations
 
 - **Root scene**: `scenes/root.tscn`
-- **Gameplay template**: `scenes/gameplay/gameplay_base.tscn`
-- **Scene registry**: `scripts/scene_management/u_scene_registry.gd`
-- **Scene manager**: `scripts/managers/m_scene_manager.gd`
-- **Scene actions**: `scripts/state/actions/u_scene_actions.gd`
-- **Gameplay actions**: `scripts/state/actions/u_gameplay_actions.gd`
-- **State utils**: `scripts/state/utils/u_state_utils.gd`
+- **Gameplay template**: `scenes/demo/gameplay/gameplay_base.tscn`
+- **Scene registry**: `scripts/core/scene_management/u_scene_registry.gd`
+- **Scene manager**: `scripts/core/managers/m_scene_manager.gd`
+- **Scene actions**: `scripts/core/state/actions/u_scene_actions.gd`
+- **Gameplay actions**: `scripts/core/state/actions/u_gameplay_actions.gd`
+- **State utils**: `scripts/core/state/utils/u_state_utils.gd`
 
 ### Common Imports
 
 ```gdscript
-const M_SceneManager = preload("res://scripts/managers/m_scene_manager.gd")
-const U_SceneRegistry = preload("res://scripts/scene_management/u_scene_registry.gd")
-const U_SceneActions = preload("res://scripts/state/actions/u_scene_actions.gd")
-const U_GameplayActions = preload("res://scripts/state/actions/u_gameplay_actions.gd")
-const U_StateUtils = preload("res://scripts/state/utils/u_state_utils.gd")
-const C_SceneTriggerComponent = preload("res://scripts/ecs/components/c_scene_trigger_component.gd")
+const M_SceneManager = preload("res://scripts/core/managers/m_scene_manager.gd")
+const U_SceneRegistry = preload("res://scripts/core/scene_management/u_scene_registry.gd")
+const U_SceneActions = preload("res://scripts/core/state/actions/u_scene_actions.gd")
+const U_GameplayActions = preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
+const U_StateUtils = preload("res://scripts/core/state/utils/u_state_utils.gd")
+const C_SceneTriggerComponent = preload("res://scripts/core/ecs/components/c_scene_trigger_component.gd")
 ```
 
 ### Scene Manager API

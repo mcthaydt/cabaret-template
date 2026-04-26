@@ -307,8 +307,8 @@ All phases followed TDD: Write tests → Verify tests fail → Implement → Ver
 - ✅ Input processing order: `_input()` vs `_unhandled_input()` and `set_input_as_handled()` behavior
 
 **Files Created**:
-- `scripts/ecs/systems/m_pause_manager.gd` - Pause management via state store
-- `scripts/ecs/systems/s_health_system.gd` - Health/damage/death via state store
+- `scripts/core/ecs/systems/m_pause_manager.gd` - Pause management via state store
+- `scripts/core/ecs/systems/s_health_system.gd` - Health/damage/death via state store
 - `scenes/ui/hud_overlay.tscn` + `.gd` - Reactive UI from GameplaySelectors
 - `tests/unit/integration/test_poc_pause_system.gd` - Integration test stubs
 - `tests/unit/integration/test_poc_health_system.gd` - Integration test stubs
@@ -398,7 +398,7 @@ All gameplay systems now respect pause state:
 
 **Scene Integration**:
 - M_StateStore lives in `templates/base_scene_template.tscn` under `Managers/` node
-- Resources (.tres files) go in `resources/state/` (NOT `scripts/state/resources/`)
+- Resources (.tres files) go in `resources/core/state/` (NOT `scripts/core/state/resources/`)
 
 ## Next Steps
 

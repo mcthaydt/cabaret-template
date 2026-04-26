@@ -138,8 +138,8 @@ What it does not yet have is a gameplay-facing virtual camera orchestration laye
 - `S_InputSystem` and `S_TouchscreenSystem` together remain the source of gameplay `look_input`.
 - `tmpl_camera.tscn` is extended, not replaced.
 - naming and paths stay within existing style-guide categories by using:
-  - `scripts/resources/display/vcam/`
-  - `scripts/utils/display/`
+  - `scripts/core/resources/display/vcam/`
+  - `scripts/core/utils/display/`
   - `assets/shaders/sh_*_shader.gdshader`
 
 ## Success Metrics

@@ -29,12 +29,12 @@
 
 ## Planned Public API / Types
 
-- `scripts/interfaces/i_character_lighting_manager.gd` (runtime behavior only; no debug methods)
-- `scripts/managers/m_character_lighting_manager.gd`
-- `scripts/gameplay/inter_character_light_zone.gd`
+- `scripts/core/interfaces/i_character_lighting_manager.gd` (runtime behavior only; no debug methods)
+- `scripts/core/managers/m_character_lighting_manager.gd`
+- `scripts/demo/gameplay/inter_character_light_zone.gd`
 - `scripts/demo/resources/lighting/rs_character_lighting_profile.gd`
 - `scripts/demo/resources/lighting/rs_character_light_zone_config.gd`
-- `scripts/utils/lighting/u_character_lighting_material_applier.gd`
+- `scripts/core/utils/lighting/u_character_lighting_material_applier.gd`
 - `assets/shaders/sh_character_zone_lighting.gdshader`
 
 ## Required Readings Before Coding
@@ -79,7 +79,7 @@
 - Coverage phases: integration tests validating player and NPC lighting parity.
 - Hardening phases: deterministic overlap + boundary jitter tests and performance smoke checks.
 - Final phase: style enforcement + regression checks + manual QA.
-- Ensure style-guide and style-enforcement rules include `scripts/resources/lighting` before LM008 and again at final handoff.
+- Ensure style-guide and style-enforcement rules include `scripts/core/resources/lighting` before LM008 and again at final handoff.
 
 ## Definition of Done
 

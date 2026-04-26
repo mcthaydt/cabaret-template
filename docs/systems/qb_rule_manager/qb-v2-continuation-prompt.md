@@ -12,13 +12,13 @@
 - v2 overview, plan, tasks, and continuation prompt written
 - v1 docs archived to `docs/qb_rule_manager/v1/`
 - Phase 1A completed on 2026-02-25:
-  - Added `scripts/utils/qb/u_path_resolver.gd`
+  - Added `scripts/core/utils/qb/u_path_resolver.gd`
   - Added `tests/unit/qb/test_path_resolver.gd` with T1-T11 coverage
   - Verified `test_path_resolver.gd` (10/10 passing)
   - Verified style suite `tests/unit/style` (12/12 passing)
 - Phase 1B completed on 2026-02-25:
-  - Added `scripts/resources/qb/rs_base_condition.gd`
-  - Added condition resources under `scripts/resources/qb/conditions/`:
+  - Added `scripts/core/resources/qb/rs_base_condition.gd`
+  - Added condition resources under `scripts/core/resources/qb/conditions/`:
     - `rs_condition_component_field.gd`
     - `rs_condition_redux_field.gd`
     - `rs_condition_entity_tag.gd`
@@ -35,8 +35,8 @@
   - Verified style suite `tests/unit/style` (12/12 passing)
   - Stabilized headless parsing by using explicit script-path `extends` for new condition subclasses
 - Phase 1C completed on 2026-02-25:
-  - Added `scripts/resources/qb/rs_base_effect.gd`
-  - Added effect resources under `scripts/resources/qb/effects/`:
+  - Added `scripts/core/resources/qb/rs_base_effect.gd`
+  - Added effect resources under `scripts/core/resources/qb/effects/`:
     - `rs_effect_dispatch_action.gd`
     - `rs_effect_publish_event.gd`
     - `rs_effect_set_field.gd`
@@ -49,52 +49,52 @@
   - Verified QB effect tests (13/13 passing)
   - Verified style suite `tests/unit/style` (12/12 passing)
 - Phase 1D completed on 2026-02-25:
-  - Added `scripts/resources/qb/rs_rule.gd`
+  - Added `scripts/core/resources/qb/rs_rule.gd`
   - Verified `conditions`/`effects` export metadata in headless via property introspection script
   - Attempted typed arrays (`Array[RS_BaseCondition]`, `Array[RS_BaseEffect]`) but hit headless parser resolution errors for new class symbols
   - Applied documented fallback to `Array[Resource]` in `RS_Rule` pending validator-enforced type checks in Phase 1H
   - Verified style suite `tests/unit/style` (12/12 passing)
 - Phase 1E completed on 2026-02-25:
-  - Added `scripts/utils/qb/u_rule_scorer.gd`
+  - Added `scripts/core/utils/qb/u_rule_scorer.gd`
   - Added `tests/unit/qb/test_rule_scorer.gd` (T81-T90 coverage)
   - Verified QB scorer tests (9/9 passing)
   - Verified style suite `tests/unit/style` (12/12 passing)
 - Phase 1F completed on 2026-02-25:
-  - Added `scripts/utils/qb/u_rule_selector.gd`
+  - Added `scripts/core/utils/qb/u_rule_selector.gd`
   - Added `tests/unit/qb/test_rule_selector.gd` (T93-T100 coverage)
   - Verified QB selector tests (7/7 passing)
   - Verified style suite `tests/unit/style` (12/12 passing)
 - Phase 1G completed on 2026-02-25:
-  - Added `scripts/utils/qb/u_rule_state_tracker.gd` (`class_name RuleStateTracker`)
+  - Added `scripts/core/utils/qb/u_rule_state_tracker.gd` (`class_name RuleStateTracker`)
   - Added `tests/unit/qb/test_rule_state_tracker.gd` (T103-T115 coverage)
   - Verified QB state tracker tests (12/12 passing)
   - Verified style suite `tests/unit/style` (12/12 passing)
 - Phase 1H completed on 2026-02-25:
-  - Added `scripts/utils/qb/u_rule_validator.gd`
+  - Added `scripts/core/utils/qb/u_rule_validator.gd`
   - Added `tests/unit/qb/test_rule_validator.gd` (T118-T129 coverage)
   - Verified QB validator tests (11/11 passing)
   - Verified style suite `tests/unit/style` (12/12 passing)
   - Completed Phase 1 checkpoint (`T1-T131`) with v2 core library implemented in isolation
 - Phase 2A completed on 2026-02-25:
   - Deleted 9 v1 QB engine files:
-    - `scripts/ecs/systems/base_qb_rule_manager.gd`
-    - `scripts/resources/qb/rs_qb_condition.gd`
-    - `scripts/resources/qb/rs_qb_effect.gd`
-    - `scripts/resources/qb/rs_qb_rule_definition.gd`
-    - `scripts/utils/qb/u_qb_rule_evaluator.gd`
-    - `scripts/utils/qb/u_qb_quality_provider.gd`
-    - `scripts/utils/qb/u_qb_effect_executor.gd`
-    - `scripts/utils/qb/u_qb_variant_utils.gd`
-    - `scripts/utils/qb/u_qb_rule_validator.gd`
+    - `scripts/core/ecs/systems/base_qb_rule_manager.gd`
+    - `scripts/core/resources/qb/rs_qb_condition.gd`
+    - `scripts/core/resources/qb/rs_qb_effect.gd`
+    - `scripts/core/resources/qb/rs_qb_rule_definition.gd`
+    - `scripts/core/utils/qb/u_qb_rule_evaluator.gd`
+    - `scripts/core/utils/qb/u_qb_quality_provider.gd`
+    - `scripts/core/utils/qb/u_qb_effect_executor.gd`
+    - `scripts/core/utils/qb/u_qb_variant_utils.gd`
+    - `scripts/core/utils/qb/u_qb_rule_validator.gd`
   - Deleted v1 QB tests:
     - 10 v1 unit suites in `tests/unit/qb/`
     - `tests/integration/qb/test_qb_brain_data_pipeline.gd`
-  - Deleted 9 legacy v1 QB rule resources under `resources/qb/{character,game,camera}/`
+  - Deleted 9 legacy v1 QB rule resources under `resources/core/qb/{character,game,camera}/`
   - Cleared stale deleted-class references from active code
   - Verified style suite `tests/unit/style` (12/12 passing)
   - Verified QB unit suite `tests/unit/qb` (101/101 passing)
 - Phase 2B completed on 2026-02-25:
-  - Recreated 5 character v2 rule resources under `resources/qb/character/`:
+  - Recreated 5 character v2 rule resources under `resources/core/qb/character/`:
     - `cfg_pause_gate_paused.tres`
     - `cfg_pause_gate_shell.tres`
     - `cfg_pause_gate_transitioning.tres`
@@ -120,8 +120,8 @@
   - Re-verified QB unit suite `tests/unit/qb` (114/114 passing)
   - Re-verified style suite `tests/unit/style` (12/12 passing)
 - Phase 3A completed on 2026-02-25:
-  - Added `resources/qb/game/cfg_checkpoint_rule.tres`
-  - Added `resources/qb/game/cfg_victory_rule.tres`
+  - Added `resources/core/qb/game/cfg_checkpoint_rule.tres`
+  - Added `resources/core/qb/game/cfg_victory_rule.tres`
   - Configured both as `RS_Rule` event-forwarding resources using `RS_EffectPublishEvent` (`inject_entity_id = true`)
   - Validated with `U_RuleValidator.validate_rules(...)` (2/2 valid, 0 errors)
   - Verified QB unit suite `tests/unit/qb` (114/114 passing)
@@ -143,8 +143,8 @@
   - Re-verified QB unit suite `tests/unit/qb` (121/121 passing)
   - Re-verified style suite `tests/unit/style` (12/12 passing)
 - Phase 4A completed on 2026-02-25:
-  - Added `resources/qb/camera/cfg_camera_shake_rule.tres`
-  - Added `resources/qb/camera/cfg_camera_zone_fov_rule.tres`
+  - Added `resources/core/qb/camera/cfg_camera_shake_rule.tres`
+  - Added `resources/core/qb/camera/cfg_camera_zone_fov_rule.tres`
   - Configured camera shake rule as `RS_Rule` event trigger (`entity_death`) with `RS_EffectSetField` add+clamp on `C_CameraStateComponent.shake_trauma`
   - Configured camera FOV rule as `RS_Rule` tick trigger with `RS_ConditionReduxField` (`camera.in_fov_zone == true`) and `RS_EffectSetField` set on `C_CameraStateComponent.target_fov` (`60.0`)
   - Validated with `U_RuleValidator.validate_rules(...)` (2/2 valid, 0 errors)
@@ -183,7 +183,7 @@
   - Recorded final verification counts (`T239`)
   - Marked v2 completion checkpoint and committed Phase 5 updates (`T240`)
 - Post-completion contract hardening applied on 2026-02-25:
-  - Added `scripts/resources/qb/conditions/rs_condition_event_name.gd` (`RS_ConditionEventName`)
+  - Added `scripts/core/resources/qb/conditions/rs_condition_event_name.gd` (`RS_ConditionEventName`)
   - Removed `trigger_event` metadata from `RS_Rule`
   - Enforced non-empty `conditions` in `U_RuleValidator` + `U_RuleScorer` (empty conditions invalid/blocked)
   - Updated event subscriptions in `S_CharacterStateSystem`, `S_GameEventSystem`, and `S_CameraStateSystem` to derive subscriptions from `RS_ConditionEventName.expected_event_name`
@@ -255,37 +255,37 @@ _handle_winners(winners, context)  # domain-specific
 ### New files (Phase 1)
 
 ```
-scripts/resources/qb/rs_rule.gd
-scripts/resources/qb/rs_base_condition.gd
-scripts/resources/qb/conditions/rs_condition_component_field.gd
-scripts/resources/qb/conditions/rs_condition_redux_field.gd
-scripts/resources/qb/conditions/rs_condition_entity_tag.gd
-scripts/resources/qb/conditions/rs_condition_event_payload.gd
-scripts/resources/qb/conditions/rs_condition_constant.gd
-scripts/resources/qb/rs_base_effect.gd
-scripts/resources/qb/effects/rs_effect_dispatch_action.gd
-scripts/resources/qb/effects/rs_effect_publish_event.gd
-scripts/resources/qb/effects/rs_effect_set_field.gd
-scripts/resources/qb/effects/rs_effect_set_context_value.gd
-scripts/utils/qb/u_rule_scorer.gd
-scripts/utils/qb/u_rule_selector.gd
-scripts/utils/qb/u_rule_state_tracker.gd
-scripts/utils/qb/u_rule_validator.gd
-scripts/utils/qb/u_path_resolver.gd
+scripts/core/resources/qb/rs_rule.gd
+scripts/core/resources/qb/rs_base_condition.gd
+scripts/core/resources/qb/conditions/rs_condition_component_field.gd
+scripts/core/resources/qb/conditions/rs_condition_redux_field.gd
+scripts/core/resources/qb/conditions/rs_condition_entity_tag.gd
+scripts/core/resources/qb/conditions/rs_condition_event_payload.gd
+scripts/core/resources/qb/conditions/rs_condition_constant.gd
+scripts/core/resources/qb/rs_base_effect.gd
+scripts/core/resources/qb/effects/rs_effect_dispatch_action.gd
+scripts/core/resources/qb/effects/rs_effect_publish_event.gd
+scripts/core/resources/qb/effects/rs_effect_set_field.gd
+scripts/core/resources/qb/effects/rs_effect_set_context_value.gd
+scripts/core/utils/qb/u_rule_scorer.gd
+scripts/core/utils/qb/u_rule_selector.gd
+scripts/core/utils/qb/u_rule_state_tracker.gd
+scripts/core/utils/qb/u_rule_validator.gd
+scripts/core/utils/qb/u_path_resolver.gd
 ```
 
 ### Deleted files (Phase 2A)
 
 ```
-scripts/ecs/systems/base_qb_rule_manager.gd
-scripts/resources/qb/rs_qb_condition.gd
-scripts/resources/qb/rs_qb_effect.gd
-scripts/resources/qb/rs_qb_rule_definition.gd
-scripts/utils/qb/u_qb_rule_evaluator.gd
-scripts/utils/qb/u_qb_quality_provider.gd
-scripts/utils/qb/u_qb_effect_executor.gd
-scripts/utils/qb/u_qb_variant_utils.gd
-scripts/utils/qb/u_qb_rule_validator.gd
+scripts/core/ecs/systems/base_qb_rule_manager.gd
+scripts/core/resources/qb/rs_qb_condition.gd
+scripts/core/resources/qb/rs_qb_effect.gd
+scripts/core/resources/qb/rs_qb_rule_definition.gd
+scripts/core/utils/qb/u_qb_rule_evaluator.gd
+scripts/core/utils/qb/u_qb_quality_provider.gd
+scripts/core/utils/qb/u_qb_effect_executor.gd
+scripts/core/utils/qb/u_qb_variant_utils.gd
+scripts/core/utils/qb/u_qb_rule_validator.gd
 ```
 
 ### Renamed files (Phases 2-4)

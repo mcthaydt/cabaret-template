@@ -17,14 +17,14 @@ Replace `M_PauseManager` with `M_TimeManager` — a central time authority that 
 
 Before implementation, study these reference files:
 
-- `scripts/managers/m_pause_manager.gd` — Current pause logic to port (store subscription, overlay polling, cursor coordination)
-- `scripts/managers/m_audio_manager.gd` — Hash-based optimization, store discovery, ServiceLocator registration
-- `scripts/managers/helpers/localization/u_localization_catalog.gd` — RefCounted helper pattern (no signals)
-- `scripts/state/utils/u_state_slice_manager.gd` — Slice registration (signature extension, transient_fields)
-- `scripts/state/m_state_store.gd` — `@export` pattern, `const` preloads, `_initialize_slices()` call
-- `scripts/state/actions/u_gameplay_actions.gd` — Action creator pattern with `_static_init()` registration
-- `scripts/state/reducers/u_audio_reducer.gd` — Reducer pattern with `_with_values()` helper
-- `scripts/interfaces/i_state_store.gd` — Interface pattern (extends Node, push_error stubs)
+- `scripts/core/managers/m_pause_manager.gd` — Current pause logic to port (store subscription, overlay polling, cursor coordination)
+- `scripts/core/managers/m_audio_manager.gd` — Hash-based optimization, store discovery, ServiceLocator registration
+- `scripts/core/managers/helpers/localization/u_localization_catalog.gd` — RefCounted helper pattern (no signals)
+- `scripts/core/state/utils/u_state_slice_manager.gd` — Slice registration (signature extension, transient_fields)
+- `scripts/core/state/m_state_store.gd` — `@export` pattern, `const` preloads, `_initialize_slices()` call
+- `scripts/core/state/actions/u_gameplay_actions.gd` — Action creator pattern with `_static_init()` registration
+- `scripts/core/state/reducers/u_audio_reducer.gd` — Reducer pattern with `_with_values()` helper
+- `scripts/core/interfaces/i_state_store.gd` — Interface pattern (extends Node, push_error stubs)
 - `scripts/core/root.gd` — ServiceLocator bootstrap with `_register_if_exists()`
 
 ---
@@ -41,7 +41,7 @@ Before implementation, study these reference files:
 
 **Files to create**:
 
-- `scripts/managers/helpers/time/u_pause_system.gd`
+- `scripts/core/managers/helpers/time/u_pause_system.gd`
 - `tests/unit/managers/test_time_manager.gd`
 
 **TDD approach**: Create `U_PauseSystem` with method signatures returning defaults. Write the test cases below. Run tests (RED). Implement method bodies. Run tests (GREEN).
@@ -123,7 +123,7 @@ func derive_pause_from_overlay_state(overlay_count: int) -> void:
 
 **Files to create**:
 
-- `scripts/interfaces/i_time_manager.gd`
+- `scripts/core/interfaces/i_time_manager.gd`
 
 **Implementation**:
 
@@ -184,7 +184,7 @@ func is_daytime() -> bool:
 
 **Files to create**:
 
-- `scripts/managers/m_time_manager.gd`
+- `scripts/core/managers/m_time_manager.gd`
 
 **Port all logic from `m_pause_manager.gd`**:
 
@@ -328,9 +328,9 @@ All 10 files replace `M_PauseManager` class references with `M_TimeManager` and 
 
 ```gdscript
 # Line 16 — FROM:
-const S_PAUSE_SYSTEM := preload("res://scripts/managers/m_pause_manager.gd")
+const S_PAUSE_SYSTEM := preload("res://scripts/core/managers/m_pause_manager.gd")
 # TO:
-const S_PAUSE_SYSTEM := preload("res://scripts/managers/m_time_manager.gd")
+const S_PAUSE_SYSTEM := preload("res://scripts/core/managers/m_time_manager.gd")
 ```
 
 **2. `tests/integration/scene_manager/test_particles_pause.gd`**:
@@ -393,8 +393,8 @@ const S_PAUSE_SYSTEM := preload("res://scripts/managers/m_time_manager.gd")
 **10. `tests/unit/style/test_style_enforcement.gd`**:
 
 ```gdscript
-# Line 67 — FROM: "res://scripts/ecs/systems": ["s_", "m_"], # m_ for M_PauseManager
-# TO:             "res://scripts/ecs/systems": ["s_"],
+# Line 67 — FROM: "res://scripts/core/ecs/systems": ["s_", "m_"], # m_ for M_PauseManager
+# TO:             "res://scripts/core/ecs/systems": ["s_"],
 
 # Line 303 — FROM: var has_pause_manager := false
 # TO:              var has_time_manager := false
@@ -414,8 +414,8 @@ const S_PAUSE_SYSTEM := preload("res://scripts/managers/m_time_manager.gd")
 
 **Files to delete**:
 
-- `scripts/managers/m_pause_manager.gd`
-- `scripts/managers/m_pause_manager.gd.uid`
+- `scripts/core/managers/m_pause_manager.gd`
+- `scripts/core/managers/m_pause_manager.gd.uid`
 
 **Verification**: Run all pause-related tests to confirm everything passes.
 
@@ -440,7 +440,7 @@ const S_PAUSE_SYSTEM := preload("res://scripts/managers/m_time_manager.gd")
 
 **Files to create**:
 
-- `scripts/managers/helpers/time/u_timescale_controller.gd`
+- `scripts/core/managers/helpers/time/u_timescale_controller.gd`
 
 **TDD approach**: Create class with method signatures. Write tests below in `test_time_manager.gd`. Run (RED). Implement. Run (GREEN).
 
@@ -480,7 +480,7 @@ func get_scaled_delta(raw_delta: float) -> float:
 
 **Files to modify**:
 
-- `scripts/managers/m_time_manager.gd`
+- `scripts/core/managers/m_time_manager.gd`
 
 **Changes**:
 
@@ -510,7 +510,7 @@ func get_scaled_delta(raw_delta: float) -> float:
 
 **Files to modify**:
 
-- `scripts/managers/m_ecs_manager.gd`
+- `scripts/core/managers/m_ecs_manager.gd`
 
 **Changes** (in `_physics_process`):
 
@@ -563,7 +563,7 @@ func _physics_process(delta: float) -> void:
 
 **Files to create**:
 
-- `scripts/managers/helpers/time/u_world_clock.gd`
+- `scripts/core/managers/helpers/time/u_world_clock.gd`
 
 **TDD approach**: Create class with method signatures. Write tests below in `test_time_manager.gd`. Run (RED). Implement. Run (GREEN).
 
@@ -661,7 +661,7 @@ func is_daytime() -> bool:
 
 **Files to modify**:
 
-- `scripts/managers/m_time_manager.gd`
+- `scripts/core/managers/m_time_manager.gd`
 
 **Changes**:
 
@@ -723,7 +723,7 @@ func is_daytime() -> bool:
 
 **Files to create**:
 
-- `scripts/resources/state/rs_time_initial_state.gd`
+- `scripts/core/resources/state/rs_time_initial_state.gd`
 
 **Implementation**:
 
@@ -763,7 +763,7 @@ func to_dictionary() -> Dictionary:
 
 **Files to create**:
 
-- `resources/base_settings/state/cfg_time_initial_state.tres` — default instance with all defaults
+- `resources/core/base_settings/state/cfg_time_initial_state.tres` — default instance with all defaults
 
 ---
 
@@ -771,7 +771,7 @@ func to_dictionary() -> Dictionary:
 
 **Files to create**:
 
-- `scripts/state/actions/u_time_actions.gd`
+- `scripts/core/state/actions/u_time_actions.gd`
 
 **Implementation**:
 
@@ -834,7 +834,7 @@ static func set_world_time_speed(mps: float) -> Dictionary:
 
 **Files to create**:
 
-- `scripts/state/reducers/u_time_reducer.gd`
+- `scripts/core/state/reducers/u_time_reducer.gd`
 
 **Implementation**:
 
@@ -900,7 +900,7 @@ static func _with_values(state: Dictionary, updates: Dictionary) -> Dictionary:
 
 **Files to create**:
 
-- `scripts/state/selectors/u_time_selectors.gd`
+- `scripts/core/state/selectors/u_time_selectors.gd`
 
 **Implementation**:
 
@@ -942,7 +942,7 @@ static func is_daytime(state: Dictionary) -> bool:
 
 **Files to modify** (3 files):
 
-**1. `scripts/state/m_state_store.gd`**:
+**1. `scripts/core/state/m_state_store.gd`**:
 
 ```gdscript
 # Add const (after line ~45):
@@ -970,11 +970,11 @@ U_STATE_SLICE_MANAGER.initialize_slices(
 )
 ```
 
-**2. `scripts/state/utils/u_state_slice_manager.gd`**:
+**2. `scripts/core/state/utils/u_state_slice_manager.gd`**:
 
 ```gdscript
 # Add const (after line ~13):
-const U_TIME_REDUCER := preload("res://scripts/state/reducers/u_time_reducer.gd")
+const U_TIME_REDUCER := preload("res://scripts/core/state/reducers/u_time_reducer.gd")
 
 # Extend initialize_slices() signature — add after localization_initial_state param:
 static func initialize_slices(
@@ -1000,7 +1000,7 @@ static func initialize_slices(
 
 **3. `scenes/root.tscn`** (manual):
 
-- Assign `resources/base_settings/state/cfg_time_initial_state.tres` to `M_StateStore.time_initial_state` export
+- Assign `resources/core/base_settings/state/cfg_time_initial_state.tres` to `M_StateStore.time_initial_state` export
 
 ---
 
@@ -1008,13 +1008,13 @@ static func initialize_slices(
 
 **Files to modify**:
 
-- `scripts/managers/m_time_manager.gd`
+- `scripts/core/managers/m_time_manager.gd`
 
 **Changes**:
 
 ```gdscript
-const U_TimeActions := preload("res://scripts/state/actions/u_time_actions.gd")
-const U_GameplayActions := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+const U_TimeActions := preload("res://scripts/core/state/actions/u_time_actions.gd")
+const U_GameplayActions := preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
 const TIME_SLICE_NAME := StringName("time")
 
 var _is_hydrating_time_slice: bool = false
@@ -1254,8 +1254,8 @@ timescale control, and a world simulation clock.
 
 - [Time Manager Overview](time-manager-overview.md)
 - M_PauseManager source is retired/replaced.
-- [U_StateSliceManager](../../../scripts/state/utils/u_state_slice_manager.gd) (slice registration)
-- [U_GameplayActions](../../../scripts/state/actions/u_gameplay_actions.gd) (pause_game/unpause_game)
+- [U_StateSliceManager](../../../scripts/core/state/utils/u_state_slice_manager.gd) (slice registration)
+- [U_GameplayActions](../../../scripts/core/state/actions/u_gameplay_actions.gd) (pause_game/unpause_game)
 
 ---
 

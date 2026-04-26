@@ -24,7 +24,7 @@
 
 **Implementation:**
 
-- [x] T12. Create `scripts/utils/qb/u_path_resolver.gd` — static `resolve(root: Variant, path: String) -> Variant`
+- [x] T12. Create `scripts/core/utils/qb/u_path_resolver.gd` — static `resolve(root: Variant, path: String) -> Variant`
 - [x] T13. All path resolver tests green
 
 Completion note (2026-02-25): Added `U_PathResolver` + `test_path_resolver.gd`; ran `test_path_resolver.gd` (10/10 passing) and `tests/unit/style` (12/12 passing).
@@ -77,12 +77,12 @@ Completion note (2026-02-25): Added `U_PathResolver` + `test_path_resolver.gd`; 
 
 **Implementation:**
 
-- [x] T48. Create `scripts/resources/qb/rs_base_condition.gd` — base class with response_curve, invert, virtual evaluate()
-- [x] T49. Create `scripts/resources/qb/conditions/rs_condition_component_field.gd`
-- [x] T50. Create `scripts/resources/qb/conditions/rs_condition_redux_field.gd`
-- [x] T51. Create `scripts/resources/qb/conditions/rs_condition_entity_tag.gd`
-- [x] T52. Create `scripts/resources/qb/conditions/rs_condition_event_payload.gd`
-- [x] T53. Create `scripts/resources/qb/conditions/rs_condition_constant.gd`
+- [x] T48. Create `scripts/core/resources/qb/rs_base_condition.gd` — base class with response_curve, invert, virtual evaluate()
+- [x] T49. Create `scripts/core/resources/qb/conditions/rs_condition_component_field.gd`
+- [x] T50. Create `scripts/core/resources/qb/conditions/rs_condition_redux_field.gd`
+- [x] T51. Create `scripts/core/resources/qb/conditions/rs_condition_entity_tag.gd`
+- [x] T52. Create `scripts/core/resources/qb/conditions/rs_condition_event_payload.gd`
+- [x] T53. Create `scripts/core/resources/qb/conditions/rs_condition_constant.gd`
 - [x] T54. All condition tests green
 
 Completion note (2026-02-25): Added 6 condition test suites (28 tests), implemented `RS_BaseCondition` + 5 initial condition subclasses (later expanded to 6 with `RS_ConditionEventName` during contract hardening), and verified:
@@ -116,11 +116,11 @@ Completion note (2026-02-25): Added 6 condition test suites (28 tests), implemen
 
 **Implementation:**
 
-- [x] T72. Create `scripts/resources/qb/rs_base_effect.gd` — base class with virtual execute()
-- [x] T73. Create `scripts/resources/qb/effects/rs_effect_dispatch_action.gd`
-- [x] T74. Create `scripts/resources/qb/effects/rs_effect_publish_event.gd`
-- [x] T75. Create `scripts/resources/qb/effects/rs_effect_set_field.gd`
-- [x] T76. Create `scripts/resources/qb/effects/rs_effect_set_context_value.gd`
+- [x] T72. Create `scripts/core/resources/qb/rs_base_effect.gd` — base class with virtual execute()
+- [x] T73. Create `scripts/core/resources/qb/effects/rs_effect_dispatch_action.gd`
+- [x] T74. Create `scripts/core/resources/qb/effects/rs_effect_publish_event.gd`
+- [x] T75. Create `scripts/core/resources/qb/effects/rs_effect_set_field.gd`
+- [x] T76. Create `scripts/core/resources/qb/effects/rs_effect_set_context_value.gd`
 - [x] T77. All effect tests green
 
 Completion note (2026-02-25): Added 4 effect test suites (13 tests), implemented `RS_BaseEffect` + 4 effect subclasses, and verified:
@@ -129,7 +129,7 @@ Completion note (2026-02-25): Added 4 effect test suites (13 tests), implemented
 
 ### 1D — Rule Resource
 
-- [x] T78. Create `scripts/resources/qb/rs_rule.gd` — typed-array target (`Array[RS_BaseCondition]`, `Array[RS_BaseEffect]`) with documented fallback path
+- [x] T78. Create `scripts/core/resources/qb/rs_rule.gd` — typed-array target (`Array[RS_BaseCondition]`, `Array[RS_BaseEffect]`) with documented fallback path
 - [x] T79. Validate fallback export metadata in headless (`conditions`/`effects` exported as `Array[Resource]`)
 - [x] T80. Document typed-array inspector verification follow-up (deferred until typed arrays are re-enabled)
 
@@ -152,7 +152,7 @@ Completion note (2026-02-25): Added `RS_Rule` and validated export metadata in h
 
 **Implementation:**
 
-- [x] T91. Create `scripts/utils/qb/u_rule_scorer.gd` — static `score_rules(rules, context) -> Array[Dictionary]`
+- [x] T91. Create `scripts/core/utils/qb/u_rule_scorer.gd` — static `score_rules(rules, context) -> Array[Dictionary]`
 - [x] T92. All scorer tests green
 
 Completion note (2026-02-25): Added scorer test suite (9 tests), implemented `U_RuleScorer`, and verified:
@@ -174,7 +174,7 @@ Completion note (2026-02-25): Added scorer test suite (9 tests), implemented `U_
 
 **Implementation:**
 
-- [x] T101. Create `scripts/utils/qb/u_rule_selector.gd` — static `select_winners(scored_results) -> Array[Dictionary]`
+- [x] T101. Create `scripts/core/utils/qb/u_rule_selector.gd` — static `select_winners(scored_results) -> Array[Dictionary]`
 - [x] T102. All selector tests green
 
 Completion note (2026-02-25): Added selector test suite (7 tests), implemented `U_RuleSelector`, and verified:
@@ -201,7 +201,7 @@ Completion note (2026-02-25): Added selector test suite (7 tests), implemented `
 
 **Implementation:**
 
-- [x] T116. Create `scripts/utils/qb/u_rule_state_tracker.gd` — `class_name RuleStateTracker extends RefCounted`
+- [x] T116. Create `scripts/core/utils/qb/u_rule_state_tracker.gd` — `class_name RuleStateTracker extends RefCounted`
 - [x] T117. All state tracker tests green
 
 Completion note (2026-02-25): Added state-tracker test suite (12 tests), implemented `RuleStateTracker`, and verified:
@@ -227,7 +227,7 @@ Completion note (2026-02-25): Added state-tracker test suite (12 tests), impleme
 
 **Implementation:**
 
-- [x] T130. Create `scripts/utils/qb/u_rule_validator.gd` — static `validate_rules(rules) -> Dictionary`
+- [x] T130. Create `scripts/core/utils/qb/u_rule_validator.gd` — static `validate_rules(rules) -> Dictionary`
 - [x] T131. All validator tests green
 
 Completion note (2026-02-25): Added validator test suite (11 tests), implemented `U_RuleValidator`, and verified:
@@ -242,32 +242,32 @@ Completion note (2026-02-25): Added validator test suite (11 tests), implemented
 
 ### 2A — Delete v1
 
-- [x] T132. Delete `scripts/ecs/systems/base_qb_rule_manager.gd`
-- [x] T133. Delete `scripts/resources/qb/rs_qb_condition.gd`
-- [x] T134. Delete `scripts/resources/qb/rs_qb_effect.gd`
-- [x] T135. Delete `scripts/resources/qb/rs_qb_rule_definition.gd`
-- [x] T136. Delete `scripts/utils/qb/u_qb_rule_evaluator.gd`
-- [x] T137. Delete `scripts/utils/qb/u_qb_quality_provider.gd`
-- [x] T138. Delete `scripts/utils/qb/u_qb_effect_executor.gd`
-- [x] T139. Delete `scripts/utils/qb/u_qb_variant_utils.gd`
-- [x] T140. Delete `scripts/utils/qb/u_qb_rule_validator.gd`
+- [x] T132. Delete `scripts/core/ecs/systems/base_qb_rule_manager.gd`
+- [x] T133. Delete `scripts/core/resources/qb/rs_qb_condition.gd`
+- [x] T134. Delete `scripts/core/resources/qb/rs_qb_effect.gd`
+- [x] T135. Delete `scripts/core/resources/qb/rs_qb_rule_definition.gd`
+- [x] T136. Delete `scripts/core/utils/qb/u_qb_rule_evaluator.gd`
+- [x] T137. Delete `scripts/core/utils/qb/u_qb_quality_provider.gd`
+- [x] T138. Delete `scripts/core/utils/qb/u_qb_effect_executor.gd`
+- [x] T139. Delete `scripts/core/utils/qb/u_qb_variant_utils.gd`
+- [x] T140. Delete `scripts/core/utils/qb/u_qb_rule_validator.gd`
 - [x] T141. Delete all v1 test files in `tests/unit/qb/` (only v1 files — preserve v2 tests from Phase 1)
 - [x] T142. Delete `tests/integration/qb/test_qb_brain_data_pipeline.gd`
-- [x] T143. Delete all 9 v1 `.tres` files in `resources/qb/` subdirectories
+- [x] T143. Delete all 9 v1 `.tres` files in `resources/core/qb/` subdirectories
 - [x] T144. Grep codebase for references to deleted class names — fix any remaining imports
 
-Completion note (2026-02-25): Deleted all targeted v1 QB engine scripts/resources/tests (`T132-T143`) and removed stale deleted-class references from active code (`T144`). Verification:
+Completion note (2026-02-25): Deleted all targeted v1 QB engine scripts/core/resources/tests (`T132-T143`) and removed stale deleted-class references from active code (`T144`). Verification:
 - Stale-reference grep across `scripts/`, `scenes/`, `tests/`, `resources/`, and `project.godot`: 0 matches for deleted v1 class/file symbols
 - Style suite: 12/12 passing (`tests/unit/style`)
 - QB unit suite: 101/101 passing (`tests/unit/qb`)
 
 ### 2B — Recreate Character Rule Resources
 
-- [x] T145. Create `resources/qb/character/cfg_pause_gate_paused.tres` — RS_Rule + RS_ConditionReduxField (state_path=`time.is_paused`, equals, match=`true`) + RS_EffectSetContextValue (is_gameplay_active=false), decision_group=`pause_gate`
-- [x] T146. Create `resources/qb/character/cfg_pause_gate_shell.tres` — RS_ConditionReduxField (state_path=`navigation.shell`, not_equals, match=`gameplay`), decision_group=`pause_gate`
-- [x] T147. Create `resources/qb/character/cfg_pause_gate_transitioning.tres` — RS_ConditionReduxField (state_path=`scene.is_transitioning`, equals, match=`true`), decision_group=`pause_gate`
-- [x] T148. Create `resources/qb/character/cfg_spawn_freeze_rule.tres` — RS_ConditionComponentField (C_SpawnStateComponent.is_physics_frozen, binary)
-- [x] T149. Create `resources/qb/character/cfg_death_sync_rule.tres` — RS_ConditionComponentField (C_HealthComponent.is_dead, binary)
+- [x] T145. Create `resources/core/qb/character/cfg_pause_gate_paused.tres` — RS_Rule + RS_ConditionReduxField (state_path=`time.is_paused`, equals, match=`true`) + RS_EffectSetContextValue (is_gameplay_active=false), decision_group=`pause_gate`
+- [x] T146. Create `resources/core/qb/character/cfg_pause_gate_shell.tres` — RS_ConditionReduxField (state_path=`navigation.shell`, not_equals, match=`gameplay`), decision_group=`pause_gate`
+- [x] T147. Create `resources/core/qb/character/cfg_pause_gate_transitioning.tres` — RS_ConditionReduxField (state_path=`scene.is_transitioning`, equals, match=`true`), decision_group=`pause_gate`
+- [x] T148. Create `resources/core/qb/character/cfg_spawn_freeze_rule.tres` — RS_ConditionComponentField (C_SpawnStateComponent.is_physics_frozen, binary)
+- [x] T149. Create `resources/core/qb/character/cfg_death_sync_rule.tres` — RS_ConditionComponentField (C_HealthComponent.is_dead, binary)
 - [x] T150. All 5 resources pass U_RuleValidator.validate_rules()
 
 Completion note (2026-02-25): Added all 5 character rule resources with v2 `RS_Rule` + typed condition/effect subresources and validated them with a headless generation/validation script (`/tmp/create_qb_v2_character_rules.gd` calling `U_RuleValidator.validate_rules`). Verification:
@@ -333,8 +333,8 @@ Completion note (2026-02-25): Added `tests/integration/qb/test_character_movemen
 
 ### 3A — Recreate Game Rule Resources
 
-- [x] T179. Create `resources/qb/game/cfg_checkpoint_rule.tres` — RS_Rule (`trigger_mode=event`, `RS_ConditionEventName.expected_event_name=checkpoint_zone_entered`) + RS_EffectPublishEvent (checkpoint_activation_requested, inject_entity_id=true)
-- [x] T180. Create `resources/qb/game/cfg_victory_rule.tres` — RS_Rule (`trigger_mode=event`, `RS_ConditionEventName.expected_event_name=victory_triggered`) + RS_EffectPublishEvent (victory_execution_requested, inject_entity_id=true)
+- [x] T179. Create `resources/core/qb/game/cfg_checkpoint_rule.tres` — RS_Rule (`trigger_mode=event`, `RS_ConditionEventName.expected_event_name=checkpoint_zone_entered`) + RS_EffectPublishEvent (checkpoint_activation_requested, inject_entity_id=true)
+- [x] T180. Create `resources/core/qb/game/cfg_victory_rule.tres` — RS_Rule (`trigger_mode=event`, `RS_ConditionEventName.expected_event_name=victory_triggered`) + RS_EffectPublishEvent (victory_execution_requested, inject_entity_id=true)
 
 Completion note (2026-02-25): Added both v2 game event-forwarding rule resources (`cfg_checkpoint_rule.tres`, `cfg_victory_rule.tres`) using `RS_Rule` + `RS_ConditionEventName` + `RS_EffectPublishEvent` with `inject_entity_id = true`. Verification:
 - Resource validation: `U_RuleValidator.validate_rules(...)` (2/2 valid, 0 errors)
@@ -392,10 +392,10 @@ Completion note (2026-02-25): Added `tests/integration/qb/test_checkpoint_pipeli
 
 ### 4A — Recreate Camera Rule Resources
 
-- [x] T203. Create `resources/qb/camera/cfg_camera_shake_rule.tres` — RS_Rule (`trigger_mode=event`, `RS_ConditionEventName.expected_event_name=entity_death`) + RS_EffectSetField (C_CameraStateComponent.shake_trauma, add, 0.5, clamp 0-1)
-- [x] T204. Create `resources/qb/camera/cfg_camera_zone_fov_rule.tres` — RS_Rule (trigger_mode=tick) + RS_ConditionReduxField (camera.in_fov_zone, equals, true) + RS_EffectSetField (C_CameraStateComponent.target_fov, set, 60.0)
+- [x] T203. Create `resources/core/qb/camera/cfg_camera_shake_rule.tres` — RS_Rule (`trigger_mode=event`, `RS_ConditionEventName.expected_event_name=entity_death`) + RS_EffectSetField (C_CameraStateComponent.shake_trauma, add, 0.5, clamp 0-1)
+- [x] T204. Create `resources/core/qb/camera/cfg_camera_zone_fov_rule.tres` — RS_Rule (trigger_mode=tick) + RS_ConditionReduxField (camera.in_fov_zone, equals, true) + RS_EffectSetField (C_CameraStateComponent.target_fov, set, 60.0)
 
-Completion note (2026-02-25): Recreated camera v2 rule resources `cfg_camera_shake_rule.tres` and `cfg_camera_zone_fov_rule.tres` in `resources/qb/camera/` using `RS_Rule` + typed v2 condition/effect subresources. Verification:
+Completion note (2026-02-25): Recreated camera v2 rule resources `cfg_camera_shake_rule.tres` and `cfg_camera_zone_fov_rule.tres` in `resources/core/qb/camera/` using `RS_Rule` + typed v2 condition/effect subresources. Verification:
 - Resource validation: `U_RuleValidator.validate_rules(...)` (2/2 valid, 0 errors)
 - QB unit suite (`tests/unit/qb`): 121/121 passing
 - Style suite (`tests/unit/style`): 12/12 passing

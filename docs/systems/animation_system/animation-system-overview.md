@@ -42,13 +42,13 @@ The animation system selects and applies animation states per entity each tick u
 ## Architecture
 
 ```
-S_AnimationStateSystem (scripts/ecs/systems/s_animation_state_system.gd)  [extends BaseECSSystem]
+S_AnimationStateSystem (scripts/core/ecs/systems/s_animation_state_system.gd)  [extends BaseECSSystem]
   Composes:
   ├── U_RuleScorer         (existing)
   ├── U_RuleSelector       (existing)
   └── U_RuleStateTracker   (existing)
 
-C_AnimationComponent (scripts/ecs/components/c_animation_component.gd)  [extends BaseECSComponent]
+C_AnimationComponent (scripts/core/ecs/components/c_animation_component.gd)  [extends BaseECSComponent]
   @export var animation_settings: RS_AnimationSettings
   @export var visual_root: NodePath      (child node whose transform gets animated)
   Runtime state:
@@ -60,18 +60,18 @@ C_AnimationComponent (scripts/ecs/components/c_animation_component.gd)  [extends
   └── override_priority: int             (prevents QB from overriding)
 
 Resources:
-  RS_AnimationSettings (scripts/resources/animation/rs_animation_settings.gd)
+  RS_AnimationSettings (scripts/core/resources/animation/rs_animation_settings.gd)
     ├── animation_rules: Array[RS_AnimationRule]
     ├── default_state_id: StringName
     └── evaluation_interval: float       (default 0.0 = every tick)
 
-  RS_AnimationRule (scripts/resources/animation/rs_animation_rule.gd)
+  RS_AnimationRule (scripts/core/resources/animation/rs_animation_rule.gd)
     ├── state_id: StringName
     ├── conditions: Array[Resource]      (QB v2 typed conditions)
     ├── priority: int
     └── transition_duration: float       (blend time entering this state)
 
-  RS_ProceduralAnimationState (scripts/resources/animation/rs_procedural_animation_state.gd)
+  RS_ProceduralAnimationState (scripts/core/resources/animation/rs_procedural_animation_state.gd)
     ├── state_id: StringName
     ├── position_offset_curve: Curve     (Y-axis bob, null = no bob)
     ├── rotation_speed: Vector3          (degrees/sec per axis)
@@ -80,13 +80,13 @@ Resources:
     ├── loop: bool                       (default true)
     └── duration: float                  (cycle duration in seconds)
 
-  RS_SkeletalAnimationState (scripts/resources/animation/rs_skeletal_animation_state.gd)  [DEFERRED]
+  RS_SkeletalAnimationState (scripts/core/resources/animation/rs_skeletal_animation_state.gd)  [DEFERRED]
     ├── animation_name: StringName
     ├── blend_parameters: Dictionary
     └── playback_speed: float
 
 Animation Backend:
-  U_ProceduralAnimator (scripts/utils/animation/u_procedural_animator.gd)  [extends RefCounted]
+  U_ProceduralAnimator (scripts/core/utils/animation/u_procedural_animator.gd)  [extends RefCounted]
     Applies position/rotation/scale to Node3D based on state + elapsed time
     Handles blending between outgoing and incoming states
 ```

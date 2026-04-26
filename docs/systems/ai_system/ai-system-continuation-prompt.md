@@ -14,17 +14,17 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 
 - Woods debug labels now refresh continuously and include runtime task labels:
   - `scripts/demo/debug/debug_woods_agent_label.gd`
-  - `scripts/ecs/components/c_ai_brain_component.gd`
-  - `scripts/ecs/systems/s_ai_behavior_system.gd`
+  - `scripts/core/ecs/components/c_ai_brain_component.gd`
+  - `scripts/core/ecs/systems/s_ai_behavior_system.gd`
 - Wolf chase/feed reliability tuned for consume-range completion:
-  - `scripts/resources/ai/actions/rs_ai_action_move_to_detected.gd` now supports `completion_radius_override`.
-  - `resources/ai/woods/wolf/cfg_woods_wolf_brain.tres` updated to use a `1.25` consume-aligned completion radius.
+  - `scripts/demo/resources/ai/actions/rs_ai_action_move_to_detected.gd` now supports `completion_radius_override`.
+  - `resources/demo/ai/woods/wolf/cfg_woods_wolf_brain.tres` updated to use a `1.25` consume-aligned completion radius.
 - Builder loop prevention after completed house:
-  - `resources/ai/woods/builder/cfg_builder_brain.tres` gather/haul scorers now gate on `build_not_completed`.
+  - `resources/demo/ai/woods/builder/cfg_builder_brain.tres` gather/haul scorers now gate on `build_not_completed`.
 - In-world house progress observability added:
   - `scripts/demo/debug/debug_woods_build_site_label.gd`
   - `scenes/debug/debug_woods_build_site_label.tscn`
-  - `scenes/prefabs/prefab_woods_construction_site.tscn` instances the label.
+  - `scenes/core/prefabs/prefab_woods_construction_site.tscn` instances the label.
 - Test updates for this pack:
   - `tests/unit/ecs/components/test_c_ai_brain_component.gd`
   - `tests/unit/ai/actions/test_ai_actions_movement.gd`
@@ -48,10 +48,10 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 
 - Added `tests/unit/ai/resources/test_rs_ai_task.gd` with red-green resource/interface tests (now 6 total including post-M2 audit hardening for `method_conditions`).
 - Implemented:
-  - `scripts/interfaces/i_ai_action.gd`
-  - `scripts/resources/ai/tasks/rs_ai_task.gd`
-  - `scripts/resources/ai/tasks/rs_ai_primitive_task.gd`
-  - `scripts/resources/ai/tasks/rs_ai_compound_task.gd`
+  - `scripts/core/interfaces/i_ai_action.gd`
+  - `scripts/demo/resources/ai/tasks/rs_ai_task.gd`
+  - `scripts/demo/resources/ai/tasks/rs_ai_primitive_task.gd`
+  - `scripts/demo/resources/ai/tasks/rs_ai_compound_task.gd`
 - Verification:
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_rs_ai_task.gd` → `6/6` passing
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `17/17` passing
@@ -61,8 +61,8 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 
 - Added `tests/unit/ai/resources/test_rs_ai_goal.gd` with the 5 required red-green tests (now 6 total after audit hardening for goal gate fields).
 - Implemented:
-  - `scripts/resources/ai/goals/rs_ai_goal.gd`
-  - `scripts/resources/ai/brain/rs_ai_brain_settings.gd`
+  - `scripts/demo/resources/ai/goals/rs_ai_goal.gd`
+  - `scripts/demo/resources/ai/brain/rs_ai_brain_settings.gd`
 - Verification:
   - RED confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_rs_ai_goal.gd` failed with expected missing-script assertions.
   - GREEN confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_rs_ai_goal.gd` → `5/5` passing (current `6/6` after audit hardening).
@@ -73,7 +73,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 
 - Added `tests/unit/ecs/components/test_c_ai_brain_component.gd` with the 5 required red-green component tests.
 - Implemented:
-  - `scripts/ecs/components/c_ai_brain_component.gd`
+  - `scripts/core/ecs/components/c_ai_brain_component.gd`
 - Verification:
   - RED confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/components/test_c_ai_brain_component.gd` failed with expected missing-script assertions.
   - GREEN confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/components/test_c_ai_brain_component.gd` → `5/5` passing.
@@ -84,7 +84,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 
 - Added `tests/unit/ai/test_u_htn_planner.gd` with the 8 required red-green decomposition tests.
 - Implemented:
-  - `scripts/utils/ai/u_htn_planner.gd`
+  - `scripts/core/utils/ai/u_htn_planner.gd`
 - Verification:
   - RED confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/test_u_htn_planner.gd` failed with expected missing-script assertions for `u_htn_planner.gd`.
   - GREEN confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/test_u_htn_planner.gd` → `8/8` passing.
@@ -95,7 +95,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 
 - Added `tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` with the 7 required red-green goal-loop tests (now 10 total after hardening coverage for cooldown/one-shot/rising-edge gates).
 - Implemented:
-  - `scripts/ecs/systems/s_ai_behavior_system.gd`
+  - `scripts/core/ecs/systems/s_ai_behavior_system.gd`
 - Verification:
   - RED confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` failed with expected missing-script assertions for `s_ai_behavior_system.gd`.
   - GREEN confirmed: `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_ai_behavior_system_goals.gd` → `7/7` passing (current `10/10` after hardening).
@@ -111,10 +111,10 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - Added test helper:
   - `tests/mocks/mock_ai_action_track.gd`
 - Implemented:
-  - `scripts/resources/ai/actions/rs_ai_action_wait.gd`
-  - `scripts/resources/ai/actions/rs_ai_action_publish_event.gd`
-  - `scripts/resources/ai/actions/rs_ai_action_set_field.gd`
-  - `scripts/ecs/systems/s_ai_behavior_system.gd` (`_execute_current_task(...)` + per-tick task execution integration)
+  - `scripts/demo/resources/ai/actions/rs_ai_action_wait.gd`
+  - `scripts/demo/resources/ai/actions/rs_ai_action_publish_event.gd`
+  - `scripts/demo/resources/ai/actions/rs_ai_action_set_field.gd`
+  - `scripts/core/ecs/systems/s_ai_behavior_system.gd` (`_execute_current_task(...)` + per-tick task execution integration)
 - Verification:
   - RED confirmed (actions): `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/actions/test_ai_actions_instant.gd` failed with expected missing-script assertions.
   - GREEN confirmed (actions): `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/actions/test_ai_actions_instant.gd` → `5/5` passing.
@@ -134,14 +134,14 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
   - `tests/unit/integration/test_device_detection_flow.gd`
   - `tests/unit/integration/test_input_manager_integration_points.gd`
 - Implemented:
-  - `scripts/resources/ai/actions/rs_ai_action_move_to.gd`
-  - `scripts/resources/ai/actions/rs_ai_action_scan.gd`
-  - `scripts/resources/ai/actions/rs_ai_action_animate.gd` (stub)
-  - `scripts/ecs/systems/s_ai_navigation_system.gd`
-  - `scripts/ecs/systems/s_input_system.gd` (player-tag query filter)
-  - `scripts/ecs/systems/s_ai_behavior_system.gd` (`execution_priority = -10` ordering contract)
-  - `scripts/utils/qb/u_rule_state_tracker.gd` (context-scoped one-shot tracking)
-  - `scenes/templates/tmpl_base_scene.tscn` and `scenes/gameplay/gameplay_base.tscn` (shared AI runtime wiring)
+  - `scripts/demo/resources/ai/actions/rs_ai_action_move_to.gd`
+  - `scripts/demo/resources/ai/actions/rs_ai_action_scan.gd`
+  - `scripts/demo/resources/ai/actions/rs_ai_action_animate.gd` (stub)
+  - `scripts/core/ecs/systems/s_ai_navigation_system.gd`
+  - `scripts/core/ecs/systems/s_input_system.gd` (player-tag query filter)
+  - `scripts/core/ecs/systems/s_ai_behavior_system.gd` (`execution_priority = -10` ordering contract)
+  - `scripts/core/utils/qb/u_rule_state_tracker.gd` (context-scoped one-shot tracking)
+  - `scenes/core/templates/tmpl_base_scene.tscn` and `scenes/demo/gameplay/gameplay_base.tscn` (shared AI runtime wiring)
 - Verification:
   - RED confirmed (actions): `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/actions/test_ai_actions_movement.gd` failed before scripts existed.
   - GREEN confirmed (actions): `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/actions/test_ai_actions_movement.gd` → `10/10` passing.
@@ -180,11 +180,11 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 ### Completed in M9 (2026-04-02)
 
 - Added gameplay prototype scenes:
-  - `scenes/gameplay/gameplay_power_core.tscn`
-  - `scenes/gameplay/gameplay_comms_array.tscn`
-  - `scenes/gameplay/gameplay_nav_nexus.tscn`
+  - `scenes/demo/gameplay/gameplay_power_core.tscn`
+  - `scenes/demo/gameplay/gameplay_comms_array.tscn`
+  - `scenes/demo/gameplay/gameplay_nav_nexus.tscn`
 - Added shared placeholder AI brain resource:
-  - `resources/ai/cfg_ai_brain_placeholder.tres`
+  - `resources/demo/ai/cfg_ai_brain_placeholder.tres`
 - Scene authoring delivered for milestone scope:
   - Power Core includes CSG power-core geometry, four waypoint markers, activatable Area3D, and `E_PatrolDrone` with `C_AIBrainComponent`.
   - Comms Array includes CSG antenna/pillar geometry, guard waypoints, two noise-source Area3Ds, and `E_Sentry` with `C_AIBrainComponent`.
@@ -192,15 +192,15 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - Post-audit integration pass completed:
   - Added runtime trigger wiring for all demo trigger zones:
     - `scripts/demo/gameplay/inter_ai_demo_flag_zone.gd` on Power/Comms/Victory triggers for durable AI flags (`power_core_activated`, `comms_disturbance_heard`, `nav_goal_reached`)
-    - `Inter_FallDetectionArea` now uses `Inter_HazardZone` + `resources/interactions/hazards/cfg_hazard_nav_nexus_fall.tres`
+    - `Inter_FallDetectionArea` now uses `Inter_HazardZone` + `resources/demo/interactions/hazards/cfg_hazard_nav_nexus_fall.tres`
   - Added scene registry entries and mobile-safe preload/backfill coverage:
-    - `resources/scene_registry/cfg_power_core_entry.tres`
-    - `resources/scene_registry/cfg_comms_array_entry.tres`
-    - `resources/scene_registry/cfg_nav_nexus_entry.tres`
-    - `scripts/scene_management/helpers/u_scene_registry_loader.gd` preload manifest + backfill updated
+    - `resources/core/scene_registry/cfg_power_core_entry.tres`
+    - `resources/core/scene_registry/cfg_comms_array_entry.tres`
+    - `resources/core/scene_registry/cfg_nav_nexus_entry.tres`
+    - `scripts/core/scene_management/helpers/u_scene_registry_loader.gd` preload manifest + backfill updated
   - Updated default New Game location to `power_core`:
-    - `scripts/ui/menus/ui_main_menu.gd` (`DEFAULT_GAMEPLAY_SCENE`)
-    - `scripts/ui/menus/ui_splash_screen.gd` (`DEFAULT_GAMEPLAY_SCENE_ID`)
+    - `scripts/core/ui/menus/ui_main_menu.gd` (`DEFAULT_GAMEPLAY_SCENE`)
+    - `scripts/core/ui/menus/ui_splash_screen.gd` (`DEFAULT_GAMEPLAY_SCENE_ID`)
     - `resources/cfg_game_config.tres` (`retry_scene_id = &"power_core"`)
 - Verification:
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/scene_manager/test_scene_registry.gd` → `24/24` passing (includes mobile preloaded-manifest assertions).
@@ -212,20 +212,20 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 ### Completed in M10 (2026-04-02)
 
 - Added demo NPC behavior resource stacks:
-  - `resources/ai/patrol_drone/cfg_patrol_drone_brain.tres`
-  - `resources/ai/patrol_drone/cfg_goal_patrol.tres`
-  - `resources/ai/patrol_drone/cfg_goal_investigate.tres`
-  - `resources/ai/sentry/cfg_sentry_brain.tres`
-  - `resources/ai/sentry/cfg_goal_guard.tres`
-  - `resources/ai/sentry/cfg_goal_investigate_disturbance.tres`
-  - `resources/ai/guide_prism/cfg_guide_brain.tres`
-  - `resources/ai/guide_prism/cfg_goal_show_path.tres`
-  - `resources/ai/guide_prism/cfg_goal_encourage.tres`
-  - `resources/ai/guide_prism/cfg_goal_celebrate.tres`
+  - `resources/demo/ai/patrol_drone/cfg_patrol_drone_brain.tres`
+  - `resources/demo/ai/patrol_drone/cfg_goal_patrol.tres`
+  - `resources/demo/ai/patrol_drone/cfg_goal_investigate.tres`
+  - `resources/demo/ai/sentry/cfg_sentry_brain.tres`
+  - `resources/demo/ai/sentry/cfg_goal_guard.tres`
+  - `resources/demo/ai/sentry/cfg_goal_investigate_disturbance.tres`
+  - `resources/demo/ai/guide_prism/cfg_guide_brain.tres`
+  - `resources/demo/ai/guide_prism/cfg_goal_show_path.tres`
+  - `resources/demo/ai/guide_prism/cfg_goal_encourage.tres`
+  - `resources/demo/ai/guide_prism/cfg_goal_celebrate.tres`
 - Rewired scene NPC brains from placeholder to authored resources:
-  - `scenes/gameplay/gameplay_power_core.tscn` (`E_PatrolDrone`)
-  - `scenes/gameplay/gameplay_comms_array.tscn` (`E_Sentry`)
-  - `scenes/gameplay/gameplay_nav_nexus.tscn` (`E_GuidePrism`)
+  - `scenes/demo/gameplay/gameplay_power_core.tscn` (`E_PatrolDrone`)
+  - `scenes/demo/gameplay/gameplay_comms_array.tscn` (`E_Sentry`)
+  - `scenes/demo/gameplay/gameplay_nav_nexus.tscn` (`E_GuidePrism`)
 - Added per-NPC runtime movement stack for `move_to` execution parity:
   - `CharacterBody3D` + `CollisionShape3D`
   - `C_InputComponent`
@@ -242,12 +242,12 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 ### Completed in M11 (2026-04-03)
 
 - Added AI spawn-point recovery hardening (no last-supported-position dependency):
-  - `scripts/ecs/systems/s_ai_spawn_recovery_system.gd`
-  - `scripts/resources/ai/brain/rs_ai_brain_settings.gd` respawn exports
-  - `scripts/interfaces/i_spawn_manager.gd` + `scripts/managers/m_spawn_manager.gd` generic entity spawn API
+  - `scripts/core/ecs/systems/s_ai_spawn_recovery_system.gd`
+  - `scripts/demo/resources/ai/brain/rs_ai_brain_settings.gd` respawn exports
+  - `scripts/core/interfaces/i_spawn_manager.gd` + `scripts/core/managers/m_spawn_manager.gd` generic entity spawn API
 - Added/updated scene and resource authoring:
-  - `resources/spawn_metadata/cfg_sp_ai_patrol_drone.tres`
-  - `resources/ai/patrol_drone/cfg_patrol_drone_brain.tres` (respawn spawn id + delay/cooldown)
+  - `resources/core/spawn_metadata/cfg_sp_ai_patrol_drone.tres`
+  - `resources/demo/ai/patrol_drone/cfg_patrol_drone_brain.tres` (respawn spawn id + delay/cooldown)
   - Recovery system wiring in base/gameplay scenes and `sp_ai_patrol_drone` in `gameplay_power_core`.
 - Added verification coverage:
   - `tests/unit/ecs/systems/test_s_ai_spawn_recovery_system.gd`
@@ -288,8 +288,8 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
   - Initial post-implementation full regression: `tools/run_gut_suite.sh` → `3708/3734` passing, `17` failing, `9` pending/risky.
   - Post-stabilization full regression: `tools/run_gut_suite.sh` → `3725/3734` passing, `0` failing, `9` pending/risky (headless/mobile skips).
 - Post-M12 stabilization hardening (2026-04-03):
-  - Updated `scenes/templates/tmpl_base_scene.tscn` room-fade fixture blocks (`SO_Block`, `SO_Block2`, `SO_Block3`) to use `BaseECSEntity` roots with explicit `entity_id`/`room_fade_group` tags, removing `C_RoomFadeGroupComponent` registration errors in shared-scene ECS suites.
-  - Updated `scripts/ecs/systems/s_ai_spawn_recovery_system.gd` to avoid emitting non-actionable missing-`spawn_manager` warnings in harness contexts (debug-log only when explicitly enabled), while keeping missing-spawn-point hard errors unchanged.
+  - Updated `scenes/core/templates/tmpl_base_scene.tscn` room-fade fixture blocks (`SO_Block`, `SO_Block2`, `SO_Block3`) to use `BaseECSEntity` roots with explicit `entity_id`/`room_fade_group` tags, removing `C_RoomFadeGroupComponent` registration errors in shared-scene ECS suites.
+  - Updated `scripts/core/ecs/systems/s_ai_spawn_recovery_system.gd` to avoid emitting non-actionable missing-`spawn_manager` warnings in harness contexts (debug-log only when explicitly enabled), while keeping missing-spawn-point hard errors unchanged.
   - Hardened two timing-sensitive state-store microbenchmarks for headless:
     - `tests/unit/state/test_m_state_store.gd` (`test_signal_batching_overhead_less_than_0_05ms`) now uses a headless-aware threshold.
     - `tests/unit/state/test_state_store_copy_optimization.gd` (`test_a1_dispatch_with_multiple_subscribers_is_faster_than_per_subscriber_copy`) now runs against a dedicated history-disabled store and uses a headless-aware threshold.
@@ -299,11 +299,11 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - Added RED/GREEN prefab structure coverage:
   - `tests/unit/ai/resources/test_prefab_npc.gd` (`5/5`) verifies base character stack inheritance, required AI/input components, and absence of player-only components.
 - Implemented shared NPC prefab:
-  - `scenes/prefabs/prefab_demo_npc.tscn` (inherits `tmpl_character.tscn`, adds `C_InputComponent` + `C_AIBrainComponent`, defaults tags to `npc/ai/character`).
+  - `scenes/core/prefabs/prefab_demo_npc.tscn` (inherits `tmpl_character.tscn`, adds `C_InputComponent` + `C_AIBrainComponent`, defaults tags to `npc/ai/character`).
 - Replaced inline NPC entities with prefab instances:
-  - `scenes/gameplay/gameplay_power_core.tscn` (`E_PatrolDrone`)
-  - `scenes/gameplay/gameplay_comms_array.tscn` (`E_Sentry`)
-  - `scenes/gameplay/gameplay_nav_nexus.tscn` (`E_GuidePrism`)
+  - `scenes/demo/gameplay/gameplay_power_core.tscn` (`E_PatrolDrone`)
+  - `scenes/demo/gameplay/gameplay_comms_array.tscn` (`E_Sentry`)
+  - `scenes/demo/gameplay/gameplay_nav_nexus.tscn` (`E_GuidePrism`)
 - Preserved archetype differences while unifying stack:
   - Scene-local overrides keep per-NPC `brain_settings`, transform, tags, and custom visual geometry.
   - Patrol drone keeps floating tuning override via `cfg_floating_patrol_drone_default`.
@@ -329,14 +329,14 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - Added RED/GREEN showcase scene coverage:
   - `tests/unit/ai/resources/test_ai_showcase_scene.gd` (`11/11`) verifies scene loads, has 4 NPCs with correct brain resources, unified component stacks, all required waypoint/marker/trigger nodes, and scene registry registration.
 - Authored combined showcase scene:
-  - `scenes/gameplay/gameplay_ai_showcase.tscn` — 60×30 unit CSG room with 3 color-coded zones (blue=patrol, red=guard, green=guide), 6m gap passages at x=±10, 4 NPC instances (E_PatrolDroneA, E_PatrolDroneB, E_Sentry, E_GuidePrism) using `prefab_demo_npc.tscn` with per-NPC `C_AIBrainComponent` brain overrides.
+  - `scenes/demo/gameplay/gameplay_ai_showcase.tscn` — 60×30 unit CSG room with 3 color-coded zones (blue=patrol, red=guard, green=guide), 6m gap passages at x=±10, 4 NPC instances (E_PatrolDroneA, E_PatrolDroneB, E_Sentry, E_GuidePrism) using `prefab_demo_npc.tscn` with per-NPC `C_AIBrainComponent` brain overrides.
 - Registered showcase scene:
-  - `resources/scene_registry/cfg_ai_showcase_entry.tres`
-  - `scripts/scene_management/helpers/u_scene_registry_loader.gd` — preload const + backfill entry added.
+  - `resources/core/scene_registry/cfg_ai_showcase_entry.tres`
+  - `scripts/core/scene_management/helpers/u_scene_registry_loader.gd` — preload const + backfill entry added.
 - Updated default new-game routing to target `ai_showcase`:
-  - `scripts/ui/menus/ui_main_menu.gd` (`DEFAULT_GAMEPLAY_SCENE`)
-  - `scripts/ui/menus/ui_splash_screen.gd` (`DEFAULT_GAMEPLAY_SCENE_ID`)
-  - `scripts/managers/m_scene_manager.gd` (background preload target)
+  - `scripts/core/ui/menus/ui_main_menu.gd` (`DEFAULT_GAMEPLAY_SCENE`)
+  - `scripts/core/ui/menus/ui_splash_screen.gd` (`DEFAULT_GAMEPLAY_SCENE_ID`)
+  - `scripts/core/managers/m_scene_manager.gd` (background preload target)
   - `resources/cfg_game_config.tres` (`retry_scene_id = &"ai_showcase"`)
 - Updated regression tests for new default:
   - `tests/unit/scene_manager/test_scene_registry.gd` — ai_showcase backfill + manifest assertions added.
@@ -357,18 +357,18 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
   - `tests/unit/gameplay/test_s_demo_alarm_relay_system.gd` (`3/3`, renamed from `tests/unit/ecs/systems/test_s_ai_demo_alarm_relay_system.gd` during R8)
   - `tests/unit/ai/resources/test_ai_showcase_scene.gd` expanded to `18/18` with M15 assertions
 - Implemented new detection + relay runtime:
-  - `scripts/ecs/components/c_detection_component.gd`
-  - `scripts/ecs/systems/s_ai_detection_system.gd` (`execution_priority = -12`)
-  - `scripts/demo/gameplay/s_demo_alarm_relay_system.gd` (`execution_priority = -11`, moved from `scripts/ecs/systems/s_ai_demo_alarm_relay_system.gd` during R8)
+  - `scripts/core/ecs/components/c_detection_component.gd`
+  - `scripts/core/ecs/systems/s_ai_detection_system.gd` (`execution_priority = -12`)
+  - `scripts/demo/gameplay/s_demo_alarm_relay_system.gd` (`execution_priority = -11`, moved from `scripts/core/ecs/systems/s_ai_demo_alarm_relay_system.gd` during R8)
   - `scripts/demo/gameplay/inter_ai_demo_guard_barrier.gd`
 - Updated showcase behavior/resources for trigger-driven interactions:
   - Added guide showcase resources:
-    - `resources/ai/guide_prism/cfg_goal_idle_showcase.tres`
-    - `resources/ai/guide_prism/cfg_goal_show_path_showcase.tres`
-    - `resources/ai/guide_prism/cfg_guide_showcase_brain.tres`
-  - Updated `resources/ai/sentry/cfg_goal_investigate_disturbance.tres` to publish `ai_alarm_triggered` for cross-NPC cascade behavior.
-  - Updated `scenes/prefabs/prefab_demo_npc.tscn` to include `C_DetectionComponent`.
-  - Updated `scenes/gameplay/gameplay_ai_showcase.tscn` with:
+    - `resources/demo/ai/guide_prism/cfg_goal_idle_showcase.tres`
+    - `resources/demo/ai/guide_prism/cfg_goal_show_path_showcase.tres`
+    - `resources/demo/ai/guide_prism/cfg_guide_showcase_brain.tres`
+  - Updated `resources/demo/ai/sentry/cfg_goal_investigate_disturbance.tres` to publish `ai_alarm_triggered` for cross-NPC cascade behavior.
+  - Updated `scenes/core/prefabs/prefab_demo_npc.tscn` to include `C_DetectionComponent`.
+  - Updated `scenes/demo/gameplay/gameplay_ai_showcase.tscn` with:
     - systems: `S_AIDetectionSystem`, `S_DemoAlarmRelaySystem`
     - interactions: `Inter_AlarmButton`, `Inter_DoorSwitch`, `Inter_GuideCollectible`
     - barrier listener node: `SO_GuardBarrier` (`Inter_AIDemoGuardBarrier`)
@@ -389,12 +389,12 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
   - `tests/unit/ai/resources/test_rs_ai_task.gd` (expanded to `9/9`)
   - `tests/unit/ecs/components/test_c_ai_brain_component.gd` (expanded to `11/11`)
 - Implemented typed AI data contracts:
-  - `scripts/resources/ai/brain/rs_ai_brain_settings.gd` (`goals: Array[RS_AIGoal]`)
-  - `scripts/resources/ai/goals/rs_ai_goal.gd` (`root_task: RS_AITask`, `conditions: Array[I_Condition]`)
-  - `scripts/resources/ai/tasks/rs_ai_primitive_task.gd` (`action: I_AIAction`)
-  - `scripts/resources/ai/tasks/rs_ai_compound_task.gd` (`subtasks: Array[RS_AITask]`, `method_conditions: Array[I_Condition]`)
-  - `scripts/ecs/components/c_ai_brain_component.gd` (`brain_settings: RS_AIBrainSettings`, `current_task_queue: Array[RS_AIPrimitiveTask]`, typed accessors)
-- Removed AI hot-path duck-typing usage from `scripts/ecs/systems/s_ai_behavior_system.gd` in favor of typed brain/settings/goal/task/action flow.
+  - `scripts/demo/resources/ai/brain/rs_ai_brain_settings.gd` (`goals: Array[RS_AIGoal]`)
+  - `scripts/demo/resources/ai/goals/rs_ai_goal.gd` (`root_task: RS_AITask`, `conditions: Array[I_Condition]`)
+  - `scripts/demo/resources/ai/tasks/rs_ai_primitive_task.gd` (`action: I_AIAction`)
+  - `scripts/demo/resources/ai/tasks/rs_ai_compound_task.gd` (`subtasks: Array[RS_AITask]`, `method_conditions: Array[I_Condition]`)
+  - `scripts/core/ecs/components/c_ai_brain_component.gd` (`brain_settings: RS_AIBrainSettings`, `current_task_queue: Array[RS_AIPrimitiveTask]`, typed accessors)
+- Removed AI hot-path duck-typing usage from `scripts/core/ecs/systems/s_ai_behavior_system.gd` in favor of typed brain/settings/goal/task/action flow.
 - Verification:
   - Targeted suites:
     - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/resources/test_rs_ai_goal.gd` → `10/10`
@@ -416,9 +416,9 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
   - `tests/unit/ai/test_i_ai_action_base.gd` (`2/2`)
   - `tests/unit/style/test_style_enforcement.gd` expanded to `18/18` (AI move-target magic-string guard)
 - Implemented shared AI task-state keys:
-  - `scripts/utils/ai/u_ai_task_state_keys.gd` (`class_name U_AITaskStateKeys`)
+  - `scripts/core/utils/ai/u_ai_task_state_keys.gd` (`class_name U_AITaskStateKeys`)
 - Hardened `I_AIAction` base contract:
-  - `scripts/interfaces/i_ai_action.gd` now asserts on base virtual invocation (`start`, `tick`, `is_complete`).
+  - `scripts/core/interfaces/i_ai_action.gd` now asserts on base virtual invocation (`start`, `tick`, `is_complete`).
   - All action resources now extend `I_AIAction` via class name:
     - `rs_ai_action_move_to.gd`
     - `rs_ai_action_wait.gd`
@@ -427,9 +427,9 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
     - `rs_ai_action_publish_event.gd`
     - `rs_ai_action_set_field.gd`
 - Replaced duplicated task-state string literals with `U_AITaskStateKeys` in:
-  - `scripts/resources/ai/actions/rs_ai_action_move_to.gd`
-  - `scripts/ecs/systems/s_ai_behavior_system.gd`
-  - `scripts/ecs/systems/s_ai_navigation_system.gd`
+  - `scripts/demo/resources/ai/actions/rs_ai_action_move_to.gd`
+  - `scripts/core/ecs/systems/s_ai_behavior_system.gd`
+  - `scripts/core/ecs/systems/s_ai_navigation_system.gd`
 - Verification:
   - Targeted suites:
     - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/test_u_ai_task_state_keys.gd` → `4/4`
@@ -455,15 +455,15 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
   - `tests/unit/ai/test_u_ai_replanner.gd` (`4/4`)
   - `tests/unit/ai/test_u_ai_context_builder.gd` (`4/4`)
 - Implemented extracted collaborators:
-  - `scripts/utils/ai/u_ai_goal_selector.gd`
-  - `scripts/utils/ai/u_ai_task_runner.gd`
-  - `scripts/utils/ai/u_ai_replanner.gd`
-  - `scripts/utils/ai/u_ai_context_builder.gd`
+  - `scripts/core/utils/ai/u_ai_goal_selector.gd`
+  - `scripts/core/utils/ai/u_ai_task_runner.gd`
+  - `scripts/core/utils/ai/u_ai_replanner.gd`
+  - `scripts/core/utils/ai/u_ai_context_builder.gd`
 - Refactored `S_AIBehaviorSystem` to orchestration-first composition:
-  - `scripts/ecs/systems/s_ai_behavior_system.gd` now delegates goal selection/replanning/task execution/context assembly to the collaborator utilities while preserving existing cooldown bookkeeping and debug logging behavior for R4 follow-up.
+  - `scripts/core/ecs/systems/s_ai_behavior_system.gd` now delegates goal selection/replanning/task execution/context assembly to the collaborator utilities while preserving existing cooldown bookkeeping and debug logging behavior for R4 follow-up.
   - Maintains existing pooled-rule observability (`_rule_pool`) used by legacy behavior-system tests.
 - Line-count reduction:
-  - `scripts/ecs/systems/s_ai_behavior_system.gd` reduced from the pre-refactor `771`-line baseline to `372` lines after R3.
+  - `scripts/core/ecs/systems/s_ai_behavior_system.gd` reduced from the pre-refactor `771`-line baseline to `372` lines after R3.
 - Verification:
   - Targeted R3 suite:
     - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/test_u_ai_goal_selector.gd` → `7/7`
@@ -483,19 +483,19 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
   - `tests/unit/utils/debug/test_u_debug_log_throttle.gd` (`5/5`)
   - `tests/unit/utils/debug/test_u_ai_render_probe.gd` (`4/4`)
 - Implemented shared debug utilities:
-  - `scripts/utils/debug/u_debug_log_throttle.gd` (`class_name U_DebugLogThrottle`)
+  - `scripts/core/utils/debug/u_debug_log_throttle.gd` (`class_name U_DebugLogThrottle`)
   - `scripts/demo/debug/utils/u_ai_render_probe.gd` (`class_name U_AIRenderProbe`)
 - Refactored AI systems to remove duplicated probe/cooldown logic:
-  - `scripts/ecs/systems/s_ai_behavior_system.gd` now composes `U_DebugLogThrottle` and `U_AIRenderProbe` and no longer owns `_build_render_probe` / `_tick_debug_log_cooldowns` helper stacks.
-  - `scripts/ecs/systems/s_ai_navigation_system.gd` now composes the same utility pair and no longer owns duplicate probe/cooldown helpers.
+  - `scripts/core/ecs/systems/s_ai_behavior_system.gd` now composes `U_DebugLogThrottle` and `U_AIRenderProbe` and no longer owns `_build_render_probe` / `_tick_debug_log_cooldowns` helper stacks.
+  - `scripts/core/ecs/systems/s_ai_navigation_system.gd` now composes the same utility pair and no longer owns duplicate probe/cooldown helpers.
 - Added detached-node safety in probe rendering:
   - `U_AIRenderProbe` now emits safe `<detached:...>` path markers and uses local `position` when nodes are outside the scene tree, avoiding headless test warnings/errors.
 - Completed R4 stretch migration:
   - Replaced duplicated debug-cooldown loops with `U_DebugLogThrottle` in `S_FloatingSystem`, `S_GravitySystem`, `S_MovementSystem`, and the pre-R5 `S_AISpawnRecoverySystem` (now superseded by `S_SpawnRecoverySystem` in R5).
   - Added shared `U_NodeFind.find_character_body_recursive(...)` and migrated recursive body lookup call sites in `C_MovementComponent`, `U_VCamRuntimeContext`, and `U_AIRenderProbe`.
 - Line-count reduction:
-  - `scripts/ecs/systems/s_ai_behavior_system.gd`: `372` → `264`
-  - `scripts/ecs/systems/s_ai_navigation_system.gd`: `306` → `200`
+  - `scripts/core/ecs/systems/s_ai_behavior_system.gd`: `372` → `264`
+  - `scripts/core/ecs/systems/s_ai_navigation_system.gd`: `306` → `200`
 - Verification:
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/utils/debug/test_u_debug_log_throttle.gd` → `5/5`
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/utils/debug/test_u_ai_render_probe.gd` → `4/4`
@@ -519,19 +519,19 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
   - `tests/unit/ecs/systems/test_s_spawn_recovery_system.gd` (`6/6`)
   - `tests/integration/spawn_system/test_player_spawn_recovery_power_core.gd` (`1/1`)
 - Implemented shared spawn-recovery runtime:
-  - `scripts/resources/ecs/rs_spawn_recovery_settings.gd`
-  - `scripts/ecs/components/c_spawn_recovery_component.gd`
-  - `scripts/ecs/systems/s_spawn_recovery_system.gd`
+  - `scripts/core/resources/ecs/rs_spawn_recovery_settings.gd`
+  - `scripts/core/ecs/components/c_spawn_recovery_component.gd`
+  - `scripts/core/ecs/systems/s_spawn_recovery_system.gd`
 - Migrated AI/player wiring to shared component settings:
-  - Removed respawn fields from `scripts/resources/ai/brain/rs_ai_brain_settings.gd`.
-  - Added `resources/ai/patrol_drone/cfg_patrol_drone_spawn_recovery.tres`.
-  - Added `C_SpawnRecoveryComponent` to `scenes/prefabs/prefab_demo_npc.tscn` and `scenes/prefabs/prefab_player.tscn`.
+  - Removed respawn fields from `scripts/demo/resources/ai/brain/rs_ai_brain_settings.gd`.
+  - Added `resources/demo/ai/patrol_drone/cfg_patrol_drone_spawn_recovery.tres`.
+  - Added `C_SpawnRecoveryComponent` to `scenes/core/prefabs/prefab_demo_npc.tscn` and `scenes/core/prefabs/prefab_player.tscn`.
   - Added defaults:
-    - `resources/base_settings/gameplay/cfg_spawn_recovery_default.tres`
-    - `resources/base_settings/gameplay/cfg_spawn_recovery_player_default.tres`
+    - `resources/core/base_settings/gameplay/cfg_spawn_recovery_default.tres`
+    - `resources/core/base_settings/gameplay/cfg_spawn_recovery_player_default.tres`
   - Replaced scene wiring to use `S_SpawnRecoverySystem` in gameplay/template scenes.
 - Removed legacy AI-only recovery artifacts:
-  - deleted `scripts/ecs/systems/s_ai_spawn_recovery_system.gd`
+  - deleted `scripts/core/ecs/systems/s_ai_spawn_recovery_system.gd`
   - deleted `tests/unit/ecs/systems/test_s_ai_spawn_recovery_system.gd`
 - Verification:
   - Targeted suites:
@@ -552,18 +552,18 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
   - `tests/unit/ecs/components/test_c_move_target_component.gd` (`4/4`)
   - `tests/unit/ecs/systems/test_s_move_target_follower_system.gd` (`5/5`)
 - Implemented generalized move-target runtime:
-  - `scripts/ecs/components/c_move_target_component.gd`
-  - `scripts/ecs/systems/s_move_target_follower_system.gd`
+  - `scripts/core/ecs/components/c_move_target_component.gd`
+  - `scripts/core/ecs/systems/s_move_target_follower_system.gd`
 - Migrated shared/runtime call sites and deleted legacy AI-only bridge:
   - Updated scene wiring in:
-    - `scenes/templates/tmpl_base_scene.tscn`
-    - `scenes/gameplay/gameplay_base.tscn`
-    - `scenes/gameplay/gameplay_ai_showcase.tscn`
-    - `scenes/gameplay/gameplay_power_core.tscn`
-    - `scenes/gameplay/gameplay_comms_array.tscn`
-    - `scenes/gameplay/gameplay_nav_nexus.tscn`
+    - `scenes/core/templates/tmpl_base_scene.tscn`
+    - `scenes/demo/gameplay/gameplay_base.tscn`
+    - `scenes/demo/gameplay/gameplay_ai_showcase.tscn`
+    - `scenes/demo/gameplay/gameplay_power_core.tscn`
+    - `scenes/demo/gameplay/gameplay_comms_array.tscn`
+    - `scenes/demo/gameplay/gameplay_nav_nexus.tscn`
   - Deleted:
-    - `scripts/ecs/systems/s_ai_navigation_system.gd`
+    - `scripts/core/ecs/systems/s_ai_navigation_system.gd`
     - `tests/unit/ecs/systems/test_s_ai_navigation_system.gd`
   - Post-R6 follow-up complete: `RS_AIActionMoveTo` now routes to `C_MoveTargetComponent` when present while preserving task-state compatibility writes for legacy/fallback paths.
 - Compatibility/verification:
@@ -581,16 +581,16 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 
 - Added RED/GREEN style-layout guard:
   - `tests/unit/style/test_style_enforcement.gd`
-    - Added `test_ai_resource_scripts_are_grouped_by_subdirectory` to enforce AI resource layout under `scripts/resources/ai/{brain,goals,tasks,actions}/`.
+    - Added `test_ai_resource_scripts_are_grouped_by_subdirectory` to enforce AI resource layout under `scripts/demo/resources/ai/{brain,goals,tasks,actions}/`.
 - Reorganized AI resource scripts and `.uid` sidecars:
-  - `scripts/resources/ai/brain/rs_ai_brain_settings.gd`
-  - `scripts/resources/ai/goals/rs_ai_goal.gd`
-  - `scripts/resources/ai/tasks/rs_ai_task.gd`
-  - `scripts/resources/ai/tasks/rs_ai_primitive_task.gd`
-  - `scripts/resources/ai/tasks/rs_ai_compound_task.gd`
+  - `scripts/demo/resources/ai/brain/rs_ai_brain_settings.gd`
+  - `scripts/demo/resources/ai/goals/rs_ai_goal.gd`
+  - `scripts/demo/resources/ai/tasks/rs_ai_task.gd`
+  - `scripts/demo/resources/ai/tasks/rs_ai_primitive_task.gd`
+  - `scripts/demo/resources/ai/tasks/rs_ai_compound_task.gd`
 - Updated all script/resource path consumers:
   - `preload(...)` and `extends` call sites across `scripts/` and `tests/`.
-  - `resources/ai/**/*.tres` `ext_resource` script paths.
+  - `resources/demo/ai/**/*.tres` `ext_resource` script paths.
   - AI doc references in `docs/ai_system/`.
 - Ran class-cache refresh after moving `class_name` scripts:
   - `HOME="$PWD/.godot_user" /Applications/Godot.app/Contents/MacOS/Godot --headless --path . --import`
@@ -603,7 +603,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `19/20` (new R7 test passes; existing `test_rule_systems_do_not_define_local_rule_pipeline_helpers` fails)
   - Full regression snapshot (2026-04-10): `tools/run_gut_suite.sh` → `3913/3929` passing, `7` failing, `9` pending/risky.
   - Remaining failures are outside R7 scope:
-    - `tests/unit/ecs/systems/test_u_rule_evaluator.gd` (`6` tests failing; missing `res://scripts/utils/ecs/u_rule_evaluator.gd`)
+    - `tests/unit/ecs/systems/test_u_rule_evaluator.gd` (`6` tests failing; missing `res://scripts/core/utils/ecs/u_rule_evaluator.gd`)
     - `tests/unit/style/test_style_enforcement.gd::test_rule_systems_do_not_define_local_rule_pipeline_helpers`
 
 ### Completed in R8 (2026-04-11)
@@ -611,14 +611,14 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - Added RED/GREEN demo-placement style coverage:
   - `tests/unit/style/test_style_enforcement.gd` now includes `test_ecs_system_filenames_do_not_include_demo_marker`.
 - Moved demo-only alarm relay runtime and test out of production ECS folders:
-  - `scripts/ecs/systems/s_ai_demo_alarm_relay_system.gd` → `scripts/demo/gameplay/s_demo_alarm_relay_system.gd`
+  - `scripts/core/ecs/systems/s_ai_demo_alarm_relay_system.gd` → `scripts/demo/gameplay/s_demo_alarm_relay_system.gd`
   - `tests/unit/ecs/systems/test_s_ai_demo_alarm_relay_system.gd` → `tests/unit/gameplay/test_s_demo_alarm_relay_system.gd`
   - Relay class renamed `S_AIDemoAlarmRelaySystem` → `S_DemoAlarmRelaySystem`
 - Updated wiring and compatibility call sites:
-  - `scenes/gameplay/gameplay_ai_showcase.tscn` now wires `S_DemoAlarmRelaySystem` from `scripts/demo/gameplay/s_demo_alarm_relay_system.gd`.
+  - `scenes/demo/gameplay/gameplay_ai_showcase.tscn` now wires `S_DemoAlarmRelaySystem` from `scripts/demo/gameplay/s_demo_alarm_relay_system.gd`.
   - `tests/integration/gameplay/test_ai_interaction_triggers.gd` now loads the gameplay-scoped relay script path.
   - `tests/unit/ai/resources/test_ai_showcase_scene.gd` now validates `Systems/Core/S_DemoAlarmRelaySystem`.
-  - `tests/unit/style/test_style_enforcement.gd` gameplay prefix rules now permit `s_` scripts in `scripts/gameplay/`.
+  - `tests/unit/style/test_style_enforcement.gd` gameplay prefix rules now permit `s_` scripts in `scripts/demo/gameplay/`.
 - Verification:
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `21/21`
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/gameplay/test_s_demo_alarm_relay_system.gd` → `3/3`
@@ -632,16 +632,16 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - Added planner statelessness coverage:
   - `tests/unit/ai/test_u_htn_planner.gd` now includes `test_reusable_rule_is_not_mutated_between_calls`.
 - Extracted HTN runtime context state into a dedicated utility object:
-  - `scripts/utils/ai/u_htn_planner_context.gd` (`class_name U_HTNPlannerContext`)
+  - `scripts/core/utils/ai/u_htn_planner_context.gd` (`class_name U_HTNPlannerContext`)
 - Refactored planner internals to consume a context object while preserving public API:
-  - `scripts/utils/ai/u_htn_planner.gd` still exposes `decompose(task, context, max_depth)` with unchanged behavior.
+  - `scripts/core/utils/ai/u_htn_planner.gd` still exposes `decompose(task, context, max_depth)` with unchanged behavior.
 - Verification:
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/test_u_htn_planner.gd` → `11/11`
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_ai_pipeline_integration.gd` → `6/6`
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` → `21/21`
   - Full regression snapshot: `tools/run_gut_suite.sh` → `3922/3931` passing, `9` pending/risky, `0` failing.
 - Internal reduction metric:
-  - `scripts/utils/ai/u_htn_planner.gd` line count reduced `107` → `106`.
+  - `scripts/core/utils/ai/u_htn_planner.gd` line count reduced `107` → `106`.
 
 ### Completed in R10 (2026-04-11)
 
@@ -650,7 +650,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
     - `test_ai_behavior_system_has_no_local_duck_typing_helpers`
     - `test_ai_behavior_system_stays_under_two_hundred_lines`
 - Refactored behavior runtime to final orchestration shape:
-  - `scripts/ecs/systems/s_ai_behavior_system.gd` now runs frame-level snapshot resolution once, then delegates per-entity context/selection/replanning/task execution to `U_AIContextBuilder`, `U_AIGoalSelector`, `U_AIReplanner`, and `U_AITaskRunner`.
+  - `scripts/core/ecs/systems/s_ai_behavior_system.gd` now runs frame-level snapshot resolution once, then delegates per-entity context/selection/replanning/task execution to `U_AIContextBuilder`, `U_AIGoalSelector`, `U_AIReplanner`, and `U_AITaskRunner`.
   - Preserved observability contracts used by tests (`_rule_pool`, `_goal_by_id_cache`) through selector-owned caches.
   - Preserved debug throttle + render probe integration while reducing local helper breadth.
   - Restored empty-manager-snapshot fallback to store state in `_resolve_redux_state(...)` to keep HTN method-condition context parity.
@@ -664,7 +664,7 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
     - `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_ai_goal_resume.gd` → `3/3`
   - Full regression snapshot: `tools/run_gut_suite.sh` → `3924/3933` passing, `9` pending/risky, `0` failing.
 - Internal reduction metric:
-  - `scripts/ecs/systems/s_ai_behavior_system.gd` line count reduced `264` → `195`.
+  - `scripts/core/ecs/systems/s_ai_behavior_system.gd` line count reduced `264` → `195`.
 
 ### Key Design Decisions
 
@@ -696,8 +696,8 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 - **R4 stretch migration is complete**: shared debug-throttle usage now covers `S_FloatingSystem`, `S_GravitySystem`, `S_MovementSystem`, and the spawn-recovery system lineage (`S_AISpawnRecoverySystem` pre-R5, `S_SpawnRecoverySystem` post-R5); recursive `CharacterBody3D` lookup is now centralized via `U_NodeFind`.
 - **R5 shared spawn-recovery migration is complete**: `S_SpawnRecoverySystem` + `C_SpawnRecoveryComponent` + `RS_SpawnRecoverySettings` now own unsupported-entity recovery for both player and NPC flows; AI-brain-owned `respawn_*` fields were removed from `RS_AIBrainSettings`, and legacy `S_AISpawnRecoverySystem` was deleted.
 - **R6 move-target follower generalization is complete**: move-target following is now shared runtime behavior (`C_MoveTargetComponent` + `S_MoveTargetFollowerSystem`) with AI-task-state fallback for compatibility; `S_AINavigationSystem` was removed.
-- **R7 AI resource directory reorganization is complete**: AI core resources are now grouped by concept under `scripts/resources/ai/brain/`, `scripts/resources/ai/goals/`, `scripts/resources/ai/tasks/`, and `scripts/resources/ai/actions/`; style enforcement now guards against new top-level `rs_ai_*.gd` drift.
-- **R8 demo-only system placement is complete**: demo relay runtime moved to `scripts/demo/gameplay/s_demo_alarm_relay_system.gd` (`S_DemoAlarmRelaySystem`), `scripts/ecs/systems` now rejects `_demo_` filenames via style enforcement, and showcase/integration tests are wired to the gameplay-scoped relay path.
+- **R7 AI resource directory reorganization is complete**: AI core resources are now grouped by concept under `scripts/demo/resources/ai/brain/`, `scripts/demo/resources/ai/goals/`, `scripts/demo/resources/ai/tasks/`, and `scripts/demo/resources/ai/actions/`; style enforcement now guards against new top-level `rs_ai_*.gd` drift.
+- **R8 demo-only system placement is complete**: demo relay runtime moved to `scripts/demo/gameplay/s_demo_alarm_relay_system.gd` (`S_DemoAlarmRelaySystem`), `scripts/core/ecs/systems` now rejects `_demo_` filenames via style enforcement, and showcase/integration tests are wired to the gameplay-scoped relay path.
 - **R9 HTN planner context-object cleanup is complete**: planner recursion now carries mutable state through `U_HTNPlannerContext` (`reusable_rule`, `recursion_stack`, `result`, `max_depth`, `depth`) instead of threading these values as standalone recursive parameters in `U_HTNPlanner`.
 - **R10 orchestration integration pass is complete**: `S_AIBehaviorSystem` is now an orchestration-only runtime (`195` lines), style enforcement guards AI-local duck-typing helper reintroduction and line-budget regression, and per-frame state snapshot fallback to store state is preserved for method-condition context compatibility.
 
@@ -721,35 +721,35 @@ This guide directs you to implement the AI System (GOAP / HTN) by following the 
 
 Study these existing consumers of QB v2 — they define the pattern you must follow:
 
-- `scripts/ecs/systems/s_character_state_system.gd` — QB v2 composition pattern (U_RuleScorer, U_RuleSelector, U_RuleStateTracker). Study `_build_entity_context()` for context dict construction.
-- `scripts/ecs/systems/s_game_event_system.gd` — Event-driven QB evaluation pattern with per-entity context fan-out.
-- `scripts/ecs/systems/s_camera_state_system.gd` — QB v2 with camera-specific context building.
+- `scripts/core/ecs/systems/s_character_state_system.gd` — QB v2 composition pattern (U_RuleScorer, U_RuleSelector, U_RuleStateTracker). Study `_build_entity_context()` for context dict construction.
+- `scripts/core/ecs/systems/s_game_event_system.gd` — Event-driven QB evaluation pattern with per-entity context fan-out.
+- `scripts/core/ecs/systems/s_camera_state_system.gd` — QB v2 with camera-specific context building.
 
 Study these for ECS conventions:
 
-- `scripts/ecs/base_ecs_system.gd` — Base system class, `process_tick(delta)` contract.
-- `scripts/ecs/base_ecs_component.gd` — Base component class, `COMPONENT_TYPE`, `_validate_required_settings()`.
-- `scripts/managers/m_ecs_manager.gd` — Component registration, queries, entity management.
+- `scripts/core/ecs/base_ecs_system.gd` — Base system class, `process_tick(delta)` contract.
+- `scripts/core/ecs/base_ecs_component.gd` — Base component class, `COMPONENT_TYPE`, `_validate_required_settings()`.
+- `scripts/core/managers/m_ecs_manager.gd` — Component registration, queries, entity management.
 
 Study these for the typed resource + interface pattern (I_AIAction follows this exactly):
 
-- `scripts/interfaces/i_condition.gd` — Interface: `evaluate(context) -> float`. AI actions follow this pattern with `start/tick/is_complete`.
-- `scripts/interfaces/i_effect.gd` — Interface: `execute(context) -> void`. Same polymorphic dispatch pattern.
-- `scripts/resources/qb/conditions/rs_condition_component_field.gd` — Example typed condition with `@export_group` + `@export` fields for inspector UX.
-- `scripts/resources/qb/effects/rs_effect_set_field.gd` — Example typed effect with multiple `@export` value types.
+- `scripts/core/interfaces/i_condition.gd` — Interface: `evaluate(context) -> float`. AI actions follow this pattern with `start/tick/is_complete`.
+- `scripts/core/interfaces/i_effect.gd` — Interface: `execute(context) -> void`. Same polymorphic dispatch pattern.
+- `scripts/core/resources/qb/conditions/rs_condition_component_field.gd` — Example typed condition with `@export_group` + `@export` fields for inspector UX.
+- `scripts/core/resources/qb/effects/rs_effect_set_field.gd` — Example typed effect with multiple `@export` value types.
 
 Study these for movement/input foundations used by the implemented M7 AI navigation bridge:
 
-- `scripts/ecs/systems/s_input_system.gd` — Player input writer with `C_PlayerTagComponent` query filtering so player input writes only to player-tagged entities.
-- `scripts/ecs/systems/s_movement_system.gd` — Player movement remains camera-relative; AI entities (`C_AIBrainComponent`) now consume world-space `C_InputComponent.move_vector` via `_get_desired_velocity()`.
-- `scripts/utils/ecs/u_ecs_utils.gd` — Active camera lookup helpers used by movement-oriented ECS systems.
+- `scripts/core/ecs/systems/s_input_system.gd` — Player input writer with `C_PlayerTagComponent` query filtering so player input writes only to player-tagged entities.
+- `scripts/core/ecs/systems/s_movement_system.gd` — Player movement remains camera-relative; AI entities (`C_AIBrainComponent`) now consume world-space `C_InputComponent.move_vector` via `_get_desired_velocity()`.
+- `scripts/core/utils/ecs/u_ecs_utils.gd` — Active camera lookup helpers used by movement-oriented ECS systems.
 
 Study these for utility and event patterns:
 
-- `scripts/utils/qb/u_rule_scorer.gd` — Rule scoring API.
-- `scripts/utils/qb/u_rule_selector.gd` — Winner selection API.
-- `scripts/utils/qb/u_rule_state_tracker.gd` — Cooldowns, salience, one-shot gating.
-- `scripts/utils/qb/u_path_resolver.gd` — Dot-path traversal for condition evaluation.
+- `scripts/core/utils/qb/u_rule_scorer.gd` — Rule scoring API.
+- `scripts/core/utils/qb/u_rule_selector.gd` — Winner selection API.
+- `scripts/core/utils/qb/u_rule_state_tracker.gd` — Cooldowns, salience, one-shot gating.
+- `scripts/core/utils/qb/u_path_resolver.gd` — Dot-path traversal for condition evaluation.
 - `scripts/core/events/ecs/u_ecs_event_bus.gd` — Event publishing for RS_AIActionPublishEvent.
 
 ### 4. Execute AI System Refactor Tasks in Order
@@ -762,7 +762,7 @@ M1–M15 are complete. **The AI system refactor is complete (R1–R10).** Use `d
 4. **R4** — Extract Debug Probe + Log Throttle Utilities (delete duplicated `_build_render_probe` + `_tick_debug_log_cooldowns`) **COMPLETE (2026-04-10)**
 5. **R5** — Share Spawn Recovery Between Player and NPCs (promote `s_ai_spawn_recovery_system.gd` to generic `s_spawn_recovery_system.gd`) **COMPLETE (2026-04-10)**
 6. **R6** — Generalize the Move-Target Navigation Bridge (rename `s_ai_navigation_system.gd` → `s_move_target_follower_system.gd`, add `C_MoveTargetComponent`) **COMPLETE (2026-04-10)**
-7. **R7** — Reorganize AI Resource Directories (`scripts/resources/ai/{brain,goals,tasks,actions}/`) **COMPLETE (2026-04-10)**
+7. **R7** — Reorganize AI Resource Directories (`scripts/demo/resources/ai/{brain,goals,tasks,actions}/`) **COMPLETE (2026-04-10)**
 8. **R8** — Move Demo-Only Systems Out of Production Folder (`s_ai_demo_alarm_relay_system.gd` → `scripts/demo/gameplay/s_demo_alarm_relay_system.gd`) **COMPLETE (2026-04-11)**
 9. **R9** — HTN Planner Context Object (collapse recursive params into `HTNPlannerContext`) **COMPLETE (2026-04-11)**
 10. **R10** — Behavior System Orchestration Integration (final pass: `s_ai_behavior_system.gd` under 200 lines) **COMPLETE (2026-04-11)**
@@ -803,7 +803,7 @@ You MUST:
 - **M7/M12/R6 Movement Bridge (implemented + generalized)**: `RS_AIActionMoveTo` writes task-state entries keyed by `U_AITaskStateKeys.MOVE_TARGET` + `U_AITaskStateKeys.ARRIVAL_THRESHOLD`; `S_MoveTargetFollowerSystem` (`execution_priority = -5`) resolves world-space XZ direction into `C_InputComponent.set_move_vector()`, prefers active `C_MoveTargetComponent` targets, and keeps AI task-state fallback compatibility; `S_MovementSystem` consumes world-space vectors for AI entities while preserving player camera-relative controls.
 - **R5 shared spawn recovery contract (implemented)**: `S_SpawnRecoverySystem` is now the canonical unsupported-entity recovery system for both player and NPC flows and consumes `C_SpawnRecoveryComponent.settings: RS_SpawnRecoverySettings` (not AI brain fields). Player recovery with empty `spawn_point_id` uses `I_SpawnManager.spawn_at_last_spawn(...)`; authored entity recovery uses `spawn_entity_at_point(...)`; successful recovery clears move vector/body velocity and AI `task_state` when present.
 - **M15 interaction trigger contract (implemented)**: `C_DetectionComponent` + `S_AIDetectionSystem(-12)` own player-proximity enter/exit state, and `S_DemoAlarmRelaySystem(-11)` fans `ai_alarm_triggered` to durable gameplay flags. Demo-flag updates dispatch via `U_GameplayActions.set_ai_demo_flag(...)`.
-- **Shared runtime wiring is now default**: both `scenes/templates/tmpl_base_scene.tscn` and `scenes/gameplay/gameplay_base.tscn` include `S_AIBehaviorSystem(-10)` and `S_MoveTargetFollowerSystem(-5)` before `S_InputSystem(0)`.
+- **Shared runtime wiring is now default**: both `scenes/core/templates/tmpl_base_scene.tscn` and `scenes/demo/gameplay/gameplay_base.tscn` include `S_AIBehaviorSystem(-10)` and `S_MoveTargetFollowerSystem(-5)` before `S_InputSystem(0)`.
 - **Demo Scenes are CSG Prototypes**: Use CSG geometry for all level geometry. Functional prototypes, not polished levels.
 - **Style & Organization**: Follow `docs/guides/STYLE_GUIDE.md` and node naming prefixes (S_, C_, RS_, U_, I_, E_, etc.).
 - **Update Docs After Each Milestone**: Per AGENTS.md mandate, update this continuation prompt and the tasks checklist after completing each milestone.

@@ -56,7 +56,7 @@ These tasks must be completed before UI Manager implementation can proceed. They
     ```
 
 - [x] T002_pre [PREREQ] Extend U_ButtonPromptRegistry for ui_* actions.
-  - **Files**: `scripts/ui/u_button_prompt_registry.gd`
+  - **Files**: `scripts/core/ui/u_button_prompt_registry.gd`
   - **Mappings to add**:
     | Action | Keyboard | Gamepad | Touchscreen |
     |--------|----------|---------|-------------|
@@ -105,8 +105,8 @@ These tasks must be completed before UI Manager implementation can proceed. They
 
 - [x] T010 [TDD] Define initial navigation state resource.
   - **Files**:
-    - Create `scripts/state/resources/rs_navigation_initial_state.gd`
-    - Create `resources/state/cfg_navigation_initial_state.tres`
+    - Create `scripts/core/state/resources/rs_navigation_initial_state.gd`
+    - Create `resources/core/state/cfg_navigation_initial_state.tres`
   - **Initial State Shape**:
     ```gdscript
     {
@@ -120,7 +120,7 @@ These tasks must be completed before UI Manager implementation can proceed. They
   - **Status**: Added `RS_NavigationInitialState` + `navigation_initial_state.tres` with default main_menu shell/panel.
 
 - [x] T011 [TDD] Implement navigation reducer with core actions.
-  - **Files**: Create `scripts/state/reducers/u_navigation_reducer.gd`
+  - **Files**: Create `scripts/core/state/reducers/u_navigation_reducer.gd`
   - **Actions to implement**:
     - `NAV/SET_SHELL` - Update shell and base_scene_id
     - `NAV/OPEN_PAUSE` - Push "pause_menu" to overlay_stack
@@ -139,17 +139,17 @@ These tasks must be completed before UI Manager implementation can proceed. They
 
 - [x] T012 [TDD] Register navigation slice in `M_StateStore._initialize_slices()`.
   - **Files**:
-    - Modify `scripts/state/m_state_store.gd`
-    - Create `resources/state/cfg_navigation_slice_config.tres`
+    - Modify `scripts/core/state/m_state_store.gd`
+    - Create `resources/core/state/cfg_navigation_slice_config.tres`
   - **Config**:
     - `slice_name`: "navigation"
     - `is_transient`: true (entire slice is transient)
-    - `reducer_path`: "res://scripts/state/reducers/u_navigation_reducer.gd"
+    - `reducer_path`: "res://scripts/core/state/reducers/u_navigation_reducer.gd"
   - **Acceptance**: Navigation slice initializes on store startup, can dispatch actions
   - **Status**: Navigation slice registered (transient, skipped in persistence/StateHandoff); config resource added.
 
 - [x] T013 [TDD] Implement `U_NavigationSelectors` for common queries.
-  - **Files**: Create `scripts/state/selectors/u_navigation_selectors.gd`
+  - **Files**: Create `scripts/core/state/selectors/u_navigation_selectors.gd`
   - **Selectors to implement**:
     - `get_shell(state) -> StringName`
     - `get_base_scene_id(state) -> StringName`
@@ -175,7 +175,7 @@ These tasks must be completed before UI Manager implementation can proceed. They
   - **Status**: Added coverage for pause, overlay return/resume, endgame retry/skip, and selector behavior; state suite passes.
 
 - [x] T015 [IMPL] Create navigation action creators.
-  - **Files**: Create `scripts/state/actions/u_navigation_actions.gd`
+  - **Files**: Create `scripts/core/state/actions/u_navigation_actions.gd`
   - **Action creators**:
     ```gdscript
     static func open_pause() -> Dictionary:
@@ -217,7 +217,7 @@ These tasks must be completed before UI Manager implementation can proceed. They
 ### Phase 2: UI Registry & Screen Definitions
 
 - [x] T020 [TDD] Implement `RS_UIScreenDefinition` resource and validation helpers.
-  - **Files**: Create `scripts/ui/resources/rs_ui_screen_definition.gd`
+  - **Files**: Create `scripts/core/ui/resources/rs_ui_screen_definition.gd`
   - **Resource Fields**:
     ```gdscript
     @export var screen_id: StringName
@@ -237,9 +237,9 @@ These tasks must be completed before UI Manager implementation can proceed. They
   - **Status**: Resource added with enums, `to_dictionary()`, and validation that checks required fields + `U_SceneRegistry` entries.
 
 - [x] T021 [TDD] Implement `U_UIRegistry` loader and lookup helpers.
-  - **Files**: Create `scripts/ui/u_ui_registry.gd`
+  - **Files**: Create `scripts/core/ui/u_ui_registry.gd`
   - **Responsibilities**:
-    - Load all `.tres` from `res://resources/ui_screens/`
+    - Load all `.tres` from `res://resources/core/ui_screens/`
     - Store in dictionary keyed by `screen_id`
     - Validate all entries on load
   - **Static Methods**:
@@ -252,7 +252,7 @@ These tasks must be completed before UI Manager implementation can proceed. They
   - **Status**: Registry helper loads definitions from game/test dirs, returns defensive copies, validates definitions, and exposes parent/close mode helpers.
 
 - [x] T022 [DATA] Create registry entries for base UI scenes.
-  - **Files**: Create in `resources/ui_screens/`
+  - **Files**: Create in `resources/core/ui_screens/`
     - `main_menu_screen.tres`
     - `game_over_screen.tres`
     - `victory_screen.tres`
@@ -270,7 +270,7 @@ These tasks must be completed before UI Manager implementation can proceed. They
   - **Status**: Base scene definitions added with main_menu (shell main_menu) and endgame trio (shell endgame, RESUME_TO_MENU close behavior).
 
 - [x] T023 [DATA] Create registry entries for all overlays.
-  - **Files**: Create in `resources/ui_screens/`
+  - **Files**: Create in `resources/core/ui_screens/`
     - `pause_menu_overlay.tres` (close_mode = RESUME_TO_GAMEPLAY)
     - `settings_menu_overlay.tres` (close_mode = RETURN_TO_PREVIOUS_OVERLAY)
     - `input_profile_selector_overlay.tres` (close_mode = RESUME_TO_GAMEPLAY)
@@ -313,7 +313,7 @@ These tasks must be completed before UI Manager implementation can proceed. They
   - **Status**: Section 8 of `data-model.md` now spells out triggers, pseudocode, and guard rails for the reconciliation loop.
 
 - [x] T031 [IMPL] Add reconciliation helpers to `M_SceneManager`.
-  - **Files**: Modify `scripts/managers/m_scene_manager.gd`
+  - **Files**: Modify `scripts/core/managers/m_scene_manager.gd`
   - **New Methods**:
     - `_on_navigation_slice_updated()` - Subscribe to navigation state changes
     - `_reconcile_overlays(desired_stack: Array, current_stack: Array)` - Push/pop to match
@@ -361,7 +361,7 @@ These tasks must be completed before UI Manager implementation can proceed. They
   - **Status**: Section 3.4 now details the Settings Hub responsibilities (input settings only for this phase), BasePanel contract, focus + store wiring, and parent/child integration flow. The more ambitious tabbed SettingsPanel design is deferred.
 
 - [x] T041 [IMPL] Introduce base classes for UI components.
-  - **Files**: Create in `scripts/ui/base/`
+  - **Files**: Create in `scripts/core/ui/base/`
     - `base_menu_screen.gd` - For full-screen base scenes (main_menu, game_over, etc.)
     - `base_overlay.gd` - For overlay scenes (pause_menu, settings, etc.)
     - `base_panel.gd` - For embedded panels (SettingsPanel)
@@ -372,10 +372,10 @@ These tasks must be completed before UI Manager implementation can proceed. They
     - `_get_first_focusable() -> Control` - returns first control in tab order
     - Auto-focus first control on `_ready()`
   - **Acceptance**: Base classes provide consistent behavior, reduce boilerplate
-  - **Status**: Added `BasePanel`, `BaseMenuScreen`, and `BaseOverlay` under `scripts/ui/base/` with shared store lookup, focus auto-selection, and back-action hooks plus new `test_base_ui_classes.gd` coverage.
+  - **Status**: Added `BasePanel`, `BaseMenuScreen`, and `BaseOverlay` under `scripts/core/ui/base/` with shared store lookup, focus auto-selection, and back-action hooks plus new `test_base_ui_classes.gd` coverage.
 
 - [x] T042 [REF] Refactor main_menu to panel-based architecture.
-  - **Files**: Modify `scenes/ui/main_menu.tscn`, `scripts/ui/main_menu.gd`
+  - **Files**: Modify `scenes/ui/main_menu.tscn`, `scripts/core/ui/main_menu.gd`
   - **Changes**:
     - Extend `BaseMenuScreen`
     - Read `active_menu_panel` from navigation selectors
@@ -388,7 +388,7 @@ These tasks must be completed before UI Manager implementation can proceed. They
   - **Status**: `MainMenu` now extends `BaseMenuScreen`, listens to navigation slice changes, toggles between `menu/main` and `menu/settings` panels, and dispatches navigation actions for Play/Settings; coverage added in `tests/unit/ui/test_main_menu.gd`.
 
 - [x] T043 [REF] Refactor pause_menu to use navigation actions.
-  - **Files**: Modify `scenes/ui/pause_menu.tscn`, `scripts/ui/pause_menu.gd`
+  - **Files**: Modify `scenes/ui/pause_menu.tscn`, `scripts/core/ui/pause_menu.gd`
   - **Changes**:
     - Extend `BaseOverlay`
     - "Resume" button dispatches `NAV/CLOSE_PAUSE`
@@ -400,7 +400,7 @@ These tasks must be completed before UI Manager implementation can proceed. They
   - **Status**: Pause menu now dispatches navigation actions for resume/settings/input/profile flows, and dependent overlays were updated to dispatch navigation open/close actions so the nav slice stays authoritative.
 
 - [x] T044 [REF] Refactor all settings/input overlays.
-  - **Files**: Modify in `scenes/ui/` and `scripts/ui/`:
+  - **Files**: Modify in `scenes/ui/` and `scripts/core/ui/`:
     - `settings_menu.tscn/gd` - Extend BaseOverlay, close returns to previous overlay
     - `gamepad_settings_overlay.tscn/gd` - Close resumes gameplay
     - `touchscreen_settings_overlay.tscn/gd` - Close resumes gameplay
@@ -424,7 +424,7 @@ These tasks must be completed before UI Manager implementation can proceed. They
   - **Acceptance**: Panel behavior verified through state changes
 
 - [x] T047 [REF] Migrate game_over.gd to dispatch navigation actions.
-  - **Files**: Modify `scripts/ui/game_over.gd`
+  - **Files**: Modify `scripts/core/ui/game_over.gd`
   - **Changes**:
     - "Retry" button → `store.dispatch(U_NavigationActions.retry())`
     - "Menu" button → `store.dispatch(U_NavigationActions.return_to_main_menu())`
@@ -433,7 +433,7 @@ These tasks must be completed before UI Manager implementation can proceed. They
 - _Notes (2025-12-??)_: Game over now extends BaseMenuScreen, dispatches nav actions, and has dedicated unit coverage in `tests/unit/ui/test_endgame_screens.gd`.
 
 - [x] T048 [REF] Migrate victory.gd to dispatch navigation actions.
-  - **Files**: Modify `scripts/ui/victory.gd`
+  - **Files**: Modify `scripts/core/ui/victory.gd`
   - **Changes**:
     - "Continue" button → `store.dispatch(U_NavigationActions.return_to_main_menu())` or continue logic
     - "Credits" button → `store.dispatch(U_NavigationActions.skip_to_credits())`
@@ -443,7 +443,7 @@ These tasks must be completed before UI Manager implementation can proceed. They
 - _Notes (2025-12-??)_: Victory view now extends BaseMenuScreen, dispatches nav actions (continue/credits/menu/back), and is covered by `tests/unit/ui/test_endgame_screens.gd`.
 
 - [x] T049 [REF] Migrate credits.gd to dispatch navigation actions.
-  - **Files**: Modify `scripts/ui/credits.gd`
+  - **Files**: Modify `scripts/core/ui/credits.gd`
   - **Changes**:
     - "Skip" button → `store.dispatch(U_NavigationActions.skip_to_menu())`
     - Auto-scroll timeout → `store.dispatch(U_NavigationActions.skip_to_menu())`
@@ -452,7 +452,7 @@ These tasks must be completed before UI Manager implementation can proceed. They
 - _Notes (2025-12-??)_: Credits controller now dispatches `skip_to_menu()` for skip/back/auto return and includes timer coverage in `tests/unit/ui/test_endgame_screens.gd`.
 
 - [x] T050_a [REF] Migrate hud_controller.gd to use navigation selectors.
-  - **Files**: Modify `scripts/ui/hud_controller.gd`
+  - **Files**: Modify `scripts/core/ui/hud_controller.gd`
   - **Current Code** (lines 213-216):
     ```gdscript
     func _is_paused(state: Dictionary) -> bool:
@@ -469,7 +469,7 @@ These tasks must be completed before UI Manager implementation can proceed. They
 - _Notes (2025-12-??)_: HUD pause detection now defers to `U_NavigationSelectors.is_paused`, and `tests/unit/ui/test_hud_controller.gd` & `test_hud_interactions_pause_and_signpost.gd` updated accordingly.
 
 - [x] T050_b [REF] Simplify mobile_controls.gd visibility with navigation selectors.
-  - **Files**: Modify `scripts/ui/mobile_controls.gd`
+  - **Files**: Modify `scripts/core/ui/mobile_controls.gd`
   - **Current Code** (lines 301-306) - 6 conditions:
     ```gdscript
     var device_allows: bool = _device_type == M_InputDeviceManager.DeviceType.TOUCHSCREEN
@@ -495,7 +495,7 @@ These tasks remove direct pause/ESC input handling from existing systems, consol
 
 - [x] T070 [REF] Align Pause System with Navigation Slice.
   - **Files**:
-    - `scripts/ecs/systems/m_pause_manager.gd`
+    - `scripts/core/ecs/systems/m_pause_manager.gd`
     - `tests/unit/ecs/systems/test_m_pause_manager.gd`
   - **Deliverables**:
     - M_PauseManager no longer reads input events (`event.is_action_pressed("pause")`) directly
@@ -506,7 +506,7 @@ These tasks remove direct pause/ESC input handling from existing systems, consol
 
 - [x] T071 [REF] Decouple Cursor Manager from "pause" Input Action.
   - **Files**:
-    - `scripts/managers/m_cursor_manager.gd`
+    - `scripts/core/managers/m_cursor_manager.gd`
     - `tests/unit/managers/test_m_cursor_manager.gd`
   - **Deliverables**:
     - M_CursorManager no longer toggles on the "pause" InputMap action in `_unhandled_input()`
@@ -516,7 +516,7 @@ These tasks remove direct pause/ESC input handling from existing systems, consol
 
 - [x] T072 [REF] Remove ESC/Pause Handling from Scene Manager Input Path.
   - **Files**:
-    - `scripts/managers/m_scene_manager.gd` (lines 168-204)
+    - `scripts/core/managers/m_scene_manager.gd` (lines 168-204)
     - `tests/unit/scene_manager/*`
   - **Deliverables**:
     - `_input()` in M_SceneManager no longer handles ESC/"pause" to push/pop overlays
@@ -526,7 +526,7 @@ These tasks remove direct pause/ESC input handling from existing systems, consol
 
 - [x] T073 [REF] Wire Virtual Pause Button to Navigation Actions.
   - **Files**:
-    - `scripts/ui/virtual_button.gd`
+    - `scripts/core/ui/virtual_button.gd`
     - `tests/unit/ui/test_virtual_button.gd`
   - **Deliverables**:
     - VirtualButton keeps direct `Input.action_press/release` for gameplay actions (jump, sprint, interact)
@@ -576,7 +576,7 @@ These tasks remove direct pause/ESC input handling from existing systems, consol
 - _Notes (2025-11-26)_: Added comprehensive section 2 to `flows-and-input.md` documenting all canonical ui_* actions, ESC/Start mapping rules, behavior matrix by context, and focus navigation patterns.
 
 - [x] T054 [IMPL] Implement thin UI input handler.
-  - **Files**: Create `scripts/ui/ui_input_handler.gd`
+  - **Files**: Create `scripts/core/ui/ui_input_handler.gd`
   - **Architecture**:
     - Runs with `process_mode = PROCESS_MODE_ALWAYS`
     - Lives in root.tscn alongside M_SceneManager
@@ -608,7 +608,7 @@ These tasks remove direct pause/ESC input handling from existing systems, consol
     ```
   - **Note**: CloseMode (RESUME_TO_GAMEPLAY vs RETURN_TO_PREVIOUS_OVERLAY) is handled by the reducer when processing NAV/CLOSE_TOP_OVERLAY, not by the input handler
   - **Acceptance**: All context-based routing works correctly
-- _Notes (2025-11-26)_: Created `scripts/ui/ui_input_handler.gd` with process_mode=ALWAYS, _unhandled_input() listening for ui_cancel/ui_pause, context matrix routing per flows-and-input.md section 3.2, and integrated into root.tscn under Managers group.
+- _Notes (2025-11-26)_: Created `scripts/core/ui/ui_input_handler.gd` with process_mode=ALWAYS, _unhandled_input() listening for ui_cancel/ui_pause, context matrix routing per flows-and-input.md section 3.2, and integrated into root.tscn under Managers group.
 
 - [x] T055 [TEST] Add tests for input routing across all contexts.
   - **Files**: Create `tests/unit/ui/test_ui_input_handler.gd`
@@ -638,7 +638,7 @@ These tasks remove direct pause/ESC input handling from existing systems, consol
   - _Notes (2025-11-26)_: Ran `godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -ginclude_subdirs -gexit`; baseline = 121 scripts / 800 tests / 796 passing / 4 pending (tween timing skips only).
 
 - [x] T060b [FIX] Add automatic background management to BaseOverlay.
-  - **Files**: `scripts/ui/base/base_overlay.gd`
+  - **Files**: `scripts/core/ui/base/base_overlay.gd`
   - **Issue**: When overlays stack (e.g., Pause → Settings), both overlays were visible simultaneously due to missing background panels
   - **Solution**:
     - BaseOverlay now automatically detects and reuses existing ColorRect backgrounds (backward compatible)
@@ -654,8 +654,8 @@ These tasks remove direct pause/ESC input handling from existing systems, consol
 
 - [x] T060c [FIX] Fix navigation reducer to use UI registry for parent validation.
   - **Files**:
-    - `scripts/state/reducers/u_navigation_reducer.gd`
-    - `resources/ui_screens/cfg_edit_touch_controls_overlay.tres`
+    - `scripts/core/state/reducers/u_navigation_reducer.gd`
+    - `resources/core/ui_screens/cfg_edit_touch_controls_overlay.tres`
     - `scenes/ui/edit_touch_controls_overlay.tscn`
   - **Issue**: Edit Touch Controls overlay couldn't be opened from Touchscreen Settings because `_is_overlay_allowed_for_parent` was hardcoded to only allow pause_menu as immediate parent
   - **Root Cause**: Navigation reducer had hardcoded parent validation instead of using UI registry's `allowed_parents` field
@@ -670,9 +670,9 @@ These tasks remove direct pause/ESC input handling from existing systems, consol
 
 - [x] T060d [FEATURE] Add exclusive overlay pattern to hide previous overlays.
   - **Files**:
-    - `scripts/ui/resources/rs_ui_screen_definition.gd`
-    - `scripts/managers/m_scene_manager.gd`
-    - `resources/ui_screens/cfg_edit_touch_controls_overlay.tres`
+    - `scripts/core/ui/resources/rs_ui_screen_definition.gd`
+    - `scripts/core/managers/m_scene_manager.gd`
+    - `resources/core/ui_screens/cfg_edit_touch_controls_overlay.tres`
     - `scenes/ui/mobile_controls.tscn`
   - **Issue**: Edit Touch Controls has transparent background but pause/touchscreen settings overlays underneath still visible, cluttering view
   - **Solution**:
@@ -734,8 +734,8 @@ These tasks remove direct pause/ESC input handling from existing systems, consol
     - gamepad_settings_overlay.gd - 5 lines (state sync logging)
   - **Total cleanup**: ~191 lines removed
   - **Verification**:
-    - grep -r "\[DIAG-" scripts/ui/ scripts/state/ → 0 results
-    - grep -r "SCRIPT_VERSION" scripts/ui/ → 0 results
+    - grep -r "\[DIAG-" scripts/core/ui/ scripts/core/state/ → 0 results
+    - grep -r "SCRIPT_VERSION" scripts/core/ui/ → 0 results
     - All 135 state tests passing
   - **Result**: No duplicate navigation logic outside reducers/actions; all UI properly uses navigation actions
 
@@ -746,7 +746,7 @@ Issues discovered during testing that need to be addressed:
 - [x] T070 [UX] Fix joystick menu navigation sensitivity. ✅
   - **Issue**: Joystick requires exact up/hard press for menu navigation
   - **Expected**: Smooth analog stick navigation with appropriate deadzone
-  - **Files**: `scripts/ui/base/base_panel.gd`, possibly input mapping
+  - **Files**: `scripts/core/ui/base/base_panel.gd`, possibly input mapping
   - **Status**: Fixed with two-pronged approach:
     1. Standardized deadzone to 0.25 across all ui_* actions and device detection
     2. Added explicit focus neighbor configuration via `U_FocusConfigurator` helper
@@ -767,18 +767,18 @@ Issues discovered during testing that need to be addressed:
 - [x] T074 [BUG] Mobile touchscreen controls appearing after gamepad menu exit.
   - **Issue**: Touchscreen controls show after exiting menu with gamepad on mobile
   - **Expected**: Controls remain hidden if exited with gamepad
-  - **Files**: `scripts/ui/mobile_controls.gd` visibility logic
+  - **Files**: `scripts/core/ui/mobile_controls.gd` visibility logic
   - **Root cause**: Device detection not updating correctly on menu close
 
 - [x] T075 [UX] Gamepad-accessible scrollbars in rebind controls.
   - **Issue**: Rebind controls overlay not fully controllable with gamepad (scrollbar navigation fails)
   - **Expected**: Full gamepad navigation including scroll areas
-  - **Files**: `scripts/ui/input_rebinding_overlay.gd`
+  - **Files**: `scripts/core/ui/input_rebinding_overlay.gd`
 
 - [x] T076 [UX] Context-sensitive rebind controls.
   - **Issue**: Rebind controls shows all device inputs regardless of active device
   - **Expected**: Only show rebindable actions for current device type
-  - **Files**: `scripts/ui/input_rebinding_overlay.gd`, `scripts/ui/pause_menu.gd`
+  - **Files**: `scripts/core/ui/input_rebinding_overlay.gd`, `scripts/core/ui/pause_menu.gd`
   - **Status (2025-12-01)**:
     - InputRebindingOverlay now filters displayed bindings by active device (`U_InputSelectors.get_active_device_type()`), showing gamepad-only bindings when on gamepad and keyboard/mouse bindings otherwise (with a safe fallback when no filtered events exist).
     - Pause menu hides the Rebind Controls button when the active device is TOUCHSCREEN so touch-only players are not offered an unavailable flow.
@@ -786,7 +786,7 @@ Issues discovered during testing that need to be addressed:
 - [x] T077 [UX] Context-sensitive input profiles with visual feedback.
   - **Issue**: Input profiles don't show what the actual inputs are
   - **Expected**: Profile selector shows preview of bindings for selected profile
-  - **Files**: `scripts/ui/input_profile_selector.gd`
+  - **Files**: `scripts/core/ui/input_profile_selector.gd`
   - **Status (2025-12-01)**:
     - InputProfileSelector now renders a per-profile bindings summary using RS_InputProfile action mappings, updating live as the user cycles profiles.
     - The preview surfaces core actions (movement, jump, sprint, interact, pause) with device-appropriate labels so players can see the effective layout before applying a profile.
@@ -811,7 +811,7 @@ Issues discovered during testing that need to be addressed:
 - [x] T080 [UX] Cancel button exits menu directly.
   - **Issue**: Cancel (B/Circle) button doesn't exit menu
   - **Expected**: Cancel button should close current menu/return to previous
-  - **Files**: `scripts/ui/ui_input_handler.gd`, base overlay input handling
+  - **Files**: `scripts/core/ui/ui_input_handler.gd`, base overlay input handling
   - **Status (2025-12-01)**:
     - `UIInputHandler` routes `ui_cancel`/`ui_pause` using navigation state: gameplay (open/close pause or top overlay), main menu (back to `menu/main` or no-op at root), endgame (retry/skip-to-credits/skip-to-menu), matching the flows matrix.
     - Base overlays use `_on_back_pressed()` to dispatch the appropriate navigation action so Cancel consistently exits the current menu or returns to the previous overlay; this is compatible with the flattened overlay stack from T079.
@@ -826,21 +826,21 @@ Issues discovered during testing that need to be addressed:
 ## Summary of New Files to Create
 
 **Scripts:**
-- `scripts/state/resources/rs_navigation_initial_state.gd`
-- `scripts/state/reducers/u_navigation_reducer.gd`
-- `scripts/state/selectors/u_navigation_selectors.gd`
-- `scripts/state/actions/u_navigation_actions.gd`
-- `scripts/ui/resources/rs_ui_screen_definition.gd`
-- `scripts/ui/u_ui_registry.gd`
-- `scripts/ui/base/base_menu_screen.gd`
-- `scripts/ui/base/base_overlay.gd`
-- `scripts/ui/base/base_panel.gd`
-- `scripts/ui/ui_input_handler.gd`
+- `scripts/core/state/resources/rs_navigation_initial_state.gd`
+- `scripts/core/state/reducers/u_navigation_reducer.gd`
+- `scripts/core/state/selectors/u_navigation_selectors.gd`
+- `scripts/core/state/actions/u_navigation_actions.gd`
+- `scripts/core/ui/resources/rs_ui_screen_definition.gd`
+- `scripts/core/ui/u_ui_registry.gd`
+- `scripts/core/ui/base/base_menu_screen.gd`
+- `scripts/core/ui/base/base_overlay.gd`
+- `scripts/core/ui/base/base_panel.gd`
+- `scripts/core/ui/ui_input_handler.gd`
 
 **Resources:**
-- `resources/state/cfg_navigation_initial_state.tres`
-- `resources/state/cfg_navigation_slice_config.tres`
-- `resources/ui_screens/cfg_*.tres` (11 screen definitions)
+- `resources/core/state/cfg_navigation_initial_state.tres`
+- `resources/core/state/cfg_navigation_slice_config.tres`
+- `resources/core/ui_screens/cfg_*.tres` (11 screen definitions)
 
 **Tests:**
 - `tests/unit/state/test_navigation_state.gd`
@@ -853,20 +853,20 @@ Issues discovered during testing that need to be addressed:
 
 | File | Lines | Current Pattern | Migration |
 |------|-------|-----------------|-----------|
-| `scripts/ui/pause_menu.gd` | 49, 58, 63, 67, 71, 76, 85 | `push_overlay_with_return()`, `pop_overlay()` | Dispatch NAV actions |
-| `scripts/ui/virtual_button.gd` | 234-237 | `push_overlay()`, `pop_overlay()` | Dispatch NAV/OPEN_PAUSE, NAV/CLOSE_PAUSE |
-| `scripts/ui/game_over.gd` | Multiple | `transition_to_scene()` | Dispatch NAV/RETRY, NAV/RETURN_TO_MAIN_MENU |
-| `scripts/ui/victory.gd` | Multiple | `transition_to_scene()` | Dispatch NAV actions |
-| `scripts/ui/credits.gd` | Multiple | `transition_to_scene()` | Dispatch NAV/SKIP_TO_MENU |
-| `scripts/ui/main_menu.gd` | Multiple | `transition_to_scene()` | Dispatch NAV/SET_MENU_PANEL, extend BaseMenuScreen |
-| `scripts/ui/settings_menu.gd` | 55 | `pop_overlay_with_return()` | Extend BaseOverlay |
-| `scripts/ui/input_rebinding_overlay.gd` | 646 | `pop_overlay()` | Extend BaseOverlay (RESUME_TO_GAMEPLAY) |
-| `scripts/ui/touchscreen_settings_overlay.gd` | 254, 361 | `push_overlay_with_return()`, `pop_overlay()` | Extend BaseOverlay |
-| `scripts/ui/gamepad_settings_overlay.gd` | 118 | `pop_overlay()` | Extend BaseOverlay |
-| `scripts/ui/edit_touch_controls_overlay.gd` | 188 | `pop_overlay()` | Extend BaseOverlay |
-| `scripts/ui/input_profile_selector.gd` | 47 | `pop_overlay()` | Extend BaseOverlay |
-| `scripts/ui/hud_controller.gd` | 213-216 | Check `scene_stack` size | Use `U_NavigationSelectors.is_paused()` |
-| `scripts/ui/mobile_controls.gd` | 301-306 | 6-condition visibility | Use navigation selectors |
+| `scripts/core/ui/pause_menu.gd` | 49, 58, 63, 67, 71, 76, 85 | `push_overlay_with_return()`, `pop_overlay()` | Dispatch NAV actions |
+| `scripts/core/ui/virtual_button.gd` | 234-237 | `push_overlay()`, `pop_overlay()` | Dispatch NAV/OPEN_PAUSE, NAV/CLOSE_PAUSE |
+| `scripts/core/ui/game_over.gd` | Multiple | `transition_to_scene()` | Dispatch NAV/RETRY, NAV/RETURN_TO_MAIN_MENU |
+| `scripts/core/ui/victory.gd` | Multiple | `transition_to_scene()` | Dispatch NAV actions |
+| `scripts/core/ui/credits.gd` | Multiple | `transition_to_scene()` | Dispatch NAV/SKIP_TO_MENU |
+| `scripts/core/ui/main_menu.gd` | Multiple | `transition_to_scene()` | Dispatch NAV/SET_MENU_PANEL, extend BaseMenuScreen |
+| `scripts/core/ui/settings_menu.gd` | 55 | `pop_overlay_with_return()` | Extend BaseOverlay |
+| `scripts/core/ui/input_rebinding_overlay.gd` | 646 | `pop_overlay()` | Extend BaseOverlay (RESUME_TO_GAMEPLAY) |
+| `scripts/core/ui/touchscreen_settings_overlay.gd` | 254, 361 | `push_overlay_with_return()`, `pop_overlay()` | Extend BaseOverlay |
+| `scripts/core/ui/gamepad_settings_overlay.gd` | 118 | `pop_overlay()` | Extend BaseOverlay |
+| `scripts/core/ui/edit_touch_controls_overlay.gd` | 188 | `pop_overlay()` | Extend BaseOverlay |
+| `scripts/core/ui/input_profile_selector.gd` | 47 | `pop_overlay()` | Extend BaseOverlay |
+| `scripts/core/ui/hud_controller.gd` | 213-216 | Check `scene_stack` size | Use `U_NavigationSelectors.is_paused()` |
+| `scripts/core/ui/mobile_controls.gd` | 301-306 | 6-condition visibility | Use navigation selectors |
 
 ## Links
 

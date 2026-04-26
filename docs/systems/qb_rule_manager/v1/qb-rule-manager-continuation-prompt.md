@@ -107,65 +107,65 @@ Phases R1-R6 are complete (zero behavioral changes): shared variant helpers, bas
 ## Key Files to Reference
 
 ### Existing patterns to follow:
-- `scripts/ecs/base_ecs_system.gd` -- base class for BaseQBRuleManager; Phase 1 prerequisite: line 22 clamp change
-- `scripts/ecs/base_ecs_component.gd` -- base class for C_CharacterStateComponent
-- `scripts/resources/ecs/rs_health_settings.gd` -- pattern for resource definitions
-- `scripts/ecs/systems/s_health_system.gd` -- extract ragdoll logic (lines 167-284), publish death events
-- `scripts/ecs/systems/s_movement_system.gd` -- pause gating pattern (lines 22-34); keep @export state_store for entity snapshots
-- `scripts/ecs/systems/s_jump_system.gd` -- pause + freeze gating (lines 21-34); keep @export state_store for accessibility reads
-- `scripts/ecs/systems/s_gravity_system.gd` -- pause gating (lines 17-29); keep @export state_store for gravity_scale reads (lines 69-73)
-- `scripts/ecs/systems/s_rotate_to_input_system.gd` -- pause gating (lines 21-33); keep @export state_store for rotation snapshot dispatch (lines 133-139)
-- `scripts/ecs/systems/s_input_system.gd` -- pause gating (lines 80-84); keep @export state_store for other checks
-- `scripts/ecs/systems/s_footstep_sound_system.gd` -- pause gating (lines 46-56, uses try_get_store variant); can remove @export state_store
-- `scripts/ecs/systems/s_floating_system.gd` -- freeze only (no pause check)
-- `scripts/ecs/systems/s_checkpoint_handler_system.gd` -- owns checkpoint activation, state dispatch, and `_resolve_spawn_point_position()`
-- `scripts/ecs/systems/s_victory_handler_system.gd` -- owns victory validation/execution; prerequisite lives in `@export var required_final_area: String = "bar"` with subscription priority `10`
-- `scripts/ecs/systems/s_damage_system.gd` -- stays as-is, centralize event names only
+- `scripts/core/ecs/base_ecs_system.gd` -- base class for BaseQBRuleManager; Phase 1 prerequisite: line 22 clamp change
+- `scripts/core/ecs/base_ecs_component.gd` -- base class for C_CharacterStateComponent
+- `scripts/core/resources/ecs/rs_health_settings.gd` -- pattern for resource definitions
+- `scripts/core/ecs/systems/s_health_system.gd` -- extract ragdoll logic (lines 167-284), publish death events
+- `scripts/core/ecs/systems/s_movement_system.gd` -- pause gating pattern (lines 22-34); keep @export state_store for entity snapshots
+- `scripts/core/ecs/systems/s_jump_system.gd` -- pause + freeze gating (lines 21-34); keep @export state_store for accessibility reads
+- `scripts/core/ecs/systems/s_gravity_system.gd` -- pause gating (lines 17-29); keep @export state_store for gravity_scale reads (lines 69-73)
+- `scripts/core/ecs/systems/s_rotate_to_input_system.gd` -- pause gating (lines 21-33); keep @export state_store for rotation snapshot dispatch (lines 133-139)
+- `scripts/core/ecs/systems/s_input_system.gd` -- pause gating (lines 80-84); keep @export state_store for other checks
+- `scripts/core/ecs/systems/s_footstep_sound_system.gd` -- pause gating (lines 46-56, uses try_get_store variant); can remove @export state_store
+- `scripts/core/ecs/systems/s_floating_system.gd` -- freeze only (no pause check)
+- `scripts/core/ecs/systems/s_checkpoint_handler_system.gd` -- owns checkpoint activation, state dispatch, and `_resolve_spawn_point_position()`
+- `scripts/core/ecs/systems/s_victory_handler_system.gd` -- owns victory validation/execution; prerequisite lives in `@export var required_final_area: String = "bar"` with subscription priority `10`
+- `scripts/core/ecs/systems/s_damage_system.gd` -- stays as-is, centralize event names only
 - `scripts/core/events/ecs/u_ecs_event_names.gd` -- centralize event constants
 - `scripts/core/events/ecs/u_ecs_event_bus.gd` -- event bus for rule triggers
-- `scripts/interfaces/i_state_store.gd` -- DI interface for store access
+- `scripts/core/interfaces/i_state_store.gd` -- DI interface for store access
 - `tests/mocks/` -- MockStateStore, MockECSManager for testing
 
 ### Scene files to modify:
-- `scenes/templates/tmpl_character.tscn` -- add C_CharacterStateComponent
-- `scenes/prefabs/prefab_player.tscn` -- add C_CharacterStateComponent
-- `scenes/gameplay/gameplay_base.tscn` -- add rule manager + handler systems
+- `scenes/core/templates/tmpl_character.tscn` -- add C_CharacterStateComponent
+- `scenes/core/prefabs/prefab_player.tscn` -- add C_CharacterStateComponent
+- `scenes/demo/gameplay/gameplay_base.tscn` -- add rule manager + handler systems
 - All 5 gameplay scenes need S_CharacterRuleManager
 
 ### New files created by this feature:
 
 **Core framework** (Phase 1):
-- `scripts/resources/qb/rs_qb_condition.gd`
-- `scripts/resources/qb/rs_qb_effect.gd`
-- `scripts/resources/qb/rs_qb_rule_definition.gd`
-- `scripts/ecs/systems/base_qb_rule_manager.gd`
-- `scripts/utils/qb/u_qb_rule_evaluator.gd`
-- `scripts/utils/qb/u_qb_effect_executor.gd`
-- `scripts/utils/qb/u_qb_quality_provider.gd`
-- `scripts/utils/qb/u_qb_rule_validator.gd`
+- `scripts/core/resources/qb/rs_qb_condition.gd`
+- `scripts/core/resources/qb/rs_qb_effect.gd`
+- `scripts/core/resources/qb/rs_qb_rule_definition.gd`
+- `scripts/core/ecs/systems/base_qb_rule_manager.gd`
+- `scripts/core/utils/qb/u_qb_rule_evaluator.gd`
+- `scripts/core/utils/qb/u_qb_effect_executor.gd`
+- `scripts/core/utils/qb/u_qb_quality_provider.gd`
+- `scripts/core/utils/qb/u_qb_rule_validator.gd`
 
 **Character domain** (Phase 2-3):
-- `scripts/ecs/components/c_character_state_component.gd`
-- `scripts/ecs/systems/s_character_rule_manager.gd`
-- `scripts/ecs/systems/s_death_handler_system.gd`
-- `resources/qb/character/cfg_pause_gate_paused.tres` (OR rule 1)
-- `resources/qb/character/cfg_pause_gate_shell.tres` (OR rule 2)
-- `resources/qb/character/cfg_pause_gate_transitioning.tres` (OR rule 3)
-- `resources/qb/character/cfg_spawn_freeze_rule.tres`
-- `resources/qb/character/cfg_death_sync_rule.tres`
+- `scripts/core/ecs/components/c_character_state_component.gd`
+- `scripts/core/ecs/systems/s_character_rule_manager.gd`
+- `scripts/core/ecs/systems/s_death_handler_system.gd`
+- `resources/core/qb/character/cfg_pause_gate_paused.tres` (OR rule 1)
+- `resources/core/qb/character/cfg_pause_gate_shell.tres` (OR rule 2)
+- `resources/core/qb/character/cfg_pause_gate_transitioning.tres` (OR rule 3)
+- `resources/core/qb/character/cfg_spawn_freeze_rule.tres`
+- `resources/core/qb/character/cfg_death_sync_rule.tres`
 
 **Game domain** (Phase 4):
-- `scripts/ecs/systems/s_game_rule_manager.gd`
-- `scripts/ecs/systems/s_checkpoint_handler_system.gd`
-- `scripts/ecs/systems/s_victory_handler_system.gd`
-- `resources/qb/game/cfg_checkpoint_rule.tres`
-- `resources/qb/game/cfg_victory_rule.tres`
+- `scripts/core/ecs/systems/s_game_rule_manager.gd`
+- `scripts/core/ecs/systems/s_checkpoint_handler_system.gd`
+- `scripts/core/ecs/systems/s_victory_handler_system.gd`
+- `resources/core/qb/game/cfg_checkpoint_rule.tres`
+- `resources/core/qb/game/cfg_victory_rule.tres`
 
 **Camera domain** (Phase 5):
-- `scripts/ecs/components/c_camera_state_component.gd`
-- `scripts/ecs/systems/s_camera_rule_manager.gd`
-- `resources/qb/camera/cfg_camera_shake_rule.tres`
-- `resources/qb/camera/cfg_camera_zone_fov_rule.tres`
+- `scripts/core/ecs/components/c_camera_state_component.gd`
+- `scripts/core/ecs/systems/s_camera_rule_manager.gd`
+- `resources/core/qb/camera/cfg_camera_shake_rule.tres`
+- `resources/core/qb/camera/cfg_camera_zone_fov_rule.tres`
 
 **Tests**:
 - `tests/unit/qb/test_qb_condition_evaluation.gd`

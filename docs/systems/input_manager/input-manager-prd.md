@@ -85,7 +85,7 @@ The input system is foundational infrastructure that impacts every gameplay syst
 
 #### Core Components
 
-1. **S_InputSystem** (`scripts/ecs/systems/s_input_system.gd`)
+1. **S_InputSystem** (`scripts/core/ecs/systems/s_input_system.gd`)
    - Captures keyboard/mouse input via Godot's Input singleton
    - Dispatches to both C_InputComponent and state store
    - Handles mouse delta for look input
@@ -93,19 +93,19 @@ The input system is foundational infrastructure that impacts every gameplay syst
    - Auto-initializes InputMap actions if missing
    - Runs in `_physics_process` via ECS manager
 
-2. **C_InputComponent** (`scripts/ecs/components/c_input_component.gd`)
+2. **C_InputComponent** (`scripts/core/ecs/components/c_input_component.gd`)
    - Stores `move_vector` (Vector2), `jump_pressed` (bool), `sprint_pressed` (bool)
    - Jump buffering support with configurable buffer time
    - Consume jump request pattern to prevent double-jumps
    - Auto-registers with M_ECSManager
 
 3. **State Store Integration**
-   - `U_InputActions` (`scripts/state/actions/u_input_actions.gd`): Action creators for input state updates
-   - `U_InputSelectors` (`scripts/state/selectors/u_input_selectors.gd`): Selectors to query input state
+   - `U_InputActions` (`scripts/core/state/actions/u_input_actions.gd`): Action creators for input state updates
+   - `U_InputSelectors` (`scripts/core/state/selectors/u_input_selectors.gd`): Selectors to query input state
    - `U_GameplayReducer`: Handles input actions in gameplay slice
    - Input state persists across scene transitions via StateHandoff
 
-4. **M_CursorManager** (`scripts/managers/m_cursor_manager.gd`)
+4. **M_CursorManager** (`scripts/core/managers/m_cursor_manager.gd`)
    - Manages mouse visibility and capture mode
    - Toggle via "pause" input action
    - Emits `cursor_state_changed` signal
@@ -497,12 +497,12 @@ See: docs/input_manager/input-manager-plan.md (Risks & Mitigations)
    - **Rationale**: Desktop inputs processed together, touch requires UI layer (different concerns)
 
 9. **File Organization: DISTRIBUTED PATTERN (CONFIRMED)**
-   - **Decision**: Match existing repo patterns, NO new `scripts/input/` directory
+   - **Decision**: Match existing repo patterns, NO new `scripts/core/input/` directory
    - **Implementation**:
-     - Resources: `scripts/ecs/resources/rs_input_*.gd`
+     - Resources: `scripts/core/ecs/resources/rs_input_*.gd`
      - Utilities: `scripts/u_input_*.gd`
-     - Systems: `scripts/ecs/systems/s_*_system.gd`
-     - Managers: `scripts/managers/m_input_*.gd`
+     - Systems: `scripts/core/ecs/systems/s_*_system.gd`
+     - Managers: `scripts/core/managers/m_input_*.gd`
    - **Rationale**: Consistency with existing ECS architecture
 
 10. **Persistence Format: JSON (CONFIRMED)**
@@ -1240,7 +1240,7 @@ See: docs/input_manager/input-manager-plan.md (Edge Cases & Validation)
 - **FR-047**: System MUST provide VirtualJoystick for movement on left side of screen (default position: Vector2(120, 520))
 - **FR-047-A**: System MUST save custom VirtualJoystick position to `settings.input_settings.touchscreen_settings.custom_joystick_position` (NEW: draggable positioning)
 - **FR-047-B**: System MUST load saved VirtualJoystick position on startup, fall back to profile default if custom position = Vector2(-1, -1) (NEW)
-- **FR-048**: System MUST provide VirtualButton nodes for actions (Jump, Sprint) on right side (default: Jump=Vector2(920, 520), Sprint=Vector2(820, 480)). **Status (2025-11-20):** ✅ Implemented via `scripts/ui/virtual_button.gd`, `scenes/ui/virtual_button.tscn`, and `tests/unit/ui/test_virtual_button.gd` (press/release, drag-out, tap vs hold, multi-touch, reposition save, visual feedback).
+- **FR-048**: System MUST provide VirtualButton nodes for actions (Jump, Sprint) on right side (default: Jump=Vector2(920, 520), Sprint=Vector2(820, 480)). **Status (2025-11-20):** ✅ Implemented via `scripts/core/ui/virtual_button.gd`, `scenes/ui/virtual_button.tscn`, and `tests/unit/ui/test_virtual_button.gd` (press/release, drag-out, tap vs hold, multi-touch, reposition save, visual feedback).
 - **FR-048-A**: System MUST save custom VirtualButton positions to `touchscreen_settings.custom_button_positions` dictionary (NEW: draggable positioning)
 - **FR-049**: System MUST track touch within VirtualJoystick area, NOT show joystick at arbitrary touch points (CLARIFIED: fixed joystick position, not floating)
 - **FR-050**: System MUST update move_vector based on VirtualJoystick drag distance/direction, apply deadzone via `RS_TouchscreenSettings.apply_touch_deadzone()`
@@ -1450,7 +1450,7 @@ The Input Manager maintains state in two slices of the Redux store:
 ### Action Type Definitions
 
 ```gdscript
-# scripts/state/actions/u_input_actions.gd
+# scripts/core/state/actions/u_input_actions.gd
 
 class_name U_InputActions extends RefCounted
 
@@ -1559,7 +1559,7 @@ static func update_accessibility(field: String, value) -> Dictionary:
 #### M_InputProfileManager
 
 ```gdscript
-# scripts/managers/m_input_profile_manager.gd
+# scripts/core/managers/m_input_profile_manager.gd
 class_name M_InputProfileManager extends Node
 
 # Signals
@@ -1616,7 +1616,7 @@ func _dict_to_bindings(data: Dictionary) -> Dictionary
 #### M_InputDeviceManager
 
 ```gdscript
-# scripts/managers/m_input_device_manager.gd
+# scripts/core/managers/m_input_device_manager.gd
 class_name M_InputDeviceManager extends Node
 
 # Device type enum (must match state store schema)
@@ -1661,7 +1661,7 @@ func _switch_device(new_device: DeviceType) -> void
 #### U_InputRebindUtils
 
 ```gdscript
-# scripts/utils/input/u_input_rebind_utils.gd
+# scripts/core/utils/input/u_input_rebind_utils.gd
 class_name U_InputRebindUtils extends RefCounted
 
 # Validation result structure
@@ -1704,7 +1704,7 @@ static func dict_to_event(data: Dictionary) -> InputEvent
 #### U_ButtonPromptRegistry
 
 ```gdscript
-# scripts/ui/utils/u_button_prompt_registry.gd
+# scripts/core/ui/utils/u_button_prompt_registry.gd
 class_name U_ButtonPromptRegistry extends RefCounted
 
 # Prompt maps (action → device → Texture2D path)
@@ -1729,7 +1729,7 @@ static func register_prompt(action: StringName, device: int, texture_path: Strin
 #### C_GamepadComponent
 
 ```gdscript
-# scripts/ecs/components/c_gamepadcomponent.gd
+# scripts/core/ecs/components/c_gamepadcomponent.gd
 class_name C_GamepadComponent extends ECSComponent
 
 const COMPONENT_TYPE := StringName("C_GamepadComponent")
@@ -1788,7 +1788,7 @@ func _init() -> void:
 #### S_TouchscreenSystem
 
 ```gdscript
-# scripts/ecs/systems/s_touchscreen_system.gd
+# scripts/core/ecs/systems/s_touchscreen_system.gd
 class_name S_TouchscreenSystem extends ECSSystem
 
 # References to virtual controls (set by scene)
@@ -1844,7 +1844,7 @@ func _ready() -> void:
 #### VirtualJoystick
 
 ```gdscript
-# scripts/ui/virtual_joystick.gd
+# scripts/core/ui/virtual_joystick.gd
 class_name VirtualJoystick extends Control
 
 signal joystick_moved(vector: Vector2)
@@ -1903,7 +1903,7 @@ func _handle_drag(event: InputEventScreenDrag) -> void:
 #### VirtualButton
 
 ```gdscript
-# scripts/ui/virtual_button.gd
+# scripts/core/ui/virtual_button.gd
 class_name VirtualButton extends Button
 
 signal button_pressed()
@@ -1934,7 +1934,7 @@ func _gui_input(event: InputEvent) -> void:
 #### RS_InputProfile
 
 ```gdscript
-# scripts/resources/input/rs_input_profile.gd
+# scripts/core/resources/input/rs_input_profile.gd
 extends Resource
 class_name RS_InputProfile
 
@@ -2070,7 +2070,7 @@ func _dict_to_event(data: Dictionary) -> InputEvent:
 #### RS_GamepadSettings
 
 ```gdscript
-# scripts/resources/input/rs_gamepad_settings.gd
+# scripts/core/resources/input/rs_gamepad_settings.gd
 extends Resource
 class_name RS_GamepadSettings
 
@@ -2122,7 +2122,7 @@ func apply_deadzone(input: Vector2, deadzone: float) -> Vector2:
 #### RS_RebindSettings
 
 ```gdscript
-# scripts/resources/input/rs_rebind_settings.gd
+# scripts/core/resources/input/rs_rebind_settings.gd
 extends Resource
 class_name RS_RebindSettings
 
@@ -2161,7 +2161,7 @@ func should_warn(action: StringName) -> bool:
 #### RS_MouseSettings
 
 ```gdscript
-# scripts/resources/input/rs_mouse_settings.gd
+# scripts/core/resources/input/rs_mouse_settings.gd
 extends Resource
 class_name RS_MouseSettings
 
@@ -2197,7 +2197,7 @@ func apply_settings(delta: Vector2) -> Vector2:
 #### RS_TouchscreenSettings
 
 ```gdscript
-# scripts/resources/input/rs_touchscreen_settings.gd
+# scripts/core/resources/input/rs_touchscreen_settings.gd
 extends Resource
 class_name RS_TouchscreenSettings
 
@@ -2635,10 +2635,10 @@ func _ready() -> void:
     print("Input Profile Manager initialized. Active profile: %s" % active_profile.profile_name)
 
 func _load_available_profiles() -> void:
-    available_profiles["default"] = load("res://resources/input/profiles/default.tres")
-    available_profiles["alternate"] = load("res://resources/input/profiles/alternate.tres")
-    available_profiles["accessibility"] = load("res://resources/input/profiles/accessibility.tres")
-    available_profiles["gamepad_generic"] = load("res://resources/input/profiles/gamepad_generic.tres")
+    available_profiles["default"] = load("res://resources/core/input/profiles/default.tres")
+    available_profiles["alternate"] = load("res://resources/core/input/profiles/alternate.tres")
+    available_profiles["accessibility"] = load("res://resources/core/input/profiles/accessibility.tres")
+    available_profiles["gamepad_generic"] = load("res://resources/core/input/profiles/gamepad_generic.tres")
 ```
 
 **Outcome**:
@@ -2710,7 +2710,7 @@ func detect_gamepads() -> void:
 
 #### Step 5: Gameplay Scene Loads
 
-**Scene**: `scenes/gameplay/gameplay_base.tscn` loaded into ActiveSceneContainer
+**Scene**: `scenes/demo/gameplay/gameplay_base.tscn` loaded into ActiveSceneContainer
 
 **Systems Initialize**:
 1. S_InputSystem._ready()

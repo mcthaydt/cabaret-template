@@ -133,19 +133,19 @@ static var _scenes: Dictionary = {
         "preload_priority": 10
     },
     "gameplay_base": {
-        "path": "res://scenes/gameplay/gameplay_base.tscn",
+        "path": "res://scenes/demo/gameplay/gameplay_base.tscn",
         "type": SceneType.GAMEPLAY,
         "default_transition": "fade",
         "preload_priority": 0
     },
     "exterior": {
-        "path": "res://scenes/gameplay/exterior_template.tscn",
+        "path": "res://scenes/demo/gameplay/exterior_template.tscn",
         "type": SceneType.GAMEPLAY,
         "default_transition": "fade",
         "preload_priority": 0
     },
     "interior_house": {
-        "path": "res://scenes/gameplay/interior_template.tscn",
+        "path": "res://scenes/demo/gameplay/interior_template.tscn",
         "type": SceneType.GAMEPLAY,
         "default_transition": "fade",
         "preload_priority": 0

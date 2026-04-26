@@ -20,7 +20,7 @@
 
 ### R1A: Create shared utility
 
-- [x] TR1.1: Create `scripts/utils/qb/u_qb_variant_utils.gd` (`U_QBVariantUtils extends RefCounted`, all `static func`):
+- [x] TR1.1: Create `scripts/core/utils/qb/u_qb_variant_utils.gd` (`U_QBVariantUtils extends RefCounted`, all `static func`):
   - `get_int_property(object_value: Variant, property_name: String, fallback: int) -> int`
   - `get_bool_property(object_value: Variant, property_name: String, fallback: bool) -> bool`
   - `get_float_property(object_value: Variant, property_name: String, fallback: float) -> float`
@@ -45,7 +45,7 @@
 - [x] TR1.9: Run full test suite -- zero regressions
 
 Completion notes (2026-02-20):
-- Added `scripts/utils/qb/u_qb_variant_utils.gd` and migrated all R1 consumers.
+- Added `scripts/core/utils/qb/u_qb_variant_utils.gd` and migrated all R1 consumers.
 - Removed duplicated local helper implementations from evaluator/quality/effect/validator and object-property helpers from character/camera managers.
 - Verification passed: `tests/unit/qb` (71/71), `tests/unit/ecs` (126/126), `tests/unit/ecs/systems` (200/200), `tests/integration/qb` (1/1), `tests/unit/style` (12/12).
 
@@ -66,7 +66,7 @@ Completion notes (2026-02-20):
 Completion notes (2026-02-20):
 - Promoted `_resolve_store()` to `BaseQBRuleManager` and routed `_ensure_context_dependencies()` through the shared helper.
 - Removed duplicated `_resolve_store()` methods from `S_CharacterRuleManager` and `S_CameraRuleManager`.
-- Verified `scripts/ecs/systems/base_qb_rule_manager.gd` is now 499 lines.
+- Verified `scripts/core/ecs/systems/base_qb_rule_manager.gd` is now 499 lines.
 - Verification passed: `tests/unit/qb` (71/71), `tests/unit/ecs` (126/126), `tests/unit/ecs/systems` (200/200), `tests/integration/qb` (1/1), `tests/unit/style` (12/12).
 
 **Commit:** `Promote _resolve_store() to base, remove duplicates`
@@ -279,21 +279,21 @@ Completion notes (2026-02-20):
 
 | File | Phases |
 |---|---|
-| `scripts/utils/qb/u_qb_variant_utils.gd` | R1 (new) |
-| `scripts/ecs/systems/base_qb_rule_manager.gd` | R1, R2, R3, R7 |
-| `scripts/utils/qb/u_qb_rule_evaluator.gd` | R1, R6, R7 |
-| `scripts/utils/qb/u_qb_quality_provider.gd` | R1 |
-| `scripts/utils/qb/u_qb_effect_executor.gd` | R1 |
-| `scripts/utils/qb/u_qb_rule_validator.gd` | R1, R7 |
-| `scripts/ecs/systems/s_character_rule_manager.gd` | R1, R2, R3, R4 |
-| `scripts/ecs/systems/s_camera_rule_manager.gd` | R1, R2, R3, R5 |
-| `scripts/ecs/systems/s_victory_handler_system.gd` | R5 |
-| `scripts/ecs/systems/s_checkpoint_handler_system.gd` | R5 |
-| `scripts/ecs/systems/s_death_handler_system.gd` | R5 |
-| `scripts/resources/qb/rs_qb_condition.gd` | R6, R7 |
-| `scripts/resources/qb/rs_qb_effect.gd` | R6 |
-| `scripts/resources/qb/rs_qb_rule_definition.gd` | R6, R7 |
-| `resources/qb/character/cfg_pause_gate_*.tres` (×3) | R7 |
+| `scripts/core/utils/qb/u_qb_variant_utils.gd` | R1 (new) |
+| `scripts/core/ecs/systems/base_qb_rule_manager.gd` | R1, R2, R3, R7 |
+| `scripts/core/utils/qb/u_qb_rule_evaluator.gd` | R1, R6, R7 |
+| `scripts/core/utils/qb/u_qb_quality_provider.gd` | R1 |
+| `scripts/core/utils/qb/u_qb_effect_executor.gd` | R1 |
+| `scripts/core/utils/qb/u_qb_rule_validator.gd` | R1, R7 |
+| `scripts/core/ecs/systems/s_character_rule_manager.gd` | R1, R2, R3, R4 |
+| `scripts/core/ecs/systems/s_camera_rule_manager.gd` | R1, R2, R3, R5 |
+| `scripts/core/ecs/systems/s_victory_handler_system.gd` | R5 |
+| `scripts/core/ecs/systems/s_checkpoint_handler_system.gd` | R5 |
+| `scripts/core/ecs/systems/s_death_handler_system.gd` | R5 |
+| `scripts/core/resources/qb/rs_qb_condition.gd` | R6, R7 |
+| `scripts/core/resources/qb/rs_qb_effect.gd` | R6 |
+| `scripts/core/resources/qb/rs_qb_rule_definition.gd` | R6, R7 |
+| `resources/core/qb/character/cfg_pause_gate_*.tres` (×3) | R7 |
 | `tests/unit/qb/test_qb_condition_scoring.gd` | R7 (new) |
 | `tests/unit/qb/test_qb_decision_groups.gd` | R7 (new) |
 

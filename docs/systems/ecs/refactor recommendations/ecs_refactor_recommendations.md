@@ -87,7 +87,7 @@ func _locate_manager() -> M_ECSManager:
 **Solution**: Extract to shared utility class
 
 ```gdscript
-# scripts/ecs/ecs_utils.gd
+# scripts/core/ecs/ecs_utils.gd
 extends RefCounted
 class_name ECSUtils
 
@@ -174,7 +174,7 @@ func get_character_body() -> CharacterBody3D:
 **Solution**: Add helper to `BaseECSComponent` base class
 
 ```gdscript
-# In scripts/ecs/base_ecs_component.gd (add to base class)
+# In scripts/core/ecs/base_ecs_component.gd (add to base class)
 
 func _get_node_from_path(path: NodePath, type = null):
     """
@@ -255,7 +255,7 @@ func _ready() -> void:
 **Solution**: Create base validation pattern in `BaseECSComponent`
 
 ```gdscript
-# In scripts/ecs/base_ecs_component.gd (add to base class)
+# In scripts/core/ecs/base_ecs_component.gd (add to base class)
 
 @export var settings: Resource  # Optional base (subclasses override type)
 
@@ -329,7 +329,7 @@ func _component_ready() -> void:
 
 **Implemented Utility**:
 ```gdscript
-# scripts/utils/ecs/u_ecs_utils.gd
+# scripts/core/utils/ecs/u_ecs_utils.gd
 static func get_current_time() -> float:
 	return float(Time.get_ticks_msec()) / 1000.0
 ```
@@ -416,7 +416,7 @@ func process_tick(delta: float) -> void:
 **Solution**: Add to `BaseECSComponent` base class
 
 ```gdscript
-# In scripts/ecs/base_ecs_component.gd (add to base)
+# In scripts/core/ecs/base_ecs_component.gd (add to base)
 
 var _debug_snapshot: Dictionary = {}
 
@@ -615,7 +615,7 @@ var floatings = get_components(C_FloatingComponent.COMPONENT_TYPE)
 
 **Add to M_ECSManager**:
 ```gdscript
-# scripts/managers/m_ecs_manager.gd
+# scripts/core/managers/m_ecs_manager.gd
 
 # New property: track which components belong to same entity
 var _entity_to_components: Dictionary = {}  # Entity (Node) → Array[BaseECSComponent]

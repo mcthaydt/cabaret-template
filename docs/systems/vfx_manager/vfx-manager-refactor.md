@@ -18,11 +18,11 @@ This plan addresses issues identified in the VFX Manager system, organized into 
 7. **Individual unsubscribes** - Resolved in Phase 6 (unsubscribe array cleanup).
 
 ### Key Files
-- `scripts/managers/m_vfx_manager.gd` (201 lines)
-- `scripts/managers/helpers/u_screen_shake.gd` (52 lines)
-- `scripts/managers/helpers/u_damage_flash.gd` (31 lines)
+- `scripts/core/managers/m_vfx_manager.gd` (201 lines)
+- `scripts/core/managers/helpers/u_screen_shake.gd` (52 lines)
+- `scripts/core/managers/helpers/u_damage_flash.gd` (31 lines)
 - `scenes/ui/ui_damage_flash_overlay.tscn`
-- `scripts/ui/settings/ui_vfx_settings_overlay.gd` (231 lines)
+- `scripts/core/ui/settings/ui_vfx_settings_overlay.gd` (231 lines)
 
 ---
 
@@ -51,7 +51,7 @@ func _init(p_entity_id: StringName, p_trauma_amount: float, p_source: StringName
 	trauma_amount = p_trauma_amount
 	source = p_source
 
-	const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
+	const U_ECS_UTILS := preload("res://scripts/core/utils/ecs/u_ecs_utils.gd")
 	timestamp = U_ECS_UTILS.get_current_time()
 
 	_payload = {
@@ -80,7 +80,7 @@ func _init(p_entity_id: StringName, p_intensity: float, p_source: StringName) ->
 	intensity = p_intensity
 	source = p_source
 
-	const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
+	const U_ECS_UTILS := preload("res://scripts/core/utils/ecs/u_ecs_utils.gd")
 	timestamp = U_ECS_UTILS.get_current_time()
 
 	_payload = {
@@ -92,7 +92,7 @@ func _init(p_entity_id: StringName, p_intensity: float, p_source: StringName) ->
 
 ### Publisher Systems
 
-**File**: `scripts/ecs/systems/s_screen_shake_publisher_system.gd`
+**File**: `scripts/core/ecs/systems/s_screen_shake_publisher_system.gd`
 ```gdscript
 @icon("res://assets/editor_icons/system.svg")
 extends BaseECSSystem
@@ -184,7 +184,7 @@ func _on_death(event_data: Dictionary) -> void:
 	U_ECS_EVENT_BUS.publish_typed(event)
 ```
 
-**File**: `scripts/ecs/systems/s_damage_flash_publisher_system.gd`
+**File**: `scripts/core/ecs/systems/s_damage_flash_publisher_system.gd`
 ```gdscript
 @icon("res://assets/editor_icons/system.svg")
 extends BaseECSSystem
@@ -243,7 +243,7 @@ func _on_death(event_data: Dictionary) -> void:
 
 ### M_VFXManager Updates
 
-**Changes to** `scripts/managers/m_vfx_manager.gd`:
+**Changes to** `scripts/core/managers/m_vfx_manager.gd`:
 
 1. Remove gameplay event subscriptions (lines 89-92)
 2. Add VFX request event subscriptions
@@ -273,7 +273,7 @@ func _on_damage_flash_request(event_data: Dictionary) -> void:
 
 ### Scene Integration
 
-Add publisher systems to `scenes/gameplay/gameplay_base.tscn` under Systems node:
+Add publisher systems to `scenes/demo/gameplay/gameplay_base.tscn` under Systems node:
 - `S_ScreenShakePublisherSystem`
 - `S_DamageFlashPublisherSystem`
 
@@ -293,7 +293,7 @@ if vfx_manager != null:
 	U_SERVICE_LOCATOR.register(StringName("vfx_manager"), vfx_manager)
 ```
 
-### Changes to `scripts/managers/m_vfx_manager.gd`
+### Changes to `scripts/core/managers/m_vfx_manager.gd`
 
 Add dependency injection exports (after line 27):
 ```gdscript
@@ -333,9 +333,9 @@ Remove self-registration from M_VFXManager (line 61) since root.gd handles it.
 ### Add Helper Methods to M_VFXManager
 
 ```gdscript
-const U_GAMEPLAY_SELECTORS := preload("res://scripts/state/selectors/u_gameplay_selectors.gd")
-const U_SCENE_SELECTORS := preload("res://scripts/state/selectors/u_scene_selectors.gd")
-const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
+const U_GAMEPLAY_SELECTORS := preload("res://scripts/core/state/selectors/u_gameplay_selectors.gd")
+const U_SCENE_SELECTORS := preload("res://scripts/core/state/selectors/u_scene_selectors.gd")
+const U_NAVIGATION_SELECTORS := preload("res://scripts/core/state/selectors/u_navigation_selectors.gd")
 
 ## Check if entity_id matches the player entity
 func _is_player_entity(entity_id: StringName) -> bool:
@@ -416,7 +416,7 @@ func _on_damage_flash_request(event_data: Dictionary) -> void:
 
 **Goal**: Move magic numbers to resources for easy tuning.
 
-### New Resource: `scripts/ecs/resources/rs_screen_shake_tuning.gd`
+### New Resource: `scripts/core/ecs/resources/rs_screen_shake_tuning.gd`
 
 ```gdscript
 extends Resource
@@ -454,7 +454,7 @@ func calculate_landing_trauma(fall_speed: float) -> float:
 	return lerpf(landing_min_trauma, landing_max_trauma, speed_ratio)
 ```
 
-### New Resource: `scripts/ecs/resources/rs_screen_shake_config.gd`
+### New Resource: `scripts/core/ecs/resources/rs_screen_shake_config.gd`
 
 ```gdscript
 extends Resource
@@ -467,12 +467,12 @@ class_name RS_ScreenShakeConfig
 @export var noise_speed: float = 50.0
 ```
 
-### Default Resource File: `resources/vfx/cfg_screen_shake_tuning.tres`
+### Default Resource File: `resources/core/vfx/cfg_screen_shake_tuning.tres`
 
 ```
 [gd_resource type="Resource" script_class="RS_ScreenShakeTuning" load_steps=2 format=3]
 
-[ext_resource type="Script" path="res://scripts/ecs/resources/rs_screen_shake_tuning.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/core/ecs/resources/rs_screen_shake_tuning.gd" id="1"]
 
 [resource]
 script = ExtResource("1")
@@ -491,7 +491,7 @@ death_trauma = 0.5
 
 Replace constants with tuning resource in `S_ScreenShakePublisherSystem`:
 ```gdscript
-const RS_ScreenShakeTuning := preload("res://scripts/ecs/resources/rs_screen_shake_tuning.gd")
+const RS_ScreenShakeTuning := preload("res://scripts/core/ecs/resources/rs_screen_shake_tuning.gd")
 
 @export var tuning: RS_ScreenShakeTuning = null
 
@@ -506,7 +506,7 @@ func _get_tuning() -> RS_ScreenShakeTuning:
 	if tuning != null:
 		return tuning
 	# Fallback to default
-	return preload("res://resources/vfx/cfg_screen_shake_tuning.tres")
+	return preload("res://resources/core/vfx/cfg_screen_shake_tuning.tres")
 ```
 
 ---
@@ -530,7 +530,7 @@ color = Color(1, 0, 0, 1.0)
 
 ### Add Tween Pause Mode in U_DamageFlash
 
-**File**: `scripts/managers/helpers/u_damage_flash.gd`
+**File**: `scripts/core/managers/helpers/u_damage_flash.gd`
 
 Add pause mode after creating tween (line 29):
 ```gdscript
@@ -541,7 +541,7 @@ _tween.tween_property(_flash_rect, "modulate:a", 0.0, FADE_DURATION)
 
 ### New Typed Result Class
 
-**File**: `scripts/managers/helpers/u_shake_result.gd`
+**File**: `scripts/core/managers/helpers/u_shake_result.gd`
 
 ```gdscript
 class_name U_ShakeResult
@@ -559,11 +559,11 @@ func _init(p_offset: Vector2 = Vector2.ZERO, p_rotation: float = 0.0) -> void:
 
 ### Update U_ScreenShake
 
-**File**: `scripts/managers/helpers/u_screen_shake.gd`
+**File**: `scripts/core/managers/helpers/u_screen_shake.gd`
 
 Add testing hooks and typed return:
 ```gdscript
-const U_ShakeResult := preload("res://scripts/managers/helpers/u_shake_result.gd")
+const U_ShakeResult := preload("res://scripts/core/managers/helpers/u_shake_result.gd")
 
 var _test_seed: int = -1
 var _test_time: float = -1.0

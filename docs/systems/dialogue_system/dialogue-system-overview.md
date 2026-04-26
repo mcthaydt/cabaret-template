@@ -16,11 +16,11 @@ The dialogue system selects and presents dialogue lines to the player via a dedi
 - Localization: `U_LocalizationUtils.localize(key)` and `localize_fmt(key, [args])` for text resolution
 - Locale catalogs per domain: `cfg_locale_*_ui.tres`, `cfg_locale_*_hud.tres` — dialogue adds `cfg_locale_*_dialogue.tres`
 - Overlay system: `M_SceneManager` manages overlay stack; `scenes/ui/overlays/` for overlay scenes
-- UI screen registry: `RS_UIScreenDefinition` resources in `resources/ui_screens/`
+- UI screen registry: `RS_UIScreenDefinition` resources in `resources/core/ui_screens/`
 - QB v2: `U_RuleScorer`, `U_RuleSelector` for scoring dialogue entry candidates
 - Time Manager: `CHANNEL_CUTSCENE` exists; dialogue could use a new `CHANNEL_DIALOGUE` or share
 - Input: gamepad navigation for choice buttons follows existing overlay patterns (D-pad + A/B)
-- Existing overlay controllers extend scripts in `scripts/ui/overlays/` with `_on_overlay_entered()` / `_on_overlay_exited()` lifecycle
+- Existing overlay controllers extend scripts in `scripts/core/ui/overlays/` with `_on_overlay_entered()` / `_on_overlay_exited()` lifecycle
 
 ## Goals
 
@@ -46,15 +46,15 @@ The dialogue system selects and presents dialogue lines to the player via a dedi
 ## Architecture
 
 ```
-M_DialogueManager (scripts/managers/m_dialogue_manager.gd)  [extends Node]
+M_DialogueManager (scripts/core/managers/m_dialogue_manager.gd)  [extends Node]
   Registered in ServiceLocator as "dialogue_manager"
   Composes:
-  ├── U_DialogueSelector  (NEW, scripts/utils/dialogue/u_dialogue_selector.gd)  [extends RefCounted]
+  ├── U_DialogueSelector  (NEW, scripts/core/utils/dialogue/u_dialogue_selector.gd)  [extends RefCounted]
   │     Uses U_RuleScorer + U_RuleSelector to pick best entry from a dialogue set
-  └── U_DialogueRunner    (NEW, scripts/utils/dialogue/u_dialogue_runner.gd)  [extends RefCounted]
+  └── U_DialogueRunner    (NEW, scripts/core/utils/dialogue/u_dialogue_runner.gd)  [extends RefCounted]
         Manages active dialogue sequence: current line index, advance, choice handling, completion
 
-UI_DialogueOverlay (scripts/ui/overlays/ui_dialogue_overlay.gd)
+UI_DialogueOverlay (scripts/core/ui/overlays/ui_dialogue_overlay.gd)
   Scene: scenes/ui/overlays/ui_dialogue_overlay.tscn
   Elements:
   ├── Speaker label (localized speaker name)
@@ -63,7 +63,7 @@ UI_DialogueOverlay (scripts/ui/overlays/ui_dialogue_overlay.gd)
   └── Advance indicator (shown when waiting for input, hidden during typewriter)
 
 Redux:
-  dialogue slice (scripts/state/slices/sl_dialogue.gd)  [transient — not persisted]
+  dialogue slice (scripts/core/state/slices/sl_dialogue.gd)  [transient — not persisted]
     ├── is_dialogue_active: bool
     ├── active_set_id: StringName
     ├── active_entry_id: StringName
@@ -71,31 +71,31 @@ Redux:
     └── seen_entry_ids: Array[StringName]  (for one-shot tracking — persisted separately via narrative flags)
 
 Resources:
-  RS_DialogueSet (scripts/resources/dialogue/rs_dialogue_set.gd)
+  RS_DialogueSet (scripts/core/resources/dialogue/rs_dialogue_set.gd)
     ├── set_id: StringName                 (e.g., "lumen_power_room")
     ├── entries: Array[RS_DialogueEntry]
     └── fallback_entry_id: StringName      (if no entry scores > 0)
 
-  RS_DialogueEntry (scripts/resources/dialogue/rs_dialogue_entry.gd)
+  RS_DialogueEntry (scripts/core/resources/dialogue/rs_dialogue_entry.gd)
     ├── entry_id: StringName
     ├── conditions: Array[Resource]        (QB v2 typed conditions)
     ├── lines: Array[RS_DialogueLine]      (sequential lines in this entry)
     ├── is_one_shot: bool                  (only play once; tracked via narrative flag)
     └── priority: int                      (tiebreaker for equal scores)
 
-  RS_DialogueLine (scripts/resources/dialogue/rs_dialogue_line.gd)
+  RS_DialogueLine (scripts/core/resources/dialogue/rs_dialogue_line.gd)
     ├── speaker_key: StringName            (localization key, e.g., "dialogue.speaker.lumen")
     ├── text_key: StringName               (localization key for line text)
     ├── duration: float                    (auto-advance timer; 0.0 = wait for input)
     ├── choices: Array[RS_DialogueChoice]  (empty = no choice, advance normally)
     └── effects: Array[Resource]           (QB v2 effects executed when line displays)
 
-  RS_DialogueChoice (scripts/resources/dialogue/rs_dialogue_choice.gd)
+  RS_DialogueChoice (scripts/core/resources/dialogue/rs_dialogue_choice.gd)
     ├── choice_key: StringName             (localization key for button text)
     └── effects: Array[Resource]           (QB v2 effects on selection — e.g., RS_EffectSetField for narrative flags)
 
 New Beat Effect:
-  RS_EffectStartDialogue (scripts/resources/qb/effects/rs_effect_start_dialogue.gd)
+  RS_EffectStartDialogue (scripts/core/resources/qb/effects/rs_effect_start_dialogue.gd)
     ├── dialogue_set_id: StringName        (which dialogue set to start)
     Scene director beats use this to trigger dialogue
 ```

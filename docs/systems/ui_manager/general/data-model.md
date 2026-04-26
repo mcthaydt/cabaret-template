@@ -165,7 +165,7 @@ extends Resource
 
 `U_UIRegistry` is a static helper that:
 
-- Loads all `RS_UIScreenDefinition` resources from `res://resources/ui_screens/` (and optionally test directories).
+- Loads all `RS_UIScreenDefinition` resources from `res://resources/core/ui_screens/` (and optionally test directories).
 - Provides lookup by `screen_id`, `scene_id`, and context (shell + parent overlay).
 - Validates definitions on startup (similar to `U_SceneRegistry.validate_door_pairings()`).
 

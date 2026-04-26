@@ -30,7 +30,7 @@
   - `aim_exit_blend_duration` default `0.2`
   - both resolved via `maxf(..., 0.01)`
 - Validation run (March 22, 2026):
-  - `tools/run_gut_suite.sh -gdir=res://tests/unit/resources/display/vcam -gselect=test_vcam_mode_first_person` (`14/14`)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/resources/core/display/vcam -gselect=test_vcam_mode_first_person` (`14/14`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd -gunit_test_name=aim` (`5/5`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
 
@@ -42,7 +42,7 @@
   - removed fixed branches from `_evaluate_and_submit`, `_apply_rotation_transition`, `_is_follow_target_required`, and `_step_smoothing_state`
 - `S_VCamSystem` follow-target-required gating now only includes orbit and first-person modes.
 - Validation run (March 22, 2026):
-  - `tools/run_gut_suite.sh -gdir=res://tests/unit/resources/display/vcam -gselect=test_vcam_mode_first_person` (`14/14`)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/resources/core/display/vcam -gselect=test_vcam_mode_first_person` (`14/14`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd -gunit_test_name=aim` (`5/5`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
 
@@ -58,7 +58,7 @@
   - `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd` now targets orbit/first-person only and includes unsupported-mode guard coverage
 - Validation run (March 22, 2026):
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/managers/helpers/test_vcam_mode_evaluator.gd` (`25/25`)
-  - `tools/run_gut_suite.sh -gdir=res://tests/unit/resources/display/vcam -gselect=test_vcam_mode_first_person` (`14/14`)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/resources/core/display/vcam -gselect=test_vcam_mode_first_person` (`14/14`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
 
 ## Refactor Phase 1D (March 22, 2026)
@@ -90,7 +90,7 @@
 
 - Completed resource + scene cleanup for removed OTS/fixed paths:
   - deleted production resources/scripts: `rs_vcam_mode_ots.gd`, `rs_vcam_mode_fixed.gd`, `cfg_default_ots.tres`, `cfg_default_fixed.tres`, `cfg_ots_movement_default.tres`
-  - `scenes/templates/tmpl_camera.tscn` now references `cfg_default_first_person.tres` and uses `C_VCamFirstPersonComponent` (`vcam_id = &"camera_first_person"`)
+  - `scenes/core/templates/tmpl_camera.tscn` now references `cfg_default_first_person.tres` and uses `C_VCamFirstPersonComponent` (`vcam_id = &"camera_first_person"`)
   - `scenes/ui/hud/ui_hud_overlay.tscn` no longer includes `OTSReticleContainer` / `ReticleDot`
 - Validation run (March 22, 2026):
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -gselect=test_style_enforcement` (`17/17`)
@@ -107,7 +107,7 @@
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd` (`94/94`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/managers/test_vcam_manager.gd` (`45/45`)
   - `tools/run_gut_suite.sh -gdir=res://tests/integration/vcam` (`26/26`)
-  - `tools/run_gut_suite.sh -gdir=res://tests/unit/resources/display/vcam` (`91/91`)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/resources/core/display/vcam` (`91/91`)
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -gselect=test_style_enforcement` (`17/17`)
   - `tools/run_gut_suite.sh -gdir=res://tests -ginclude_subdirs=true` (`3481/3490` passing, `9` pending baseline)
 
@@ -137,7 +137,7 @@
 ## Refactor Phase 2A (March 22, 2026)
 
 - Completed look-input helper extraction (`U_VCamLookInput`):
-  - added `scripts/ecs/systems/helpers/u_vcam_look_input.gd` with API (`filter_look_input`, `is_active`, `prune`, `clear_all`, `clear_for_vcam`)
+  - added `scripts/core/ecs/systems/helpers/u_vcam_look_input.gd` with API (`filter_look_input`, `is_active`, `prune`, `clear_all`, `clear_for_vcam`)
   - moved look-filter constants/state and look-filter transition debug logging out of `S_VCamSystem`
   - `S_VCamSystem` now delegates look filtering and helper lifecycle (`prune`/`clear`) through `_look_input_helper`
   - response-signature look-filter fallback defaults now reference helper constants
@@ -145,7 +145,7 @@
   - `tests/unit/ecs/systems/helpers/test_vcam_look_input.gd` (`8/8`)
   - updated `tests/unit/ecs/systems/test_vcam_system.gd` look-filter spike decay regression to assert through helper API
 - Style enforcement update:
-  - `tests/unit/style/test_style_enforcement.gd` now allows `u_` scripts in `res://scripts/ecs/systems/helpers`
+  - `tests/unit/style/test_style_enforcement.gd` now allows `u_` scripts in `res://scripts/core/ecs/systems/helpers`
 - Validation run (March 22, 2026):
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/helpers/test_vcam_look_input.gd` (`8/8`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd` (`78/78`)
@@ -154,7 +154,7 @@
 ## Refactor Phase 2B (March 22, 2026)
 
 - Completed rotation helper extraction (`U_VCamRotation`):
-  - added `scripts/ecs/systems/helpers/u_vcam_rotation.gd` with continuity handoff, orbit runtime rotation updates, look spring/release smoothing, orbit recenter state, and helper lifecycle APIs
+  - added `scripts/core/ecs/systems/helpers/u_vcam_rotation.gd` with continuity handoff, orbit runtime rotation updates, look spring/release smoothing, orbit recenter state, and helper lifecycle APIs
   - extracted/owned helper state for look-smoothing + centering runtime (`_look_rotation_state`, `_orbit_no_look_input_timers`, `_orbit_centering_state`)
   - `S_VCamSystem` now delegates continuity/update/evaluation rotation paths to `_rotation_helper`
 - Added helper coverage:
@@ -170,7 +170,7 @@
 ## Refactor Phase 2C (March 22, 2026)
 
 - Completed orbit-effects helper extraction (`U_VCamOrbitEffects`):
-  - added `scripts/ecs/systems/helpers/u_vcam_orbit_effects.gd` with look-ahead, ground-relative anchoring, soft-zone correction/dead-zone state, follow-target motion sampling, and orbit smoothing-bypass hysteresis APIs
+  - added `scripts/core/ecs/systems/helpers/u_vcam_orbit_effects.gd` with look-ahead, ground-relative anchoring, soft-zone correction/dead-zone state, follow-target motion sampling, and orbit smoothing-bypass hysteresis APIs
   - helper now owns `_look_ahead_state`, `_ground_relative_state`, `_soft_zone_dead_zone_state`, and `_follow_target_motion_state` lifecycles (`prune`, `clear_all`, `clear_for_vcam`)
 - `S_VCamSystem` refactor wiring:
   - `_apply_orbit_look_ahead`, `_apply_orbit_ground_relative`, `_apply_orbit_soft_zone`, follow-target speed sampling, and orbit bypass gating now delegate to `_orbit_effects_helper`
@@ -186,7 +186,7 @@
 ## Refactor Phase 2D (March 22, 2026)
 
 - Completed response-smoother helper extraction (`U_VCamResponseSmoother`):
-  - added `scripts/ecs/systems/helpers/u_vcam_response_smoother.gd` with response smoothing flow, per-vCam dynamics state, smoothing metadata transitions, and euler unwrapping cache
+  - added `scripts/core/ecs/systems/helpers/u_vcam_response_smoother.gd` with response smoothing flow, per-vCam dynamics state, smoothing metadata transitions, and euler unwrapping cache
   - helper lifecycle APIs (`prune`, `clear_all`, `clear_for_vcam`) now own response-smoothing state cleanup
 - `S_VCamSystem` refactor wiring:
   - `_apply_response_smoothing` now delegates to `_response_smoother`
@@ -203,7 +203,7 @@
 ## Refactor Phase 2E (March 22, 2026)
 
 - Completed landing-impact helper extraction (`U_VCamLandingImpact`):
-  - added `scripts/ecs/systems/helpers/u_vcam_landing_impact.gd` with landing event normalization/state (`record_landing_event`, `normalize_fall_speed`)
+  - added `scripts/core/ecs/systems/helpers/u_vcam_landing_impact.gd` with landing event normalization/state (`record_landing_event`, `normalize_fall_speed`)
   - helper now owns landing-impact recovery state and APIs (`resolve_offset`, `apply_offset`, `clear_state`)
 - `S_VCamSystem` refactor wiring:
   - removed inline landing recovery members (`_landing_recovery_dynamics`, `_landing_recovery_state_id`, `_landing_recovery_frequency_hz`)
@@ -227,31 +227,31 @@
   - prune/clear lifecycle is now helper-driven (`helper.prune(...)`) instead of per-snapshot stale-id loops.
   - debug tracking cleanup now routes through coordinator helpers (`_prune_debug_tracking`, `_prune_debug_dictionary`, `_clear_debug_tracking_for_vcam`).
 - Additional `2G.3` decomposition progress landed:
-  - added `scripts/ecs/systems/helpers/u_vcam_runtime_context.gd` and moved non-coordinator runtime-context logic out of `S_VCamSystem`:
+  - added `scripts/core/ecs/systems/helpers/u_vcam_runtime_context.gd` and moved non-coordinator runtime-context logic out of `S_VCamSystem`:
     - follow-target resolution fallback chain + multi-tag ambiguity reporting
     - look-ahead velocity sourcing helpers
     - grounded/probe helpers for orbit ground-relative flow
     - projection-camera + primary camera-state resolution
     - camera-state read/write + base-fov sync utilities
-  - added `scripts/ecs/systems/helpers/u_vcam_debug.gd` and moved debug/logging responsibilities out of `S_VCamSystem`:
+  - added `scripts/core/ecs/systems/helpers/u_vcam_debug.gd` and moved debug/logging responsibilities out of `S_VCamSystem`:
     - debug issue report/ring buffer lifecycle
     - debug cooldown tracking + rotation/state log gating
     - per-vCam debug map prune/clear lifecycle
     - follow-target/soft-zone/look-input/smoothing-gate/landing debug callbacks
   - expanded `U_VCamResponseSmoother` to own response-value resolution + response-signature construction used by `S_VCamSystem`, and added helper coverage in `tests/unit/ecs/systems/helpers/test_vcam_response_smoother.gd` (`11/11`).
-  - added `scripts/ecs/systems/helpers/u_vcam_runtime_state.gd` and moved runtime-state coordination out of `S_VCamSystem`:
+  - added `scripts/core/ecs/systems/helpers/u_vcam_runtime_state.gd` and moved runtime-state coordination out of `S_VCamSystem`:
     - active-target observability + recovery dispatch/publish/reselect flow
     - shared input reads (`look_input`, `move_input`, `camera_center_just_pressed`)
-  - added `scripts/ecs/systems/helpers/u_vcam_runtime_services.gd` and moved runtime-services/index utility responsibilities out of `S_VCamSystem`:
+  - added `scripts/core/ecs/systems/helpers/u_vcam_runtime_services.gd` and moved runtime-services/index utility responsibilities out of `S_VCamSystem`:
     - service/store resolution (`resolve_vcam_manager`, `resolve_state_store`)
     - vCam indexing/id helpers (`build_vcam_index`, `resolve_component_vcam_id`)
     - coordinator utility gates (`is_follow_target_required`, `get_node_instance_id`)
     - retained `_vcam_manager`/`_state_store` as thin compatibility caches in `S_VCamSystem` for existing integration/unit test probe surfaces
-  - added `scripts/ecs/systems/helpers/u_vcam_effect_pipeline.gd` and moved effect-pipeline coordination out of `S_VCamSystem`:
+  - added `scripts/core/ecs/systems/helpers/u_vcam_effect_pipeline.gd` and moved effect-pipeline coordination out of `S_VCamSystem`:
     - orbit effect sequencing (`look_ahead`, `ground_relative`, `soft_zone`)
     - response-value/signature plumbing + response smoothing application
     - landing-offset apply path + shared transform-offset utility
-  - `scripts/ecs/systems/s_vcam_system.gd` line count reduced from `1537` -> `1185` -> `909` -> `826` -> `782` -> `728` -> `528`.
+  - `scripts/core/ecs/systems/s_vcam_system.gd` line count reduced from `1537` -> `1185` -> `909` -> `826` -> `782` -> `728` -> `528`.
 - Validation run (March 22, 2026):
   - `tools/run_gut_suite.sh -gtest=res://tests/integration/vcam/test_vcam_runtime.gd` (`5/5`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/helpers/test_vcam_response_smoother.gd` (`11/11`)
@@ -271,7 +271,7 @@
 ## Refactor Phase 3A (March 22, 2026, Complete)
 
 - Completed `U_VCamBlendManager` helper extraction from `M_VCamManager` with Red/Green/Refactor cadence:
-  - added `scripts/managers/helpers/u_vcam_blend_manager.gd` to own live-blend and startup-blend state machines
+  - added `scripts/core/managers/helpers/u_vcam_blend_manager.gd` to own live-blend and startup-blend state machines
   - helper API now covers transition config/advance, blend-state queries, startup queue/resolve, reentrant snapshot sourcing, invalid-member recovery, and full clear lifecycle
   - added compatibility completion signal for distance-threshold blend cuts so manager dispatch/event semantics remain unchanged
 - Added dedicated helper coverage:
@@ -415,18 +415,18 @@
 ## Phase 11 Editor Preview (March 22, 2026)
 
 - Added editor-only rule-of-thirds preview helper:
-  - `scripts/utils/display/u_vcam_rule_of_thirds_preview.gd`
+  - `scripts/core/utils/display/u_vcam_rule_of_thirds_preview.gd`
   - `@tool` `Node` with internal `CanvasLayer` + drawing control grid overlay
   - runtime path self-cleans with `queue_free()` when `Engine.is_editor_hint()` is false
 - Added template wiring:
-  - `scenes/templates/tmpl_camera.tscn` now includes `U_VCamRuleOfThirdsPreview` under camera root
+  - `scenes/core/templates/tmpl_camera.tscn` now includes `U_VCamRuleOfThirdsPreview` under camera root
 - Validation run:
   - `tests/unit/style/test_style_enforcement.gd` (`17/17`)
 
 ## Phase 9 Live Blend Evaluation + Integration (March 15, 2026)
 
 - Added blend helper:
-  - `scripts/managers/helpers/u_vcam_blend_evaluator.gd`
+  - `scripts/core/managers/helpers/u_vcam_blend_evaluator.gd`
   - `tests/unit/managers/helpers/test_vcam_blend_evaluator.gd` (`10/10`)
 - `M_VCamManager` live blend/runtime integration is now implementation-backed:
   - blend lifecycle dispatch/event flow (`start/update/complete`, `EVENT_VCAM_BLEND_STARTED/COMPLETED`)
@@ -459,7 +459,7 @@
 ## OTS Mode Resource (Phase 3A, March 15, 2026)
 
 - Added OTS mode resource:
-  - `scripts/resources/display/vcam/rs_vcam_mode_ots.gd` (`RS_VCamModeOTS`)
+  - `scripts/core/resources/display/vcam/rs_vcam_mode_ots.gd` (`RS_VCamModeOTS`)
 - Authoring/runtime fields implemented:
   - `shoulder_offset`, `camera_distance`, `look_multiplier`, `pitch_min`, `pitch_max`, `fov`
   - `collision_probe_radius`, `collision_recovery_speed`
@@ -472,9 +472,9 @@
   - collision/landing recovery speeds resolve positive
   - distance/radius/sway/dip magnitudes resolve non-negative
 - New coverage:
-  - `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` (`18/18` passing, includes default preset load contract + shoulder sway clamp)
+  - `tests/unit/resources/core/display/vcam/test_vcam_mode_ots.gd` (`18/18` passing, includes default preset load contract + shoulder sway clamp)
 - Validation run:
-  - `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` (`18/18`)
+  - `tests/unit/resources/core/display/vcam/test_vcam_mode_ots.gd` (`18/18`)
   - `tests/unit/style/test_style_enforcement.gd` unchanged at known pre-existing HUD inline-theme failure (`16/17`, `scenes/ui/hud/ui_hud_overlay.tscn`)
 
 ## OTS Mode Evaluator (Phase 3B, March 15, 2026)
@@ -485,13 +485,13 @@
   - returns `{transform, fov, mode_name = "ots"}` and remains null-target safe (`{}`) without warning-channel output
 - Added `_resolve_ots_values(...)` fallback path to preserve evaluator behavior when resolved dictionaries are unavailable.
 - Added default preset resource:
-  - `resources/display/vcam/cfg_default_ots.tres`
+  - `resources/core/display/vcam/cfg_default_ots.tres`
 - Expanded evaluator coverage:
   - `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd` now includes OTS transform/fov/mode-name, yaw/pitch application, pitch clamp/boundary, and null-target tests (`49/49` total).
 - Validation run:
-  - `tests/unit/resources/display/vcam/test_vcam_mode_orbit.gd` (`14/14`)
+  - `tests/unit/resources/core/display/vcam/test_vcam_mode_orbit.gd` (`14/14`)
   - `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd` (`49/49`)
-  - `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` (`17/17`)
+  - `tests/unit/resources/core/display/vcam/test_vcam_mode_ots.gd` (`17/17`)
   - `tests/unit/style/test_style_enforcement.gd` unchanged at known pre-existing HUD inline-theme failure (`16/17`, `scenes/ui/hud/ui_hud_overlay.tscn`)
 
 ## OTS Collision Avoidance (Phase 3C1, March 15, 2026)
@@ -518,7 +518,7 @@
   - orbit/fixed no-op gating behavior
 - Validation run:
   - `tests/unit/ecs/systems/test_vcam_system.gd` (`107/107`)
-  - `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` (`17/17`)
+  - `tests/unit/resources/core/display/vcam/test_vcam_mode_ots.gd` (`17/17`)
   - `tests/unit/style/test_style_enforcement.gd` unchanged at known pre-existing HUD inline-theme failure (`16/17`, `scenes/ui/hud/ui_hud_overlay.tscn`)
 
 ## OTS Shoulder Sway (Phase 3C2, March 15, 2026)
@@ -540,11 +540,11 @@
     - authored max-angle bound
     - release-to-zero recovery
     - orbit/fixed no-op gating
-  - `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd`:
+  - `tests/unit/resources/core/display/vcam/test_vcam_mode_ots.gd`:
     - `shoulder_sway_angle` non-negative clamp behavior
 - Validation run:
   - `tests/unit/ecs/systems/test_vcam_system.gd` (`115/115`)
-  - `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` (`18/18`)
+  - `tests/unit/resources/core/display/vcam/test_vcam_mode_ots.gd` (`18/18`)
   - `tests/unit/style/test_style_enforcement.gd` unchanged at known pre-existing HUD inline-theme failure (`16/17`, `scenes/ui/hud/ui_hud_overlay.tscn`)
 
 ## OTS Landing Camera Response (Phase 3C3, March 15, 2026)
@@ -569,7 +569,7 @@
   - orbit/fixed no-op gating
 - Validation run:
   - `tests/unit/ecs/systems/test_vcam_system.gd` (`122/122`)
-  - `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` (`18/18`)
+  - `tests/unit/resources/core/display/vcam/test_vcam_mode_ots.gd` (`18/18`)
   - `tests/unit/style/test_style_enforcement.gd` unchanged at known pre-existing HUD inline-theme failure (`16/17`, `scenes/ui/hud/ui_hud_overlay.tscn`)
 
 ## OTS Aiming Activation + Movement/Rotation Integration (Phase 3C4 slice, March 15, 2026)
@@ -597,7 +597,7 @@
   - when `lock_facing_to_camera` is true, desired yaw follows active camera yaw.
   - lock path preserves facing updates when move input is zero; non-OTS path unchanged.
 - New/updated coverage:
-  - `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` (`22/22`)
+  - `tests/unit/resources/core/display/vcam/test_vcam_mode_ots.gd` (`22/22`)
   - `tests/unit/ecs/systems/test_vcam_system.gd` (`127/127`)
   - `tests/unit/ecs/systems/test_movement_system.gd` (`13/13`)
   - `tests/unit/ecs/systems/test_rotate_to_input_system.gd` (`6/6`)
@@ -631,13 +631,13 @@
 - Added OTS reticle coverage:
   - `tests/unit/ui/hud/test_ots_reticle.gd` (`4/4`) verifies hidden outside OTS, fade-in/fade-out duration behavior, and center-screen anchoring.
 - Added default OTS movement preset:
-  - `resources/base_settings/gameplay/cfg_ots_movement_default.tres` (`RS_MovementSettings`) with reduced-speed OTS defaults.
-  - `resources/display/vcam/cfg_default_ots.tres` now references `cfg_ots_movement_default.tres` through `movement_profile`.
+  - `resources/core/base_settings/gameplay/cfg_ots_movement_default.tres` (`RS_MovementSettings`) with reduced-speed OTS defaults.
+  - `resources/core/display/vcam/cfg_default_ots.tres` now references `cfg_ots_movement_default.tres` through `movement_profile`.
 - Extended OTS mode resource coverage:
-  - `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` now includes preset load/value/reference checks (`24/24`).
+  - `tests/unit/resources/core/display/vcam/test_vcam_mode_ots.gd` now includes preset load/value/reference checks (`24/24`).
 - Validation run:
   - `tests/unit/ui/hud/test_ots_reticle.gd` (`4/4`)
-  - `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd` (`24/24`)
+  - `tests/unit/resources/core/display/vcam/test_vcam_mode_ots.gd` (`24/24`)
   - `tests/unit/ui` (`-gselect=test_hud`, `28/28`)
   - `tests/unit/ecs/systems/test_movement_system.gd` (`13/13`)
   - `tests/unit/style/test_style_enforcement.gd` unchanged at known pre-existing HUD inline-theme failure (`16/17`, `scenes/ui/hud/ui_hud_overlay.tscn`)
@@ -663,7 +663,7 @@
     - release-to-zero recovery
     - orbit/fixed no-op gating
 - Validation run:
-  - `tests/unit/resources/display/vcam/test_vcam_mode_first_person.gd` (`11/11`)
+  - `tests/unit/resources/core/display/vcam/test_vcam_mode_first_person.gd` (`11/11`)
   - `tests/unit/ecs/systems/test_vcam_system.gd` (`101/101`)
   - `tests/unit/style/test_style_enforcement.gd` remains at known pre-existing HUD inline-theme failure (`16/17`, `scenes/ui/hud/ui_hud_overlay.tscn`)
 
@@ -735,7 +735,7 @@
 - Added/expanded test coverage:
   - `tests/unit/ecs/systems/test_room_fade_system.gd`: added duplicate-ownership regression (`test_duplicate_target_ownership_keeps_first_component_and_skips_duplicate_updates`).
   - `tests/unit/ecs/systems/test_room_fade_scene_audit.gd`: added gameplay-scene ownership audit for `gameplay_interior_a.tscn` (single-owner targets + explicit unique `group_tag` per room-fade group).
-- Scene authoring update (`scenes/gameplay/gameplay_interior_a.tscn`):
+- Scene authoring update (`scenes/demo/gameplay/gameplay_interior_a.tscn`):
   - Authored explicit unique `group_tag` values on all six room-fade groups (`MasterBathroom`, `MasterBedroom`, `WalkInCloset`, `EntertainmentArea`, `GymArea`, `OfficeArea`) to make ownership boundaries explicit.
 - Validation run:
   - `test_room_fade_integration`: `7/7` passing.
@@ -766,8 +766,8 @@
 
 - Added room-fade runtime/rendering stack:
   - `assets/shaders/sh_room_fade.gdshader`
-  - `scripts/utils/lighting/u_room_fade_material_applier.gd`
-  - `scripts/ecs/systems/s_room_fade_system.gd`
+  - `scripts/core/utils/lighting/u_room_fade_material_applier.gd`
+  - `scripts/core/ecs/systems/s_room_fade_system.gd`
 - Runtime contracts implemented:
   - `sh_room_fade.gdshader` uses `blend_mix` + `depth_draw_never` with room-fade uniforms (`fade_alpha`, `albedo_texture`, `albedo_color`) on the current transparency path (no alpha-scissor branch).
   - `U_RoomFadeMaterialApplier` caches/restores `material_override`, resolves source albedo (`material_override` -> surface override -> mesh surface), applies shader overrides, and updates per-target `fade_alpha`.
@@ -776,7 +776,7 @@
   - `tests/unit/lighting/test_room_fade_material_applier.gd` (`6/6` passing)
   - `tests/unit/ecs/systems/test_room_fade_system.gd` (`15/15` passing)
 - Validation run:
-  - `tests/unit/resources/display/vcam/test_room_fade_settings.gd` (`7/7` passing)
+  - `tests/unit/resources/core/display/vcam/test_room_fade_settings.gd` (`7/7` passing)
   - `tests/unit/ecs/components/test_room_fade_group_component.gd` (`11/11` passing)
   - `tests/unit/lighting/test_room_fade_material_applier.gd` (`6/6` passing)
   - `tests/unit/ecs/systems/test_room_fade_system.gd` (`15/15` passing)
@@ -785,17 +785,17 @@
 ## Orbit Room Fade Data Layer (Phase 2C9, March 14, 2026)
 
 - Added room-fade data resource + component:
-  - `scripts/resources/display/vcam/rs_room_fade_settings.gd`
-  - `scripts/ecs/components/c_room_fade_group_component.gd`
-  - `resources/display/vcam/cfg_default_room_fade.tres`
+  - `scripts/core/resources/display/vcam/rs_room_fade_settings.gd`
+  - `scripts/core/ecs/components/c_room_fade_group_component.gd`
+  - `resources/core/display/vcam/cfg_default_room_fade.tres`
 - Data-layer contracts implemented:
   - `RS_RoomFadeSettings` defaults (`fade_dot_threshold=0.3`, `fade_speed=4.0`, `min_alpha=0.05`) with clamp-safe `get_resolved_values()`.
   - `C_RoomFadeGroupComponent` exports (`group_tag`, `fade_normal`, nullable `settings`), runtime `current_alpha`, recursive mesh-target collection, parent-basis world-normal conversion, and snapshot reporting.
 - Added regression coverage:
-  - `tests/unit/resources/display/vcam/test_room_fade_settings.gd` (`7/7` passing)
+  - `tests/unit/resources/core/display/vcam/test_room_fade_settings.gd` (`7/7` passing)
   - `tests/unit/ecs/components/test_room_fade_group_component.gd` (`11/11` passing)
 - Validation run:
-  - `tests/unit/resources/display/vcam/test_room_fade_settings.gd`
+  - `tests/unit/resources/core/display/vcam/test_room_fade_settings.gd`
   - `tests/unit/ecs/components/test_room_fade_group_component.gd`
   - `tests/unit/style/test_style_enforcement.gd` (`16/17` passing; pre-existing inline theme override failure in `scenes/ui/hud/ui_hud_overlay.tscn`)
 
@@ -845,10 +845,10 @@
   - clamps low-amplitude release velocities to zero via `look_release_stop_threshold`,
   - remains orbit-only (first-person/fixed behavior unchanged).
 - Added regression coverage:
-  - `tests/unit/resources/display/vcam/test_vcam_response.gd`: +4 tests for new defaults/clamps (`24/24` total)
+  - `tests/unit/resources/core/display/vcam/test_vcam_response.gd`: +4 tests for new defaults/clamps (`24/24` total)
   - `tests/unit/ecs/systems/test_vcam_system.gd`: +4 tests for deceleration, asymmetric damping, stop-threshold clamp/no-drift, and orbit-only gating (`86/86` total)
 - Validation run:
-  - `tests/unit/resources/display/vcam/test_vcam_response.gd` (`24/24` passing)
+  - `tests/unit/resources/core/display/vcam/test_vcam_response.gd` (`24/24` passing)
   - `tests/unit/ecs/systems/test_vcam_system.gd` (`86/86` passing)
   - `tests/unit/style/test_style_enforcement.gd` (`16/17` passing; pre-existing failure in `scenes/ui/hud/ui_hud_overlay.tscn` inline theme overrides)
 
@@ -868,16 +868,16 @@
   - blends anchor updates with dedicated second-order dynamics using `ground_anchor_blend_hz`,
   - remains a strict no-op for non-orbit modes and when `ground_relative_enabled = false`.
 - Added regression coverage:
-  - `tests/unit/resources/display/vcam/test_vcam_response.gd`: +5 tests for ground-relative defaults/clamps (`20/20` total)
+  - `tests/unit/resources/core/display/vcam/test_vcam_response.gd`: +5 tests for ground-relative defaults/clamps (`20/20` total)
   - `tests/unit/ecs/systems/test_vcam_system.gd`: +6 tests for jump lock, airborne lock, minor/major landing behavior, uneven-terrain stability, and non-orbit no-op (`78/78` total)
 - Validation run (green):
-  - `tests/unit/resources/display/vcam/test_vcam_response.gd`
+  - `tests/unit/resources/core/display/vcam/test_vcam_response.gd`
   - `tests/unit/ecs/systems/test_vcam_system.gd`
   - `tests/unit/style/test_style_enforcement.gd`
 
 ## Orbit UX Improvement Pass (March 10, 2026)
 
-- Added `S_VCamSystem` to `scenes/gameplay/gameplay_interior_house.tscn` and `scenes/gameplay/gameplay_exterior.tscn` under `Systems/Core` with `execution_priority = 100` so gameplay scene coverage now matches base/bar/alleyway wiring.
+- Added `S_VCamSystem` to `scenes/demo/gameplay/gameplay_interior_house.tscn` and `scenes/demo/gameplay/gameplay_exterior.tscn` under `Systems/Core` with `execution_priority = 100` so gameplay scene coverage now matches base/bar/alleyway wiring.
 - Patched `S_VCamSystem` so the active vCam writes evaluated `fov` into the primary camera-state `base_fov` each tick (`1..179` clamp, missing/invalid value no-op).
 - Retuned global defaults for a balanced locked-pitch orbit pass:
   - `cfg_default_orbit.tres`: `distance=9.0`, `authored_pitch=-24.0`, `lock_y_rotation=true`, `rotation_speed=1.6`, `fov=65.0`
@@ -919,7 +919,7 @@
 - Extended `RS_VCamResponse` with response-driven look feel controls:
   - `look_input_deadzone`, `look_input_hold_sec`, `look_input_release_decay`
   - `orbit_look_bypass_enable_speed`, `orbit_look_bypass_disable_speed` (disable speed clamped to `>=` enable speed)
-- Retuned `resources/display/vcam/cfg_default_response.tres` to include conservative defaults for the new look filter and speed-aware orbit bypass fields.
+- Retuned `resources/core/display/vcam/cfg_default_response.tres` to include conservative defaults for the new look filter and speed-aware orbit bypass fields.
 - Patched `S_VCamSystem` with per-vCam look-input activity filtering state (`_look_input_filter_state`) that keeps bursty look streams active through a short hold/decay window for smoothing/gating decisions without adding extra runtime yaw/pitch accumulation.
 - Added per-vCam follow-target motion sampling (`_follow_target_motion_state`) and replaced orbit's unconditional look-input bypass with speed-aware hysteresis gating:
   - stationary/slow targets keep the no-lag bypass behavior,
@@ -930,7 +930,7 @@
   - moving-target bypass disablement,
   - bypass hysteresis between enable/disable thresholds.
 - Validation run (green):
-  - `tests/unit/resources/display/vcam/test_vcam_response.gd` (`15/15` passing)
+  - `tests/unit/resources/core/display/vcam/test_vcam_response.gd` (`15/15` passing)
   - `tests/unit/ecs/systems/test_vcam_system.gd` (`70/70` passing)
   - `tests/unit/style/test_style_enforcement.gd` (`16/16` passing)
 
@@ -941,12 +941,12 @@
   - `rotation_frequency=4.8`, `rotation_damping=0.9`
   - `look_ahead_distance=0.02`, `look_ahead_smoothing=1.77`
   - `orbit_look_bypass_enable_speed=7.0`, `orbit_look_bypass_disable_speed=8.5`
-- Added preset regression coverage in `tests/unit/resources/display/vcam/test_vcam_mode_presets.gd` for:
+- Added preset regression coverage in `tests/unit/resources/core/display/vcam/test_vcam_mode_presets.gd` for:
   - `cfg_default_response.tres` load/type contract (`RS_VCamResponse`)
   - tuned baseline value assertions for the fields above
 - Added style-guard coverage in `tests/unit/style/test_style_enforcement.gd` to fail if authored scenes re-enable `debug_rotation_logging = true`.
 - Validation run (green):
-  - `tests/unit/resources/display/vcam/test_vcam_mode_presets.gd`
+  - `tests/unit/resources/core/display/vcam/test_vcam_mode_presets.gd`
   - `tests/unit/style/test_style_enforcement.gd`
 
 ## Phase 0 Progress (March 10, 2026)
@@ -968,70 +968,70 @@
   - Added new VFX silhouette localization keys across all UI locale resources.
   - Updated VFX/state/unit/integration tests to cover silhouette state, UI behavior, and global-settings load path.
 - Completed Phase 0C:
-  - Added `scripts/resources/state/rs_vcam_initial_state.gd` with the full 11-field runtime observability contract (including `in_fov_zone`).
-  - Added `resources/state/cfg_default_vcam_initial_state.tres` for upcoming state-store/root wiring.
+  - Added `scripts/core/resources/state/rs_vcam_initial_state.gd` with the full 11-field runtime observability contract (including `in_fov_zone`).
+  - Added `resources/core/state/cfg_default_vcam_initial_state.tres` for upcoming state-store/root wiring.
   - Added `tests/unit/state/test_vcam_initial_state.gd` with 12 assertions covering default values and key count.
 - Completed Phase 0D:
-  - Added `scripts/state/actions/u_vcam_actions.gd` with 8 registered action creators (`set_active_runtime`, blend lifecycle, silhouette count, target validity, recovery reason, `update_fov_zone`).
-  - Added `scripts/state/reducers/u_vcam_reducer.gd` with full state-default merge + action handling (`blend_progress` clamp, silhouette non-negative clamp, unknown action unchanged-state return).
+  - Added `scripts/core/state/actions/u_vcam_actions.gd` with 8 registered action creators (`set_active_runtime`, blend lifecycle, silhouette count, target validity, recovery reason, `update_fov_zone`).
+  - Added `scripts/core/state/reducers/u_vcam_reducer.gd` with full state-default merge + action handling (`blend_progress` clamp, silhouette non-negative clamp, unknown action unchanged-state return).
   - Added vCam ECS event constants to `scripts/core/events/ecs/u_ecs_event_names.gd` (`EVENT_VCAM_ACTIVE_CHANGED`, `EVENT_VCAM_BLEND_STARTED`, `EVENT_VCAM_BLEND_COMPLETED`, `EVENT_VCAM_RECOVERY`).
   - Added new tests `tests/unit/state/test_vcam_actions.gd` (8) and `tests/unit/state/test_vcam_reducer.gd` (13).
 - Completed Phase 0E:
-  - Added `scripts/state/selectors/u_vcam_selectors.gd` and `tests/unit/state/test_vcam_selectors.gd` (23 tests) for null-safe vCam runtime/selector access.
+  - Added `scripts/core/state/selectors/u_vcam_selectors.gd` and `tests/unit/state/test_vcam_selectors.gd` (23 tests) for null-safe vCam runtime/selector access.
   - Wired `vcam_initial_state` export into `M_StateStore` and `U_StateSliceManager.initialize_slices(...)`.
   - Registered `vcam` in `U_StateSliceManager` with `is_transient = true` and reducer hookup to `U_VCamReducer`.
   - Patched `scenes/root.tscn` so `M_StateStore.vcam_initial_state` references `cfg_default_vcam_initial_state.tres`.
   - Added integration assertions proving `vcam` exists at runtime, is marked transient, is excluded from save payloads, and is excluded from global-settings serialization.
 - Completed Phase 0F:
   - Patched `S_CameraStateSystem` to resolve FOV-zone state through `U_VCamSelectors.is_in_fov_zone(state)` instead of legacy `state.camera` reads.
-  - Updated `resources/qb/camera/cfg_camera_zone_fov_rule.tres` to `state_path = "vcam.in_fov_zone"` so rule-driven FOV behavior matches migrated runtime state.
+  - Updated `resources/core/qb/camera/cfg_camera_zone_fov_rule.tres` to `state_path = "vcam.in_fov_zone"` so rule-driven FOV behavior matches migrated runtime state.
   - Updated QB camera unit/integration tests to seed `set_slice("vcam", {"in_fov_zone": ...})` and removed remaining non-doc `camera.in_fov_zone` references.
 - Completed Phase 1A:
-  - Added `RS_VCamSoftZone` (`scripts/resources/display/vcam/rs_vcam_soft_zone.gd`) with exported dead-zone/soft-zone dimensions and damping defaults.
-  - Added `tests/unit/resources/display/vcam/test_vcam_soft_zone.gd` (7 tests) for default values and bounds/order guards.
+  - Added `RS_VCamSoftZone` (`scripts/core/resources/display/vcam/rs_vcam_soft_zone.gd`) with exported dead-zone/soft-zone dimensions and damping defaults.
+  - Added `tests/unit/resources/core/display/vcam/test_vcam_soft_zone.gd` (7 tests) for default values and bounds/order guards.
 - Completed Phase 1B:
-  - Added `RS_VCamBlendHint` (`scripts/resources/display/vcam/rs_vcam_blend_hint.gd`) with blend/tween fields and `is_instant_cut()` helper.
-  - Added `tests/unit/resources/display/vcam/test_vcam_blend_hint.gd` (7 tests) for defaults, non-negative constraints, and zero-duration cut semantics.
+  - Added `RS_VCamBlendHint` (`scripts/core/resources/display/vcam/rs_vcam_blend_hint.gd`) with blend/tween fields and `is_instant_cut()` helper.
+  - Added `tests/unit/resources/core/display/vcam/test_vcam_blend_hint.gd` (7 tests) for defaults, non-negative constraints, and zero-duration cut semantics.
 - Completed Phase 1C:
-  - Added `resources/display/vcam/cfg_default_soft_zone.tres`.
-  - Added `resources/display/vcam/cfg_default_blend_hint.tres`.
+  - Added `resources/core/display/vcam/cfg_default_soft_zone.tres`.
+  - Added `resources/core/display/vcam/cfg_default_blend_hint.tres`.
 - Completed Phase 1D:
-  - Added `scripts/utils/math/u_second_order_dynamics.gd` (`U_SecondOrderDynamics`) with semi-implicit integration, frequency clamp, large-`dt` guard, and finite-value fallback handling.
+  - Added `scripts/core/utils/math/u_second_order_dynamics.gd` (`U_SecondOrderDynamics`) with semi-implicit integration, frequency clamp, large-`dt` guard, and finite-value fallback handling.
   - Added `tests/unit/utils/test_second_order_dynamics.gd` (13 tests) covering convergence, damping regimes, reset behavior, and response tuning.
 - Completed Phase 1E:
-  - Added `scripts/utils/math/u_second_order_dynamics_3d.gd` (`U_SecondOrderDynamics3D`) as a 3-axis wrapper over `U_SecondOrderDynamics`.
+  - Added `scripts/core/utils/math/u_second_order_dynamics_3d.gd` (`U_SecondOrderDynamics3D`) as a 3-axis wrapper over `U_SecondOrderDynamics`.
   - Added `tests/unit/utils/test_second_order_dynamics_3d.gd` (7 tests) covering vector convergence, axis independence, reset, and damping-regime behavior.
 - Completed Phase 1F:
-  - Added `scripts/resources/display/vcam/rs_vcam_response.gd` (`RS_VCamResponse`) with follow/rotation second-order tuning fields.
-  - Added `tests/unit/resources/display/vcam/test_vcam_response.gd` (8 tests) covering defaults and resolved non-negative/positive clamp behavior.
-  - Added `resources/display/vcam/cfg_default_response.tres` with Phase 1F defaults (`follow: 3.0/0.7/1.0`, `rotation: 4.0/1.0/1.0`).
+  - Added `scripts/core/resources/display/vcam/rs_vcam_response.gd` (`RS_VCamResponse`) with follow/rotation second-order tuning fields.
+  - Added `tests/unit/resources/core/display/vcam/test_vcam_response.gd` (8 tests) covering defaults and resolved non-negative/positive clamp behavior.
+  - Added `resources/core/display/vcam/cfg_default_response.tres` with Phase 1F defaults (`follow: 3.0/0.7/1.0`, `rotation: 4.0/1.0/1.0`).
 - Completed Phase 2A:
-  - Added `scripts/resources/display/vcam/rs_vcam_mode_orbit.gd` (`RS_VCamModeOrbit`) with authored orbit defaults (`distance`, `authored_pitch`, `authored_yaw`, `allow_player_rotation`, `lock_x_rotation`, `lock_y_rotation`, `rotation_speed`, `fov`) plus `get_resolved_values()` clamp/sanitation helper for deterministic runtime reads.
-  - Added/expanded `tests/unit/resources/display/vcam/test_vcam_mode_orbit.gd` (14 tests) for defaults, baseline constraints, axis-lock defaults, and resolved-value safety behavior.
+  - Added `scripts/core/resources/display/vcam/rs_vcam_mode_orbit.gd` (`RS_VCamModeOrbit`) with authored orbit defaults (`distance`, `authored_pitch`, `authored_yaw`, `allow_player_rotation`, `lock_x_rotation`, `lock_y_rotation`, `rotation_speed`, `fov`) plus `get_resolved_values()` clamp/sanitation helper for deterministic runtime reads.
+  - Added/expanded `tests/unit/resources/core/display/vcam/test_vcam_mode_orbit.gd` (14 tests) for defaults, baseline constraints, axis-lock defaults, and resolved-value safety behavior.
 - Completed Phase 2B:
-  - Added `scripts/managers/helpers/u_vcam_mode_evaluator.gd` (`U_VCamModeEvaluator`) with orbit-mode evaluation branch, resolved-value consumption, and null-safe invalid-input guards.
+  - Added `scripts/core/managers/helpers/u_vcam_mode_evaluator.gd` (`U_VCamModeEvaluator`) with orbit-mode evaluation branch, resolved-value consumption, and null-safe invalid-input guards.
   - Added/expanded `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd` (14 orbit tests, 39 evaluator tests total) for transform/FOV/mode-name outputs, authored/runtime rotation behavior, and invalid-input handling.
-  - Added `resources/display/vcam/cfg_default_orbit.tres` with baseline orbit defaults for scene/template wiring.
+  - Added `resources/core/display/vcam/cfg_default_orbit.tres` with baseline orbit defaults for scene/template wiring.
 - Completed Legacy Phase 3A (Superseded):
-  - Added `scripts/resources/display/vcam/rs_vcam_mode_first_person.gd` (`RS_VCamModeFirstPerson`) with defaults (`head_offset`, `look_multiplier`, `pitch_min`, `pitch_max`, `fov`) and `get_resolved_values()` clamping/ordering helpers.
-  - Added `tests/unit/resources/display/vcam/test_vcam_mode_first_person.gd` (8 tests) for defaults and resolved constraint behavior (`fov`, `look_multiplier`, pitch-bound ordering).
+  - Added `scripts/core/resources/display/vcam/rs_vcam_mode_first_person.gd` (`RS_VCamModeFirstPerson`) with defaults (`head_offset`, `look_multiplier`, `pitch_min`, `pitch_max`, `fov`) and `get_resolved_values()` clamping/ordering helpers.
+  - Added `tests/unit/resources/core/display/vcam/test_vcam_mode_first_person.gd` (8 tests) for defaults and resolved constraint behavior (`fov`, `look_multiplier`, pitch-bound ordering).
 - Completed Legacy Phase 3B (Superseded):
-  - Extended `scripts/managers/helpers/u_vcam_mode_evaluator.gd` with first-person evaluation branch (position from `follow_target + head_offset`, yaw/pitch basis construction, in-evaluator pitch clamp, and null-safe guards).
+  - Extended `scripts/core/managers/helpers/u_vcam_mode_evaluator.gd` with first-person evaluation branch (position from `follow_target + head_offset`, yaw/pitch basis construction, in-evaluator pitch clamp, and null-safe guards).
   - Extended `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd` with first-person coverage (10 new tests, 20 total evaluator tests).
-  - Added `resources/display/vcam/cfg_default_first_person.tres` with baseline first-person defaults.
+  - Added `resources/core/display/vcam/cfg_default_first_person.tres` with baseline first-person defaults.
 - Completed Phase 4A:
-  - Added `scripts/resources/display/vcam/rs_vcam_mode_fixed.gd` (`RS_VCamModeFixed`) with fixed-camera defaults (`use_world_anchor`, `track_target`, `fov`, `tracking_damping`, `follow_offset`, `use_path`, `path_max_speed`, `path_damping`) and `get_resolved_values()` clamp helpers.
-  - Added `tests/unit/resources/display/vcam/test_vcam_mode_fixed.gd` (13 tests) for fixed resource defaults and resolved constraint behavior.
+  - Added `scripts/core/resources/display/vcam/rs_vcam_mode_fixed.gd` (`RS_VCamModeFixed`) with fixed-camera defaults (`use_world_anchor`, `track_target`, `fov`, `tracking_damping`, `follow_offset`, `use_path`, `path_max_speed`, `path_damping`) and `get_resolved_values()` clamp helpers.
+  - Added `tests/unit/resources/core/display/vcam/test_vcam_mode_fixed.gd` (13 tests) for fixed resource defaults and resolved constraint behavior.
 - Completed Phase 4B:
-  - Extended `scripts/managers/helpers/u_vcam_mode_evaluator.gd` with fixed evaluation branch (world-anchor mode, follow-offset mode, path mode, runtime yaw/pitch ignore contract, and null-safe guards).
+  - Extended `scripts/core/managers/helpers/u_vcam_mode_evaluator.gd` with fixed evaluation branch (world-anchor mode, follow-offset mode, path mode, runtime yaw/pitch ignore contract, and null-safe guards).
   - Extended `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd` with fixed coverage (15 new tests, 35 total evaluator tests).
-  - Added `resources/display/vcam/cfg_default_fixed.tres` with baseline fixed defaults.
+  - Added `resources/core/display/vcam/cfg_default_fixed.tres` with baseline fixed defaults.
 - Completed Phase 5:
-  - Added `scripts/ecs/components/c_vcam_component.gd` (`C_VCamComponent`) with full authoring exports (`vcam_id`, priority/mode/paths, entity-id/tag follow fallbacks, soft-zone/blend/response resources, `is_active`), strict `RS_VCamResponse` export hint/guarding, and runtime orientation fields (`runtime_yaw`, `runtime_pitch`).
+  - Added `scripts/core/ecs/components/c_vcam_component.gd` (`C_VCamComponent`) with full authoring exports (`vcam_id`, priority/mode/paths, entity-id/tag follow fallbacks, soft-zone/blend/response resources, `is_active`), strict `RS_VCamResponse` export hint/guarding, and runtime orientation fields (`runtime_yaw`, `runtime_pitch`).
   - Added null-safe component getters (`get_follow_target`, `get_look_at_target`, `get_fixed_anchor`, `get_path_node`) plus `get_mode_name()` normalization for runtime observability/event payloads.
   - Added ServiceLocator-driven vCam-manager registration lifecycle in `C_VCamComponent` (`register_vcam` on ready/registration, `unregister_vcam` on exit) so persistent manager references are cleaned up on scene unload.
-  - Added `scripts/interfaces/i_vcam_manager.gd` with the 8-method manager contract (`register/unregister`, active selection, blend observability, same-frame submission API).
-  - Added `scripts/managers/m_vcam_manager.gd` with core registry, ServiceLocator registration, explicit-id and priority-based active selection, deterministic tie-break (`vcam_id` ascending), inactive-camera exclusion, re-selection on runtime state changes, and active-clear event correctness for unregister/pruned-active flows.
+  - Added `scripts/core/interfaces/i_vcam_manager.gd` with the 8-method manager contract (`register/unregister`, active selection, blend observability, same-frame submission API).
+  - Added `scripts/core/managers/m_vcam_manager.gd` with core registry, ServiceLocator registration, explicit-id and priority-based active selection, deterministic tie-break (`vcam_id` ascending), inactive-camera exclusion, re-selection on runtime state changes, and active-clear event correctness for unregister/pruned-active flows.
   - Added `M_VCamManager` observability/event integration:
     - Redux dispatch via `U_VCamActions.set_active_runtime(...)` (injection-first store lookup with ServiceLocator fallback).
     - ECS publish via `U_ECSEventBus.publish(U_ECSEventNames.EVENT_VCAM_ACTIVE_CHANGED, {...})`.
@@ -1040,7 +1040,7 @@
     - `tests/unit/ecs/components/test_vcam_component.gd` (15 tests).
     - `tests/unit/managers/test_vcam_manager.gd` (22 tests: registration + active selection + clear/recovery transition + dispatch/event coverage).
 - Completed Phase 6A:
-  - Added `scripts/ecs/systems/s_vcam_system.gd` with ServiceLocator/injection lookup for `I_VCamManager`, Redux look-input consumption, orbit/first-person runtime angle updates, active/outgoing vCam evaluation during blends, and same-frame submission via `submit_evaluated_camera(...)`.
+  - Added `scripts/core/ecs/systems/s_vcam_system.gd` with ServiceLocator/injection lookup for `I_VCamManager`, Redux look-input consumption, orbit/first-person runtime angle updates, active/outgoing vCam evaluation during blends, and same-frame submission via `submit_evaluated_camera(...)`.
   - Implemented follow-target resolution priority in `S_VCamSystem`: `follow_target_path` -> `follow_target_entity_id` (`get_entity_by_id`) -> `follow_target_tag` (`get_entities_by_tag`) -> recovery.
   - Added gameplay-local fixed-path helper handling in `S_VCamSystem` (`PathFollow3D` under authored `Path3D`), including invalid-target recovery behavior that does not fabricate new path progress.
   - Added `tests/unit/ecs/systems/test_vcam_system.gd` with 17 tests covering the full Phase 6A contract.
@@ -1048,10 +1048,10 @@
 - Completed Phase 6B:
   - Added `M_VCamManager` node to `scenes/root.tscn`.
   - Updated `scripts/core/root.gd` ServiceLocator bootstrap to register `vcam_manager` and declare `vcam_manager -> {state_store, camera_manager}` dependencies.
-  - Added `S_VCamSystem` to `scenes/templates/tmpl_base_scene.tscn` and gameplay scene system trees (`scenes/gameplay/gameplay_base.tscn`, `scenes/gameplay/gameplay_bar.tscn`, `scenes/gameplay/gameplay_alleyway.tscn`) under `Systems/Core` with `execution_priority = 100` (after movement, before feedback).
-  - Added default `C_VCamComponent` to `scenes/templates/tmpl_camera.tscn` with `cfg_default_orbit.tres` plus default soft-zone/blend/response resources and `follow_target_entity_id = &"player"`.
+  - Added `S_VCamSystem` to `scenes/core/templates/tmpl_base_scene.tscn` and gameplay scene system trees (`scenes/demo/gameplay/gameplay_base.tscn`, `scenes/demo/gameplay/gameplay_bar.tscn`, `scenes/demo/gameplay/gameplay_alleyway.tscn`) under `Systems/Core` with `execution_priority = 100` (after movement, before feedback).
+  - Added default `C_VCamComponent` to `scenes/core/templates/tmpl_camera.tscn` with `cfg_default_orbit.tres` plus default soft-zone/blend/response resources and `follow_target_entity_id = &"player"`.
 - Completed Phase 6A2:
-  - Extended `scripts/ecs/systems/s_vcam_system.gd` with per-vCam response smoothing state: `U_SecondOrderDynamics3D` for position and per-axis `U_SecondOrderDynamics` for rotation.
+  - Extended `scripts/core/ecs/systems/s_vcam_system.gd` with per-vCam response smoothing state: `U_SecondOrderDynamics3D` for position and per-axis `U_SecondOrderDynamics` for rotation.
   - Added `RS_VCamResponse` integration path in `S_VCamSystem` with null-response passthrough behavior (raw evaluator output when no response resource is assigned).
   - Added deterministic smoothing lifecycle rules: create-on-first-eval, recreate on response tuning change, reset on mode switch and follow-target switch.
   - Added Euler unwrapping for rotation smoothing targets to avoid long-path spins across angle wrap boundaries.
@@ -1065,13 +1065,13 @@
   - Extended `C_CameraStateComponent` with `landing_impact_offset`, `landing_impact_recovery_speed`, `speed_fov_bonus`, and `speed_fov_max_bonus`.
   - Extended `C_CameraStateComponent.reset_state()` and `get_snapshot()` so the new runtime fields are reset/snapshotted consistently for downstream systems.
 - Completed Phase 6A3b:
-  - Added `resources/qb/camera/cfg_camera_speed_fov_rule.tres` (`camera_speed_fov`) and registered it in `S_CameraStateSystem.DEFAULT_RULE_DEFINITIONS`.
+  - Added `resources/core/qb/camera/cfg_camera_speed_fov_rule.tres` (`camera_speed_fov`) and registered it in `S_CameraStateSystem.DEFAULT_RULE_DEFINITIONS`.
   - Extended `S_CameraStateSystem` context building to expose primary movement-speed magnitude to QB camera rules through a `C_MovementComponent` component snapshot.
   - Patched `S_CameraStateSystem._resolve_target_fov()` to compose `base_target + clamp(speed_fov_bonus, 0.0, speed_fov_max_bonus)` and clamp/write back invalid bonus values.
   - Extended QB effect execution with winner-score context and added `RS_EffectSetField` score scaling (`scale_by_rule_score`) so speed-FOV rules can map normalized condition score to authored max bonus.
   - Expanded `tests/unit/qb/test_camera_state_system.gd` with 6 speed-FOV coverage tests and `tests/unit/qb/test_effect_set_field.gd` with score-scaling coverage.
 - Completed Phase 6A3c:
-  - Added `resources/qb/camera/cfg_camera_landing_impact_rule.tres` (`camera_landing_impact`) and registered it in `S_CameraStateSystem.DEFAULT_RULE_DEFINITIONS`.
+  - Added `resources/core/qb/camera/cfg_camera_landing_impact_rule.tres` (`camera_landing_impact`) and registered it in `S_CameraStateSystem.DEFAULT_RULE_DEFINITIONS`.
   - Extended `RS_EffectSetField` with `vector3` literal support plus rule-score scaling for vector values, enabling score-scaled `landing_impact_offset` writes.
   - Patched `S_CameraStateSystem` event evaluation to prefilter event rules by subscribed event name before scoring, preventing cross-event side effects when score thresholds allow zero-score winners.
   - Added landing impact application/recovery in `S_VCamSystem`: reads `C_CameraStateComponent.landing_impact_offset`, applies offset to evaluated transforms, and recovers/writes back toward `Vector3.ZERO` via `U_SecondOrderDynamics3D` at `landing_impact_recovery_speed`.
@@ -1080,13 +1080,13 @@
   - Extended `RS_VCamResponse` with `look_ahead_distance` + `look_ahead_smoothing`, including non-negative resolved-value clamping.
   - Extended `S_VCamSystem` with orbit-only look-ahead state (`_look_ahead_state`) using movement velocity samples (`state.gameplay.entities[*].velocity` first, then movement-component/body fallback) and pre-smoothing position offsets before main response smoothing.
   - Added look-ahead coverage to `tests/unit/ecs/systems/test_vcam_system.gd` (disabled path, moving offset, clamp bound, stationary zero-offset, mode-switch clear, target-switch reset, first-person no-op, rotation-only target motion no-op).
-  - Updated `resources/display/vcam/cfg_default_response.tres` with explicit defaults for look-ahead fields.
+  - Updated `resources/core/display/vcam/cfg_default_response.tres` with explicit defaults for look-ahead fields.
 - Completed Phase 2C2:
   - Extended `RS_VCamResponse` with `auto_level_speed` + `auto_level_delay`, including non-negative resolved-value clamping.
   - Extended `S_VCamSystem` with orbit-only no-look timer tracking (`_orbit_no_look_input_timers`) and delayed pitch recentering via `move_toward(...)`.
   - Added auto-level coverage to `tests/unit/ecs/systems/test_vcam_system.gd` (disabled path, delayed decay, non-zero look suppression, timer reset, speed-rate behavior, first-person/fixed no-op).
 - Completed Phase 2C3:
-  - Added `scripts/managers/helpers/u_vcam_soft_zone.gd` (`U_VCamSoftZone`) with projection-based correction (`unproject_position`/`project_position`), near-plane guard, normalized-zone evaluation, damping-scaled soft-zone correction, and hard-zone clamping.
+  - Added `scripts/core/managers/helpers/u_vcam_soft_zone.gd` (`U_VCamSoftZone`) with projection-based correction (`unproject_position`/`project_position`), near-plane guard, normalized-zone evaluation, damping-scaled soft-zone correction, and hard-zone clamping.
   - Added `tests/unit/managers/helpers/test_vcam_soft_zone.gd` baseline coverage for dead-zone no-op, soft/hard correction behavior, damping scaling, viewport/depth coverage, boundary direction correctness, null-disable behavior, and zero-dead/full-soft edge cases.
 - Completed Phase 2C4:
   - Extended `RS_VCamSoftZone` with `hysteresis_margin` plus resolved-value clamping via `get_resolved_values()`.
@@ -1135,8 +1135,8 @@
   - `tests/integration/qb/test_camera_shake_pipeline.gd`
   - `tests/unit/style/test_style_enforcement.gd`
 - Validation run (green, Phases 1A/1B/1C):
-  - `tests/unit/resources/display/vcam/test_vcam_soft_zone.gd`
-  - `tests/unit/resources/display/vcam/test_vcam_blend_hint.gd`
+  - `tests/unit/resources/core/display/vcam/test_vcam_soft_zone.gd`
+  - `tests/unit/resources/core/display/vcam/test_vcam_blend_hint.gd`
   - `tests/unit/style/test_style_enforcement.gd`
 - Validation run (green, Phase 1D):
   - `tests/unit/utils/test_second_order_dynamics.gd`
@@ -1145,22 +1145,22 @@
   - `tests/unit/utils/test_second_order_dynamics_3d.gd`
   - `tests/unit/style/test_style_enforcement.gd`
 - Validation run (green, Phase 1F):
-  - `tests/unit/resources/display/vcam/test_vcam_response.gd`
-  - `tests/unit/resources/display/vcam/test_vcam_blend_hint.gd`
-  - `tests/unit/resources/display/vcam/test_vcam_soft_zone.gd`
+  - `tests/unit/resources/core/display/vcam/test_vcam_response.gd`
+  - `tests/unit/resources/core/display/vcam/test_vcam_blend_hint.gd`
+  - `tests/unit/resources/core/display/vcam/test_vcam_soft_zone.gd`
   - `tests/unit/style/test_style_enforcement.gd`
 - Validation run (green, Phases 2A/2B):
-  - `tests/unit/resources/display/vcam/test_vcam_mode_orbit.gd`
+  - `tests/unit/resources/core/display/vcam/test_vcam_mode_orbit.gd`
   - `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd`
   - `tests/unit` (`-gselect=test_vcam_mode`)
   - `tests/unit/style/test_style_enforcement.gd`
 - Validation run (green, Phases 3A/3B):
-  - `tests/unit/resources/display/vcam/test_vcam_mode_first_person.gd`
+  - `tests/unit/resources/core/display/vcam/test_vcam_mode_first_person.gd`
   - `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd`
   - `tests/unit` (`-gselect=test_vcam_mode`)
   - `tests/unit/style/test_style_enforcement.gd`
 - Validation run (green, Phases 4A/4B):
-  - `tests/unit/resources/display/vcam/test_vcam_mode_fixed.gd`
+  - `tests/unit/resources/core/display/vcam/test_vcam_mode_fixed.gd`
   - `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd`
   - `tests/unit` (`-gselect=test_vcam_mode`)
   - `tests/unit/style/test_style_enforcement.gd`
@@ -1198,16 +1198,16 @@
   - `tests/unit/ecs/systems/test_vcam_system.gd` (`-gselect=test_vcam_system`, 35/35 passing)
   - `tests/unit/style/test_style_enforcement.gd` (`-gselect=test_style_enforcement`, 13/13 passing)
 - Validation run (green, Phase 2C1/2C2):
-  - `tests/unit/resources/display/vcam/test_vcam_response.gd` (`-gselect=test_vcam_response`, 11/11 passing)
+  - `tests/unit/resources/core/display/vcam/test_vcam_response.gd` (`-gselect=test_vcam_response`, 11/11 passing)
   - `tests/unit/ecs/systems/test_vcam_system.gd` (`-gselect=test_vcam_system`, 48/48 passing)
   - `tests/unit/style/test_style_enforcement.gd` (`-gselect=test_style_enforcement`, 13/13 passing)
 - Validation run (green, Phase 2C3/2C4/2C5):
   - `tests/unit/managers/helpers/test_vcam_soft_zone.gd` (`-gselect=test_vcam_soft_zone`, 14/14 passing)
-  - `tests/unit/resources/display/vcam/test_vcam_soft_zone.gd` (`-gselect=test_vcam_soft_zone`, 8/8 passing)
+  - `tests/unit/resources/core/display/vcam/test_vcam_soft_zone.gd` (`-gselect=test_vcam_soft_zone`, 8/8 passing)
   - `tests/unit/ecs/systems/test_vcam_system.gd` (`-gselect=test_vcam_system`, 51/51 passing)
   - `tests/unit/style/test_style_enforcement.gd` (`-gselect=test_style_enforcement`, 13/13 passing)
 - Validation run (green, Phase 2C6):
-  - `tests/unit/resources/display/vcam/test_vcam_response.gd` (`-gselect=test_vcam_response`, 20/20 passing)
+  - `tests/unit/resources/core/display/vcam/test_vcam_response.gd` (`-gselect=test_vcam_response`, 20/20 passing)
   - `tests/unit/ecs/systems/test_vcam_system.gd` (`-gselect=test_vcam_system`, 78/78 passing)
   - `tests/unit/style/test_style_enforcement.gd` (`-gselect=test_style_enforcement`, 17/17 passing)
 
@@ -1236,10 +1236,10 @@
 - `C_CameraStateComponent` now exposes landing-impact and speed-FOV fields required by the Phase 6A3 QB feel pipeline, and includes those fields in component reset/snapshot behavior.
 - `S_CameraStateSystem` speed-FOV composition is now implementation-backed: movement-speed rule context, score-scaled `RS_EffectSetField` writes, and target-FOV composition/clamping now flow through the default `camera_speed_fov` QB rule.
 - Runtime scene wiring is now landed in authored scenes: `M_VCamManager` in root, `S_VCamSystem` in template/gameplay system trees, and `C_VCamComponent` defaults in `tmpl_camera.tscn`.
-- Phase 11 editor preview wiring is now implementation-backed: `U_VCamRuleOfThirdsPreview` (`scripts/utils/display/u_vcam_rule_of_thirds_preview.gd`) is wired into `tmpl_camera.tscn`, renders an editor-only thirds grid via internal `CanvasLayer`, and self-frees outside editor for zero runtime cost.
+- Phase 11 editor preview wiring is now implementation-backed: `U_VCamRuleOfThirdsPreview` (`scripts/core/utils/display/u_vcam_rule_of_thirds_preview.gd`) is wired into `tmpl_camera.tscn`, renders an editor-only thirds grid via internal `CanvasLayer`, and self-frees outside editor for zero runtime cost.
 - The `vcam` Redux slice is now defined as transient runtime observability only.
 - The silhouette enable/disable toggle moved to the persisted `vfx` slice.
-- VFX settings UI integration is now explicit: wire the silhouette toggle into `UI_VFXSettingsOverlay` (`scripts/ui/settings/ui_vfx_settings_overlay.gd` + `scenes/ui/overlays/settings/ui_vfx_settings_overlay.tscn`) and localize it in all `cfg_locale_*_ui.tres` files.
+- VFX settings UI integration is now explicit: wire the silhouette toggle into `UI_VFXSettingsOverlay` (`scripts/core/ui/settings/ui_vfx_settings_overlay.gd` + `scenes/ui/overlays/settings/ui_vfx_settings_overlay.tscn`) and localize it in all `cfg_locale_*_ui.tres` files.
 - The blend design now evaluates both outgoing and incoming cameras live during blends.
 - Live blend manager behavior is now implementation-backed: `M_VCamManager` blends frame-stamped active/outgoing submissions, supports reentrant snapshot interruption, and dispatches recovery reasons for invalid blend endpoints.
 - The camera integration now requires a shake-safe `M_CameraManager.apply_main_camera_transform(...)` API instead of direct `camera.global_transform` writes.
@@ -1261,23 +1261,23 @@
 - Keyboard-look scope is now complete: patch `U_InputMapBootstrapper`, `tests/unit/input/test_input_map.gd`, `U_GlobalSettingsSerialization`, `U_RebindActionListBuilder`, locale action keys, and a new `UI_KeyboardMouseSettingsOverlay` instead of treating the settings surface as optional.
 - Same-frame camera apply is now explicit: `S_VCamSystem` submits the authoritative current-frame result, and `M_VCamManager` consumes that handoff instead of relying on root `_physics_process` order against gameplay ECS.
 - Naming paths now follow the repo style guide:
-  - `scripts/resources/display/vcam/`
-  - `scripts/utils/display/`
+  - `scripts/core/resources/display/vcam/`
+  - `scripts/core/utils/display/`
 - Orbit mode baseline is now explicit:
-  - `RS_VCamModeOrbit` is authored in `scripts/resources/display/vcam/rs_vcam_mode_orbit.gd` with default preset `resources/display/vcam/cfg_default_orbit.tres`.
+  - `RS_VCamModeOrbit` is authored in `scripts/core/resources/display/vcam/rs_vcam_mode_orbit.gd` with default preset `resources/core/display/vcam/cfg_default_orbit.tres`.
   - `RS_VCamModeOrbit.get_resolved_values()` now provides canonical orbit clamp/sanitation reads (`distance`, `fov`, authored angles) and axis-lock flags (`lock_x_rotation`, `lock_y_rotation`).
   - `U_VCamModeEvaluator.evaluate(...)` now consumes orbit resolved values, returns `{transform, fov, mode_name}` for orbit resources, and returns `{}` for null/invalid inputs without warning noise.
 - OTS baseline (replaces first-person, March 15, 2026):
-  - `RS_VCamModeOTS` is now authored in `scripts/resources/display/vcam/rs_vcam_mode_ots.gd`; `get_resolved_values()` is the canonical OTS clamp/order read path for evaluator/runtime consumers.
+  - `RS_VCamModeOTS` is now authored in `scripts/core/resources/display/vcam/rs_vcam_mode_ots.gd`; `get_resolved_values()` is the canonical OTS clamp/order read path for evaluator/runtime consumers.
   - `U_VCamModeEvaluator.evaluate(...)` now includes the OTS branch and returns `{transform, fov, mode_name: "ots"}` with shoulder-offset rotation and evaluator-owned pitch clamping.
   - OTS game-feel/aiming implementation status: collision avoidance (3C1), shoulder sway (3C2), landing camera response (3C3), and full 3C4 aiming scope (aim activation/input plumbing/movement+rotation integrations + reticle UI + default movement preset) are implementation-complete.
 - Fixed baseline is now explicit:
-  - `RS_VCamModeFixed` is authored in `scripts/resources/display/vcam/rs_vcam_mode_fixed.gd` with default preset `resources/display/vcam/cfg_default_fixed.tres`.
+  - `RS_VCamModeFixed` is authored in `scripts/core/resources/display/vcam/rs_vcam_mode_fixed.gd` with default preset `resources/core/display/vcam/cfg_default_fixed.tres`.
   - `U_VCamModeEvaluator.evaluate(...)` now supports fixed world-anchor, follow-offset, and path branches while ignoring runtime yaw/pitch for fixed mode.
 - Phase 5 component/interface/manager core is now explicit:
-  - `C_VCamComponent` is authored in `scripts/ecs/components/c_vcam_component.gd` with mode/target/anchor/path/response exports and runtime yaw/pitch fields.
-  - `I_VCamManager` (`scripts/interfaces/i_vcam_manager.gd`) defines the 8-method core manager API used by upcoming `S_VCamSystem`.
-  - `M_VCamManager` (`scripts/managers/m_vcam_manager.gd`) now owns registration and active-vcam selection core.
+  - `C_VCamComponent` is authored in `scripts/core/ecs/components/c_vcam_component.gd` with mode/target/anchor/path/response exports and runtime yaw/pitch fields.
+  - `I_VCamManager` (`scripts/core/interfaces/i_vcam_manager.gd`) defines the 8-method core manager API used by upcoming `S_VCamSystem`.
+  - `M_VCamManager` (`scripts/core/managers/m_vcam_manager.gd`) now owns registration and active-vcam selection core.
 - Active-selection runtime contract is now explicit:
   - Selection order is `set_active_vcam` explicit override first, then highest `priority`, then ascending `vcam_id` tie-break.
   - Components with `is_active = false` are excluded from selection and trigger reselection when active ownership changes.
@@ -1293,41 +1293,41 @@
 - `docs/vcam_manager/vcam-manager-prd.md`
 - `docs/vcam_manager/vcam-manager-tasks.md`
 - `docs/vcam_manager/vcam-refactor-tasks.md`
-- `scripts/managers/m_vcam_manager.gd`
-- `scripts/managers/helpers/u_vcam_blend_manager.gd`
-- `scripts/managers/m_camera_manager.gd`
-- `scripts/interfaces/i_camera_manager.gd`
+- `scripts/core/managers/m_vcam_manager.gd`
+- `scripts/core/managers/helpers/u_vcam_blend_manager.gd`
+- `scripts/core/managers/m_camera_manager.gd`
+- `scripts/core/interfaces/i_camera_manager.gd`
 - `tests/mocks/mock_camera_manager.gd`
-- `scripts/ecs/systems/s_input_system.gd`
-- `scripts/ecs/systems/s_touchscreen_system.gd`
-- `scripts/ecs/systems/s_vcam_system.gd`
-- `scripts/ecs/systems/helpers/u_vcam_runtime_context.gd`
-- `scripts/ecs/systems/s_movement_system.gd`
-- `scripts/ecs/systems/s_rotate_to_input_system.gd`
-- `scripts/ecs/systems/s_room_fade_system.gd`
-- `scripts/input/u_input_map_bootstrapper.gd`
-- `scripts/ecs/systems/s_camera_state_system.gd` (QB rule context, FOV composition, shake trauma)
-- `scripts/ecs/components/c_camera_state_component.gd` (base_fov, target_fov, shake_trauma API)
+- `scripts/core/ecs/systems/s_input_system.gd`
+- `scripts/core/ecs/systems/s_touchscreen_system.gd`
+- `scripts/core/ecs/systems/s_vcam_system.gd`
+- `scripts/core/ecs/systems/helpers/u_vcam_runtime_context.gd`
+- `scripts/core/ecs/systems/s_movement_system.gd`
+- `scripts/core/ecs/systems/s_rotate_to_input_system.gd`
+- `scripts/core/ecs/systems/s_room_fade_system.gd`
+- `scripts/core/input/u_input_map_bootstrapper.gd`
+- `scripts/core/ecs/systems/s_camera_state_system.gd` (QB rule context, FOV composition, shake trauma)
+- `scripts/core/ecs/components/c_camera_state_component.gd` (base_fov, target_fov, shake_trauma API)
 - `scripts/core/events/ecs/u_ecs_event_bus.gd` (event subscription/publish pattern)
 - `scripts/core/events/ecs/u_ecs_event_names.gd` (event constant pattern — vCam events added here)
-- `scripts/utils/qb/u_rule_scorer.gd` (QB rule scoring for camera rules)
-- `scripts/state/utils/u_state_slice_manager.gd`
-- `scripts/utils/u_global_settings_serialization.gd`
-- `scripts/utils/display/u_color_grading_preview.gd`
-- `scripts/utils/display/u_vcam_rule_of_thirds_preview.gd`
-- `scripts/ui/helpers/u_rebind_action_list_builder.gd`
-- `scripts/managers/m_vfx_manager.gd`
-- `scripts/ui/hud/ui_mobile_controls.gd`
-- `scripts/ui/overlays/ui_touchscreen_settings_overlay.gd`
-- `scripts/ui/overlays/ui_input_rebinding_overlay.gd`
-- `scripts/ui/settings/ui_vfx_settings_overlay.gd`
-- `scripts/resources/input/rs_touchscreen_settings.gd`
-- `scripts/utils/lighting/u_room_fade_material_applier.gd`
-- `resources/localization/cfg_locale_en_ui.tres`
-- `resources/localization/cfg_locale_es_ui.tres`
-- `resources/localization/cfg_locale_ja_ui.tres`
-- `resources/localization/cfg_locale_pt_ui.tres`
-- `resources/localization/cfg_locale_zh_CN_ui.tres`
+- `scripts/core/utils/qb/u_rule_scorer.gd` (QB rule scoring for camera rules)
+- `scripts/core/state/utils/u_state_slice_manager.gd`
+- `scripts/core/utils/u_global_settings_serialization.gd`
+- `scripts/core/utils/display/u_color_grading_preview.gd`
+- `scripts/core/utils/display/u_vcam_rule_of_thirds_preview.gd`
+- `scripts/core/ui/helpers/u_rebind_action_list_builder.gd`
+- `scripts/core/managers/m_vfx_manager.gd`
+- `scripts/core/ui/hud/ui_mobile_controls.gd`
+- `scripts/core/ui/overlays/ui_touchscreen_settings_overlay.gd`
+- `scripts/core/ui/overlays/ui_input_rebinding_overlay.gd`
+- `scripts/core/ui/settings/ui_vfx_settings_overlay.gd`
+- `scripts/core/resources/input/rs_touchscreen_settings.gd`
+- `scripts/core/utils/lighting/u_room_fade_material_applier.gd`
+- `resources/core/localization/cfg_locale_en_ui.tres`
+- `resources/core/localization/cfg_locale_es_ui.tres`
+- `resources/core/localization/cfg_locale_ja_ui.tres`
+- `resources/core/localization/cfg_locale_pt_ui.tres`
+- `resources/core/localization/cfg_locale_zh_CN_ui.tres`
 - `tests/unit/input_manager/test_u_input_reducer.gd`
 - `tests/unit/input/test_input_map.gd`
 - `tests/unit/ecs/systems/test_input_system.gd`
@@ -1349,9 +1349,9 @@
 - `tests/integration/vcam/test_vcam_mobile.gd`
 - `tests/integration/vcam/test_vcam_occlusion.gd`
 - `scenes/root.tscn`
-- `scenes/templates/tmpl_base_scene.tscn`
-- `scenes/templates/tmpl_camera.tscn`
-- `scenes/gameplay/gameplay_base.tscn`
+- `scenes/core/templates/tmpl_base_scene.tscn`
+- `scenes/core/templates/tmpl_camera.tscn`
+- `scenes/demo/gameplay/gameplay_base.tscn`
 
 ## Next Steps
 

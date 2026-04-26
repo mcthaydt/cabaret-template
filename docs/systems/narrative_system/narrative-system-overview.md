@@ -12,8 +12,8 @@ The narrative system tracks story progression through a Redux `narrative` slice 
 
 ## Repo Reality Checks
 
-- Redux slice registration: `U_StateSliceManager.initialize_slices()` in `scripts/state/slices/u_state_slice_manager.gd`
-- Slice pattern: `sl_*.gd` files in `scripts/state/slices/`, actions in `scripts/state/actions/`, reducers in `scripts/state/reducers/`, selectors in `scripts/state/selectors/`
+- Redux slice registration: `U_StateSliceManager.initialize_slices()` in `scripts/core/state/slices/u_state_slice_manager.gd`
+- Slice pattern: `sl_*.gd` files in `scripts/core/state/slices/`, actions in `scripts/core/state/actions/`, reducers in `scripts/core/state/reducers/`, selectors in `scripts/core/state/selectors/`
 - `RS_StateSliceConfig` controls persistence (`is_transient`, `transient_fields`)
 - QB v2 `RS_ConditionReduxField` can already read any Redux field — narrative flags are queryable by existing conditions
 - Objectives system already uses Redux state + QB conditions for progression gating
@@ -45,14 +45,14 @@ The narrative system tracks story progression through a Redux `narrative` slice 
 ```
 Redux narrative slice (pure state — no manager node needed):
 
-  sl_narrative.gd  (scripts/state/slices/sl_narrative.gd)
+  sl_narrative.gd  (scripts/core/state/slices/sl_narrative.gd)
     State shape:
     ├── narrative_flags: Dictionary      (StringName → Variant, e.g., {"chose_civilian": true, "lumen_trust": 3})
     ├── choice_history: Array[Dictionary] ([{"choice_id": "freq_select", "value": "civilian", "timestamp": 12345}])
     ├── current_arc_id: StringName       (active story thread, e.g., "signal_lost_main")
     └── completed_arcs: Array[StringName]
 
-  U_NarrativeActions  (scripts/state/actions/u_narrative_actions.gd)
+  U_NarrativeActions  (scripts/core/state/actions/u_narrative_actions.gd)
     ├── set_flag(flag_name: StringName, value: Variant)
     ├── clear_flag(flag_name: StringName)
     ├── record_choice(choice_id: StringName, value: Variant)
@@ -60,10 +60,10 @@ Redux narrative slice (pure state — no manager node needed):
     ├── complete_arc(arc_id: StringName)
     └── reset_narrative()
 
-  U_NarrativeReducers  (scripts/state/reducers/u_narrative_reducers.gd)
+  U_NarrativeReducers  (scripts/core/state/reducers/u_narrative_reducers.gd)
     Pure functions handling each action type
 
-  U_NarrativeSelectors  (scripts/state/selectors/u_narrative_selectors.gd)
+  U_NarrativeSelectors  (scripts/core/state/selectors/u_narrative_selectors.gd)
     ├── get_flag(state, flag_name) → Variant
     ├── has_flag(state, flag_name) → bool
     ├── get_choice_history(state) → Array

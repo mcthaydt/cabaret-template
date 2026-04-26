@@ -51,7 +51,7 @@ script = ExtResource("trigger_component")
 door_id = &"door_main"
 target_scene_id = &"interior"
 target_spawn_point = &"sp_entrance"
-settings = ExtResource("res://resources/triggers/cfg_scene_trigger_settings.tres")
+settings = ExtResource("res://resources/core/triggers/cfg_scene_trigger_settings.tres")
 ```
 
 **When to use:**
@@ -78,7 +78,7 @@ script = ExtResource("trigger_component")
 door_id = &"door_wide"
 target_scene_id = &"hall"
 target_spawn_point = &"sp_entrance"
-settings = ExtResource("res://resources/triggers/cfg_cylinder_wide_door_trigger_settings.tres")
+settings = ExtResource("res://resources/core/triggers/cfg_cylinder_wide_door_trigger_settings.tres")
 ```
 
 **When to use:**
@@ -180,7 +180,7 @@ script = ExtResource("trigger_component")
 door_id = &"gate_fortress"
 target_scene_id = &"fortress_interior"
 target_spawn_point = &"sp_gate_entrance"
-settings = ExtResource("res://resources/triggers/cfg_trigger_wide_gate.tres")
+settings = ExtResource("res://resources/core/triggers/cfg_trigger_wide_gate.tres")
 ```
 
 ### Example 3: Small Hatch (Custom Cylinder Settings)
@@ -203,7 +203,7 @@ script = ExtResource("trigger_component")
 door_id = &"hatch_basement"
 target_scene_id = &"basement"
 target_spawn_point = &"sp_hatch_bottom"
-settings = ExtResource("res://resources/triggers/cfg_trigger_hatch.tres")
+settings = ExtResource("res://resources/core/triggers/cfg_trigger_hatch.tres")
 ```
 
 ## Best Practices
@@ -229,9 +229,9 @@ resources/
 
 ## Related Components
 
-- **C_SceneTriggerComponent** (`scripts/ecs/components/c_scene_trigger_component.gd`)
-- **S_SceneTriggerSystem** (`scripts/ecs/systems/s_scene_trigger_system.gd`)
-- **RS_SceneTriggerSettings** (`scripts/ecs/resources/rs_scene_trigger_settings.gd`)
+- **C_SceneTriggerComponent** (`scripts/core/ecs/components/c_scene_trigger_component.gd`)
+- **S_SceneTriggerSystem** (`scripts/core/ecs/systems/s_scene_trigger_system.gd`)
+- **RS_SceneTriggerSettings** (`scripts/core/ecs/resources/rs_scene_trigger_settings.gd`)
 
 ## See Also
 

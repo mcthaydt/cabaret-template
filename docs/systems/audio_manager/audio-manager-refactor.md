@@ -23,13 +23,13 @@ This plan addresses issues identified in the Audio Manager system, organized int
 
 ### Key Files
 
-- `scripts/managers/m_audio_manager.gd` (~400 lines)
-- `scripts/managers/helpers/u_sfx_spawner.gd` (~133 lines)
-- `scripts/ecs/systems/s_ambient_sound_system.gd` (~130 lines)
-- `scripts/ecs/systems/s_footstep_sound_system.gd` (~150 lines)
-- `scripts/ecs/systems/s_jump_sound_system.gd`, `s_landing_sound_system.gd`, `s_death_sound_system.gd`, `s_checkpoint_sound_system.gd`, `s_victory_sound_system.gd`
-- `scripts/ui/utils/u_ui_sound_player.gd` (~60 lines)
-- `scripts/ui/settings/ui_audio_settings_tab.gd` (~500 lines)
+- `scripts/core/managers/m_audio_manager.gd` (~400 lines)
+- `scripts/core/managers/helpers/u_sfx_spawner.gd` (~133 lines)
+- `scripts/core/ecs/systems/s_ambient_sound_system.gd` (~130 lines)
+- `scripts/core/ecs/systems/s_footstep_sound_system.gd` (~150 lines)
+- `scripts/core/ecs/systems/s_jump_sound_system.gd`, `s_landing_sound_system.gd`, `s_death_sound_system.gd`, `s_checkpoint_sound_system.gd`, `s_victory_sound_system.gd`
+- `scripts/core/ui/utils/u_ui_sound_player.gd` (~60 lines)
+- `scripts/core/ui/settings/ui_audio_settings_tab.gd` (~500 lines)
 
 ---
 
@@ -37,7 +37,7 @@ This plan addresses issues identified in the Audio Manager system, organized int
 
 **Goal**: Replace hard-coded registries with resource-driven definitions and loader pattern (same as U_SceneRegistryLoader).
 
-### New Resource: `scripts/ecs/resources/rs_music_track_definition.gd`
+### New Resource: `scripts/core/ecs/resources/rs_music_track_definition.gd`
 
 ```gdscript
 extends Resource
@@ -51,7 +51,7 @@ class_name RS_MusicTrackDefinition
 @export var pause_behavior: StringName = &"pause"  # "pause", "duck", "continue"
 ```
 
-### New Resource: `scripts/ecs/resources/rs_ambient_track_definition.gd`
+### New Resource: `scripts/core/ecs/resources/rs_ambient_track_definition.gd`
 
 ```gdscript
 extends Resource
@@ -64,7 +64,7 @@ class_name RS_AmbientTrackDefinition
 @export var loop: bool = true
 ```
 
-### New Resource: `scripts/ecs/resources/rs_ui_sound_definition.gd`
+### New Resource: `scripts/core/ecs/resources/rs_ui_sound_definition.gd`
 
 ```gdscript
 extends Resource
@@ -77,7 +77,7 @@ class_name RS_UISoundDefinition
 @export var throttle_ms: int = 0  # Per-sound throttle (0 = no throttle)
 ```
 
-### New Resource: `scripts/ecs/resources/rs_scene_audio_mapping.gd`
+### New Resource: `scripts/core/ecs/resources/rs_scene_audio_mapping.gd`
 
 ```gdscript
 extends Resource
@@ -89,7 +89,7 @@ class_name RS_SceneAudioMapping
 @export var ambient_track_id: StringName = &""
 ```
 
-### New Loader: `scripts/managers/helpers/u_audio_registry_loader.gd`
+### New Loader: `scripts/core/managers/helpers/u_audio_registry_loader.gd`
 
 ```gdscript
 class_name U_AudioRegistryLoader
@@ -116,18 +116,18 @@ static func _validate_registrations() -> void  # Warn on duplicates, missing str
 
 ### Default Resource Files
 
-- `resources/audio/tracks/music_main_menu.tres`
-- `resources/audio/tracks/music_exterior.tres`
-- `resources/audio/tracks/music_interior.tres`
-- `resources/audio/tracks/music_pause.tres`
-- `resources/audio/tracks/music_credits.tres`
-- `resources/audio/ambient/ambient_exterior.tres`
-- `resources/audio/ambient/ambient_interior.tres`
-- `resources/audio/ui/ui_focus.tres`
-- `resources/audio/ui/ui_confirm.tres`
-- `resources/audio/ui/ui_cancel.tres`
-- `resources/audio/ui/ui_tick.tres`
-- `resources/audio/scene_mappings/scene_audio_*.tres`
+- `resources/demo/audio/tracks/music_main_menu.tres`
+- `resources/demo/audio/tracks/music_exterior.tres`
+- `resources/demo/audio/tracks/music_interior.tres`
+- `resources/demo/audio/tracks/music_pause.tres`
+- `resources/demo/audio/tracks/music_credits.tres`
+- `resources/demo/audio/ambient/ambient_exterior.tres`
+- `resources/demo/audio/ambient/ambient_interior.tres`
+- `resources/demo/audio/ui/ui_focus.tres`
+- `resources/demo/audio/ui/ui_confirm.tres`
+- `resources/demo/audio/ui/ui_cancel.tres`
+- `resources/demo/audio/ui/ui_tick.tres`
+- `resources/demo/audio/scene_mappings/scene_audio_*.tres`
 
 ### Mix Snapshots / Pause Behavior
 
@@ -182,7 +182,7 @@ func _set_music_duck_offset(offset_db: float) -> void:
 
 **Goal**: Extract shared dual-player crossfader utility used by both music and ambient.
 
-### New Helper: `scripts/managers/helpers/u_crossfade_player.gd`
+### New Helper: `scripts/core/managers/helpers/u_crossfade_player.gd`
 
 ```gdscript
 class_name U_CrossfadePlayer
@@ -316,7 +316,7 @@ func _change_audio_for_scene(scene_id: StringName) -> void:
 
 ### Remove S_AmbientSoundSystem
 
-Delete `scripts/ecs/systems/s_ambient_sound_system.gd` - functionality now in M_AudioManager.
+Delete `scripts/core/ecs/systems/s_ambient_sound_system.gd` - functionality now in M_AudioManager.
 
 ---
 
@@ -338,7 +338,7 @@ Master (bus 0)
 
 Export as `default_bus_layout.tres` in project root.
 
-### New Constants: `scripts/managers/helpers/u_audio_bus_constants.gd`
+### New Constants: `scripts/core/managers/helpers/u_audio_bus_constants.gd`
 
 ```gdscript
 class_name U_AudioBusConstants
@@ -406,7 +406,7 @@ static func reset_audio_buses_for_testing() -> void:
 
 **Goal**: Add contract interface for type-safe access, remove has_method()/call() patterns.
 
-### New Interface: `scripts/interfaces/i_audio_manager.gd`
+### New Interface: `scripts/core/interfaces/i_audio_manager.gd`
 
 ```gdscript
 class_name I_AudioManager
@@ -448,7 +448,7 @@ class_name M_AudioManager
 # Implement all interface methods...
 ```
 
-### New Helper: `scripts/utils/u_audio_utils.gd`
+### New Helper: `scripts/core/utils/u_audio_utils.gd`
 
 ```gdscript
 class_name U_AudioUtils
@@ -506,7 +506,7 @@ The `create_request_from_payload()` method in each system transforms event paylo
 
 ### New Base Helper Methods in BaseEventSFXSystem
 
-Add to `scripts/ecs/base_event_sfx_system.gd`:
+Add to `scripts/core/ecs/base_event_sfx_system.gd`:
 ```gdscript
 ## Shared settings validation - returns true if should skip processing
 func _should_skip_processing() -> bool:
@@ -894,7 +894,7 @@ static func _play(sound_id: StringName) -> bool:
 
 ### Add Audio Preview to State
 
-In `scripts/state/resources/rs_audio_preview_initial_state.gd`:
+In `scripts/core/state/resources/rs_audio_preview_initial_state.gd`:
 
 ```gdscript
 extends Resource
@@ -919,7 +919,7 @@ Register as `audio_preview` slice in M_StateStore initialization.
 
 ### Add Preview Actions
 
-In `scripts/state/actions/u_audio_actions.gd`:
+In `scripts/core/state/actions/u_audio_actions.gd`:
 
 ```gdscript
 const ACTION_SET_PREVIEW_ACTIVE := &"audio_preview/set_active"
@@ -938,7 +938,7 @@ static func clear_preview() -> Dictionary:
 
 ### Add Preview Reducer
 
-In `scripts/state/reducers/r_audio_preview_reducer.gd`:
+In `scripts/core/state/reducers/r_audio_preview_reducer.gd`:
 
 ```gdscript
 static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
@@ -1099,7 +1099,7 @@ Add Audio Manager patterns section:
 ## Audio Manager Patterns
 
 ### Registry & Data
-- All audio tracks/sounds defined as resources in `resources/audio/`
+- All audio tracks/sounds defined as resources in `resources/demo/audio/`
 - Use `U_AudioRegistryLoader` for O(1) lookup by ID
 - Scene→audio mappings stored separately from track definitions
 - Per-track pause behavior: `"pause"`, `"duck"`, or `"continue"`
@@ -1169,34 +1169,34 @@ Add Audio Manager patterns section:
 ## Files to Modify
 
 ### New Files
-- `scripts/ecs/resources/rs_music_track_definition.gd`
-- `scripts/ecs/resources/rs_ambient_track_definition.gd`
-- `scripts/ecs/resources/rs_ui_sound_definition.gd`
-- `scripts/ecs/resources/rs_scene_audio_mapping.gd`
-- `scripts/managers/helpers/u_audio_registry_loader.gd`
-- `scripts/managers/helpers/u_crossfade_player.gd`
-- `scripts/managers/helpers/u_audio_bus_constants.gd`
-- `scripts/interfaces/i_audio_manager.gd`
-- `scripts/utils/u_audio_utils.gd`
-- `resources/audio/tracks/*.tres` (5 music tracks)
-- `resources/audio/ambient/*.tres` (2 ambient tracks)
-- `resources/audio/ui/*.tres` (4 UI sounds)
-- `resources/audio/scene_mappings/*.tres`
+- `scripts/core/ecs/resources/rs_music_track_definition.gd`
+- `scripts/core/ecs/resources/rs_ambient_track_definition.gd`
+- `scripts/core/ecs/resources/rs_ui_sound_definition.gd`
+- `scripts/core/ecs/resources/rs_scene_audio_mapping.gd`
+- `scripts/core/managers/helpers/u_audio_registry_loader.gd`
+- `scripts/core/managers/helpers/u_crossfade_player.gd`
+- `scripts/core/managers/helpers/u_audio_bus_constants.gd`
+- `scripts/core/interfaces/i_audio_manager.gd`
+- `scripts/core/utils/u_audio_utils.gd`
+- `resources/demo/audio/tracks/*.tres` (5 music tracks)
+- `resources/demo/audio/ambient/*.tres` (2 ambient tracks)
+- `resources/demo/audio/ui/*.tres` (4 UI sounds)
+- `resources/demo/audio/scene_mappings/*.tres`
 
 ### Modified Files
-- `scripts/managers/m_audio_manager.gd` - Major refactor
-- `scripts/managers/helpers/u_sfx_spawner.gd` - Voice stealing, config
-- `scripts/ecs/base_event_sfx_system.gd` - Shared helpers
-- `scripts/ecs/systems/s_jump_sound_system.gd` - Simplify
-- `scripts/ecs/systems/s_landing_sound_system.gd` - Simplify
-- `scripts/ecs/systems/s_death_sound_system.gd` - Simplify, fix search
-- `scripts/ecs/systems/s_checkpoint_sound_system.gd` - Simplify, fix search
-- `scripts/ecs/systems/s_victory_sound_system.gd` - Simplify
-- `scripts/ecs/systems/s_footstep_sound_system.gd` - Timer cleanup
-- `scripts/ui/utils/u_ui_sound_player.gd` - Per-sound throttles
-- `scripts/ui/settings/ui_audio_settings_tab.gd` - Type-safe, Redux preview
+- `scripts/core/managers/m_audio_manager.gd` - Major refactor
+- `scripts/core/managers/helpers/u_sfx_spawner.gd` - Voice stealing, config
+- `scripts/core/ecs/base_event_sfx_system.gd` - Shared helpers
+- `scripts/core/ecs/systems/s_jump_sound_system.gd` - Simplify
+- `scripts/core/ecs/systems/s_landing_sound_system.gd` - Simplify
+- `scripts/core/ecs/systems/s_death_sound_system.gd` - Simplify, fix search
+- `scripts/core/ecs/systems/s_checkpoint_sound_system.gd` - Simplify, fix search
+- `scripts/core/ecs/systems/s_victory_sound_system.gd` - Simplify
+- `scripts/core/ecs/systems/s_footstep_sound_system.gd` - Timer cleanup
+- `scripts/core/ui/utils/u_ui_sound_player.gd` - Per-sound throttles
+- `scripts/core/ui/settings/ui_audio_settings_tab.gd` - Type-safe, Redux preview
 - `scripts/core/root.gd` - Service registration
 - `AGENTS.md` - Add audio patterns
 
 ### Deleted Files
-- `scripts/ecs/systems/s_ambient_sound_system.gd` - Moved to manager
+- `scripts/core/ecs/systems/s_ambient_sound_system.gd` - Moved to manager

@@ -15,9 +15,9 @@ The Display Manager handles visual post-processing effects (Film Grain, Outline,
 ## Key Patterns to Follow
 
 Before implementation, study these reference files:
-- `scripts/managers/m_audio_manager.gd` - Hash-based optimization, preview mode, store discovery
-- `scripts/state/utils/u_state_slice_manager.gd` - Slice registration pattern
-- `scripts/state/m_state_store.gd` - Export pattern, initialize_slices call
+- `scripts/core/managers/m_audio_manager.gd` - Hash-based optimization, preview mode, store discovery
+- `scripts/core/state/utils/u_state_slice_manager.gd` - Slice registration pattern
+- `scripts/core/state/m_state_store.gd` - Export pattern, initialize_slices call
 - `scripts/core/root.gd` - ServiceLocator registration
 
 ---
@@ -31,7 +31,7 @@ Before implementation, study these reference files:
 ### Commit 1: Display Initial State Resource
 
 **Files to create**:
-- `scripts/resources/state/rs_display_initial_state.gd`
+- `scripts/core/resources/state/rs_display_initial_state.gd`
 - `tests/unit/state/test_display_initial_state.gd` (8 tests)
 
 **Implementation**:
@@ -103,7 +103,7 @@ func to_dictionary() -> Dictionary:
 ### Commit 2: Display Actions
 
 **Files to create**:
-- `scripts/state/actions/u_display_actions.gd`
+- `scripts/core/state/actions/u_display_actions.gd`
 - `tests/unit/state/test_display_actions.gd` (19 tests)
 
 **Action Creators** (19 total):
@@ -167,7 +167,7 @@ static func set_window_mode(mode: String) -> Dictionary:
 ### Commit 3: Display Reducer
 
 **Files to create**:
-- `scripts/state/reducers/u_display_reducer.gd`
+- `scripts/core/state/reducers/u_display_reducer.gd`
 - `tests/unit/state/test_display_reducer.gd` (28 tests)
 
 **Key Features**:
@@ -240,12 +240,12 @@ static func _with_values(state: Dictionary, values: Dictionary) -> Dictionary:
 ### Commit 4: Display Selectors & M_StateStore Integration
 
 **Files to create**:
-- `scripts/state/selectors/u_display_selectors.gd`
+- `scripts/core/state/selectors/u_display_selectors.gd`
 - `tests/unit/state/test_display_selectors.gd` (19 tests)
 
 **Files to modify**:
 
-**1. `scripts/state/m_state_store.gd`**:
+**1. `scripts/core/state/m_state_store.gd`**:
 ```gdscript
 # Line ~41, add const:
 const RS_DISPLAY_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_display_initial_state.gd")
@@ -270,10 +270,10 @@ U_STATE_SLICE_MANAGER.initialize_slices(
 )
 ```
 
-**2. `scripts/state/utils/u_state_slice_manager.gd`**:
+**2. `scripts/core/state/utils/u_state_slice_manager.gd`**:
 ```gdscript
 # Line ~11, add const:
-const U_DISPLAY_REDUCER := preload("res://scripts/state/reducers/u_display_reducer.gd")
+const U_DISPLAY_REDUCER := preload("res://scripts/core/state/reducers/u_display_reducer.gd")
 
 # Lines 16-28, add 12th parameter:
 static func initialize_slices(
@@ -302,11 +302,11 @@ if display_initial_state != null:
     register_slice(slice_configs, state, display_config)
 ```
 
-**3. `scripts/state/u_action_registry.gd`**:
+**3. `scripts/core/state/u_action_registry.gd`**:
 - Register all 19 U_DisplayActions action types in the registered actions array
 
 **4. `scenes/root.tscn`**:
-- Assign `resources/base_settings/state/cfg_display_initial_state.tres` to M_StateStore.display_initial_state export
+- Assign `resources/core/base_settings/state/cfg_display_initial_state.tres` to M_StateStore.display_initial_state export
 
 **Selectors**:
 ```gdscript
@@ -369,7 +369,7 @@ static func is_color_blind_shader_enabled(state: Dictionary) -> bool:
 ### Commit 1: I_DisplayManager Interface
 
 **Files to create**:
-- `scripts/interfaces/i_display_manager.gd`
+- `scripts/core/interfaces/i_display_manager.gd`
 
 **Implementation**:
 ```gdscript
@@ -392,8 +392,8 @@ func get_active_palette() -> Resource:
 ### Commit 2: Manager Scaffolding & Lifecycle
 
 **Files to create**:
-- `scripts/managers/m_display_manager.gd`
-- `scripts/utils/display/u_display_utils.gd`
+- `scripts/core/managers/m_display_manager.gd`
+- `scripts/core/utils/display/u_display_utils.gd`
 - `tests/unit/managers/test_display_manager.gd` (11 tests)
 
 **Manager Structure**:
@@ -403,8 +403,8 @@ class_name M_DisplayManager
 extends I_DisplayManager
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
-const U_DISPLAY_SELECTORS := preload("res://scripts/state/selectors/u_display_selectors.gd")
+const U_STATE_UTILS := preload("res://scripts/core/state/utils/u_state_utils.gd")
+const U_DISPLAY_SELECTORS := preload("res://scripts/core/state/selectors/u_display_selectors.gd")
 
 # Dependency injection for testability
 @export var state_store: I_StateStore = null
@@ -464,7 +464,7 @@ func get_active_palette() -> RS_UIColorPalette:
     return _palette_manager.get_active_palette()
 ```
 
-**U_DisplayUtils Helper** (`scripts/utils/display/u_display_utils.gd`):
+**U_DisplayUtils Helper** (`scripts/core/utils/display/u_display_utils.gd`):
 ```gdscript
 class_name U_DisplayUtils
 extends RefCounted
@@ -513,7 +513,7 @@ _register_if_exists(managers_node, "M_DisplayManager", StringName("display_manag
 ### Commit 1: Window Size & Mode Application
 
 **Files to modify**:
-- `scripts/managers/m_display_manager.gd`
+- `scripts/core/managers/m_display_manager.gd`
 
 **Implementation**:
 ```gdscript
@@ -559,13 +559,13 @@ func set_vsync_enabled(enabled: bool) -> void:
 ### Commit 2: Quality Presets
 
 **Files to create**:
-- `scripts/resources/display/rs_quality_preset.gd`
-- `resources/display/cfg_quality_presets/cfg_quality_low.tres`
-- `resources/display/cfg_quality_presets/cfg_quality_medium.tres`
-- `resources/display/cfg_quality_presets/cfg_quality_high.tres`
-- `resources/display/cfg_quality_presets/cfg_quality_ultra.tres`
+- `scripts/core/resources/display/rs_quality_preset.gd`
+- `resources/core/display/cfg_quality_presets/cfg_quality_low.tres`
+- `resources/core/display/cfg_quality_presets/cfg_quality_medium.tres`
+- `resources/core/display/cfg_quality_presets/cfg_quality_high.tres`
+- `resources/core/display/cfg_quality_presets/cfg_quality_ultra.tres`
 
-**Quality Settings Resource** (`scripts/resources/display/rs_quality_preset.gd`):
+**Quality Settings Resource** (`scripts/core/resources/display/rs_quality_preset.gd`):
 ```gdscript
 class_name RS_QualityPreset
 extends Resource
@@ -622,7 +622,7 @@ func apply_quality_preset(preset: String) -> void:
 
 **Files to create**:
 - `scenes/ui/overlays/ui_post_process_overlay.tscn`
-- `scripts/managers/helpers/display/u_post_process_layer.gd`
+- `scripts/core/managers/helpers/display/u_post_process_layer.gd`
 - `tests/unit/managers/helpers/test_post_process_layer.gd` (15 tests)
 
 **Scene Structure** (`ui_post_process_overlay.tscn`):
@@ -730,7 +730,7 @@ void fragment() {
 ### Commit 1: UI Scale Application
 
 **Files to modify**:
-- `scripts/managers/m_display_manager.gd`
+- `scripts/core/managers/m_display_manager.gd`
 
 **Implementation**:
 ```gdscript
@@ -757,15 +757,15 @@ func _apply_ui_scale(state: Dictionary) -> void:
 ### Commit 1: RS_UIColorPalette Resource
 
 **Files to create**:
-- `scripts/resources/ui/rs_ui_color_palette.gd`
-- `resources/ui_themes/cfg_palette_normal.tres`
-- `resources/ui_themes/cfg_palette_deuteranopia.tres`
-- `resources/ui_themes/cfg_palette_protanopia.tres`
-- `resources/ui_themes/cfg_palette_tritanopia.tres`
-- `resources/ui_themes/cfg_palette_high_contrast.tres`
+- `scripts/core/resources/ui/rs_ui_color_palette.gd`
+- `resources/core/ui_themes/cfg_palette_normal.tres`
+- `resources/core/ui_themes/cfg_palette_deuteranopia.tres`
+- `resources/core/ui_themes/cfg_palette_protanopia.tres`
+- `resources/core/ui_themes/cfg_palette_tritanopia.tres`
+- `resources/core/ui_themes/cfg_palette_high_contrast.tres`
 - `tests/unit/resources/test_ui_color_palette.gd` (10 tests)
 
-**Resource Definition** (`scripts/resources/ui/rs_ui_color_palette.gd`):
+**Resource Definition** (`scripts/core/resources/ui/rs_ui_color_palette.gd`):
 ```gdscript
 @icon("res://assets/editor_icons/resource.svg")
 class_name RS_UIColorPalette
@@ -801,7 +801,7 @@ text = Color(1.0, 1.0, 1.0)
 ### Commit 2: U_PaletteManager Helper
 
 **Files to create**:
-- `scripts/managers/helpers/u_palette_manager.gd`
+- `scripts/core/managers/helpers/u_palette_manager.gd`
 - `tests/unit/managers/helpers/test_palette_manager.gd` (10 tests)
 
 **Implementation**:
@@ -811,13 +811,13 @@ extends RefCounted
 
 signal active_palette_changed(palette: RS_UIColorPalette)
 
-# Palette instances live in resources/, class definition in scripts/resources/ui/
+# Palette instances live in resources/, class definition in scripts/core/resources/ui/
 const PALETTE_PATHS := {
-    "normal": "res://resources/ui_themes/cfg_palette_normal.tres",
-    "deuteranopia": "res://resources/ui_themes/cfg_palette_deuteranopia.tres",
-    "protanopia": "res://resources/ui_themes/cfg_palette_protanopia.tres",
-    "tritanopia": "res://resources/ui_themes/cfg_palette_tritanopia.tres",
-    "high_contrast": "res://resources/ui_themes/cfg_palette_high_contrast.tres",
+    "normal": "res://resources/core/ui_themes/cfg_palette_normal.tres",
+    "deuteranopia": "res://resources/core/ui_themes/cfg_palette_deuteranopia.tres",
+    "protanopia": "res://resources/core/ui_themes/cfg_palette_protanopia.tres",
+    "tritanopia": "res://resources/core/ui_themes/cfg_palette_tritanopia.tres",
+    "high_contrast": "res://resources/core/ui_themes/cfg_palette_high_contrast.tres",
 }
 
 var _cached_palettes: Dictionary = {}
@@ -871,7 +871,7 @@ uniform int mode : hint_range(0, 3) = 0;  // 0=off, 1=deuteranopia, 2=protanopia
 
 **Files to create**:
 - `scenes/ui/overlays/settings/ui_display_settings_tab.tscn`
-- `scripts/ui/settings/ui_display_settings_tab.gd`
+- `scripts/core/ui/settings/ui_display_settings_tab.gd`
 
 **Scene Structure**:
 ```
@@ -1048,40 +1048,40 @@ tools/run_gut_suite.sh -gdir=res://tests -ginclude_subdirs=true
 ## File Structure
 
 ```
-scripts/interfaces/
+scripts/core/interfaces/
   i_display_manager.gd              # Interface for testability
 
-scripts/managers/
+scripts/core/managers/
   m_display_manager.gd              # Extends I_DisplayManager
 
-scripts/managers/helpers/display/
+scripts/core/managers/helpers/display/
   u_post_process_layer.gd           # CanvasLayer effect manager
 
-scripts/managers/helpers/
+scripts/core/managers/helpers/
   u_palette_manager.gd              # Color blind palette loading
 
-scripts/utils/display/
+scripts/core/utils/display/
   u_display_utils.gd                # Display manager lookup helper
 
-scripts/resources/state/
+scripts/core/resources/state/
   rs_display_initial_state.gd       # Initial state resource
 
-scripts/resources/display/
+scripts/core/resources/display/
   rs_quality_preset.gd              # Quality preset resource class
 
-scripts/resources/ui/
+scripts/core/resources/ui/
   rs_ui_color_palette.gd            # Color palette resource class
 
-scripts/state/actions/
+scripts/core/state/actions/
   u_display_actions.gd              # 19 action creators
 
-scripts/state/reducers/
+scripts/core/state/reducers/
   u_display_reducer.gd              # Reducer with validation
 
-scripts/state/selectors/
+scripts/core/state/selectors/
   u_display_selectors.gd            # 19 selectors
 
-scripts/ui/settings/
+scripts/core/ui/settings/
   ui_display_settings_tab.gd        # Settings UI controller
 
 assets/shaders/
@@ -1090,26 +1090,26 @@ assets/shaders/
   sh_dither_shader.gdshader
   sh_colorblind_daltonize.gdshader
 
-resources/base_settings/state/
+resources/core/base_settings/state/
   cfg_display_initial_state.tres    # Default display settings instance
 
-resources/display/cfg_quality_presets/
+resources/core/display/cfg_quality_presets/
   cfg_quality_low.tres
   cfg_quality_medium.tres
   cfg_quality_high.tres
   cfg_quality_ultra.tres
 
-resources/ui_themes/
+resources/core/ui_themes/
   cfg_palette_normal.tres           # Instances only (class in scripts/)
   cfg_palette_deuteranopia.tres
   cfg_palette_protanopia.tres
   cfg_palette_tritanopia.tres
   cfg_palette_high_contrast.tres
 
-resources/textures/
+resources/core/textures/
   tex_bayer_8x8.png                  # Bayer dither pattern
 
-scenes/ui/overlays/
+scenes/core/ui/overlays/
   ui_post_process_overlay.tscn      # CanvasLayer with effect ColorRects (layer 100)
   ui_display_settings_tab.tscn      # Display settings tab (matches audio pattern)
   ui_display_settings_overlay.tscn  # Display settings overlay wrapper

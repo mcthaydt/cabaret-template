@@ -137,7 +137,7 @@ scenes/
     └── LoadingOverlay          # CanvasLayer for loading screens (NEW)
 
 # Scene Manager Scripts
-scripts/
+scripts/core/
 ├── managers/
 │   ├── m_ecs_manager.gd       # Existing - per-scene ECS manager
 │   ├── m_state_store.gd       # Existing - Redux store (MODIFIED: add scene slice)
@@ -169,16 +169,18 @@ scripts/
         └── s_scene_trigger_system.gd     # NEW - Trigger processing
 
 # UI Scenes
-scenes/
-├── ui/
-│   ├── main_menu.tscn         # NEW - Main menu scene
-│   ├── settings_menu.tscn     # NEW - Settings menu
-│   ├── pause_menu.tscn        # NEW - Pause overlay
-│   ├── loading_screen.tscn    # NEW - Loading screen UI
-│   ├── game_over.tscn         # NEW - Game over screen
-│   ├── victory.tscn           # NEW - Victory screen
-│   └── credits.tscn           # NEW - Credits scene
-│
+scenes/core/
+└── ui/
+    ├── main_menu.tscn         # NEW - Main menu scene
+    ├── settings_menu.tscn     # NEW - Settings menu
+    ├── pause_menu.tscn        # NEW - Pause overlay
+    ├── loading_screen.tscn    # NEW - Loading screen UI
+    ├── game_over.tscn         # NEW - Game over screen
+    ├── victory.tscn           # NEW - Victory screen
+    └── credits.tscn           # NEW - Credits scene
+
+# Gameplay Scenes (demo-specific)
+scenes/demo/
 └── gameplay/
     ├── exterior_template.tscn # NEW - Exterior gameplay area (with M_ECSManager)
     ├── interior_template.tscn # NEW - Interior gameplay area (with M_ECSManager)
@@ -420,7 +422,7 @@ Before implementing Scene Manager, must restructure existing scenes:
    - **DO NOT change project.godot yet**
 
 2. **Extract Gameplay Scene** (2-3 hours)
-   - Duplicate `base_scene_template.tscn` → `scenes/gameplay/gameplay_base.tscn`
+   - Duplicate `base_scene_template.tscn` → `scenes/demo/gameplay/gameplay_base.tscn`
    - Remove from gameplay_base.tscn: M_StateStore, M_CursorManager (stay in root)
    - Keep in gameplay_base.tscn: M_ECSManager, Systems, Entities, SceneObjects, Environment
    - **Critical**: Update HUD to find M_StateStore via `U_StateUtils.get_store()` (may need await)
@@ -442,9 +444,9 @@ Before implementing Scene Manager, must restructure existing scenes:
 
 5. **Scene State Slice Setup** (2-3 hours) - TDD REQUIRED
    - **Test First**: Write `tests/unit/scene_manager/test_scene_reducer.gd`
-   - Create `scripts/state/resources/rs_scene_initial_state.gd`
-   - Create `scripts/state/reducers/u_scene_reducer.gd`
-   - Create `scripts/state/actions/u_scene_actions.gd` with ActionRegistry registration in `_static_init()`
+   - Create `scripts/core/state/resources/rs_scene_initial_state.gd`
+   - Create `scripts/core/state/reducers/u_scene_reducer.gd`
+   - Create `scripts/core/state/actions/u_scene_actions.gd` with ActionRegistry registration in `_static_init()`
    - Modify `M_StateStore._initialize_slices()` to register scene slice (FR-112)
    - **Test Pass**: Unit tests for scene slice pass
    - **Test**: Verify transient fields (is_transitioning) excluded from save_state()
@@ -452,7 +454,7 @@ Before implementing Scene Manager, must restructure existing scenes:
 
 6. **U_SceneRegistry** (1-2 hours) - TDD REQUIRED
    - **Test First**: Write `tests/unit/scene_manager/test_scene_registry.gd`
-   - Create `scripts/scene_management/u_scene_registry.gd` static class
+   - Create `scripts/core/scene_management/u_scene_registry.gd` static class
    - Define scene metadata (paths, types, transitions, preload priority)
    - Define door pairing structure
    - Implement validation methods (`validate_door_pairings()`)
@@ -461,7 +463,7 @@ Before implementing Scene Manager, must restructure existing scenes:
 
 7. **M_SceneManager Core** (3-4 hours) - TDD REQUIRED
    - **Test First**: Write `tests/unit/scene_manager/test_m_scene_manager.gd`
-   - Create `scripts/managers/m_scene_manager.gd` node
+   - Create `scripts/core/managers/m_scene_manager.gd` node
    - Implement `_ready()`: add to "scene_manager" group, find M_StateStore via `U_StateUtils.get_store()`
    - Implement **transition queue** with priority system:
      - Queue: Array of {scene_id, transition_type, priority}
@@ -479,9 +481,9 @@ Before implementing Scene Manager, must restructure existing scenes:
 
 8. **Transition Effects** (2-3 hours) - TDD REQUIRED
    - **Test First**: Write `tests/unit/scene_manager/test_transitions.gd`
-   - Create `scripts/scene_management/transitions/base_transition_effect.gd` base class
-   - Implement `scripts/scene_management/transitions/trans_instant.gd`
-   - Implement `scripts/scene_management/transitions/trans_fade.gd` with Tween
+   - Create `scripts/core/scene_management/transitions/base_transition_effect.gd` base class
+   - Implement `scripts/core/scene_management/transitions/trans_instant.gd`
+   - Implement `scripts/core/scene_management/transitions/trans_fade.gd` with Tween
    - **Input Blocking**: Block input during transition (set_input_as_handled() in fade)
    - Update TransitionOverlay in root.tscn (ColorRect with modulate.a = 0)
    - Integrate with M_SceneManager.transition_to_scene()

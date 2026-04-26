@@ -288,7 +288,7 @@ func _on_start_game_pressed() -> void:
     _store.dispatch(U_TransitionActions.transition_to_gameplay(config))
     
     # Load gameplay scene
-    get_tree().change_scene_to_file("res://scenes/gameplay/level_01.tscn")
+    get_tree().change_scene_to_file("res://scenes/demo/gameplay/level_01.tscn")
 ```
 
 ---
@@ -300,7 +300,7 @@ Follow this 5-step pattern to add new state fields:
 ### Step 1: Update Initial State Resource
 
 ```gdscript
-# scripts/state/resources/rs_gameplay_initial_state.gd
+# scripts/core/state/resources/rs_gameplay_initial_state.gd
 class_name RS_GameplayInitialState
 extends Resource
 
@@ -313,7 +313,7 @@ extends Resource
 ### Step 2: Add Action Creator
 
 ```gdscript
-# scripts/state/actions/u_gameplay_actions.gd
+# scripts/core/state/actions/u_gameplay_actions.gd
 const ACTION_UPDATE_COMBO := StringName("gameplay/update_combo")
 
 static func _static_init() -> void:
@@ -331,7 +331,7 @@ static func update_combo(combo: int) -> Dictionary:
 ### Step 3: Update Reducer
 
 ```gdscript
-# scripts/state/reducers/gameplay_reducer.gd
+# scripts/core/state/reducers/gameplay_reducer.gd
 static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
     var next_state: Dictionary = state.duplicate(true)
     
@@ -347,7 +347,7 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 ### Step 4: Add Selector (if needed)
 
 ```gdscript
-# scripts/state/selectors/u_gameplay_selectors.gd
+# scripts/core/state/selectors/u_gameplay_selectors.gd
 static func get_combo(state: Dictionary) -> int:
     return state.get("combo", 0)
 
@@ -872,7 +872,7 @@ func _exit_tree() -> void:
 
 ### 10.2 Real Example: M_PauseManager
 
-**Full implementation** (`scripts/ecs/systems/m_pause_manager.gd`):
+**Full implementation** (`scripts/core/ecs/systems/m_pause_manager.gd`):
 
 ```gdscript
 @icon("res://assets/editor_icons/system.svg")
@@ -959,7 +959,7 @@ func _on_slice_updated(slice_name: StringName, slice_state: Dictionary) -> void:
 
 ### 10.3 Real Example: S_HealthSystem
 
-**Simplified implementation** (`scripts/ecs/systems/s_health_system.gd`):
+**Simplified implementation** (`scripts/core/ecs/systems/s_health_system.gd`):
 
 ```gdscript
 @icon("res://assets/editor_icons/system.svg")
@@ -1045,13 +1045,13 @@ func process_tick(delta: float) -> void:
 
 ### 10.5 UI Integration Example
 
-**HUD that reacts to state** (`scripts/ui/hud_controller.gd`):
+**HUD that reacts to state** (`scripts/core/ui/hud_controller.gd`):
 
 ```gdscript
 extends CanvasLayer
 
-const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
-const U_EntitySelectors := preload("res://scripts/state/selectors/u_entity_selectors.gd")
+const U_StateUtils := preload("res://scripts/core/state/utils/u_state_utils.gd")
+const U_EntitySelectors := preload("res://scripts/core/state/selectors/u_entity_selectors.gd")
 
 @onready var pause_label: Label = $MarginContainer/VBoxContainer/PauseLabel
 @onready var health_bar: ProgressBar = $MarginContainer/VBoxContainer/HealthBar

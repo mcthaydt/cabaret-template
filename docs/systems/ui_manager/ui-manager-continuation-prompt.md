@@ -89,12 +89,12 @@ This guide directs you to implement the UI Manager / Navigation feature by follo
 
 ### 3. Understand Existing Architecture
 
-- `scripts/managers/m_scene_manager.gd` – Scene transitions, overlays, pause.
-- `scripts/state/m_state_store.gd` – Redux store and slice registration.
-- `scripts/state/reducers/u_scene_reducer.gd` – Scene slice reducer.
-- `scripts/state/reducers/u_menu_reducer.gd` – Menu slice reducer.
-- `scripts/managers/m_input_device_manager.gd` – Device detection and signals.
-- `scripts/ui/*` – Current UI controllers and overlays (main menu, pause, settings, endgame, input).
+- `scripts/core/managers/m_scene_manager.gd` – Scene transitions, overlays, pause.
+- `scripts/core/state/m_state_store.gd` – Redux store and slice registration.
+- `scripts/core/state/reducers/u_scene_reducer.gd` – Scene slice reducer.
+- `scripts/core/state/reducers/u_menu_reducer.gd` – Menu slice reducer.
+- `scripts/core/managers/m_input_device_manager.gd` – Device detection and signals.
+- `scripts/core/ui/*` – Current UI controllers and overlays (main menu, pause, settings, endgame, input).
 
 ### 4. Execute UI Manager Tasks in Order
 

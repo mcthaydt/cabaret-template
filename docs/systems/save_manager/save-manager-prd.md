@@ -124,7 +124,7 @@ Reuse checkpoint toast pattern (`ui_hud_controller.gd`):
 
 ### Existing Code Migration
 
-**Remove from `scripts/state/m_state_store.gd`**:
+**Remove from `scripts/core/state/m_state_store.gd`**:
 
 - `_autosave_timer: Timer` variable
 - `_setup_autosave_timer()` function
@@ -162,7 +162,7 @@ Reuse checkpoint toast pattern (`ui_hud_controller.gd`):
    - Set to `true` on death trigger, `false` on respawn/reset
    - Autosave scheduler checks this flag and blocks saves during death
 
-**New system**: `S_PlaytimeSystem` (`scripts/ecs/systems/s_playtime_system.gd`)
+**New system**: `S_PlaytimeSystem` (`scripts/core/ecs/systems/s_playtime_system.gd`)
 
 - Extends `BaseECSSystem`, runs in `process_tick(delta)`
 - Tracks elapsed time as float internally, dispatches whole seconds only

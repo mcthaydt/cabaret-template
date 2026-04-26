@@ -72,14 +72,14 @@
   - Localized `UI_VFXSettingsOverlay` title, row labels, action buttons, and control tooltips via `settings.vfx.*` + `common.*` keys.
   - Added live locale relabeling in `UI_VFXSettingsOverlay` (`_on_locale_changed`) for labels and tooltips.
   - Removed hardcoded user-facing text defaults from `scenes/ui/overlays/settings/ui_vfx_settings_overlay.tscn` so runtime localization owns display strings.
-  - Added/expanded `settings.vfx.*` keys in `resources/localization/cfg_locale_*_ui.tres` for en/es/pt/ja/zh_CN.
+  - Added/expanded `settings.vfx.*` keys in `resources/core/localization/cfg_locale_*_ui.tres` for en/es/pt/ja/zh_CN.
   - Added `tests/unit/ui/test_vfx_settings_overlay_localization.gd` for initial localization + live locale switch relabel assertions.
   - Verified `tests/unit/ui/test_vfx_settings_overlay_localization.gd`, `tests/integration/vfx/test_vfx_settings_ui.gd`, `tests/integration/localization`, and `tests/unit/style/test_style_enforcement.gd` all pass.
 - 2026-02-17: Completed Task 7.2a.2 (Audio settings tab localization):
   - Localized `UI_AudioSettingsTab` heading, row labels, mute labels, button labels, and slider/toggle tooltips via `settings.audio.*` + `common.*` keys.
   - Added live locale relabeling in `UI_AudioSettingsTab` (`_on_locale_changed`) for labels and tooltips.
   - Removed hardcoded user-facing text defaults from `scenes/ui/overlays/settings/ui_audio_settings_tab.tscn` so runtime localization owns display strings.
-  - Added/expanded `settings.audio.*` keys in `resources/localization/cfg_locale_*_ui.tres` for en/es/pt/ja/zh_CN.
+  - Added/expanded `settings.audio.*` keys in `resources/core/localization/cfg_locale_*_ui.tres` for en/es/pt/ja/zh_CN.
   - Added `tests/unit/ui/test_audio_settings_tab_localization.gd` for initial localization + live locale switch relabel assertions.
   - Verified `tests/unit/ui/test_audio_settings_tab_localization.gd`, `tests/integration/audio/test_audio_settings_ui.gd`, `tests/integration/localization`, and `tests/unit/style/test_style_enforcement.gd` all pass.
 - 2026-02-17: Completed Task 7.2a.1 (Display settings tab localization + localized display option catalog):
@@ -95,7 +95,7 @@
   - Localized `UI_InputRebindingOverlay` title/search/buttons/dialog labels/status text via `overlay.input_rebinding.*` keys and added live locale relabel support for capture-state status updates.
   - Localized `U_RebindActionListBuilder` category/action/button/tooltip/unbound text through localization keys and `input.action.*` display key lookups.
   - Localized `U_RebindCaptureHandler` capture prompt/cancel/success/conflict/error flows and added localized validation-error mapping for rebind guardrails.
-  - Added expanded key coverage to `resources/localization/cfg_locale_*_ui.tres` (en/es/pt/ja/zh_CN), including rebinding overlay/status/error keys and missing action-label keys used by rebinding categories.
+  - Added expanded key coverage to `resources/core/localization/cfg_locale_*_ui.tres` (en/es/pt/ja/zh_CN), including rebinding overlay/status/error keys and missing action-label keys used by rebinding categories.
   - Removed hardcoded rebinding overlay scene text defaults from `scenes/ui/overlays/ui_input_rebinding_overlay.tscn` so runtime localization fully owns labels.
   - Verified `tests/unit/ui/test_input_rebinding_overlay.gd`, `tests/integration/localization`, and `tests/unit/style/test_style_enforcement.gd` all pass.
 - 2026-02-17: Completed Task 7.2a.6 (Input profile selector localization):
@@ -121,7 +121,7 @@
   - Updated integration coverage in `tests/integration/localization/test_locale_switching.gd` to verify CJK locale scaling applies through `M_DisplayManager` without `display/*` dispatches.
   - Verified display/localization regression and style suites all pass.
 - 2026-02-17: Completed Phase 5 (preview controller extraction + manager slim-down):
-  - Added `scripts/managers/helpers/localization/u_localization_preview_controller.gd` with:
+  - Added `scripts/core/managers/helpers/localization/u_localization_preview_controller.gd` with:
     - preview lifecycle (`start_preview`, `clear_preview`, `is_preview_active`)
     - store-update gating (`should_ignore_store_updates`)
     - preview value resolution (`locale`, `dyslexia_font_enabled`, `ui_scale_override`)
@@ -129,7 +129,7 @@
   - Added helper tests: `tests/unit/managers/helpers/localization/test_localization_preview_controller.gd`.
   - Verified `_await_store_ready_soft()` behavior remains unchanged and localization regression/style suites all pass.
 - 2026-02-17: Completed Phase 4 (UI root registry extraction):
-  - Added `scripts/managers/helpers/localization/u_localization_root_registry.gd` with:
+  - Added `scripts/core/managers/helpers/localization/u_localization_root_registry.gd` with:
     - duplicate-safe registration and unregister APIs
     - dead-node pruning
     - locale-change notifications (`_on_locale_changed`)
@@ -137,7 +137,7 @@
   - Added helper tests: `tests/unit/managers/helpers/localization/test_localization_root_registry.gd`.
   - Verified `U_LocalizationRoot` tests and full localization regression/style suites all pass.
 - 2026-02-17: Completed Phase 3 (font/theme applier extraction):
-  - Added `scripts/managers/helpers/localization/u_localization_font_applier.gd` with:
+  - Added `scripts/core/managers/helpers/localization/u_localization_font_applier.gd` with:
     - locale-aware font resolution (CJK locale priority over dyslexia toggle)
     - `build_theme(locale, dyslexia_enabled) -> Theme`
     - `apply_theme_to_root(root, theme) -> void`
@@ -146,7 +146,7 @@
   - Added helper tests: `tests/unit/managers/helpers/localization/test_localization_font_applier.gd`.
   - Verified localization unit/integration + style suites all pass.
 - 2026-02-17: Completed Phase 2 (translation catalog extraction):
-  - Added `scripts/managers/helpers/localization/u_localization_catalog.gd` with:
+  - Added `scripts/core/managers/helpers/localization/u_localization_catalog.gd` with:
     - locale support checks
     - fallback merge chain (`requested -> en`)
     - cached raw/effective catalog loading

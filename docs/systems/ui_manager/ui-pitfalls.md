@@ -143,8 +143,8 @@ Fix pattern:
 
 Relevant files:
 
-- `scripts/ui/overlays/ui_input_rebinding_overlay.gd`
-- `scripts/ui/helpers/u_rebind_focus_navigation.gd`
+- `scripts/core/ui/overlays/ui_input_rebinding_overlay.gd`
+- `scripts/core/ui/helpers/u_rebind_focus_navigation.gd`
 
 ## Await Before Wiring Signals
 

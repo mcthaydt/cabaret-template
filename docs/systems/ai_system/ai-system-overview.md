@@ -17,8 +17,8 @@ Legacy GOAP/HTN goal, task, selector, replanner, and task-runner resources were 
 - `S_AIBehaviorSystem` is the canonical BT orchestration system. Keep it orchestration-first: no inline selector/planner/task-runner stacks.
 - Planning, when needed, is isolated to `RS_BTPlanner` and `U_BTPlannerSearch`; world-state assembly is isolated to `U_AIWorldStateBuilder`.
 - Debug throttling/probing composes shared utilities (`U_DebugLogThrottle`, `U_AIRenderProbe`). Do not reintroduce local debug cooldown or render-probe stacks.
-- Treat brain, BT, and action fields as typed runtime contracts: `C_AIBrainComponent.brain_settings: RS_AIBrainSettings`, `RS_AIBrainSettings.root: RS_BTNode`, BT resources under `scripts/resources/bt/` and `scripts/resources/ai/bt/`, and actions implementing `I_AIAction`.
-- Keep AI resource scripts organized under `scripts/resources/ai/brain/`, `scripts/resources/ai/bt/`, and `scripts/resources/ai/actions/`. Do not reintroduce legacy `goals/` or `tasks/` resource folders.
+- Treat brain, BT, and action fields as typed runtime contracts: `C_AIBrainComponent.brain_settings: RS_AIBrainSettings`, `RS_AIBrainSettings.root: RS_BTNode`, BT resources under `scripts/core/resources/bt/` and `scripts/demo/resources/ai/bt/`, and actions implementing `I_AIAction`.
+- Keep AI resource scripts organized under `scripts/demo/resources/ai/brain/`, `scripts/demo/resources/ai/bt/`, and `scripts/demo/resources/ai/actions/`. Do not reintroduce legacy `goals/` or `tasks/` resource folders.
 - Honor `RS_AIBrainSettings.evaluation_interval` with `C_AIBrainComponent.evaluation_timer`. The first evaluation should run immediately when no BT state is running; running BT actions continue ticking every physics frame.
 - `U_AIContextAssembler.build_context(...)` injects the active scene `ecs_manager` so scan/reserve/harvest/deposit/build actions can resolve authored ECS targets.
 - Movement-sensitive actions resolve positions through `U_AIActionPositionResolver` before falling back to entity roots.
@@ -27,7 +27,7 @@ Legacy GOAP/HTN goal, task, selector, replanner, and task-runner resources were 
 - `S_MoveTargetFollowerSystem` bridges active `C_MoveTargetComponent` payloads into world-space movement vectors. It has no legacy GOAP task-state fallback.
 - `S_MovementSystem` routes AI-authored move vectors through world-space velocity handling while keeping player input camera-relative.
 - `S_InputSystem` updates only player-tagged `C_InputComponent` entities so player input does not clobber AI-authored movement.
-- Demo NPC entities should instance `scenes/prefabs/prefab_demo_npc.tscn`, inherit the shared character stack, use `Player_Body` as the runtime body path, and disable collision on custom CSG visuals.
+- Demo NPC entities should instance `scenes/core/prefabs/prefab_demo_npc.tscn`, inherit the shared character stack, use `Player_Body` as the runtime body path, and disable collision on custom CSG visuals.
 - Author durable demo triggers through gameplay flags (`gameplay.ai_demo_flags.*`) rather than transient one-frame input fields.
 - Shared unsupported recovery belongs to `C_SpawnRecoveryComponent` and `S_SpawnRecoverySystem`, not AI brain settings.
 - Player-proximity detection uses `C_DetectionComponent` and `S_AIDetectionSystem`; tag-based detection must skip the detector entity itself.
@@ -44,14 +44,14 @@ Legacy GOAP/HTN goal, task, selector, replanner, and task-runner resources were 
 
 ## Repo Reality Checks
 
-- General BT framework: `RS_BTNode`, composites (`Sequence`, `Selector`, `UtilitySelector`), decorators (`Inverter`, `Cooldown`, `Once`, `RisingEdge`) in `scripts/resources/bt/`; `U_BTRunner` in `scripts/utils/bt/`
-- AI-specific BT nodes: `RS_BTAction`, `RS_BTCondition`, scorers (`RS_AIScorerConstant`, `RS_AIScorerCondition`, `RS_AIScorerContextField`), planner (`RS_BTPlanner`, `RS_BTPlannerAction`, `RS_WorldStateEffect`) in `scripts/resources/ai/bt/`; planner search (`U_BTPlannerSearch`, `U_BTPlannerRuntime`, `U_AIWorldStateBuilder`) in `scripts/utils/ai/`
-- Directory split enforced by style boundary tests: `scripts/resources/bt/` must not import AI-specific types (per ADR 0007)
-- Action resources implementing `I_AIAction`: `RS_AIActionMoveTo`, `RS_AIActionWait`, `RS_AIActionScan`, `RS_AIActionAnimate`, `RS_AIActionPublishEvent`, `RS_AIActionSetField`, `RS_AIActionWander`, `RS_AIActionFeed`, `RS_AIActionHarvest`, `RS_AIActionDeposit` in `scripts/resources/ai/actions/`
-- QB Rule Manager v2 remains available for non-AI game logic: `U_RuleScorer`, `U_RuleSelector`, `U_RuleStateTracker`, `U_RuleValidator` in `scripts/utils/qb/`
-- Typed conditions (`RS_ConditionComponentField`, `RS_ConditionReduxField`, `RS_ConditionEntityTag`, `RS_ConditionComposite`) in `scripts/resources/qb/conditions/` — implement `I_Condition.evaluate(context)`, consumed by `RS_BTCondition` and scorers
+- General BT framework: `RS_BTNode`, composites (`Sequence`, `Selector`, `UtilitySelector`), decorators (`Inverter`, `Cooldown`, `Once`, `RisingEdge`) in `scripts/core/resources/bt/`; `U_BTRunner` in `scripts/core/utils/bt/`
+- AI-specific BT nodes: `RS_BTAction`, `RS_BTCondition`, scorers (`RS_AIScorerConstant`, `RS_AIScorerCondition`, `RS_AIScorerContextField`), planner (`RS_BTPlanner`, `RS_BTPlannerAction`, `RS_WorldStateEffect`) in `scripts/demo/resources/ai/bt/`; planner search (`U_BTPlannerSearch`, `U_BTPlannerRuntime`, `U_AIWorldStateBuilder`) in `scripts/core/utils/ai/`
+- Directory split enforced by style boundary tests: `scripts/core/resources/bt/` must not import AI-specific types (per ADR 0007)
+- Action resources implementing `I_AIAction`: `RS_AIActionMoveTo`, `RS_AIActionWait`, `RS_AIActionScan`, `RS_AIActionAnimate`, `RS_AIActionPublishEvent`, `RS_AIActionSetField`, `RS_AIActionWander`, `RS_AIActionFeed`, `RS_AIActionHarvest`, `RS_AIActionDeposit` in `scripts/demo/resources/ai/actions/`
+- QB Rule Manager v2 remains available for non-AI game logic: `U_RuleScorer`, `U_RuleSelector`, `U_RuleStateTracker`, `U_RuleValidator` in `scripts/core/utils/qb/`
+- Typed conditions (`RS_ConditionComponentField`, `RS_ConditionReduxField`, `RS_ConditionEntityTag`, `RS_ConditionComposite`) in `scripts/core/resources/qb/conditions/` — implement `I_Condition.evaluate(context)`, consumed by `RS_BTCondition` and scorers
 - `C_AIBrainComponent` enforces required settings at runtime: `brain_settings` must be a valid `RS_AIBrainSettings` resource
-- Demo NPCs instance `scenes/prefabs/prefab_demo_npc.tscn` (inherits `tmpl_character.tscn`), keeping full shared character stacks plus AI additions
+- Demo NPCs instance `scenes/core/prefabs/prefab_demo_npc.tscn` (inherits `tmpl_character.tscn`), keeping full shared character stacks plus AI additions
 - `U_PathResolver` handles dot-path traversal for component fields, Redux state, and event payloads
 - ECS pattern: systems extend `BaseECSSystem`, implement `process_tick(delta)`, query components via `get_components(StringName)`
 - Entity tags available via `M_ECSManager` for entity queries
@@ -79,24 +79,24 @@ Legacy GOAP/HTN goal, task, selector, replanner, and task-runner resources were 
 ## Target Architecture
 
 ```
-S_AIBehaviorSystem (scripts/ecs/systems/s_ai_behavior_system.gd)  [extends BaseECSSystem]
+S_AIBehaviorSystem (scripts/core/ecs/systems/s_ai_behavior_system.gd)  [extends BaseECSSystem]
   Per-entity tick:
   ├── U_AIContextAssembler.build_context(...)    →  read-only context Dictionary
   ├── U_BTRunner.tick(root, context, bt_state_bag) →  int (RUNNING/SUCCESS/FAILURE)
   └── Respects evaluation_interval via C_AIBrainComponent.evaluation_timer
 
-C_AIBrainComponent (scripts/ecs/components/c_ai_brain_component.gd)  [extends BaseECSComponent]
+C_AIBrainComponent (scripts/core/ecs/components/c_ai_brain_component.gd)  [extends BaseECSComponent]
   @export var brain_settings: RS_AIBrainSettings
   Runtime state:
   ├── bt_state_bag: Dictionary          (per-node state keyed by node.get_instance_id())
   ├── evaluation_timer: float            (countdown to next BT evaluation)
   └── active_goal_id: StringName        (legacy compat, not used by BT runner)
 
-RS_AIBrainSettings (scripts/resources/ai/brain/rs_ai_brain_settings.gd)
+RS_AIBrainSettings (scripts/demo/resources/ai/brain/rs_ai_brain_settings.gd)
   ├── @export var root: RS_BTNode             (BT root node)
   └── @export var evaluation_interval: float  (seconds between evaluations, default 0.5)
 
-General BT Framework (scripts/resources/bt/):
+General BT Framework (scripts/core/resources/bt/):
   RS_BTNode               base class — Status enum (RUNNING/SUCCESS/FAILURE)
   RS_BTComposite          branch base — typed children: Array[RS_BTNode]
   ├── RS_BTSequence        children in order, fails on first FAILURE
@@ -108,24 +108,24 @@ General BT Framework (scripts/resources/bt/):
   ├── RS_BTRisingEdge      fires child only on false→true scorer transition
   └── RS_BTInverter        inverts child result
 
-AI-Specific BT Nodes (scripts/resources/ai/bt/):
+AI-Specific BT Nodes (scripts/demo/resources/ai/bt/):
   RS_BTAction             leaf wrapping I_AIAction (start/tick/is_complete)
   RS_BTCondition          leaf wrapping I_Condition (evaluate → bool)
   RS_BTPlanner            opt-in planner node backed by U_BTPlannerSearch
   RS_BTPlannerAction      planner action resource
   RS_WorldStateEffect     world-state effect for planning
-  Scorers (scripts/resources/ai/bt/scorers/):
+  Scorers (scripts/demo/resources/ai/bt/scorers/):
   ├── RS_AIScorer            base — _get_score(context) → float
   ├── RS_AIScorerConstant     returns fixed if_true score
   ├── RS_AIScorerCondition    returns if_true when I_Condition evaluates true
   └── RS_AIScorerContextField reads a float from context dictionary
 
-I_AIAction (scripts/interfaces/i_ai_action.gd)
+I_AIAction (scripts/core/interfaces/i_ai_action.gd)
   ├── func start(context: Dictionary, task_state: Dictionary) -> void
   ├── func tick(context: Dictionary, task_state: Dictionary, delta: float) -> void
   └── func is_complete(context: Dictionary, task_state: Dictionary) -> bool
 
-Action resources (scripts/resources/ai/actions/):
+Action resources (scripts/demo/resources/ai/actions/):
   RS_AIActionMoveTo, RS_AIActionWait, RS_AIActionScan,
   RS_AIActionAnimate, RS_AIActionPublishEvent, RS_AIActionSetField,
   RS_AIActionWander, RS_AIActionFeed, RS_AIActionHarvest, RS_AIActionDeposit

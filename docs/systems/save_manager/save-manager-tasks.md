@@ -41,7 +41,7 @@
   - Added `increment_playtime(seconds: int)` action creator
   - Added reducer logic in `U_GameplayReducer`
 - [x] **Task 0.4**: Create S_PlaytimeSystem
-  - Created `scripts/ecs/systems/s_playtime_system.gd` extending `BaseECSSystem`
+  - Created `scripts/core/ecs/systems/s_playtime_system.gd` extending `BaseECSSystem`
   - Tracks elapsed time as float internally, dispatches whole seconds only
   - Carries sub-second remainder to prevent precision loss
   - Pauses when: `navigation.shell != "gameplay" OR paused OR scene.is_transitioning`
@@ -141,7 +141,7 @@
   - `save_to_file(path, data)` -> write `.tmp`, backup `.bak`, rename to `.json` ✅
   - `load_from_file(path)` -> try `.json`, fallback to `.bak` if `.json` missing ✅
   - Clean up orphaned `.tmp` files on startup ✅
-  - Created `scripts/managers/helpers/u_save_file_io.gd` (155 lines, class_name helper)
+  - Created `scripts/core/managers/helpers/u_save_file_io.gd` (155 lines, class_name helper)
   - Added `silent_mode` flag for test environments
 - [x] **Task 3.3 (Refactor)**: Extract file path utilities if needed
   - No refactoring needed - file is clean and concise at 155 lines
@@ -210,7 +210,7 @@
 
 **StateHandoff Integration Pattern** (existing pattern in codebase):
 ```gdscript
-const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
+const U_STATE_HANDOFF := preload("res://scripts/core/state/utils/u_state_handoff.gd")
 
 # Preserve each state slice for scene transition
 for slice_name in loaded_state:
@@ -284,7 +284,7 @@ Key points:
   - Check `save_manager.is_locked() == false` before allowing save ✅
   - Dirty flag + priority tracking for coalescing ✅
   - Call deferred to coalesce within same frame ✅
-  - File: `scripts/managers/helpers/u_autosave_scheduler.gd` (146 lines)
+  - File: `scripts/core/managers/helpers/u_autosave_scheduler.gd` (146 lines)
 - [x] **Task 6.3 (Refactor)**: Extract trigger evaluation helpers
   - No refactoring needed - file is clean at 146 lines ✅
 
@@ -313,7 +313,7 @@ Key points:
   - Simple if/elif migration chain (extensible for v1->v2, v2->v3, etc.) ✅
   - Pure `Dictionary -> Dictionary` transforms (no side effects) ✅
   - Sequential migration application for multi-version jumps ✅
-  - File: `scripts/managers/helpers/u_save_migration_engine.gd` (158 lines)
+  - File: `scripts/core/managers/helpers/u_save_migration_engine.gd` (158 lines)
 - [x] **Task 7.3**: Implement v0 -> v1 migration
   - Detect headerless saves (no `header` key) ✅
   - Wrap in `{header: {...}, state: {...}}` structure ✅
@@ -384,7 +384,7 @@ Key points:
   - `_on_save_pressed()` -> dispatches `set_save_load_mode("save")` then `open_overlay`
   - `_on_load_pressed()` -> dispatches `set_save_load_mode("load")` then `open_overlay`
   - Focus neighbors configured via `U_FocusConfigurator.configure_vertical_focus()`
-- [x] **Task 9.3**: Create overlay definition in `resources/ui_screens/`
+- [x] **Task 9.3**: Create overlay definition in `resources/core/ui_screens/`
   - Created `save_load_menu_overlay.tres` (RS_UIScreenDefinition)
   - `allowed_shells`: ["gameplay"]
   - `allowed_parents`: ["pause_menu"]
@@ -679,7 +679,7 @@ Screenshot capture requires **two different strategies** because of when saves o
   - Headless run marks viewport capture test as pending (renderer limitation)
 
 - [x] **Task 16A.2 (Green)**: Implement screenshot capture utility
-  - Create `scripts/managers/helpers/u_screenshot_capture.gd`
+  - Create `scripts/core/managers/helpers/u_screenshot_capture.gd`
   - `capture_viewport(viewport: Viewport) -> Image` - captures current frame as Image
   - `resize_to_thumbnail(image: Image, width: int, height: int) -> Image` - resize with INTERPOLATE_LANCZOS
   - `save_to_file(image: Image, path: String) -> Error` - saves as PNG
@@ -710,7 +710,7 @@ Screenshot capture requires **two different strategies** because of when saves o
   - All tests pass (headless-safe via injected image override)
 
 - [x] **Task 16B.2 (Green)**: Implement screenshot cache manager
-  - Create `scripts/managers/m_screenshot_cache.gd`
+  - Create `scripts/core/managers/m_screenshot_cache.gd`
   - Single cached Image (most recent gameplay frame before pause)
   - `cache_current_frame()` - captures and stores viewport screenshot
   - `get_cached_screenshot() -> Image` - returns cached image or null
@@ -796,7 +796,7 @@ Screenshot capture requires **two different strategies** because of when saves o
   - Added tests in `tests/unit/ui/test_save_load_menu.gd` + metadata override hook in `MockSaveManager`
 
 - [x] **Task 16E.2 (Green)**: Implement UI thumbnail display
-  - Create placeholder texture: `resources/ui/tex_save_slot_placeholder.png`
+  - Create placeholder texture: `resources/core/ui/tex_save_slot_placeholder.png`
   - In `ui_save_load_menu.gd` `_create_slot_item()`:
     - Create HBoxContainer layout: `[TextureRect] [VBox: SlotInfo] [Buttons]`
     - TextureRect: 80x45 size (16:9 ratio), `expand_mode = EXPAND_IGNORE_SIZE`
@@ -883,9 +883,9 @@ func _on_action_dispatched(action: Dictionary) -> void:
 
 | File | Type | Description |
 |------|------|-------------|
-| `scripts/managers/helpers/u_screenshot_capture.gd` | Helper | Viewport capture and PNG save |
-| `scripts/managers/m_screenshot_cache.gd` | Manager | Caches screenshot on pause for manual saves |
-| `resources/ui/tex_save_slot_placeholder.png` | Asset | Placeholder for missing thumbnails |
+| `scripts/core/managers/helpers/u_screenshot_capture.gd` | Helper | Viewport capture and PNG save |
+| `scripts/core/managers/m_screenshot_cache.gd` | Manager | Caches screenshot on pause for manual saves |
+| `resources/core/ui/tex_save_slot_placeholder.png` | Asset | Placeholder for missing thumbnails |
 | `tests/unit/save/test_screenshot_capture.gd` | Test | Unit tests for capture utility |
 | `tests/unit/save/test_screenshot_cache.gd` | Test | Unit tests for cache manager |
 
@@ -1017,19 +1017,19 @@ Files to create:
 
 | File | Type | Description | Status |
 |------|------|-------------|--------|
-| `scripts/managers/m_save_manager.gd` | Manager | Main orchestrator | ✅ Implemented |
-| `scripts/managers/helpers/u_save_file_io.gd` | Helper | Atomic file operations | ✅ Implemented |
-| `scripts/managers/helpers/u_autosave_scheduler.gd` | Helper | Autosave timing and coalescing | ✅ Implemented |
-| `scripts/managers/helpers/u_save_migration_engine.gd` | Helper | Version migrations | ✅ Implemented |
-| `scripts/utils/u_save_validator.gd` | Utility | Save file validation | ✅ Implemented (Phase 8) |
-| `scripts/ecs/systems/s_playtime_system.gd` | System | Playtime tracking ECS system | ✅ Implemented |
-| `scripts/ui/ui_save_load_menu.gd` | UI | Combined save/load overlay controller | ✅ Implemented |
-| `scripts/ui/ui_save_slot_item.gd` | UI | Slot item component | ⏸️ Deferred (using simple Buttons) |
-| `scripts/managers/helpers/u_screenshot_capture.gd` | Helper | Screenshot capture and resize | ⏳ Phase 16A.2 (Green) |
-| `scripts/managers/m_screenshot_cache.gd` | Manager | Caches screenshot on pause for manual saves | ⏳ Phase 16B.2 (Green) |
-| `resources/ui/tex_save_slot_placeholder.png` | Asset | Placeholder for missing thumbnails | ⏳ Phase 16E.2 (Green) |
+| `scripts/core/managers/m_save_manager.gd` | Manager | Main orchestrator | ✅ Implemented |
+| `scripts/core/managers/helpers/u_save_file_io.gd` | Helper | Atomic file operations | ✅ Implemented |
+| `scripts/core/managers/helpers/u_autosave_scheduler.gd` | Helper | Autosave timing and coalescing | ✅ Implemented |
+| `scripts/core/managers/helpers/u_save_migration_engine.gd` | Helper | Version migrations | ✅ Implemented |
+| `scripts/core/utils/u_save_validator.gd` | Utility | Save file validation | ✅ Implemented (Phase 8) |
+| `scripts/core/ecs/systems/s_playtime_system.gd` | System | Playtime tracking ECS system | ✅ Implemented |
+| `scripts/core/ui/ui_save_load_menu.gd` | UI | Combined save/load overlay controller | ✅ Implemented |
+| `scripts/core/ui/ui_save_slot_item.gd` | UI | Slot item component | ⏸️ Deferred (using simple Buttons) |
+| `scripts/core/managers/helpers/u_screenshot_capture.gd` | Helper | Screenshot capture and resize | ⏳ Phase 16A.2 (Green) |
+| `scripts/core/managers/m_screenshot_cache.gd` | Manager | Caches screenshot on pause for manual saves | ⏳ Phase 16B.2 (Green) |
+| `resources/core/ui/tex_save_slot_placeholder.png` | Asset | Placeholder for missing thumbnails | ⏳ Phase 16E.2 (Green) |
 | `scenes/ui/ui_save_load_menu.tscn` | Scene | Combined save/load overlay scene | ✅ Implemented |
-| `resources/ui_screens/cfg_save_load_menu_overlay.tres` | Resource | Combined overlay definition | ✅ Implemented (Phase 9) |
+| `resources/core/ui_screens/cfg_save_load_menu_overlay.tres` | Resource | Combined overlay definition | ✅ Implemented (Phase 9) |
 | `tests/unit/save/test_save_manager.gd` | Test | Manager unit tests (86 tests) | ✅ All passing |
 | `tests/unit/save/test_save_file_io.gd` | Test | File IO unit tests (14 tests) | ✅ All passing |
 | `tests/unit/save/test_save_migrations.gd` | Test | Migration unit tests (16 tests) | ✅ All passing |
@@ -1044,17 +1044,17 @@ Files to modify:
 
 | File | Changes |
 |------|---------|
-| `scripts/state/m_state_store.gd` | Remove autosave timer |
-| `scripts/state/resources/rs_gameplay_initial_state.gd` | Add playtime_seconds, death_in_progress fields |
-| `scripts/state/reducers/u_gameplay_reducer.gd` | Add increment_playtime, set_death_in_progress handlers |
-| `scripts/state/actions/u_gameplay_actions.gd` | Add increment_playtime, set_death_in_progress actions |
-| `scripts/state/resources/rs_navigation_initial_state.gd` | Add save_load_mode field |
-| `scripts/state/reducers/u_navigation_reducer.gd` | Add set_save_load_mode handler |
-| `scripts/state/actions/u_navigation_actions.gd` | Add set_save_load_mode action |
-| `scripts/scene_management/u_scene_registry.gd` | Register save_load_menu scene |
-| `scripts/ui/ui_pause_menu.gd` | Add Save/Load buttons |
+| `scripts/core/state/m_state_store.gd` | Remove autosave timer |
+| `scripts/core/state/resources/rs_gameplay_initial_state.gd` | Add playtime_seconds, death_in_progress fields |
+| `scripts/core/state/reducers/u_gameplay_reducer.gd` | Add increment_playtime, set_death_in_progress handlers |
+| `scripts/core/state/actions/u_gameplay_actions.gd` | Add increment_playtime, set_death_in_progress actions |
+| `scripts/core/state/resources/rs_navigation_initial_state.gd` | Add save_load_mode field |
+| `scripts/core/state/reducers/u_navigation_reducer.gd` | Add set_save_load_mode handler |
+| `scripts/core/state/actions/u_navigation_actions.gd` | Add set_save_load_mode action |
+| `scripts/core/scene_management/u_scene_registry.gd` | Register save_load_menu scene |
+| `scripts/core/ui/ui_pause_menu.gd` | Add Save/Load buttons |
 | `scenes/ui/ui_pause_menu.tscn` | Add button nodes |
-| `scripts/ui/ui_hud_controller.gd` | Subscribe to save events |
-| `scripts/managers/m_save_manager.gd` | Phase 16: Add thumbnail capture on save, cleanup on delete |
-| `scripts/ui/overlays/ui_save_load_menu.gd` | Phase 16: Add thumbnail display to slot items |
+| `scripts/core/ui/ui_hud_controller.gd` | Subscribe to save events |
+| `scripts/core/managers/m_save_manager.gd` | Phase 16: Add thumbnail capture on save, cleanup on delete |
+| `scripts/core/ui/overlays/ui_save_load_menu.gd` | Phase 16: Add thumbnail display to slot items |
 | `tests/unit/save/u_save_test_utils.gd` | Phase 16: Add .png to cleanup patterns |

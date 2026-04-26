@@ -63,11 +63,11 @@ M_CameraManager + C_CameraStateComponent + S_CameraStateSystem
 - Because of that `ShakeParent`, vCam must not write `camera.global_transform` directly.
 - `C_CameraStateComponent` and `S_CameraStateSystem` already exist and already own FOV composition and shake-trauma behavior.
 - `U_GlobalSettingsSerialization` already persists the `vfx` slice, so player-facing silhouette enablement belongs there.
-- `UI_VFXSettingsOverlay` already exists (`scripts/ui/settings/ui_vfx_settings_overlay.gd`) and now includes a persisted silhouette toggle row (`vfx.occlusion_silhouette_enabled`) with localization coverage.
+- `UI_VFXSettingsOverlay` already exists (`scripts/core/ui/settings/ui_vfx_settings_overlay.gd`) and now includes a persisted silhouette toggle row (`vfx.occlusion_silhouette_enabled`) with localization coverage.
 - `settings.input_settings.touchscreen_settings` is already the persisted home for mobile control tuning, so drag-look sensitivity and invert-Y belong there, not in `vcam`.
 - Existing gameplay scenes use both `MeshInstance3D` and `CSGBox3D`-style geometry, so occlusion logic cannot assume mesh-only scene content.
 - Phase 0F completed the FOV-zone migration: `S_CameraStateSystem`, default camera-zone QB rule config, and QB camera tests now read `state.vcam.in_fov_zone`.
-- `scripts/input/u_input_map_bootstrapper.gd`, `tests/unit/input/test_input_map.gd`, and the UI locale action labels now include the `look_*` action family for keyboard-look flows; rebind camera categorization should stay aligned to `look_*` as the canonical camera action names.
+- `scripts/core/input/u_input_map_bootstrapper.gd`, `tests/unit/input/test_input_map.gd`, and the UI locale action labels now include the `look_*` action family for keyboard-look flows; rebind camera categorization should stay aligned to `look_*` as the canonical camera action names.
 - Gameplay runs inside `scenes/root.tscn/GameViewportContainer/GameViewport`. Soft-zone projection and occlusion raycasts must use that active gameplay viewport and `World3D`, never the root manager node's viewport/world.
 
 ## Runtime Wiring
@@ -77,16 +77,16 @@ These nodes and files are required for the feature to exist at runtime:
 - `scenes/root.tscn`
   - add `M_VCamManager` under `Managers`
   - assign `vcam_initial_state` on `M_StateStore`
-- `scenes/templates/tmpl_base_scene.tscn`
+- `scenes/core/templates/tmpl_base_scene.tscn`
   - add `S_VCamSystem` under `Systems/Core`
-- `scenes/gameplay/gameplay_base.tscn`
+- `scenes/demo/gameplay/gameplay_base.tscn`
   - update concrete system tree until template propagation covers it
-- `scenes/templates/tmpl_camera.tscn`
+- `scenes/core/templates/tmpl_camera.tscn`
   - add the default `C_VCamComponent`
   - keep the editor-only rule-of-thirds preview node (`U_VCamRuleOfThirdsPreview`) wired for camera-authoring framing
 - `scenes/ui/overlays/settings/ui_vfx_settings_overlay.tscn`
   - add a silhouette enable/disable control bound to the `vfx` slice (`occlusion_silhouette_enabled`)
-  - localize new label/tooltip keys across `resources/localization/cfg_locale_*_ui.tres`
+  - localize new label/tooltip keys across `resources/core/localization/cfg_locale_*_ui.tres`
 
 Updating only `tmpl_camera.tscn` is not enough.
 
@@ -447,7 +447,7 @@ The project has input profiles that remap keys (default: WASD=movement/arrows=UI
 Required behavior:
 
 - Four new input actions are registered in `project.godot`: `look_left`, `look_right`, `look_up`, `look_down`.
-- `scripts/input/u_input_map_bootstrapper.gd` adds the same four actions to `REQUIRED_ACTIONS`, and `tests/unit/input/test_input_map.gd` is updated so bootstrap coverage matches the profile resources.
+- `scripts/core/input/u_input_map_bootstrapper.gd` adds the same four actions to `REQUIRED_ACTIONS`, and `tests/unit/input/test_input_map.gd` is updated so bootstrap coverage matches the profile resources.
 - Each `RS_InputProfile` includes bindings for these actions:
   - **Default keyboard**: arrow keys (matching the non-movement keys).
   - **Alternate keyboard**: WASD (matching the non-movement keys in that layout).
@@ -459,9 +459,9 @@ Required behavior:
 - `keyboard_look_speed` defaults to `2.0` and is clamped to `0.1–10.0`.
 - Keyboard look respects the existing `invert_y_axis` setting from `mouse_settings`.
 - Settings persist through `settings.input_settings.mouse_settings`, not the `vcam` slice.
-- If dedicated `set_keyboard_look_*` actions are introduced, add them to `scripts/utils/u_global_settings_serialization.gd` `INPUT_SETTINGS_ACTIONS` so changes trigger the existing settings-save flow.
+- If dedicated `set_keyboard_look_*` actions are introduced, add them to `scripts/core/utils/u_global_settings_serialization.gd` `INPUT_SETTINGS_ACTIONS` so changes trigger the existing settings-save flow.
 - `S_VCamSystem` remains input-source-agnostic and simply consumes the shared `look_input` value.
-- `scripts/ui/helpers/u_rebind_action_list_builder.gd` must list `look_*` under the camera category, and the `input.action.look_*` localization keys must be added across the supported `cfg_locale_*_ui.tres` files.
+- `scripts/core/ui/helpers/u_rebind_action_list_builder.gd` must list `look_*` under the camera category, and the `input.action.look_*` localization keys must be added across the supported `cfg_locale_*_ui.tres` files.
 - Because there is no existing mouse/keyboard settings overlay in this repo, keyboard-look settings live in a new `UI_KeyboardMouseSettingsOverlay` wired from `UI_SettingsMenu`, not as an implicit "if one exists" follow-up.
 
 ## Runtime Recovery Policy
@@ -518,7 +518,7 @@ When a target or vCam becomes invalid during gameplay, the system follows these 
 
 Use a helper patterned after `U_CinemaGradePreview`:
 
-- file: `scripts/utils/display/u_vcam_rule_of_thirds_preview.gd`
+- file: `scripts/core/utils/display/u_vcam_rule_of_thirds_preview.gd`
 - `@tool`
 - extends `Node`
 - creates its own `CanvasLayer` and drawing child internally
@@ -539,19 +539,19 @@ Entity resolution uses the existing `BaseECSEntity` ID and tag system documented
 ## File Layout
 
 ```text
-scripts/managers/m_vcam_manager.gd
-scripts/interfaces/i_vcam_manager.gd
-scripts/ecs/components/c_vcam_component.gd
-scripts/ecs/systems/s_vcam_system.gd
-scripts/resources/display/vcam/*.gd
-scripts/resources/state/rs_vcam_initial_state.gd
-scripts/state/actions/u_vcam_actions.gd
-scripts/state/reducers/u_vcam_reducer.gd
-scripts/state/selectors/u_vcam_selectors.gd
-scripts/utils/display/u_vcam_rule_of_thirds_preview.gd
+scripts/core/managers/m_vcam_manager.gd
+scripts/core/interfaces/i_vcam_manager.gd
+scripts/core/ecs/components/c_vcam_component.gd
+scripts/core/ecs/systems/s_vcam_system.gd
+scripts/core/resources/display/vcam/*.gd
+scripts/core/resources/state/rs_vcam_initial_state.gd
+scripts/core/state/actions/u_vcam_actions.gd
+scripts/core/state/reducers/u_vcam_reducer.gd
+scripts/core/state/selectors/u_vcam_selectors.gd
+scripts/core/utils/display/u_vcam_rule_of_thirds_preview.gd
 assets/shaders/sh_vcam_silhouette_shader.gdshader
-resources/state/cfg_default_vcam_initial_state.tres
-resources/display/vcam/*.tres
+resources/core/state/cfg_default_vcam_initial_state.tres
+resources/core/display/vcam/*.tres
 ```
 
 ## Testing Strategy
@@ -593,6 +593,6 @@ resources/display/vcam/*.tres
 | shake compatibility | vCam uses `M_CameraManager.apply_main_camera_transform(...)` |
 | blend correctness | evaluate both cameras live during blends |
 | soft-zone math | projection-based correction |
-| naming/style | use `scripts/resources/display/vcam`, `scripts/utils/display`, `sh_*_shader.gdshader` |
+| naming/style | use `scripts/core/resources/display/vcam`, `scripts/core/utils/display`, `sh_*_shader.gdshader` |
 | keyboard look | optional keyboard camera rotation via dedicated `look_*` actions bound per-profile, settings in `mouse_settings` |
 | silhouette ownership | detect in vCam, render in `M_VFXManager` via `{entity_id, occluders, enabled}` request payload |

@@ -19,7 +19,7 @@ The Audio Manager provides a centralized, resource-driven system for managing al
 
 ```gdscript
 # From any script
-const U_AudioUtils := preload("res://scripts/utils/u_audio_utils.gd")
+const U_AudioUtils := preload("res://scripts/core/utils/u_audio_utils.gd")
 var audio_mgr := U_AudioUtils.get_audio_manager()
 ```
 
@@ -36,7 +36,7 @@ audio_mgr.play_ambient(StringName("exterior"))
 audio_mgr.play_ui_sound(StringName("ui_confirm"))
 
 # 3D sound effect
-const U_SFXSpawner := preload("res://scripts/managers/helpers/u_sfx_spawner.gd")
+const U_SFXSpawner := preload("res://scripts/core/managers/helpers/u_sfx_spawner.gd")
 U_SFXSpawner.spawn_3d({
     "stream": preload("res://assets/audio/sfx/sfx_jump.wav"),
     "position": global_position,
@@ -48,7 +48,7 @@ U_SFXSpawner.spawn_3d({
 
 ### Step 1: Create the Resource Definition
 
-1. Create a new `.tres` file in `resources/audio/tracks/`:
+1. Create a new `.tres` file in `resources/demo/audio/tracks/`:
    - Right-click → New Resource → `RS_MusicTrackDefinition`
    - Name it `music_your_track.tres`
 
@@ -64,14 +64,14 @@ U_SFXSpawner.spawn_3d({
 
 ### Step 2: Register in the Loader
 
-Open `scripts/managers/helpers/u_audio_registry_loader.gd` and add to `_register_music_tracks()`:
+Open `scripts/core/managers/helpers/u_audio_registry_loader.gd` and add to `_register_music_tracks()`:
 
 ```gdscript
 static func _register_music_tracks() -> void:
     # Existing tracks...
 
     # Your new track
-    var your_track := preload("res://resources/audio/tracks/music_your_track.tres") as RS_MusicTrackDefinition
+    var your_track := preload("res://resources/demo/audio/tracks/music_your_track.tres") as RS_MusicTrackDefinition
     _music_tracks[your_track.track_id] = your_track
 ```
 
@@ -98,7 +98,7 @@ audio_mgr.play_music(StringName("your_track"), 1.5, 30.0)  # Start at 30 seconds
 
 ### Step 1: Create the Resource Definition
 
-1. Create a new `.tres` file in `resources/audio/ambient/`:
+1. Create a new `.tres` file in `resources/demo/audio/ambient/`:
    - Right-click → New Resource → `RS_AmbientTrackDefinition`
    - Name it `ambient_your_area.tres`
 
@@ -113,14 +113,14 @@ audio_mgr.play_music(StringName("your_track"), 1.5, 30.0)  # Start at 30 seconds
 
 ### Step 2: Register in the Loader
 
-Open `scripts/managers/helpers/u_audio_registry_loader.gd` and add to `_register_ambient_tracks()`:
+Open `scripts/core/managers/helpers/u_audio_registry_loader.gd` and add to `_register_ambient_tracks()`:
 
 ```gdscript
 static func _register_ambient_tracks() -> void:
     # Existing tracks...
 
     # Your new ambient
-    var your_ambient := preload("res://resources/audio/ambient/ambient_your_area.tres") as RS_AmbientTrackDefinition
+    var your_ambient := preload("res://resources/demo/audio/ambient/ambient_your_area.tres") as RS_AmbientTrackDefinition
     _ambient_tracks[your_ambient.ambient_id] = your_ambient
 ```
 
@@ -138,7 +138,7 @@ audio_mgr.stop_ambient(2.0)  # 2s fade out
 
 ### Step 1: Create the Resource Definition
 
-1. Create a new `.tres` file in `resources/audio/ui/`:
+1. Create a new `.tres` file in `resources/demo/audio/ui/`:
    - Right-click → New Resource → `RS_UISoundDefinition`
    - Name it `ui_your_sound.tres`
 
@@ -153,14 +153,14 @@ audio_mgr.stop_ambient(2.0)  # 2s fade out
 
 ### Step 2: Register in the Loader
 
-Open `scripts/managers/helpers/u_audio_registry_loader.gd` and add to `_register_ui_sounds()`:
+Open `scripts/core/managers/helpers/u_audio_registry_loader.gd` and add to `_register_ui_sounds()`:
 
 ```gdscript
 static func _register_ui_sounds() -> void:
     # Existing sounds...
 
     # Your new sound
-    var your_sound := preload("res://resources/audio/ui/ui_your_sound.tres") as RS_UISoundDefinition
+    var your_sound := preload("res://resources/demo/audio/ui/ui_your_sound.tres") as RS_UISoundDefinition
     _ui_sounds[your_sound.sound_id] = your_sound
 ```
 
@@ -171,7 +171,7 @@ static func _register_ui_sounds() -> void:
 audio_mgr.play_ui_sound(StringName("ui_your_sound"))
 
 # Helper API (recommended for common UI sounds)
-const U_UISoundPlayer := preload("res://scripts/ui/utils/u_ui_sound_player.gd")
+const U_UISoundPlayer := preload("res://scripts/core/ui/utils/u_ui_sound_player.gd")
 U_UISoundPlayer.play_focus()  # Built-in helper
 ```
 
@@ -192,7 +192,7 @@ throttle_ms: 100 → Minimum 100ms between plays
 ### Option A: Simple One-Off Sounds
 
 ```gdscript
-const U_SFXSpawner := preload("res://scripts/managers/helpers/u_sfx_spawner.gd")
+const U_SFXSpawner := preload("res://scripts/core/managers/helpers/u_sfx_spawner.gd")
 
 func play_jump_sound() -> void:
     U_SFXSpawner.spawn_3d({
@@ -208,7 +208,7 @@ func play_jump_sound() -> void:
 
 For gameplay sounds triggered by ECS events, create a dedicated sound system:
 
-1. **Create the system** (e.g., `scripts/ecs/systems/s_your_sound_system.gd`):
+1. **Create the system** (e.g., `scripts/core/ecs/systems/s_your_sound_system.gd`):
 
 ```gdscript
 extends BaseEventSFXSystem
@@ -260,7 +260,7 @@ func process_tick(delta: float) -> void:
     requests.clear()
 ```
 
-2. **Create the settings resource** (`scripts/ecs/resources/rs_your_sound_settings.gd`):
+2. **Create the settings resource** (`scripts/core/ecs/resources/rs_your_sound_settings.gd`):
 
 ```gdscript
 extends Resource
@@ -282,7 +282,7 @@ Scene audio mappings automatically play music and ambient sounds when transition
 
 ### Step 1: Create the Mapping Resource
 
-1. Create a new `.tres` file in `resources/audio/scene_mappings/`:
+1. Create a new `.tres` file in `resources/demo/audio/scene_mappings/`:
    - Right-click → New Resource → `RS_SceneAudioMapping`
    - Name it `scene_your_scene.tres`
 
@@ -297,14 +297,14 @@ Scene audio mappings automatically play music and ambient sounds when transition
 
 ### Step 2: Register in the Loader
 
-Open `scripts/managers/helpers/u_audio_registry_loader.gd` and add to `_register_scene_audio_mappings()`:
+Open `scripts/core/managers/helpers/u_audio_registry_loader.gd` and add to `_register_scene_audio_mappings()`:
 
 ```gdscript
 static func _register_scene_audio_mappings() -> void:
     # Existing mappings...
 
     # Your new mapping
-    var your_mapping := preload("res://resources/audio/scene_mappings/scene_your_scene.tres") as RS_SceneAudioMapping
+    var your_mapping := preload("res://resources/demo/audio/scene_mappings/scene_your_scene.tres") as RS_SceneAudioMapping
     _scene_audio_map[your_mapping.scene_id] = your_mapping
 ```
 
@@ -345,7 +345,7 @@ The bus layout is defined in `default_bus_layout.tres` (editor-defined, do not c
 ### Bus Access
 
 ```gdscript
-const U_AudioBusConstants := preload("res://scripts/managers/helpers/u_audio_bus_constants.gd")
+const U_AudioBusConstants := preload("res://scripts/core/managers/helpers/u_audio_bus_constants.gd")
 
 # Safe bus access (returns Master if bus not found)
 var bus_index := U_AudioBusConstants.get_bus_index_safe("SFX")
@@ -371,7 +371,7 @@ When spawning more than 16 simultaneous 3D sounds, the oldest playing sound is a
 
 **Stats tracking:**
 ```gdscript
-const U_SFXSpawner := preload("res://scripts/managers/helpers/u_sfx_spawner.gd")
+const U_SFXSpawner := preload("res://scripts/core/managers/helpers/u_sfx_spawner.gd")
 
 var stats := U_SFXSpawner.get_stats()
 print("Spawns: ", stats.spawns)
@@ -559,7 +559,7 @@ audio_mgr.play_music(StringName("your_track"), 2.5)  # 2.5s fade
 ```gdscript
 extends Node
 
-const U_AudioUtils := preload("res://scripts/utils/u_audio_utils.gd")
+const U_AudioUtils := preload("res://scripts/core/utils/u_audio_utils.gd")
 
 func _ready() -> void:
     await get_tree().process_frame
@@ -581,7 +581,7 @@ func transition_to_gameplay() -> void:
 ```gdscript
 extends Button
 
-const U_UISoundPlayer := preload("res://scripts/ui/utils/u_ui_sound_player.gd")
+const U_UISoundPlayer := preload("res://scripts/core/ui/utils/u_ui_sound_player.gd")
 
 func _ready() -> void:
     focus_entered.connect(_on_focus_entered)
@@ -599,7 +599,7 @@ func _on_pressed() -> void:
 ```gdscript
 extends Node3D
 
-const U_SFXSpawner := preload("res://scripts/managers/helpers/u_sfx_spawner.gd")
+const U_SFXSpawner := preload("res://scripts/core/managers/helpers/u_sfx_spawner.gd")
 
 @export var explosion_sound: AudioStream
 

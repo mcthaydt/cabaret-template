@@ -11,13 +11,13 @@ Suggested spec path per entity: `docs/<domain>/entities/ai-entity-<entity_name>.
 - Entity name:
 - Entity ID (`StringName`):
 - Role/archetype summary (1-2 sentences):
-- Scene/prefab path (expected): `scenes/prefabs/prefab_<name>.tscn`
+- Scene/prefab path (expected): `scenes/core/prefabs/prefab_<name>.tscn`
 - Owner scene(s) where this entity appears:
 
 ## 2) Runtime Contract (Must Be True)
 
 - [ ] Base entity root is `BaseECSEntity` with explicit `entity_id`.
-- [ ] Inherits from `scenes/templates/tmpl_character.tscn` (directly or via shared prefab).
+- [ ] Inherits from `scenes/core/templates/tmpl_character.tscn` (directly or via shared prefab).
 - [ ] Has movement runtime stack required for AI movement:
 - [ ] `CharacterBody3D`
 - [ ] `C_InputComponent`
@@ -53,7 +53,7 @@ For each detection role, fill one row:
 
 ## 4) Brain Settings (`RS_AIBrainSettings`)
 
-- Brain resource path: `resources/ai/<domain>/cfg_<name>_brain.tres`
+- Brain resource path: `resources/demo/ai/<domain>/cfg_<name>_brain.tres`
 - `default_goal_id`:
 - `evaluation_interval`:
 - Expected goal list order:
@@ -64,7 +64,7 @@ Add one block per goal.
 
 ### Goal: `<goal_id>`
 
-- Goal resource path: `resources/ai/<domain>/cfg_goal_<goal_id>.tres`
+- Goal resource path: `resources/demo/ai/<domain>/cfg_goal_<goal_id>.tres`
 - Priority:
 - Score threshold:
 - Cooldown:

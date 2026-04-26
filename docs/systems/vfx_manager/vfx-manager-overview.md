@@ -24,8 +24,8 @@ The VFX Manager is a persistent orchestration layer for screen-level visual effe
 - Player-only and transition gating happen in `M_VFXManager` via `_is_player_entity()` and `_is_transition_blocked()`, using Redux fields `gameplay.player_entity_id`, `scene.is_transitioning`, `scene.scene_stack`, and `navigation.shell == "gameplay"`.
 - `U_DamageFlash` takes `(flash_rect, owner_node)` and creates tweens through `U_TweenManager` using idle tween processing and explicit pause processing.
 - Use `U_ECSEventNames` constants for event subscriptions instead of string literals.
-- `RS_ScreenShakeTuning` owns trauma decay plus damage/landing/death curves; default instance: `resources/vfx/cfg_screen_shake_tuning.tres`.
-- `RS_ScreenShakeConfig` owns offset/rotation/noise tuning; default instance: `resources/vfx/cfg_screen_shake_config.tres`.
+- `RS_ScreenShakeTuning` owns trauma decay plus damage/landing/death curves; default instance: `resources/core/vfx/cfg_screen_shake_tuning.tres`.
+- `RS_ScreenShakeConfig` owns offset/rotation/noise tuning; default instance: `resources/core/vfx/cfg_screen_shake_config.tres`.
 - `S_ScreenShakePublisherSystem` reads tuning; `M_VFXManager` uses tuning for decay and config for `U_ScreenShake`.
 - Temporary settings preview flows through `set_vfx_settings_preview(...)` and `clear_vfx_settings_preview()`. `UI_VFXSettingsOverlay` pushes preview updates and clears preview on cancel or overlay exit.
 - Silhouette application is renderer-owned in `M_VFXManager` through `U_VCamSilhouetteHelper.update_silhouettes(...)`; disable/clear requests bypass transition blocking so stale silhouettes are always removed.
@@ -281,20 +281,20 @@ func _on_death(_event: Dictionary) -> void:
 ## File Structure
 
 ```
-scripts/managers/
+scripts/core/managers/
   m_vfx_manager.gd
 
-scripts/managers/helpers/
+scripts/core/managers/helpers/
   u_screen_shake.gd
   u_damage_flash.gd
 
-scripts/state/
+scripts/core/state/
   resources/rs_vfx_initial_state.gd
   actions/u_vfx_actions.gd
   reducers/u_vfx_reducer.gd
   selectors/u_vfx_selectors.gd
 
-scenes/ui/
+scenes/core/ui/
   ui_damage_flash_overlay.tscn
 ```
 
@@ -318,7 +318,7 @@ VFX settings are placed in the "Accessibility" tab (along with Audio settings):
 ### Redux Actions for Settings
 
 ```gdscript
-const U_VFXActions = preload("res://scripts/state/actions/u_vfx_actions.gd")
+const U_VFXActions = preload("res://scripts/core/state/actions/u_vfx_actions.gd")
 
 # Toggle screen shake
 store.dispatch(U_VFXActions.set_screen_shake_enabled(true))
@@ -404,7 +404,7 @@ No external assets required - flash uses `CanvasModulate` node with color interp
 If implementing additional VFX features (particles, textures, shaders):
 - Particle textures: Use Godot's built-in white circle particle
 - Custom shaders: Start with simple color multiplication
-- Test assets: Keep under 10KB each, commit to `resources/vfx/`
+- Test assets: Keep under 10KB each, commit to `resources/core/vfx/`
 
 ## Resolved Questions
 

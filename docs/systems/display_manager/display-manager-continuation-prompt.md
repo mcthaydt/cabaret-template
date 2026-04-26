@@ -158,15 +158,15 @@ if display_initial_state != null:
 ## Reference Files
 
 ### Patterns to Study
-- `scripts/managers/m_audio_manager.gd` - Hash optimization, preview mode, store discovery
-- `scripts/state/utils/u_state_slice_manager.gd` - Slice registration (lines 113-120 for audio)
-- `scripts/state/m_state_store.gd` - Export pattern (line 65), initialize_slices call (lines 217-229)
-- `scripts/resources/state/rs_audio_initial_state.gd` - Initial state resource pattern
+- `scripts/core/managers/m_audio_manager.gd` - Hash optimization, preview mode, store discovery
+- `scripts/core/state/utils/u_state_slice_manager.gd` - Slice registration (lines 113-120 for audio)
+- `scripts/core/state/m_state_store.gd` - Export pattern (line 65), initialize_slices call (lines 217-229)
+- `scripts/core/resources/state/rs_audio_initial_state.gd` - Initial state resource pattern
 
 ### Files Modified (Phase 0D)
-- `scripts/state/m_state_store.gd` - Add display_initial_state export
-- `scripts/state/utils/u_state_slice_manager.gd` - Add 12th parameter, register slice
-- `scripts/state/u_action_registry.gd` - Register 19 display actions
+- `scripts/core/state/m_state_store.gd` - Add display_initial_state export
+- `scripts/core/state/utils/u_state_slice_manager.gd` - Add 12th parameter, register slice
+- `scripts/core/state/u_action_registry.gd` - Register 19 display actions
 - `scenes/root.tscn` - Assign cfg_display_initial_state.tres
 
 ---

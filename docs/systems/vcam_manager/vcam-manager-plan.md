@@ -20,7 +20,7 @@ The corrected implementation contract is:
 - vCam must not write `camera.global_transform` directly; that would fight `M_CameraManager`'s `ShakeParent` hierarchy.
 - Soft-zone correction is projection-based. It cannot be implemented by converting normalized screen offsets straight into world-space basis vectors.
 - During vCam-to-vCam blends, both the outgoing and incoming cameras are evaluated live every tick so moving cameras blend correctly.
-- New vCam resources live under `scripts/resources/display/vcam/` and the editor preview lives under `scripts/utils/display/`, which fits the current style guide and style-enforcement rules without inventing new categories.
+- New vCam resources live under `scripts/core/resources/display/vcam/` and the editor preview lives under `scripts/core/utils/display/`, which fits the current style guide and style-enforcement rules without inventing new categories.
 - Mobile camera look must extend the existing `UI_MobileControls` + `S_TouchscreenSystem` + `settings.input_settings.touchscreen_settings` path instead of creating a vCam-specific touch-input stack.
 - The `state.camera.in_fov_zone` migration is complete: `S_CameraStateSystem`, camera-zone QB rule config, and QB camera tests now use `state.vcam.in_fov_zone`.
 - Keyboard-look work is incomplete unless it also patches `U_InputMapBootstrapper`, `tests/unit/input/test_input_map.gd`, `U_GlobalSettingsSerialization`, `U_RebindActionListBuilder`, and the UI locale action keys.
@@ -34,12 +34,12 @@ The corrected implementation contract is:
 The original docs missed the runtime integration points. The implementation must wire all of these:
 
 - Add `M_VCamManager` to `scenes/root.tscn` under `Managers`.
-- Extend `scripts/state/m_state_store.gd` with `@export var vcam_initial_state: RS_VCamInitialState`.
+- Extend `scripts/core/state/m_state_store.gd` with `@export var vcam_initial_state: RS_VCamInitialState`.
 - Assign the new `vcam_initial_state` resource in `scenes/root.tscn`.
 - Reuse the existing root `MobileControls` instance in `scenes/root.tscn`; do not add a second mobile camera-controls layer.
-- Add `S_VCamSystem` under `Systems/Core` in `scenes/templates/tmpl_base_scene.tscn`.
-- Update already-authored gameplay scenes that do not automatically inherit the new system tree yet, at minimum `scenes/gameplay/gameplay_base.tscn`.
-- Extend `scenes/templates/tmpl_camera.tscn` with a default `C_VCamComponent`.
+- Add `S_VCamSystem` under `Systems/Core` in `scenes/core/templates/tmpl_base_scene.tscn`.
+- Update already-authored gameplay scenes that do not automatically inherit the new system tree yet, at minimum `scenes/demo/gameplay/gameplay_base.tscn`.
+- Extend `scenes/core/templates/tmpl_camera.tscn` with a default `C_VCamComponent`.
 - Keep the editor-only rule-of-thirds preview node wired in `tmpl_camera.tscn` alongside `U_VCamRuleOfThirdsPreview`; runtime teardown remains helper-owned.
 
 ## Documentation Cadence (Mandatory)
@@ -58,15 +58,15 @@ After every completed phase, update docs immediately so written guidance matches
 
 **Files to modify**
 
-- `scripts/resources/input/rs_touchscreen_settings.gd`
-- `resources/input/touchscreen_settings/cfg_default_touchscreen_settings.tres`
-- `scripts/state/reducers/u_input_reducer.gd`
-- `scripts/ui/overlays/ui_touchscreen_settings_overlay.gd`
-- `resources/localization/cfg_locale_en_ui.tres`
-- `resources/localization/cfg_locale_es_ui.tres`
-- `resources/localization/cfg_locale_ja_ui.tres`
-- `resources/localization/cfg_locale_pt_ui.tres`
-- `resources/localization/cfg_locale_zh_CN_ui.tres`
+- `scripts/core/resources/input/rs_touchscreen_settings.gd`
+- `resources/core/input/touchscreen_settings/cfg_default_touchscreen_settings.tres`
+- `scripts/core/state/reducers/u_input_reducer.gd`
+- `scripts/core/ui/overlays/ui_touchscreen_settings_overlay.gd`
+- `resources/core/localization/cfg_locale_en_ui.tres`
+- `resources/core/localization/cfg_locale_es_ui.tres`
+- `resources/core/localization/cfg_locale_ja_ui.tres`
+- `resources/core/localization/cfg_locale_pt_ui.tres`
+- `resources/core/localization/cfg_locale_zh_CN_ui.tres`
 - `tests/unit/resources/test_rs_touchscreen_settings.gd`
 - `tests/unit/input_manager/test_u_input_reducer.gd`
 - `tests/unit/ui/test_touchscreen_settings_overlay.gd`
@@ -90,26 +90,26 @@ After every completed phase, update docs immediately so written guidance matches
 **Files to modify**
 
 - `project.godot` (new `look_left`/`look_right`/`look_up`/`look_down` input actions)
-- `scripts/input/u_input_map_bootstrapper.gd`
-- `resources/input/profiles/cfg_default_keyboard.tres` (bind `look_*` to arrow keys)
-- `resources/input/profiles/cfg_alternate_keyboard.tres` (bind `look_*` to WASD)
-- `resources/input/profiles/cfg_accessibility_keyboard.tres` (bind `look_*` appropriately)
-- `scripts/state/actions/u_input_actions.gd`
-- `scripts/state/reducers/u_input_reducer.gd`
-- `scripts/utils/u_global_settings_serialization.gd`
-- `scripts/input/sources/keyboard_mouse_source.gd`
-- `scripts/ecs/systems/s_input_system.gd`
-- `scripts/ui/helpers/u_rebind_action_list_builder.gd`
-- `scripts/ui/menus/ui_settings_menu.gd`
+- `scripts/core/input/u_input_map_bootstrapper.gd`
+- `resources/core/input/profiles/cfg_default_keyboard.tres` (bind `look_*` to arrow keys)
+- `resources/core/input/profiles/cfg_alternate_keyboard.tres` (bind `look_*` to WASD)
+- `resources/core/input/profiles/cfg_accessibility_keyboard.tres` (bind `look_*` appropriately)
+- `scripts/core/state/actions/u_input_actions.gd`
+- `scripts/core/state/reducers/u_input_reducer.gd`
+- `scripts/core/utils/u_global_settings_serialization.gd`
+- `scripts/core/input/sources/keyboard_mouse_source.gd`
+- `scripts/core/ecs/systems/s_input_system.gd`
+- `scripts/core/ui/helpers/u_rebind_action_list_builder.gd`
+- `scripts/core/ui/menus/ui_settings_menu.gd`
 - `scenes/ui/menus/ui_settings_menu.tscn`
-- `scripts/ui/overlays/ui_keyboard_mouse_settings_overlay.gd`
+- `scripts/core/ui/overlays/ui_keyboard_mouse_settings_overlay.gd`
 - `scenes/ui/overlays/ui_keyboard_mouse_settings_overlay.tscn`
-- `resources/ui_screens/cfg_keyboard_mouse_settings_overlay.tres`
-- `resources/localization/cfg_locale_en_ui.tres`
-- `resources/localization/cfg_locale_es_ui.tres`
-- `resources/localization/cfg_locale_ja_ui.tres`
-- `resources/localization/cfg_locale_pt_ui.tres`
-- `resources/localization/cfg_locale_zh_CN_ui.tres`
+- `resources/core/ui_screens/cfg_keyboard_mouse_settings_overlay.tres`
+- `resources/core/localization/cfg_locale_en_ui.tres`
+- `resources/core/localization/cfg_locale_es_ui.tres`
+- `resources/core/localization/cfg_locale_ja_ui.tres`
+- `resources/core/localization/cfg_locale_pt_ui.tres`
+- `resources/core/localization/cfg_locale_zh_CN_ui.tres`
 - `tests/unit/input_manager/test_u_input_reducer.gd`
 - `tests/unit/input/test_input_map.gd`
 - `tests/unit/ui/test_input_rebinding_overlay.gd`
@@ -144,17 +144,17 @@ After every completed phase, update docs immediately so written guidance matches
 
 **Files to modify**
 
-- `scripts/resources/state/rs_vfx_initial_state.gd`
-- `scripts/state/actions/u_vfx_actions.gd`
-- `scripts/state/reducers/u_vfx_reducer.gd`
-- `scripts/state/selectors/u_vfx_selectors.gd`
-- `scripts/ui/settings/ui_vfx_settings_overlay.gd`
+- `scripts/core/resources/state/rs_vfx_initial_state.gd`
+- `scripts/core/state/actions/u_vfx_actions.gd`
+- `scripts/core/state/reducers/u_vfx_reducer.gd`
+- `scripts/core/state/selectors/u_vfx_selectors.gd`
+- `scripts/core/ui/settings/ui_vfx_settings_overlay.gd`
 - `scenes/ui/overlays/settings/ui_vfx_settings_overlay.tscn`
-- `resources/localization/cfg_locale_en_ui.tres`
-- `resources/localization/cfg_locale_es_ui.tres`
-- `resources/localization/cfg_locale_ja_ui.tres`
-- `resources/localization/cfg_locale_pt_ui.tres`
-- `resources/localization/cfg_locale_zh_CN_ui.tres`
+- `resources/core/localization/cfg_locale_en_ui.tres`
+- `resources/core/localization/cfg_locale_es_ui.tres`
+- `resources/core/localization/cfg_locale_ja_ui.tres`
+- `resources/core/localization/cfg_locale_pt_ui.tres`
+- `resources/core/localization/cfg_locale_zh_CN_ui.tres`
 - `tests/unit/state/test_vfx_initial_state.gd`
 - `tests/unit/state/test_vfx_reducer.gd`
 - `tests/unit/state/test_vfx_selectors.gd`
@@ -178,8 +178,8 @@ After every completed phase, update docs immediately so written guidance matches
 
 **Files to create**
 
-- `scripts/resources/state/rs_vcam_initial_state.gd`
-- `resources/state/cfg_default_vcam_initial_state.tres`
+- `scripts/core/resources/state/rs_vcam_initial_state.gd`
+- `resources/core/state/cfg_default_vcam_initial_state.tres`
 - `tests/unit/state/test_vcam_initial_state.gd`
 
 **Initial state**
@@ -211,8 +211,8 @@ func to_dictionary() -> Dictionary:
 
 **Files to create**
 
-- `scripts/state/actions/u_vcam_actions.gd`
-- `scripts/state/reducers/u_vcam_reducer.gd`
+- `scripts/core/state/actions/u_vcam_actions.gd`
+- `scripts/core/state/reducers/u_vcam_reducer.gd`
 - `tests/unit/state/test_vcam_reducer.gd`
 
 **Actions**
@@ -248,13 +248,13 @@ These follow the existing `EVENT_*` naming pattern and are published through `U_
 
 **Files to create**
 
-- `scripts/state/selectors/u_vcam_selectors.gd`
+- `scripts/core/state/selectors/u_vcam_selectors.gd`
 - `tests/unit/state/test_vcam_selectors.gd`
 
 **Files to modify**
 
-- `scripts/state/m_state_store.gd`
-- `scripts/state/utils/u_state_slice_manager.gd`
+- `scripts/core/state/m_state_store.gd`
+- `scripts/core/state/utils/u_state_slice_manager.gd`
 - `scenes/root.tscn`
 
 **Contract**
@@ -275,16 +275,16 @@ These follow the existing `EVENT_*` naming pattern and are published through `U_
 
 **Files to create**
 
-- `scripts/resources/display/vcam/rs_vcam_mode_orbit.gd`
-- `scripts/resources/display/vcam/rs_vcam_mode_fixed.gd`
-- `scripts/resources/display/vcam/rs_vcam_mode_ots.gd`
-- `scripts/resources/display/vcam/rs_vcam_soft_zone.gd`
-- `scripts/resources/display/vcam/rs_vcam_blend_hint.gd`
-- `tests/unit/resources/display/vcam/test_vcam_mode_orbit.gd`
-- `tests/unit/resources/display/vcam/test_vcam_mode_fixed.gd`
-- `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd`
-- `tests/unit/resources/display/vcam/test_vcam_soft_zone.gd`
-- `tests/unit/resources/display/vcam/test_vcam_blend_hint.gd`
+- `scripts/core/resources/display/vcam/rs_vcam_mode_orbit.gd`
+- `scripts/core/resources/display/vcam/rs_vcam_mode_fixed.gd`
+- `scripts/core/resources/display/vcam/rs_vcam_mode_ots.gd`
+- `scripts/core/resources/display/vcam/rs_vcam_soft_zone.gd`
+- `scripts/core/resources/display/vcam/rs_vcam_blend_hint.gd`
+- `tests/unit/resources/core/display/vcam/test_vcam_mode_orbit.gd`
+- `tests/unit/resources/core/display/vcam/test_vcam_mode_fixed.gd`
+- `tests/unit/resources/core/display/vcam/test_vcam_mode_ots.gd`
+- `tests/unit/resources/core/display/vcam/test_vcam_soft_zone.gd`
+- `tests/unit/resources/core/display/vcam/test_vcam_blend_hint.gd`
 
 **Resource notes**
 
@@ -320,7 +320,7 @@ These follow the existing `EVENT_*` naming pattern and are published through `U_
 
 **Files to create**
 
-- `scripts/ecs/components/c_vcam_component.gd`
+- `scripts/core/ecs/components/c_vcam_component.gd`
 - `tests/unit/ecs/components/test_vcam_component.gd`
 
 **Component contract**
@@ -354,13 +354,13 @@ These follow the existing `EVENT_*` naming pattern and are published through `U_
 
 **Files to create**
 
-- `resources/display/vcam/cfg_default_orbit.tres`
-- `resources/display/vcam/cfg_default_soft_zone.tres`
-- `resources/display/vcam/cfg_default_blend_hint.tres`
+- `resources/core/display/vcam/cfg_default_orbit.tres`
+- `resources/core/display/vcam/cfg_default_soft_zone.tres`
+- `resources/core/display/vcam/cfg_default_blend_hint.tres`
 
 **Files to modify**
 
-- `scenes/templates/tmpl_camera.tscn`
+- `scenes/core/templates/tmpl_camera.tscn`
 
 **Template result**
 
@@ -373,7 +373,7 @@ These follow the existing `EVENT_*` naming pattern and are published through `U_
 
 **Files to create**
 
-- `scripts/interfaces/i_vcam_manager.gd`
+- `scripts/core/interfaces/i_vcam_manager.gd`
 
 **Interface methods**
 
@@ -390,7 +390,7 @@ These follow the existing `EVENT_*` naming pattern and are published through `U_
 
 **Files to create**
 
-- `scripts/managers/m_vcam_manager.gd`
+- `scripts/core/managers/m_vcam_manager.gd`
 - `tests/unit/managers/test_vcam_manager.gd`
 
 **Manager responsibilities**
@@ -423,7 +423,7 @@ These follow the existing `EVENT_*` naming pattern and are published through `U_
 
 **Files to create**
 
-- `scripts/managers/helpers/u_vcam_mode_evaluator.gd`
+- `scripts/core/managers/helpers/u_vcam_mode_evaluator.gd`
 - `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd`
 
 **Contract**
@@ -443,7 +443,7 @@ These follow the existing `EVENT_*` naming pattern and are published through `U_
 
 **Files to create**
 
-- `scripts/ecs/systems/s_vcam_system.gd`
+- `scripts/core/ecs/systems/s_vcam_system.gd`
 - `tests/unit/ecs/systems/test_vcam_system.gd`
 
 **System responsibilities**
@@ -479,10 +479,10 @@ These follow the existing `EVENT_*` naming pattern and are published through `U_
 
 **Files to modify**
 
-- `scripts/ui/hud/ui_mobile_controls.gd`
-- `scripts/ecs/systems/s_touchscreen_system.gd`
-- `scripts/ecs/systems/s_input_system.gd`
-- `scripts/ui/overlays/ui_touchscreen_settings_overlay.gd`
+- `scripts/core/ui/hud/ui_mobile_controls.gd`
+- `scripts/core/ecs/systems/s_touchscreen_system.gd`
+- `scripts/core/ecs/systems/s_input_system.gd`
+- `scripts/core/ui/overlays/ui_touchscreen_settings_overlay.gd`
 - `tests/unit/ecs/systems/test_s_touchscreen_system.gd`
 - `tests/unit/ecs/systems/test_input_system.gd`
 - `tests/unit/ui/test_mobile_controls.gd`
@@ -519,8 +519,8 @@ These follow the existing `EVENT_*` naming pattern and are published through `U_
 **Files to modify**
 
 - `scenes/root.tscn`
-- `scenes/templates/tmpl_base_scene.tscn`
-- `scenes/gameplay/gameplay_base.tscn`
+- `scenes/core/templates/tmpl_base_scene.tscn`
+- `scenes/demo/gameplay/gameplay_base.tscn`
 
 **Required wiring**
 
@@ -535,7 +535,7 @@ These follow the existing `EVENT_*` naming pattern and are published through `U_
 
 **Files to create**
 
-- `scripts/managers/helpers/u_vcam_soft_zone.gd`
+- `scripts/core/managers/helpers/u_vcam_soft_zone.gd`
 - `tests/unit/managers/helpers/test_vcam_soft_zone.gd`
 
 **Corrected contract**
@@ -579,7 +579,7 @@ static func compute_camera_correction(
 
 **Files to modify**
 
-- `scripts/ecs/systems/s_vcam_system.gd`
+- `scripts/core/ecs/systems/s_vcam_system.gd`
 
 **Tests**
 
@@ -594,7 +594,7 @@ static func compute_camera_correction(
 
 **Files to create**
 
-- `scripts/managers/helpers/u_vcam_blend_evaluator.gd`
+- `scripts/core/managers/helpers/u_vcam_blend_evaluator.gd`
 - `tests/unit/managers/helpers/test_vcam_blend_evaluator.gd`
 
 **Contract**
@@ -614,7 +614,7 @@ static func compute_camera_correction(
 
 **Files to modify**
 
-- `scripts/managers/m_vcam_manager.gd`
+- `scripts/core/managers/m_vcam_manager.gd`
 - `tests/unit/managers/test_vcam_manager.gd`
 
 **Correct behavior**
@@ -646,8 +646,8 @@ static func compute_camera_correction(
 
 **Files to modify**
 
-- `scripts/interfaces/i_camera_manager.gd`
-- `scripts/managers/m_camera_manager.gd`
+- `scripts/core/interfaces/i_camera_manager.gd`
+- `scripts/core/managers/m_camera_manager.gd`
 - `tests/mocks/mock_camera_manager.gd`
 - `tests/integration/camera_system/test_camera_manager.gd`
 - `tests/unit/managers/test_vcam_manager.gd`
@@ -688,7 +688,7 @@ This requires modifying `S_CameraStateSystem._build_camera_context()` to read fr
 
 **Files to create**
 
-- `scripts/managers/helpers/u_vcam_collision_detector.gd`
+- `scripts/core/managers/helpers/u_vcam_collision_detector.gd`
 - `tests/unit/managers/helpers/test_vcam_collision_detector.gd`
 
 **Files to modify**
@@ -713,7 +713,7 @@ This requires modifying `S_CameraStateSystem._build_camera_context()` to read fr
 
 **Files to modify**
 
-- `scenes/gameplay/gameplay_base.tscn`
+- `scenes/demo/gameplay/gameplay_base.tscn`
 - any gameplay/prefab scenes with geometry expected to occlude camera-to-target line of sight in vCam flows
 
 **Contract**
@@ -730,7 +730,7 @@ This requires modifying `S_CameraStateSystem._build_camera_context()` to read fr
 
 **Files to create**
 
-- `scripts/managers/helpers/u_vcam_silhouette_helper.gd`
+- `scripts/core/managers/helpers/u_vcam_silhouette_helper.gd`
 - `assets/shaders/sh_vcam_silhouette_shader.gdshader`
 - `tests/unit/managers/helpers/test_vcam_silhouette_helper.gd`
 
@@ -750,8 +750,8 @@ This requires modifying `S_CameraStateSystem._build_camera_context()` to read fr
 
 **Files to modify**
 
-- `scripts/managers/m_vcam_manager.gd`
-- `scripts/managers/m_vfx_manager.gd`
+- `scripts/core/managers/m_vcam_manager.gd`
+- `scripts/core/managers/m_vfx_manager.gd`
 - `scripts/core/events/ecs/u_ecs_event_names.gd`
 - `tests/unit/managers/test_vcam_manager.gd`
 
@@ -778,11 +778,11 @@ This requires modifying `S_CameraStateSystem._build_camera_context()` to read fr
 
 **Files to create**
 
-- `scripts/utils/display/u_vcam_rule_of_thirds_preview.gd`
+- `scripts/core/utils/display/u_vcam_rule_of_thirds_preview.gd`
 
 **Files to modify**
 
-- `scenes/templates/tmpl_camera.tscn`
+- `scenes/core/templates/tmpl_camera.tscn`
 
 **Pattern**
 
@@ -842,7 +842,7 @@ This requires modifying `S_CameraStateSystem._build_camera_context()` to read fr
 12. Do not treat mobile as automatically covered by that input contract. `S_TouchscreenSystem` currently hard-codes look input to zero, so mobile drag-look must be implemented explicitly.
 13. Do not let `gameplay.touch_look_active` persist accidentally. If the flag stays in the gameplay slice, register it as transient.
 14. Do not rely on scene-tree order to “fix” mobile touch input or vCam apply timing. Define explicit gating and same-frame handoff behavior.
-15. Do not introduce `scripts/tools` or `assets/shaders/vcam_*.gdshader` paths that fight the current style guide. Use `scripts/utils/display/` and `sh_*_shader.gdshader`.
+15. Do not introduce `scripts/tools` or `assets/shaders/vcam_*.gdshader` paths that fight the current style guide. Use `scripts/core/utils/display/` and `sh_*_shader.gdshader`.
 16. Do not assume occluders are only `MeshInstance3D`. Current gameplay scenes use `CSGBox3D` extensively.
 17. Do not forget to update `tests/mocks/mock_camera_manager.gd` when `I_CameraManager` grows new methods.
 18. Do not stop at state wiring for `occlusion_silhouette_enabled`; wire it into `UI_VFXSettingsOverlay` and localization resources so players can control it.
@@ -853,7 +853,7 @@ This requires modifying `S_CameraStateSystem._build_camera_context()` to read fr
 ## File Structure
 
 ```text
-scripts/managers/
+scripts/core/managers/
   m_vcam_manager.gd
   helpers/
     u_vcam_mode_evaluator.gd
@@ -862,44 +862,44 @@ scripts/managers/
     u_vcam_collision_detector.gd
     u_vcam_silhouette_helper.gd
 
-scripts/interfaces/
+scripts/core/interfaces/
   i_vcam_manager.gd
 
-scripts/ecs/components/
+scripts/core/ecs/components/
   c_vcam_component.gd
 
-scripts/ecs/systems/
+scripts/core/ecs/systems/
   s_vcam_system.gd
 
-scripts/resources/display/vcam/
+scripts/core/resources/display/vcam/
   rs_vcam_mode_orbit.gd
   rs_vcam_mode_fixed.gd
   rs_vcam_mode_ots.gd
   rs_vcam_soft_zone.gd
   rs_vcam_blend_hint.gd
 
-scripts/resources/state/
+scripts/core/resources/state/
   rs_vcam_initial_state.gd
 
-scripts/state/actions/
+scripts/core/state/actions/
   u_vcam_actions.gd
 
-scripts/state/reducers/
+scripts/core/state/reducers/
   u_vcam_reducer.gd
 
-scripts/state/selectors/
+scripts/core/state/selectors/
   u_vcam_selectors.gd
 
-scripts/utils/display/
+scripts/core/utils/display/
   u_vcam_rule_of_thirds_preview.gd
 
 assets/shaders/
   sh_vcam_silhouette_shader.gdshader
 
-resources/state/
+resources/core/state/
   cfg_default_vcam_initial_state.tres
 
-resources/display/vcam/
+resources/core/display/vcam/
   cfg_default_orbit.tres
   cfg_default_soft_zone.tres
   cfg_default_blend_hint.tres
@@ -926,7 +926,7 @@ tests/unit/
     test_vcam_component.gd
   ecs/systems/
     test_vcam_system.gd
-  resources/display/vcam/
+  resources/core/display/vcam/
     test_vcam_mode_orbit.gd
     test_vcam_mode_fixed.gd
     test_vcam_mode_ots.gd

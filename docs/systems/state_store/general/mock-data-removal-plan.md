@@ -100,21 +100,21 @@ Files that need refactoring:
 ### Files to Modify
 
 **State Structure:**
-- `scripts/state/resources/rs_gameplay_initial_state.gd` - Remove health, score, level fields
-- `resources/state/cfg_default_gameplay_initial_state.tres` - Update to match
+- `scripts/core/state/resources/rs_gameplay_initial_state.gd` - Remove health, score, level fields
+- `resources/core/state/cfg_default_gameplay_initial_state.tres` - Update to match
 
 **Actions:**
-- `scripts/state/actions/u_gameplay_actions.gd` - Remove 5 mock actions
+- `scripts/core/state/actions/u_gameplay_actions.gd` - Remove 5 mock actions
 
 **Reducers:**
-- `scripts/state/reducers/gameplay_reducer.gd` - Remove 5 mock cases
+- `scripts/core/state/reducers/gameplay_reducer.gd` - Remove 5 mock cases
 
 **Selectors:**
-- `scripts/state/selectors/u_gameplay_selectors.gd` - Remove 5 mock selectors
+- `scripts/core/state/selectors/u_gameplay_selectors.gd` - Remove 5 mock selectors
 
 **Systems:**
-- `scripts/ecs/systems/s_health_system.gd` - Currently uses mock actions (may need to remove or refactor)
-- `scripts/ui/hud_controller.gd` / `scenes/ui/hud_overlay.tscn` - HUD reacts to state store (updated during Phase 8.5)
+- `scripts/core/ecs/systems/s_health_system.gd` - Currently uses mock actions (may need to remove or refactor)
+- `scripts/core/ui/hud_controller.gd` / `scenes/ui/hud_overlay.tscn` - HUD reacts to state store (updated during Phase 8.5)
 
 **Tests:**
 - 9 test files listed above

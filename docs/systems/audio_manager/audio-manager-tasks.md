@@ -17,7 +17,7 @@
   - All tests failing as expected ✅
 
 - [x] **Task 0.2 (Green)**: Implement Audio initial state resource
-  - Create `scripts/state/resources/rs_audio_initial_state.gd`
+  - Create `scripts/core/state/resources/rs_audio_initial_state.gd`
   - Exports: 4 volume floats (all default 1.0), 4 muted bools (all default false), 1 spatial_audio_enabled bool (default true)
   - Implement `to_dictionary()` method merging with reducer defaults
   - All tests passing ✅
@@ -29,13 +29,13 @@
   - All 25 tests failing as expected ✅
 
 - [x] **Task 0.4 (Green)**: Implement Audio actions and reducer
-  - Create `scripts/state/actions/u_audio_actions.gd`
+  - Create `scripts/core/state/actions/u_audio_actions.gd`
   - 12 action creators:
     - Volume setters: `set_master_volume(volume: float)`, `set_music_volume(volume: float)`, `set_sfx_volume(volume: float)`, `set_ambient_volume(volume: float)`
     - Mute setters: `set_master_muted(muted: bool)`, `set_music_muted(muted: bool)`, `set_sfx_muted(muted: bool)`, `set_ambient_muted(muted: bool)`
     - Toggle: `set_spatial_audio_enabled(enabled: bool)`
     - Toggles: `toggle_master_mute()`, `toggle_music_mute()`, `toggle_sfx_mute()`
-  - Create `scripts/state/reducers/u_audio_reducer.gd`
+  - Create `scripts/core/state/reducers/u_audio_reducer.gd`
   - Implement `reduce(state: Dictionary, action: Dictionary) -> Dictionary`
   - Implement `get_default_audio_state() -> Dictionary` returning 9-field state
   - Volume clamping: `clampf(value, 0.0, 1.0)` for all volume fields
@@ -48,7 +48,7 @@
   - All 15 tests failing as expected ✅
 
 - [x] **Task 0.6 (Green)**: Implement Audio selectors
-  - Create `scripts/state/selectors/u_audio_selectors.gd`
+  - Create `scripts/core/state/selectors/u_audio_selectors.gd`
   - 9 selectors:
     - `get_master_volume(state: Dictionary) -> float`
     - `get_music_volume(state: Dictionary) -> float`
@@ -63,12 +63,12 @@
   - All 15 tests passing ✅
 
 - [x] **Task 0.7 (Green)**: Integrate Audio slice into M_StateStore
-  - Modify `scripts/state/m_state_store.gd`:
-    - Add `const U_AUDIO_REDUCER := preload("res://scripts/state/reducers/u_audio_reducer.gd")`
+  - Modify `scripts/core/state/m_state_store.gd`:
+    - Add `const U_AUDIO_REDUCER := preload("res://scripts/core/state/reducers/u_audio_reducer.gd")`
     - Add `@export var audio_initial_state: RS_AudioInitialState`
     - Add `audio_initial_state` parameter to `initialize_slices()` call
-  - Modify `scripts/state/utils/u_state_slice_manager.gd`:
-    - Add `const U_AUDIO_REDUCER := preload("res://scripts/state/reducers/u_audio_reducer.gd")` at top
+  - Modify `scripts/core/state/utils/u_state_slice_manager.gd`:
+    - Add `const U_AUDIO_REDUCER := preload("res://scripts/core/state/reducers/u_audio_reducer.gd")` at top
     - Add `audio_initial_state: RS_AudioInitialState` parameter to `initialize_slices()` function signature (after vfx_initial_state)
     - Add Audio slice registration block:
       ```gdscript
@@ -85,7 +85,7 @@
 
 **Completion Notes:**
 - Added 51 Redux unit tests (11 initial state + 25 reducer + 15 selectors)
-- Added default resource `resources/state/cfg_default_audio_initial_state.tres` and wired into `scenes/root.tscn`
+- Added default resource `resources/core/state/cfg_default_audio_initial_state.tres` and wired into `scenes/root.tscn`
 - Updated `.godot/global_script_class_cache.cfg` to register `RS_AudioInitialState` so typed exports resolve in headless tests
 - Verified GREEN: `tools/run_gut_suite.sh -gdir=res://tests/unit/state -gexit` (226/226 passing)
 
@@ -101,7 +101,7 @@
   - All tests failing as expected ✅
 
 - [x] **Task 1.2 (Green)**: Implement Audio manager scaffolding and bus layout
-  - Create `scripts/managers/m_audio_manager.gd`
+  - Create `scripts/core/managers/m_audio_manager.gd`
   - Extend Node, add `@icon("res://assets/editor_icons/manager.svg")`
   - Add to "audio_manager" group
   - `_ready()`: Set `process_mode = PROCESS_MODE_ALWAYS`, register with ServiceLocator, discover M_StateStore
@@ -149,7 +149,7 @@
   - All tests failing as expected ✅
 
 - [x] **Task 1.4 (Green)**: Implement volume conversion and application
-  - Modify `scripts/managers/m_audio_manager.gd`
+  - Modify `scripts/core/managers/m_audio_manager.gd`
   - Add static method:
     ```gdscript
     static func _linear_to_db(linear: float) -> float:
@@ -204,7 +204,7 @@
   - Verify discoverable via `U_ServiceLocator.get_service(StringName("audio_manager"))`
 
 **Completion Notes:**
-- Added `scripts/managers/m_audio_manager.gd` (bus layout + state subscription + volume/mute application)
+- Added `scripts/core/managers/m_audio_manager.gd` (bus layout + state subscription + volume/mute application)
 - Added `tests/unit/managers/test_audio_manager.gd` (7/7 passing)
 - Verified GREEN: `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -gselect=test_audio -gexit`
 - Verified GREEN: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd -gexit`
@@ -218,14 +218,14 @@
 - [x] **Task 2.1 (Green)**: Create placeholder music assets
   - Install Audacity (if not already installed)
   - Generate silent loops for testing:
-    - `resources/audio/music/placeholders/placeholder_main_menu.ogg`: Generate > Silence, 5 seconds, export as OGG Vorbis, loop enabled in Godot import settings
-    - `resources/audio/music/placeholders/placeholder_gameplay.ogg`: Generate > Silence, 5 seconds, export as OGG Vorbis, loop enabled
-    - `resources/audio/music/placeholders/placeholder_pause.ogg`: Generate > Silence, 5 seconds, export as OGG Vorbis, loop enabled
+    - `resources/demo/audio/music/placeholders/placeholder_main_menu.ogg`: Generate > Silence, 5 seconds, export as OGG Vorbis, loop enabled in Godot import settings
+    - `resources/demo/audio/music/placeholders/placeholder_gameplay.ogg`: Generate > Silence, 5 seconds, export as OGG Vorbis, loop enabled
+    - `resources/demo/audio/music/placeholders/placeholder_pause.ogg`: Generate > Silence, 5 seconds, export as OGG Vorbis, loop enabled
   - In Godot: Select each .ogg file → Import tab → Check "Loop" → Reimport
   - Placeholder assets allow testing crossfade system before real music exists
 
 - [x] **Task 2.2 (Green)**: Implement music registry and dual-player setup
-  - Modify `scripts/managers/m_audio_manager.gd`
+  - Modify `scripts/core/managers/m_audio_manager.gd`
   - Add fields:
     ```gdscript
     var _music_player_a: AudioStreamPlayer
@@ -277,7 +277,7 @@
     ```
 
 - [x] **Task 2.3 (Green)**: Implement crossfade algorithm
-  - Modify `scripts/managers/m_audio_manager.gd`
+  - Modify `scripts/core/managers/m_audio_manager.gd`
   - Add public method `play_music(track_id: StringName, duration: float = 1.5) -> void`:
     ```gdscript
     if track_id == _current_music_id:
@@ -327,7 +327,7 @@
   - Crossfade uses cubic easing for smooth, professional-sounding transitions
 
 - [x] **Task 2.4 (Green)**: Implement scene-based music transitions
-  - Modify `scripts/managers/m_audio_manager.gd`
+  - Modify `scripts/core/managers/m_audio_manager.gd`
   - Handle `scene/transition_completed` in the store subscription callback (signature includes the dispatched action):
     ```gdscript
     func _on_state_changed(action: Dictionary, state: Dictionary) -> void:
@@ -381,7 +381,7 @@
     ```
 
 - [x] **Task 2.5 (Green)**: Implement pause overlay music handling
-  - Modify `scripts/managers/m_audio_manager.gd`
+  - Modify `scripts/core/managers/m_audio_manager.gd`
   - Add field: `var _pre_pause_music_id: StringName = StringName("")`
   - Handle pause open/close actions inside `_handle_music_actions(action)`:
     ```gdscript
@@ -401,9 +401,9 @@
   - Alternative approach (deferred): Apply low-pass filter instead of track change
 
 **Completion Notes:**
-- Added placeholder OGG tracks under `resources/audio/music/placeholders/` and enabled looping via `.ogg.import` + headless reimport.
-- Music registry uses `resources/audio/music/*.mp3` (main_menu/exterior/interior/pause/credits).
-- Implemented dual `AudioStreamPlayer` crossfade in `scripts/managers/m_audio_manager.gd`.
+- Added placeholder OGG tracks under `resources/demo/audio/music/placeholders/` and enabled looping via `.ogg.import` + headless reimport.
+- Music registry uses `resources/demo/audio/music/*.mp3` (main_menu/exterior/interior/pause/credits).
+- Implemented dual `AudioStreamPlayer` crossfade in `scripts/core/managers/m_audio_manager.gd`.
 - Implemented scene-based music switching via `scene/transition_completed` action and pause switching via `navigation/open_pause` + `navigation/close_pause` (store subscription callback includes the dispatched action).
 - Extended `tests/unit/managers/test_audio_manager.gd` with Phase 2 tests; all passing.
 - Verified GREEN: `tools/run_gut_suite.sh -gdir=res://tests/unit/state -gselect=test_audio -gexit`
@@ -423,7 +423,7 @@
   - All 15 tests failing as expected ✅
 
 - [x] **Task 3.2 (Green)**: Implement BaseEventSFXSystem
-  - Create `scripts/ecs/base_event_sfx_system.gd`
+  - Create `scripts/core/ecs/base_event_sfx_system.gd`
   - Mirror BaseEventVFXSystem structure:
     ```gdscript
     @icon("res://assets/editor_icons/system.svg")
@@ -474,7 +474,7 @@
   - All 15 tests passing ✅
 
 **Completion Notes:**
-- Added `scripts/ecs/base_event_sfx_system.gd` mirroring BaseEventVFXSystem (subscribe/unsubscribe + request queue)
+- Added `scripts/core/ecs/base_event_sfx_system.gd` mirroring BaseEventVFXSystem (subscribe/unsubscribe + request queue)
 - Added `tests/unit/ecs/test_base_event_sfx_system.gd` (15 tests) + `tests/test_doubles/ecs/event_sfx_system_stub.gd`
 - Verified GREEN: `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/test_base_event_sfx_system.gd -gexit`
 - Verified GREEN: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd -gexit`
@@ -491,7 +491,7 @@
   - All 10 tests failing as expected ✅
 
 - [x] **Task 4.2 (Green)**: Implement U_SFXSpawner utility
-  - Create `scripts/managers/helpers/u_sfx_spawner.gd`
+  - Create `scripts/core/managers/helpers/u_sfx_spawner.gd`
   - Class structure:
     ```gdscript
     class_name U_SFXSpawner
@@ -566,13 +566,13 @@
   - All 10 tests passing ✅
 
 - [x] **Task 4.3 (Green)**: Initialize SFX pool in Audio Manager
-  - Modify `scripts/managers/m_audio_manager.gd`
+  - Modify `scripts/core/managers/m_audio_manager.gd`
   - Add to `_ready()`: `U_SFXSpawner.initialize(self)`
   - Pool initialized when Audio Manager starts
 
 - [x] **Task 4.4 (Red+Green)**: Implement S_JumpSoundSystem (event: entity_jumped)
-  - **NOTE**: File `scripts/ecs/systems/s_jump_sound_system.gd` already exists as stub (extends BaseEventVFXSystem). Migrate to BaseEventSFXSystem.
-  - Create `scripts/ecs/resources/rs_jump_sound_settings.gd`:
+  - **NOTE**: File `scripts/core/ecs/systems/s_jump_sound_system.gd` already exists as stub (extends BaseEventVFXSystem). Migrate to BaseEventSFXSystem.
+  - Create `scripts/core/ecs/resources/rs_jump_sound_settings.gd`:
     ```gdscript
     @icon("res://assets/editor_icons/resource.svg")
     extends Resource
@@ -584,14 +584,14 @@
     @export var pitch_variation: float = 0.1
     @export var min_interval: float = 0.1
     ```
-  - Create placeholder asset: `resources/audio/sfx/placeholder_jump.wav` (Audacity: Generate > Tone, 440Hz, 100ms, export as WAV)
+  - Create placeholder asset: `resources/demo/audio/sfx/placeholder_jump.wav` (Audacity: Generate > Tone, 440Hz, 100ms, export as WAV)
   - Create `tests/unit/ecs/systems/test_jump_sound_system.gd` (10 tests)
-  - Modify `scripts/ecs/systems/s_jump_sound_system.gd` (migrate from BaseEventVFXSystem → BaseEventSFXSystem):
+  - Modify `scripts/core/ecs/systems/s_jump_sound_system.gd` (migrate from BaseEventVFXSystem → BaseEventSFXSystem):
     ```gdscript
     extends BaseEventSFXSystem
     class_name S_JumpSoundSystem
 
-    const RS_JUMP_SOUND_SETTINGS := preload("res://scripts/ecs/resources/rs_jump_sound_settings.gd")
+    const RS_JUMP_SOUND_SETTINGS := preload("res://scripts/core/ecs/resources/rs_jump_sound_settings.gd")
     @export var settings: RS_JumpSoundSettings
 
     func get_event_name() -> StringName:
@@ -625,15 +625,15 @@
   - All tests passing ✅
 
 - [x] **Task 4.5 (Red+Green)**: Implement S_LandingSoundSystem (event: entity_landed)
-  - Create `scripts/ecs/resources/rs_landing_sound_settings.gd` (same structure as jump)
-  - Create placeholder asset: `resources/audio/sfx/placeholder_land.wav` (220Hz, 100ms)
+  - Create `scripts/core/ecs/resources/rs_landing_sound_settings.gd` (same structure as jump)
+  - Create placeholder asset: `resources/demo/audio/sfx/placeholder_land.wav` (220Hz, 100ms)
   - Create `tests/unit/ecs/systems/test_landing_sound_system.gd`
-  - Create `scripts/ecs/systems/s_landing_sound_system.gd`:
+  - Create `scripts/core/ecs/systems/s_landing_sound_system.gd`:
     ```gdscript
     extends BaseEventSFXSystem
     class_name S_LandingSoundSystem
 
-    const RS_LANDING_SOUND_SETTINGS := preload("res://scripts/ecs/resources/rs_landing_sound_settings.gd")
+    const RS_LANDING_SOUND_SETTINGS := preload("res://scripts/core/ecs/resources/rs_landing_sound_settings.gd")
     @export var settings: RS_LANDING_SOUND_SETTINGS
 
     func get_event_name() -> StringName:
@@ -671,29 +671,29 @@
   - All tests passing ✅
 
 - [x] **Task 4.6 (Red+Green)**: Implement S_DeathSoundSystem (event: entity_death)
-  - Create `scripts/ecs/resources/rs_death_sound_settings.gd`
-  - Create placeholder asset: `resources/audio/sfx/placeholder_death.wav` (110Hz, 150ms)
+  - Create `scripts/core/ecs/resources/rs_death_sound_settings.gd`
+  - Create placeholder asset: `resources/demo/audio/sfx/placeholder_death.wav` (110Hz, 150ms)
   - Create `tests/unit/ecs/systems/test_death_sound_system.gd`
-  - Create `scripts/ecs/systems/s_death_sound_system.gd` (mirror jump system pattern, event_name = "entity_death")
+  - Create `scripts/core/ecs/systems/s_death_sound_system.gd` (mirror jump system pattern, event_name = "entity_death")
   - All tests passing ✅
 
 - [x] **Task 4.7 (Red+Green)**: Implement S_CheckpointSoundSystem (event: checkpoint_activated)
-  - Create `scripts/ecs/resources/rs_checkpoint_sound_settings.gd`
-  - Create placeholder asset: `resources/audio/sfx/placeholder_checkpoint.wav` (880Hz, 200ms)
+  - Create `scripts/core/ecs/resources/rs_checkpoint_sound_settings.gd`
+  - Create placeholder asset: `resources/demo/audio/sfx/placeholder_checkpoint.wav` (880Hz, 200ms)
   - Create `tests/unit/ecs/systems/test_checkpoint_sound_system.gd`
-  - Create `scripts/ecs/systems/s_checkpoint_sound_system.gd` (event_name = "checkpoint_activated")
+  - Create `scripts/core/ecs/systems/s_checkpoint_sound_system.gd` (event_name = "checkpoint_activated")
   - All tests passing ✅
 
 - [x] **Task 4.8 (Red+Green)**: Implement S_VictorySoundSystem (event: victory_triggered)
-  - Create `scripts/ecs/resources/rs_victory_sound_settings.gd`
-  - Create placeholder asset: `resources/audio/sfx/placeholder_victory.wav` (1760Hz, 300ms)
+  - Create `scripts/core/ecs/resources/rs_victory_sound_settings.gd`
+  - Create placeholder asset: `resources/demo/audio/sfx/placeholder_victory.wav` (1760Hz, 300ms)
   - Create `tests/unit/ecs/systems/test_victory_sound_system.gd`
-  - Create `scripts/ecs/systems/s_victory_sound_system.gd` (event_name = "victory_triggered")
+  - Create `scripts/core/ecs/systems/s_victory_sound_system.gd` (event_name = "victory_triggered")
   - All tests passing ✅
 
 **Completion Notes:**
-- Implemented pooled 3D spawner as `U_SFXSpawner` (`scripts/managers/helpers/u_sfx_spawner.gd`) to satisfy prefix enforcement for `scripts/managers/helpers/`.
-- Added placeholder WAV SFX under `resources/audio/sfx/` (with `.import` files).
+- Implemented pooled 3D spawner as `U_SFXSpawner` (`scripts/core/managers/helpers/u_sfx_spawner.gd`) to satisfy prefix enforcement for `scripts/core/managers/helpers/`.
+- Added placeholder WAV SFX under `resources/demo/audio/sfx/` (with `.import` files).
 - Added unit tests for spawner + 5 SFX systems and verified GREEN (including `tests/unit/style/test_style_enforcement.gd`).
 
 ---
@@ -708,7 +708,7 @@
   - ✅ All 15 tests created, 14/15 passing
 
 - [x] **Task 5.2 (Green)**: Implement C_SurfaceDetectorComponent
-  - Create `scripts/ecs/components/c_surface_detector_component.gd`:
+  - Create `scripts/core/ecs/components/c_surface_detector_component.gd`:
     ```gdscript
     @icon("res://assets/editor_icons/component.svg")
     extends BaseECSComponent  # Changed from Node3D for ECS registration
@@ -751,12 +751,12 @@
 
 - [x] **Task 5.3 (Green)**: Create placeholder footstep assets (24 files)
   - Using Audacity, create 24 WAV files (6 surfaces × 4 variations):
-    - `resources/audio/footsteps/placeholder_default_01.wav` through `_04.wav` (200Hz tone, 80ms)
-    - `resources/audio/footsteps/placeholder_grass_01.wav` through `_04.wav` (250Hz, 80ms)
-    - `resources/audio/footsteps/placeholder_stone_01.wav` through `_04.wav` (180Hz, 80ms)
-    - `resources/audio/footsteps/placeholder_wood_01.wav` through `_04.wav` (300Hz, 80ms)
-    - `resources/audio/footsteps/placeholder_metal_01.wav` through `_04.wav` (400Hz, 80ms)
-    - `resources/audio/footsteps/placeholder_water_01.wav` through `_04.wav` (150Hz, 100ms)
+    - `resources/demo/audio/footsteps/placeholder_default_01.wav` through `_04.wav` (200Hz tone, 80ms)
+    - `resources/demo/audio/footsteps/placeholder_grass_01.wav` through `_04.wav` (250Hz, 80ms)
+    - `resources/demo/audio/footsteps/placeholder_stone_01.wav` through `_04.wav` (180Hz, 80ms)
+    - `resources/demo/audio/footsteps/placeholder_wood_01.wav` through `_04.wav` (300Hz, 80ms)
+    - `resources/demo/audio/footsteps/placeholder_metal_01.wav` through `_04.wav` (400Hz, 80ms)
+    - `resources/demo/audio/footsteps/placeholder_water_01.wav` through `_04.wav` (150Hz, 100ms)
   - ✅ Generated via Python script (tools/generate_footstep_placeholders.py)
   - Different frequencies provide distinct placeholder sounds per surface type
   - 4 variations per surface prevent repetitive feel
@@ -767,7 +767,7 @@
   - ✅ All 20 tests created, 10/20 passing (test environment setup issues, implementation correct)
 
 - [x] **Task 5.5 (Green)**: Implement RS_FootstepSoundSettings resource
-  - Create `scripts/ecs/resources/rs_footstep_sound_settings.gd`:
+  - Create `scripts/core/ecs/resources/rs_footstep_sound_settings.gd`:
     ```gdscript
     @icon("res://assets/editor_icons/resource.svg")
     extends Resource
@@ -806,12 +806,12 @@
   - ✅ Implemented with helper method get_sounds_for_surface()
 
 - [x] **Task 5.6 (Green)**: Implement S_FootstepSoundSystem
-  - Create `scripts/ecs/systems/s_footstep_sound_system.gd`:
+  - Create `scripts/core/ecs/systems/s_footstep_sound_system.gd`:
     ```gdscript
     extends BaseECSSystem
     class_name S_FootstepSoundSystem
 
-    const RS_FOOTSTEP_SOUND_SETTINGS := preload("res://scripts/ecs/resources/rs_footstep_sound_settings.gd")
+    const RS_FOOTSTEP_SOUND_SETTINGS := preload("res://scripts/core/ecs/resources/rs_footstep_sound_settings.gd")
     @export var settings: RS_FOOTSTEP_SOUND_SETTINGS
 
     var _time_since_step: float = 0.0
@@ -865,12 +865,12 @@
   - All 20 tests passing
 
 **Completion Notes:**
-- Added `scripts/ecs/components/c_surface_detector_component.gd` extending BaseECSComponent (15/15 tests passing)
-- Added `scripts/ecs/systems/s_footstep_sound_system.gd` as per-tick system (20/20 tests passing)
-- Added `scripts/ecs/resources/rs_footstep_sound_settings.gd` with 6 surface type arrays
+- Added `scripts/core/ecs/components/c_surface_detector_component.gd` extending BaseECSComponent (15/15 tests passing)
+- Added `scripts/core/ecs/systems/s_footstep_sound_system.gd` as per-tick system (20/20 tests passing)
+- Added `scripts/core/ecs/resources/rs_footstep_sound_settings.gd` with 6 surface type arrays
 - Generated 24 placeholder footstep WAV files (4 variations × 6 surfaces) via Python script
-- Created `resources/base_settings/audio/cfg_footstep_sound_default.tres` with all 24 audio streams wired
-- Added `C_SurfaceDetectorComponent` to player prefab (`scenes/prefabs/prefab_player.tscn`)
+- Created `resources/core/base_settings/audio/cfg_footstep_sound_default.tres` with all 24 audio streams wired
+- Added `C_SurfaceDetectorComponent` to player prefab (`scenes/core/prefabs/prefab_player.tscn`)
 - Added `S_FootstepSoundSystem` to all 3 gameplay scenes (gameplay_base, gameplay_exterior, gameplay_interior_house)
 - Verified GREEN: Full unit test suite (see header totals)
 
@@ -881,8 +881,8 @@
 **Exit Criteria:** 10 ambient tests pass, ambient loops correctly without gaps, scene-based crossfade works, volume independent of music
 
 - [x] **Task 6.1 (Green)**: Create placeholder ambient assets
-  - Create `resources/audio/ambient/placeholder_exterior.wav` (10s loop, 80Hz tone, loop enabled in Godot)
-  - Create `resources/audio/ambient/placeholder_interior.wav` (10s loop, 120Hz tone, loop enabled)
+  - Create `resources/demo/audio/ambient/placeholder_exterior.wav` (10s loop, 80Hz tone, loop enabled in Godot)
+  - Create `resources/demo/audio/ambient/placeholder_interior.wav` (10s loop, 120Hz tone, loop enabled)
   - Ensure loop points are seamless (no pops at loop boundary)
 
 - [x] **Task 6.2 (Red)**: Write tests for S_AmbientSoundSystem
@@ -891,7 +891,7 @@
   - All 10 tests failing as expected
 
 - [x] **Task 6.3 (Green)**: Implement S_AmbientSoundSystem
-  - Create `scripts/ecs/resources/rs_ambient_sound_settings.gd`:
+  - Create `scripts/core/ecs/resources/rs_ambient_sound_settings.gd`:
     ```gdscript
     @icon("res://assets/editor_icons/resource.svg")
     extends Resource
@@ -899,12 +899,12 @@
 
     @export var enabled: bool = true
     ```
-  - Create `scripts/ecs/systems/s_ambient_sound_system.gd`:
+  - Create `scripts/core/ecs/systems/s_ambient_sound_system.gd`:
     ```gdscript
     extends BaseECSSystem
     class_name S_AmbientSoundSystem
 
-    const RS_AMBIENT_SOUND_SETTINGS := preload("res://scripts/ecs/resources/rs_ambient_sound_settings.gd")
+    const RS_AMBIENT_SOUND_SETTINGS := preload("res://scripts/core/ecs/resources/rs_ambient_sound_settings.gd")
     const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
     @export var settings: RS_AMBIENT_SOUND_SETTINGS
 
@@ -1032,11 +1032,11 @@
   - All 10 tests passing
 
 **Completion Notes:**
-- Created `resources/audio/ambient/placeholder_exterior.wav` and `placeholder_interior.wav` (10s loops with 80Hz and 120Hz tones)
+- Created `resources/demo/audio/ambient/placeholder_exterior.wav` and `placeholder_interior.wav` (10s loops with 80Hz and 120Hz tones)
 - Created `tests/unit/ecs/systems/test_ambient_sound_system.gd` (10/10 tests passing)
-- Created `scripts/ecs/resources/rs_ambient_sound_settings.gd` (enabled flag)
-- Created `scripts/ecs/systems/s_ambient_sound_system.gd` (dual-player crossfade pattern, scene-based ambient selection)
-- Created `resources/base_settings/audio/cfg_ambient_sound_default.tres` (default settings resource)
+- Created `scripts/core/ecs/resources/rs_ambient_sound_settings.gd` (enabled flag)
+- Created `scripts/core/ecs/systems/s_ambient_sound_system.gd` (dual-player crossfade pattern, scene-based ambient selection)
+- Created `resources/core/base_settings/audio/cfg_ambient_sound_default.tres` (default settings resource)
 - Added S_AmbientSoundSystem to all 3 gameplay scenes (gameplay_base, gameplay_exterior, gameplay_interior_house)
 - System implementation complete and integrated, ready for manual testing
 - Verified GREEN: Full unit test suite (see header totals)
@@ -1048,10 +1048,10 @@
 **Exit Criteria:** 5 UI sound tests pass, UI sounds play on focus/confirm/cancel, slider sounds throttled (max 10/sec), sounds play even during scene transitions
 
 - [x] **Task 7.1 (Green)**: Create placeholder UI sound assets
-  - Create `resources/audio/sfx/placeholder_ui_focus.wav` (1000Hz tone, 30ms, export as WAV)
-  - Create `resources/audio/sfx/placeholder_ui_confirm.wav` (1200Hz tone, 50ms, export as WAV)
-  - Create `resources/audio/sfx/placeholder_ui_cancel.wav` (800Hz tone, 50ms, export as WAV)
-  - Create `resources/audio/sfx/placeholder_ui_tick.wav` (1400Hz tone, 20ms, export as WAV)
+  - Create `resources/demo/audio/sfx/placeholder_ui_focus.wav` (1000Hz tone, 30ms, export as WAV)
+  - Create `resources/demo/audio/sfx/placeholder_ui_confirm.wav` (1200Hz tone, 50ms, export as WAV)
+  - Create `resources/demo/audio/sfx/placeholder_ui_cancel.wav` (800Hz tone, 50ms, export as WAV)
+  - Create `resources/demo/audio/sfx/placeholder_ui_tick.wav` (1400Hz tone, 20ms, export as WAV)
   - High-frequency tones are recognizable as UI sounds vs gameplay SFX
 
 - [x] **Task 7.2 (Red)**: Write tests for U_UISoundPlayer utility
@@ -1060,7 +1060,7 @@
   - All 5 tests failing as expected ✅
 
 - [x] **Task 7.3 (Green)**: Implement U_UISoundPlayer utility
-  - Create `scripts/ui/utils/u_ui_sound_player.gd` (moved to UI utils to satisfy `tests/unit/style/test_style_enforcement.gd` prefix rules):
+  - Create `scripts/core/ui/utils/u_ui_sound_player.gd` (moved to UI utils to satisfy `tests/unit/style/test_style_enforcement.gd` prefix rules):
     ```gdscript
     class_name U_UISoundPlayer
     extends RefCounted
@@ -1099,7 +1099,7 @@
   - All 5 tests passing
 
 - [x] **Task 7.4 (Green)**: Add UI sound playback to Audio Manager
-  - Modify `scripts/managers/m_audio_manager.gd`
+  - Modify `scripts/core/managers/m_audio_manager.gd`
   - Add UI sound registry:
     ```gdscript
     const _UI_SOUND_REGISTRY: Dictionary = {
@@ -1130,7 +1130,7 @@
   - UI sounds play on UI bus, independent of scene transitions
 
 - [x] **Task 7.5 (Green)**: Integrate UI sounds into BasePanel
-  - Modify `scripts/ui/base/base_panel.gd`
+  - Modify `scripts/core/ui/base/base_panel.gd`
   - Subscribe to `Viewport.gui_focus_changed` and play focus sound for focus changes inside the panel subtree
   - **Input-gated**: focus sound only plays when player navigation input actually causes the focus move
     - Initial/programmatic focus assignment is silent
@@ -1156,10 +1156,10 @@
     ```
 
 **Completion Notes:**
-- Created UI placeholder WAVs: `resources/audio/sfx/placeholder_ui_focus.wav`, `placeholder_ui_confirm.wav`, `placeholder_ui_cancel.wav`, `placeholder_ui_tick.wav`
-- Created `scripts/ui/utils/u_ui_sound_player.gd` (throttled slider tick; ServiceLocator lookup)
-- Added UI playback support to `scripts/managers/m_audio_manager.gd` (`UIPlayer` on `UI` bus + `_UI_SOUND_REGISTRY` + `play_ui_sound()`)
-- Integrated focus sound in `scripts/ui/base/base_panel.gd` via `Viewport.gui_focus_changed` + input arming (initial focus silent; analog nav arms at focus move)
+- Created UI placeholder WAVs: `resources/demo/audio/sfx/placeholder_ui_focus.wav`, `placeholder_ui_confirm.wav`, `placeholder_ui_cancel.wav`, `placeholder_ui_tick.wav`
+- Created `scripts/core/ui/utils/u_ui_sound_player.gd` (throttled slider tick; ServiceLocator lookup)
+- Added UI playback support to `scripts/core/managers/m_audio_manager.gd` (`UIPlayer` on `UI` bus + `_UI_SOUND_REGISTRY` + `play_ui_sound()`)
+- Integrated focus sound in `scripts/core/ui/base/base_panel.gd` via `Viewport.gui_focus_changed` + input arming (initial focus silent; analog nav arms at focus move)
 - Added confirm/cancel/tick calls across common UI scripts (main menu, pause, settings, save/load, input rebinding, touchscreen/gamepad settings, etc.)
 - Verified GREEN: `tests/unit/style/test_style_enforcement.gd`, `tests/unit/ui/*`, full `tests/unit/*` (see header totals)
 
@@ -1208,17 +1208,17 @@
   - All controls use focus navigation for gamepad support
 
 - [x] **Task 8.2 (Green)**: Implement Audio settings tab script
-  - Create `scripts/ui/settings/ui_audio_settings_tab.gd` (Apply/Cancel pattern + silent UI sync + gamepad focus grid + slider tick sounds; Reset applies immediately)
+  - Create `scripts/core/ui/settings/ui_audio_settings_tab.gd` (Apply/Cancel pattern + silent UI sync + gamepad focus grid + slider tick sounds; Reset applies immediately)
 
 - [x] **Task 8.3 (Green)**: Wire Audio settings into Settings Hub
-  - Add `Audio Settings` entry to `scenes/ui/ui_settings_menu.tscn` + `scripts/ui/ui_settings_menu.gd`
-  - Add overlay wrapper `scenes/ui/ui_audio_settings_overlay.tscn` + `scripts/ui/settings/ui_audio_settings_overlay.gd`
-  - Register overlay: `resources/ui_screens/cfg_audio_settings_overlay.tres` + `resources/scene_registry/cfg_ui_audio_settings_entry.tres`
+  - Add `Audio Settings` entry to `scenes/ui/ui_settings_menu.tscn` + `scripts/core/ui/ui_settings_menu.gd`
+  - Add overlay wrapper `scenes/ui/ui_audio_settings_overlay.tscn` + `scripts/core/ui/settings/ui_audio_settings_overlay.gd`
+  - Register overlay: `resources/core/ui_screens/cfg_audio_settings_overlay.tres` + `resources/core/scene_registry/cfg_ui_audio_settings_entry.tres`
   - Audio settings persist via existing Redux state persistence (audio slice)
   - Ran unit suite (1371 passing, 5 pending headless timing tests)
 
 **Completion Notes:**
-- Wired `spatial_audio_enabled` into 3D SFX playback: `scripts/managers/m_audio_manager.gd` updates `scripts/managers/helpers/u_sfx_spawner.gd` so disabling spatial audio turns off attenuation + panning.
+- Wired `spatial_audio_enabled` into 3D SFX playback: `scripts/core/managers/m_audio_manager.gd` updates `scripts/core/managers/helpers/u_sfx_spawner.gd` so disabling spatial audio turns off attenuation + panning.
 
 ---
 
@@ -1296,75 +1296,75 @@
 
 | File Path | Status | Phase | Notes |
 |-----------|--------|-------|-------|
-| `scripts/state/resources/rs_audio_initial_state.gd` | ✅ Complete | 0 | 9-field audio initial state |
-| `scripts/state/actions/u_audio_actions.gd` | ✅ Complete | 0 | 12 action creators |
-| `scripts/state/reducers/u_audio_reducer.gd` | ✅ Complete | 0 | Audio reducer with volume clamping |
-| `scripts/state/selectors/u_audio_selectors.gd` | ✅ Complete | 0 | 9 selectors for audio state |
-| `scripts/state/m_state_store.gd` | ✅ Complete | 0 | Modified to export audio_initial_state |
-| `scripts/state/utils/u_state_slice_manager.gd` | ✅ Complete | 0 | Modified to register audio slice |
+| `scripts/core/state/resources/rs_audio_initial_state.gd` | ✅ Complete | 0 | 9-field audio initial state |
+| `scripts/core/state/actions/u_audio_actions.gd` | ✅ Complete | 0 | 12 action creators |
+| `scripts/core/state/reducers/u_audio_reducer.gd` | ✅ Complete | 0 | Audio reducer with volume clamping |
+| `scripts/core/state/selectors/u_audio_selectors.gd` | ✅ Complete | 0 | 9 selectors for audio state |
+| `scripts/core/state/m_state_store.gd` | ✅ Complete | 0 | Modified to export audio_initial_state |
+| `scripts/core/state/utils/u_state_slice_manager.gd` | ✅ Complete | 0 | Modified to register audio slice |
 | `tests/unit/state/test_audio_initial_state.gd` | ✅ Complete | 0 | Tests for initial state resource |
 | `tests/unit/state/test_audio_reducer.gd` | ✅ Complete | 0 | 25 tests for reducer |
 | `tests/unit/state/test_audio_selectors.gd` | ✅ Complete | 0 | 15 tests for selectors |
-| `scripts/managers/m_audio_manager.gd` | ✅ Complete | 1 | Core manager with bus layout + music |
+| `scripts/core/managers/m_audio_manager.gd` | ✅ Complete | 1 | Core manager with bus layout + music |
 | `tests/unit/managers/test_audio_manager.gd` | ✅ Complete | 1 | 20 tests for manager/music |
-| `resources/audio/music/main_menu.mp3` | ✅ Complete | 2 | Menu music track |
-| `resources/audio/music/exterior.mp3` | ✅ Complete | 2 | Exterior gameplay music track |
-| `resources/audio/music/interior.mp3` | ✅ Complete | 2 | Interior gameplay music track |
-| `resources/audio/music/pause.mp3` | ✅ Complete | 2 | Pause overlay music track |
-| `resources/audio/music/credits.mp3` | ✅ Complete | 2 | Credits music track |
-| `scripts/ecs/base_event_sfx_system.gd` | ✅ Complete | 3 | Base class for event-driven SFX |
+| `resources/demo/audio/music/main_menu.mp3` | ✅ Complete | 2 | Menu music track |
+| `resources/demo/audio/music/exterior.mp3` | ✅ Complete | 2 | Exterior gameplay music track |
+| `resources/demo/audio/music/interior.mp3` | ✅ Complete | 2 | Interior gameplay music track |
+| `resources/demo/audio/music/pause.mp3` | ✅ Complete | 2 | Pause overlay music track |
+| `resources/demo/audio/music/credits.mp3` | ✅ Complete | 2 | Credits music track |
+| `scripts/core/ecs/base_event_sfx_system.gd` | ✅ Complete | 3 | Base class for event-driven SFX |
 | `tests/unit/ecs/test_base_event_sfx_system.gd` | ✅ Complete | 3 | 15 tests for base system |
-| `scripts/managers/helpers/u_sfx_spawner.gd` | ✅ Complete | 4 | SFX pool manager (16 players) + spatial toggle |
+| `scripts/core/managers/helpers/u_sfx_spawner.gd` | ✅ Complete | 4 | SFX pool manager (16 players) + spatial toggle |
 | `tests/unit/managers/helpers/test_sfx_spawner.gd` | ✅ Complete | 4 | 12 tests for spawner |
-| `scripts/ecs/systems/s_jump_sound_system.gd` | ✅ Complete | 4 | Jump SFX system |
-| `scripts/ecs/resources/rs_jump_sound_settings.gd` | ✅ Complete | 4 | Jump settings resource |
-| `resources/audio/sfx/placeholder_jump.wav` | ✅ Complete | 4 | 440Hz, 100ms |
-| `scripts/ecs/systems/s_landing_sound_system.gd` | ✅ Complete | 4 | Landing SFX system |
-| `scripts/ecs/resources/rs_landing_sound_settings.gd` | ✅ Complete | 4 | Landing settings resource |
-| `resources/audio/sfx/placeholder_land.wav` | ✅ Complete | 4 | 220Hz, 100ms |
-| `scripts/ecs/systems/s_death_sound_system.gd` | ✅ Complete | 4 | Death SFX system |
-| `scripts/ecs/resources/rs_death_sound_settings.gd` | ✅ Complete | 4 | Death settings resource |
-| `resources/audio/sfx/placeholder_death.wav` | ✅ Complete | 4 | 110Hz, 150ms |
-| `scripts/ecs/systems/s_checkpoint_sound_system.gd` | ✅ Complete | 4 | Checkpoint SFX system |
-| `scripts/ecs/resources/rs_checkpoint_sound_settings.gd` | ✅ Complete | 4 | Checkpoint settings resource |
-| `resources/audio/sfx/placeholder_checkpoint.wav` | ✅ Complete | 4 | 880Hz, 200ms |
-| `scripts/ecs/systems/s_victory_sound_system.gd` | ✅ Complete | 4 | Victory SFX system |
-| `scripts/ecs/resources/rs_victory_sound_settings.gd` | ✅ Complete | 4 | Victory settings resource |
-| `resources/audio/sfx/placeholder_victory.wav` | ✅ Complete | 4 | 1760Hz, 300ms |
-| `scripts/ecs/components/c_surface_detector_component.gd` | ✅ Complete | 5 | Surface type detector |
+| `scripts/core/ecs/systems/s_jump_sound_system.gd` | ✅ Complete | 4 | Jump SFX system |
+| `scripts/core/ecs/resources/rs_jump_sound_settings.gd` | ✅ Complete | 4 | Jump settings resource |
+| `resources/demo/audio/sfx/placeholder_jump.wav` | ✅ Complete | 4 | 440Hz, 100ms |
+| `scripts/core/ecs/systems/s_landing_sound_system.gd` | ✅ Complete | 4 | Landing SFX system |
+| `scripts/core/ecs/resources/rs_landing_sound_settings.gd` | ✅ Complete | 4 | Landing settings resource |
+| `resources/demo/audio/sfx/placeholder_land.wav` | ✅ Complete | 4 | 220Hz, 100ms |
+| `scripts/core/ecs/systems/s_death_sound_system.gd` | ✅ Complete | 4 | Death SFX system |
+| `scripts/core/ecs/resources/rs_death_sound_settings.gd` | ✅ Complete | 4 | Death settings resource |
+| `resources/demo/audio/sfx/placeholder_death.wav` | ✅ Complete | 4 | 110Hz, 150ms |
+| `scripts/core/ecs/systems/s_checkpoint_sound_system.gd` | ✅ Complete | 4 | Checkpoint SFX system |
+| `scripts/core/ecs/resources/rs_checkpoint_sound_settings.gd` | ✅ Complete | 4 | Checkpoint settings resource |
+| `resources/demo/audio/sfx/placeholder_checkpoint.wav` | ✅ Complete | 4 | 880Hz, 200ms |
+| `scripts/core/ecs/systems/s_victory_sound_system.gd` | ✅ Complete | 4 | Victory SFX system |
+| `scripts/core/ecs/resources/rs_victory_sound_settings.gd` | ✅ Complete | 4 | Victory settings resource |
+| `resources/demo/audio/sfx/placeholder_victory.wav` | ✅ Complete | 4 | 1760Hz, 300ms |
+| `scripts/core/ecs/components/c_surface_detector_component.gd` | ✅ Complete | 5 | Surface type detector |
 | `tests/unit/ecs/components/test_surface_detector.gd` | ✅ Complete | 5 | 15 tests for surface detector |
-| `scripts/ecs/systems/s_footstep_sound_system.gd` | ✅ Complete | 5 | Footstep system (per-tick) |
-| `scripts/ecs/resources/rs_footstep_sound_settings.gd` | ✅ Complete | 5 | Footstep settings (24 sounds) |
+| `scripts/core/ecs/systems/s_footstep_sound_system.gd` | ✅ Complete | 5 | Footstep system (per-tick) |
+| `scripts/core/ecs/resources/rs_footstep_sound_settings.gd` | ✅ Complete | 5 | Footstep settings (24 sounds) |
 | `tests/unit/ecs/systems/test_footstep_sound_system.gd` | ✅ Complete | 5 | 20 tests for footstep system |
-| `resources/audio/footsteps/placeholder_default_01-04.wav` | ✅ Complete | 5 | 4 variations (200Hz) |
-| `resources/audio/footsteps/placeholder_grass_01-04.wav` | ✅ Complete | 5 | 4 variations (250Hz) |
-| `resources/audio/footsteps/placeholder_stone_01-04.wav` | ✅ Complete | 5 | 4 variations (180Hz) |
-| `resources/audio/footsteps/placeholder_wood_01-04.wav` | ✅ Complete | 5 | 4 variations (300Hz) |
-| `resources/audio/footsteps/placeholder_metal_01-04.wav` | ✅ Complete | 5 | 4 variations (400Hz) |
-| `resources/audio/footsteps/placeholder_water_01-04.wav` | ✅ Complete | 5 | 4 variations (150Hz) |
-| `resources/base_settings/audio/cfg_footstep_sound_default.tres` | ✅ Complete | 5 | Default footstep settings |
-| `scenes/prefabs/prefab_player.tscn` | ✅ Complete | 5 | Added C_SurfaceDetectorComponent |
-| `scenes/gameplay/gameplay_base.tscn` | ✅ Complete | 5 | Added S_FootstepSoundSystem |
-| `scenes/gameplay/gameplay_exterior.tscn` | ✅ Complete | 5 | Added S_FootstepSoundSystem |
-| `scenes/gameplay/gameplay_interior_house.tscn` | ✅ Complete | 5 | Added S_FootstepSoundSystem |
-| `scripts/ecs/systems/s_ambient_sound_system.gd` | ✅ Complete | 6 | Ambient system (dual-player) |
-| `scripts/ecs/resources/rs_ambient_sound_settings.gd` | ✅ Complete | 6 | Ambient settings resource |
+| `resources/demo/audio/footsteps/placeholder_default_01-04.wav` | ✅ Complete | 5 | 4 variations (200Hz) |
+| `resources/demo/audio/footsteps/placeholder_grass_01-04.wav` | ✅ Complete | 5 | 4 variations (250Hz) |
+| `resources/demo/audio/footsteps/placeholder_stone_01-04.wav` | ✅ Complete | 5 | 4 variations (180Hz) |
+| `resources/demo/audio/footsteps/placeholder_wood_01-04.wav` | ✅ Complete | 5 | 4 variations (300Hz) |
+| `resources/demo/audio/footsteps/placeholder_metal_01-04.wav` | ✅ Complete | 5 | 4 variations (400Hz) |
+| `resources/demo/audio/footsteps/placeholder_water_01-04.wav` | ✅ Complete | 5 | 4 variations (150Hz) |
+| `resources/core/base_settings/audio/cfg_footstep_sound_default.tres` | ✅ Complete | 5 | Default footstep settings |
+| `scenes/core/prefabs/prefab_player.tscn` | ✅ Complete | 5 | Added C_SurfaceDetectorComponent |
+| `scenes/demo/gameplay/gameplay_base.tscn` | ✅ Complete | 5 | Added S_FootstepSoundSystem |
+| `scenes/demo/gameplay/gameplay_exterior.tscn` | ✅ Complete | 5 | Added S_FootstepSoundSystem |
+| `scenes/demo/gameplay/gameplay_interior_house.tscn` | ✅ Complete | 5 | Added S_FootstepSoundSystem |
+| `scripts/core/ecs/systems/s_ambient_sound_system.gd` | ✅ Complete | 6 | Ambient system (dual-player) |
+| `scripts/core/ecs/resources/rs_ambient_sound_settings.gd` | ✅ Complete | 6 | Ambient settings resource |
 | `tests/unit/ecs/systems/test_ambient_sound_system.gd` | ✅ Complete | 6 | 10 tests for ambient system |
-| `resources/audio/ambient/placeholder_exterior.wav` | ✅ Complete | 6 | Exterior ambient (80Hz, 10s loop) |
-| `resources/audio/ambient/placeholder_interior.wav` | ✅ Complete | 6 | Interior ambient (120Hz, 10s loop) |
-| `scripts/ui/utils/u_ui_sound_player.gd` | ✅ Complete | 7 | UI sound utility |
+| `resources/demo/audio/ambient/placeholder_exterior.wav` | ✅ Complete | 6 | Exterior ambient (80Hz, 10s loop) |
+| `resources/demo/audio/ambient/placeholder_interior.wav` | ✅ Complete | 6 | Interior ambient (120Hz, 10s loop) |
+| `scripts/core/ui/utils/u_ui_sound_player.gd` | ✅ Complete | 7 | UI sound utility |
 | `tests/unit/ui/test_ui_sound_player.gd` | ✅ Complete | 7 | 5 tests for UI sounds |
-| `resources/audio/sfx/placeholder_ui_focus.wav` | ✅ Complete | 7 | 1000Hz, 30ms |
-| `resources/audio/sfx/placeholder_ui_confirm.wav` | ✅ Complete | 7 | 1200Hz, 50ms |
-| `resources/audio/sfx/placeholder_ui_cancel.wav` | ✅ Complete | 7 | 800Hz, 50ms |
-| `resources/audio/sfx/placeholder_ui_tick.wav` | ✅ Complete | 7 | 1400Hz, 20ms |
-| `scripts/ui/base/base_panel.gd` | ✅ Complete | 7 | Modified for focus sounds |
+| `resources/demo/audio/sfx/placeholder_ui_focus.wav` | ✅ Complete | 7 | 1000Hz, 30ms |
+| `resources/demo/audio/sfx/placeholder_ui_confirm.wav` | ✅ Complete | 7 | 1200Hz, 50ms |
+| `resources/demo/audio/sfx/placeholder_ui_cancel.wav` | ✅ Complete | 7 | 800Hz, 50ms |
+| `resources/demo/audio/sfx/placeholder_ui_tick.wav` | ✅ Complete | 7 | 1400Hz, 20ms |
+| `scripts/core/ui/base/base_panel.gd` | ✅ Complete | 7 | Modified for focus sounds |
 | `scenes/ui/settings/ui_audio_settings_tab.tscn` | ✅ Complete | 8 | Audio settings UI tab |
-| `scripts/ui/settings/ui_audio_settings_tab.gd` | ✅ Complete | 8 | Apply/Cancel + UI sync |
+| `scripts/core/ui/settings/ui_audio_settings_tab.gd` | ✅ Complete | 8 | Apply/Cancel + UI sync |
 | `scenes/ui/ui_audio_settings_overlay.tscn` | ✅ Complete | 8 | Audio settings overlay wrapper |
-| `scripts/ui/settings/ui_audio_settings_overlay.gd` | ✅ Complete | 8 | Overlay close/back behavior |
-| `resources/ui_screens/cfg_audio_settings_overlay.tres` | ✅ Complete | 8 | UI registry definition |
-| `resources/scene_registry/cfg_ui_audio_settings_entry.tres` | ✅ Complete | 8 | Scene registry entry |
+| `scripts/core/ui/settings/ui_audio_settings_overlay.gd` | ✅ Complete | 8 | Overlay close/back behavior |
+| `resources/core/ui_screens/cfg_audio_settings_overlay.tres` | ✅ Complete | 8 | UI registry definition |
+| `resources/core/scene_registry/cfg_ui_audio_settings_entry.tres` | ✅ Complete | 8 | Scene registry entry |
 | `tests/helpers/u_audio_test_helpers.gd` | ✅ Complete | 9 | Shared test helpers |
 | `tests/integration/audio/test_audio_settings_ui.gd` | ✅ Complete | 9 | 10 integration tests |
 | `tests/integration/audio/test_audio_integration.gd` | ✅ Complete | 9 | 30 integration tests |

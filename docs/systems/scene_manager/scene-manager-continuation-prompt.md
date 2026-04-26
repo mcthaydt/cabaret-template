@@ -37,8 +37,8 @@ Tracking remains available in [post-scene-manager-tasks.md](./post-scene-manager
 
 ### 3. Understand Existing Architecture
 
-- `scripts/managers/m_state_store.gd` - Redux store
-- `scripts/managers/m_ecs_manager.gd` - Per-scene ECS manager pattern
+- `scripts/core/managers/m_state_store.gd` - Redux store
+- `scripts/core/managers/m_ecs_manager.gd` - Per-scene ECS manager pattern
 
 ### 4. Execute Tasks in Order
 

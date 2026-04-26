@@ -43,7 +43,7 @@ This document tracks the refactoring tasks for the existing Audio Manager system
   - [x] Test required fields validation (track_id, stream)
   - [x] Test default values (fade_duration, volume_offset, loop, pause_behavior)
   - [x] Test pause_behavior enum values ("pause", "duck", "continue")
-- [x] Create `scripts/ecs/resources/rs_music_track_definition.gd`
+- [x] Create `scripts/core/ecs/resources/rs_music_track_definition.gd`
   - [x] Implement exports: track_id, stream, default_fade_duration (1.5s), base_volume_offset_db (0.0), loop (true), pause_behavior ("pause")
   - [x] Add validation in _validate_property() or export hints
 
@@ -51,21 +51,21 @@ This document tracks the refactoring tasks for the existing Audio Manager system
 - [x] 🧪 Create `tests/unit/ecs/resources/test_rs_ambient_track_definition.gd`
   - [x] Test required fields validation
   - [x] Test default values
-- [x] Create `scripts/ecs/resources/rs_ambient_track_definition.gd`
+- [x] Create `scripts/core/ecs/resources/rs_ambient_track_definition.gd`
   - [x] Implement exports: ambient_id, stream, default_fade_duration (2.0s), base_volume_offset_db (0.0), loop (true)
 
 ### 1.3 UI Sound Definition Resource
 - [x] 🧪 Create `tests/unit/ecs/resources/test_rs_ui_sound_definition.gd`
   - [x] Test required fields
   - [x] Test throttle_ms behavior (0 = no throttle)
-- [x] Create `scripts/ecs/resources/rs_ui_sound_definition.gd`
+- [x] Create `scripts/core/ecs/resources/rs_ui_sound_definition.gd`
   - [x] Implement exports: sound_id, stream, volume_db (0.0), pitch_variation (0.0), throttle_ms (0)
 
 ### 1.4 Scene Audio Mapping Resource
 - [x] 🧪 Create `tests/unit/ecs/resources/test_rs_scene_audio_mapping.gd`
   - [x] Test O(1) lookup pattern
   - [x] Test optional fields (empty StringNames)
-- [x] Create `scripts/ecs/resources/rs_scene_audio_mapping.gd`
+- [x] Create `scripts/core/ecs/resources/rs_scene_audio_mapping.gd`
   - [x] Implement exports: scene_id, music_track_id, ambient_track_id
 
 ### 1.5 Audio Registry Loader
@@ -77,7 +77,7 @@ This document tracks the refactoring tasks for the existing Audio Manager system
   - [x] Test get_audio_for_scene() returns correct mapping or null
   - [x] Test _validate_registrations() warns on duplicates
   - [x] Test _validate_registrations() warns on missing streams
-- [x] Create `scripts/managers/helpers/u_audio_registry_loader.gd`
+- [x] Create `scripts/core/managers/helpers/u_audio_registry_loader.gd`
   - [x] Implement static dictionaries
   - [x] Implement initialize() calling all registration methods
   - [x] Implement getter methods with null safety
@@ -95,18 +95,18 @@ This document tracks the refactoring tasks for the existing Audio Manager system
 **Decision:** RS_UISoundDefinition resources reference existing test placeholders (option a)
 
 **Resource creation:**
-- [x] Create `resources/audio/tracks/music_main_menu.tres` (RS_MusicTrackDefinition)
-- [x] Create `resources/audio/tracks/music_exterior.tres`
-- [x] Create `resources/audio/tracks/music_interior.tres`
-- [x] Create `resources/audio/tracks/music_pause.tres` (pause_behavior = "pause")
-- [x] Create `resources/audio/tracks/music_credits.tres`
-- [x] Create `resources/audio/ambient/ambient_exterior.tres` (RS_AmbientTrackDefinition)
-- [x] Create `resources/audio/ambient/ambient_interior.tres`
-- [x] Create `resources/audio/ui/ui_focus.tres` (RS_UISoundDefinition)
-- [x] Create `resources/audio/ui/ui_confirm.tres`
-- [x] Create `resources/audio/ui/ui_cancel.tres`
-- [x] Create `resources/audio/ui/ui_tick.tres` (throttle_ms = 100)
-- [x] Create `resources/audio/scene_mappings/*.tres` for each gameplay scene
+- [x] Create `resources/demo/audio/tracks/music_main_menu.tres` (RS_MusicTrackDefinition)
+- [x] Create `resources/demo/audio/tracks/music_exterior.tres`
+- [x] Create `resources/demo/audio/tracks/music_interior.tres`
+- [x] Create `resources/demo/audio/tracks/music_pause.tres` (pause_behavior = "pause")
+- [x] Create `resources/demo/audio/tracks/music_credits.tres`
+- [x] Create `resources/demo/audio/ambient/ambient_exterior.tres` (RS_AmbientTrackDefinition)
+- [x] Create `resources/demo/audio/ambient/ambient_interior.tres`
+- [x] Create `resources/demo/audio/ui/ui_focus.tres` (RS_UISoundDefinition)
+- [x] Create `resources/demo/audio/ui/ui_confirm.tres`
+- [x] Create `resources/demo/audio/ui/ui_cancel.tres`
+- [x] Create `resources/demo/audio/ui/ui_tick.tres` (throttle_ms = 100)
+- [x] Create `resources/demo/audio/scene_mappings/*.tres` for each gameplay scene
 
 **Note:** Production audio assets use prefixes from cleanup_v4.5:
 - Music: `mus_*.mp3` in `assets/audio/music/` (5 tracks exist)
@@ -177,7 +177,7 @@ or document that placeholder sounds are intentionally used during development.
   - [x] Test cleanup() frees both players
 
 ### 2.2 Crossfade Player Helper - Implementation
-- [x] Create `scripts/managers/helpers/u_crossfade_player.gd`
+- [x] Create `scripts/core/managers/helpers/u_crossfade_player.gd`
   - [x] Implement RefCounted class
   - [x] Add fields: _player_a, _player_b, _active_player, _inactive_player, _current_track_id, _tween, _owner_node
   - [x] Implement _init(owner: Node, bus: StringName) creating two players
@@ -261,7 +261,7 @@ or document that placeholder sounds are intentionally used during development.
   - [x] Test ambient stops when scene has no ambient (test_ambient_manager_stops_ambient_when_no_ambient_for_scene)
 
 ### 3.4 Remove Old Ambient System
-- [x] ⚠️ Delete `scripts/ecs/systems/s_ambient_sound_system.gd`
+- [x] ⚠️ Delete `scripts/core/ecs/systems/s_ambient_sound_system.gd`
 - [x] ⚠️ Remove S_AmbientSoundSystem nodes from gameplay scenes (3 scenes updated)
 - [x] 🔧 Migrated `tests/unit/ecs/systems/test_ambient_sound_system.gd` tests
   - Deleted unit tests (integration tests provide better coverage)
@@ -299,7 +299,7 @@ or document that placeholder sounds are intentionally used during development.
   - [x] Test REQUIRED_BUSES array contains all 6 buses
 
 ### 4.2 Bus Constants - Implementation
-- [x] Create `scripts/managers/helpers/u_audio_bus_constants.gd`
+- [x] Create `scripts/core/managers/helpers/u_audio_bus_constants.gd`
   - [x] Define constants: BUS_MASTER, BUS_MUSIC, BUS_SFX, BUS_UI, BUS_FOOTSTEPS, BUS_AMBIENT
   - [x] Define REQUIRED_BUSES array
   - [x] Implement validate_bus_layout() checking all required buses exist
@@ -354,7 +354,7 @@ or document that placeholder sounds are intentionally used during development.
 **Goal**: Add contract interface for type-safe access, remove has_method()/call() patterns.
 
 ### 5.1 Interface Definition (EXISTS - Extend)
-**Note:** `I_AudioManager` already exists (35 lines, created in cleanup_v3, located at `scripts/interfaces/i_audio_manager.gd`)
+**Note:** `I_AudioManager` already exists (35 lines, created in cleanup_v3, located at `scripts/core/interfaces/i_audio_manager.gd`)
 
 **Current methods (lines 18-34):**
 - `play_ui_sound(_sound_id: StringName)` ✅ EXISTS
@@ -362,7 +362,7 @@ or document that placeholder sounds are intentionally used during development.
 - `clear_audio_settings_preview()` ✅ EXISTS
 
 **Missing methods needed for refactor:**
-- [x] Open `scripts/interfaces/i_audio_manager.gd`
+- [x] Open `scripts/core/interfaces/i_audio_manager.gd`
 - [x] Add missing abstract methods with push_error() stubs:
   - [x] `play_music(track_id: StringName, duration: float, start_position: float)`
   - [x] `stop_music(duration: float)`
@@ -384,13 +384,13 @@ or document that placeholder sounds are intentionally used during development.
   - [x] Test returns I_AudioManager type
 
 ### 5.4 Utility Helper - Implementation
-- [x] Create `scripts/utils/u_audio_utils.gd`
+- [x] Create `scripts/core/utils/u_audio_utils.gd`
   - [x] Implement static get_audio_manager() -> I_AudioManager
   - [x] Resolve via ServiceLocator only (no group fallback)
   - [x] Return null if not found
 
 ### 5.5 Update Call Sites
-- [x] 🔧 ~~Update `scripts/ui/utils/u_ui_sound_player.gd`~~ (already uses I_AudioManager interface correctly)
+- [x] 🔧 ~~Update `scripts/core/ui/utils/u_ui_sound_player.gd`~~ (already uses I_AudioManager interface correctly)
 - [x] Search for has_method() calls: `grep -r "has_method.*audio" scripts/` (none found)
 - [x] Update integration tests to use public stop_music() instead of _stop_music()
 
@@ -420,11 +420,11 @@ or document that placeholder sounds are intentionally used during development.
 
 ### 6.0 Pre-Implementation Checklist
 - [x] **Identify Event Publishers** (run grep to confirm):
-  - `scripts/ecs/systems/s_jump_system.gd` → `entity_jumped` (confirmed)
-  - `scripts/ecs/systems/s_health_system.gd` or `c_health_component.gd` → `entity_death` (confirmed)
-  - `scripts/ecs/systems/s_checkpoint_system.gd` → `checkpoint_activated` (confirmed)
-  - `scripts/ecs/systems/s_gravity_system.gd` → `entity_landed` (confirmed)
-  - `scripts/gameplay/inter_victory_zone.gd` → `victory_triggered` (confirmed)
+  - `scripts/core/ecs/systems/s_jump_system.gd` → `entity_jumped` (confirmed)
+  - `scripts/core/ecs/systems/s_health_system.gd` or `c_health_component.gd` → `entity_death` (confirmed)
+  - `scripts/core/ecs/systems/s_checkpoint_system.gd` → `checkpoint_activated` (confirmed)
+  - `scripts/core/ecs/systems/s_gravity_system.gd` → `entity_landed` (confirmed)
+  - `scripts/demo/gameplay/inter_victory_zone.gd` → `victory_triggered` (confirmed)
 - [x] **Decide State Store Access Pattern**:
   - Option A: Use `@export var state_store: I_StateStore` injection (like footstep system)
   - Option B: Use `U_StateUtils.try_get_store(self)` lookup in helpers
@@ -450,7 +450,7 @@ New tests needed for helper methods:
   - [x] Test _spawn_sfx() calls U_SFXSpawner.spawn_3d() with correct config
 
 ### 6.2 Base System Helpers - Implementation
-- [x] 🔧 Update `scripts/ecs/base_event_sfx_system.gd`
+- [x] 🔧 Update `scripts/core/ecs/base_event_sfx_system.gd`
   - [x] Add field: `@export var state_store: I_StateStore = null` (for pause/transition checking)
   - [x] Add method: _should_skip_processing() -> bool
     - [x] Check settings == null or not enabled
@@ -494,10 +494,10 @@ New tests needed for helper methods:
 - ✅ Checkpoint (`checkpoint_activated`): position now included in payload (Phase 6 - CRITICAL PERF FIX)
 
 - [x] 🔧 Update event publishers to include position in payload
-  - [x] Updated death event publisher (`scripts/ecs/components/c_health_component.gd`)
+  - [x] Updated death event publisher (`scripts/core/ecs/components/c_health_component.gd`)
     - [x] Include entity position in `entity_death` payload
     - [x] System no longer needs entity_id → position lookup
-  - [x] Updated checkpoint event publisher (`scripts/ecs/systems/s_checkpoint_system.gd`)
+  - [x] Updated checkpoint event publisher (`scripts/core/ecs/systems/s_checkpoint_system.gd`)
     - [x] Include spawn point position in `checkpoint_activated` payload
     - [x] Removed spawn_point_id → find_child() O(n) lookup from s_checkpoint_sound_system.gd (CRITICAL PERF FIX)
 
@@ -515,7 +515,7 @@ New tests needed for helper methods:
   - [x] Add test for pause blocking
   - [x] Add test for transition blocking
   - [x] Remove `test_checkpoint_spawns_sound_at_spawn_point_position_when_present` (obsolete with payload position)
-- [x] 🔧 Refactor `scripts/ecs/systems/s_checkpoint_sound_system.gd`
+- [x] 🔧 Refactor `scripts/core/ecs/systems/s_checkpoint_sound_system.gd`
   - [x] ⚠️ REMOVED entire `_resolve_spawn_point_position()` method (was lines 61-80)
   - [x] Update `create_request_from_payload()` to extract position from payload
   - [x] Implement `_get_audio_stream()` returning settings.audio_stream
@@ -527,7 +527,7 @@ New tests needed for helper methods:
   - [x] Add test for pause blocking
   - [x] Add test for transition blocking
   - [x] Add test for throttling
-- [x] 🔧 Refactor `scripts/ecs/systems/s_jump_sound_system.gd`
+- [x] 🔧 Refactor `scripts/core/ecs/systems/s_jump_sound_system.gd`
   - [x] Implement _get_audio_stream() returning settings.audio_stream
   - [x] Update process_tick() to use _should_skip_processing()
   - [x] Add _is_audio_blocked() check
@@ -538,7 +538,7 @@ New tests needed for helper methods:
 
 ### 6.7 Refactor Landing Sound System
 - [x] 🧪 Update `tests/unit/ecs/systems/test_s_landing_sound_system.gd` (tests passing)
-- [x] 🔧 Refactor `scripts/ecs/systems/s_landing_sound_system.gd` (same pattern as jump)
+- [x] 🔧 Refactor `scripts/core/ecs/systems/s_landing_sound_system.gd` (same pattern as jump)
   - [x] Implement `_get_audio_stream()` returning settings.audio_stream
   - [x] Update `process_tick()` to use `_should_skip_processing()`
   - [x] Add `_is_audio_blocked()` check
@@ -551,7 +551,7 @@ New tests needed for helper methods:
 - [x] 🧪 Update `tests/unit/ecs/systems/test_s_death_sound_system.gd` (tests passing)
   - [x] Tests already cover entity position resolution (kept for backward compatibility)
   - [x] Tests verify pause/transition blocking via base class helpers
-- [x] 🔧 Refactor `scripts/ecs/systems/s_death_sound_system.gd`
+- [x] 🔧 Refactor `scripts/core/ecs/systems/s_death_sound_system.gd`
   - [x] Kept entity lookup logic (position not in payload for death events)
   - [x] Implement `_get_audio_stream()` returning settings.audio_stream
   - [x] Update `process_tick()` to use base class helpers
@@ -563,7 +563,7 @@ New tests needed for helper methods:
 
 ### 6.9 Refactor Victory Sound System
 - [x] 🧪 Update `tests/unit/ecs/systems/test_s_victory_sound_system.gd` (tests passing)
-- [x] 🔧 Refactor `scripts/ecs/systems/s_victory_sound_system.gd` (same pattern)
+- [x] 🔧 Refactor `scripts/core/ecs/systems/s_victory_sound_system.gd` (same pattern)
   - [x] Implement `_get_audio_stream()` returning settings.audio_stream
   - [x] Update `process_tick()` to use `_should_skip_processing()`
   - [x] Add `_is_audio_blocked()` check
@@ -580,7 +580,7 @@ It ALREADY has pause checking (lines 36-45) but needs timer cleanup.
   - [x] Add test for _entity_timers cleanup in _exit_tree()
   - [x] Add test for timer removal when entity freed
   - [x] Verify pause blocking still works (may already have tests)
-- [x] 🔧 Update `scripts/ecs/systems/s_footstep_sound_system.gd`
+- [x] 🔧 Update `scripts/core/ecs/systems/s_footstep_sound_system.gd`
   - [x] Add _exit_tree() calling _entity_timers.clear()
   - [x] Consider: Add entity removal callback if manager supports it (optional enhancement - deferred)
 
@@ -616,7 +616,7 @@ It ALREADY has pause checking (lines 36-45) but needs timer cleanup.
   - [x] Test reset_stats() clears counters
 
 ### 7.2 Voice Stealing - Implementation
-- [x] 🔧 Update `scripts/managers/helpers/u_sfx_spawner.gd`
+- [x] 🔧 Update `scripts/core/managers/helpers/u_sfx_spawner.gd`
   - [x] Add field: `static var _play_times: Dictionary = {}` (player -> start_time)
   - [x] Implement _steal_oldest_voice() -> AudioStreamPlayer3D
     - [x] Find oldest playing player by _play_times
@@ -633,7 +633,7 @@ It ALREADY has pause checking (lines 36-45) but needs timer cleanup.
 - [x] Test _validate_bus() with invalid bus pushes warning
 
 ### 7.4 Bus Fallback - Implementation
-- [x] 🔧 Update `scripts/managers/helpers/u_sfx_spawner.gd`
+- [x] 🔧 Update `scripts/core/managers/helpers/u_sfx_spawner.gd`
   - [x] Implement _validate_bus(bus: String) -> String
     - [x] Check AudioServer.get_bus_index(bus) != -1
     - [x] Return "SFX" if not found
@@ -647,7 +647,7 @@ It ALREADY has pause checking (lines 36-45) but needs timer cleanup.
 - [x] Add test respects _spatial_audio_enabled flag
 
 ### 7.6 Per-Sound Spatialization - Implementation
-- [x] 🔧 Update `scripts/managers/helpers/u_sfx_spawner.gd`
+- [x] 🔧 Update `scripts/core/managers/helpers/u_sfx_spawner.gd`
   - [x] Implement _configure_player_spatialization(player, max_distance, attenuation_model)
     - [x] Apply max_distance if > 0, else use default (50.0)
     - [x] Apply attenuation_model if >= 0, else use default
@@ -663,7 +663,7 @@ It ALREADY has pause checking (lines 36-45) but needs timer cleanup.
   - [x] Test follow_target cleanup when playback stops
 
 ### 7.8 Follow-Emitter Mode - Implementation
-- [x] 🔧 Update `scripts/managers/helpers/u_sfx_spawner.gd`
+- [x] 🔧 Update `scripts/core/managers/helpers/u_sfx_spawner.gd`
   - [x] Add field: `static var _follow_targets: Dictionary = {}` (player -> Node3D)
   - [x] Update spawn_3d() to extract follow_target from config
     - [x] Store in _follow_targets if valid Node3D
@@ -679,7 +679,7 @@ It ALREADY has pause checking (lines 36-45) but needs timer cleanup.
 - [x] Test _update_peak_usage() tracks max concurrent
 
 ### 7.10 Stats & Metrics - Implementation
-- [x] 🔧 Update `scripts/managers/helpers/u_sfx_spawner.gd`
+- [x] 🔧 Update `scripts/core/managers/helpers/u_sfx_spawner.gd`
   - [x] Add field: `static var _stats: Dictionary = {spawns: 0, steals: 0, drops: 0, peak_usage: 0}`
   - [x] Implement get_stats() returning _stats.duplicate()
   - [x] Implement reset_stats() clearing counters
@@ -721,7 +721,7 @@ It ALREADY has pause checking (lines 36-45) but needs timer cleanup.
   - [x] Test sounds don't cut each other off
 
 ### 8.2 UI Sound Polyphony - Implementation
-- [x] 🔧 Update `scripts/managers/m_audio_manager.gd`
+- [x] 🔧 Update `scripts/core/managers/m_audio_manager.gd`
   - [x] Add constant: `UI_SOUND_POLYPHONY := 4`
   - [x] Add field: `var _ui_sound_players: Array[AudioStreamPlayer] = []`
   - [x] Add field: `var _ui_sound_index: int = 0`
@@ -744,7 +744,7 @@ It ALREADY has pause checking (lines 36-45) but needs timer cleanup.
 ### 8.4 Per-Sound Throttles - Implementation
 **Dependency:** Requires Phase 1 to be complete (throttle_ms comes from RS_UISoundDefinition resources)
 
-- [x] 🔧 Update `scripts/ui/utils/u_ui_sound_player.gd`
+- [x] 🔧 Update `scripts/core/ui/utils/u_ui_sound_player.gd`
   - [x] Add field: `static var _last_play_times: Dictionary = {}` (sound_id -> timestamp_ms)
   - [x] Update _play() to load sound definition from U_AudioRegistryLoader.get_ui_sound()
   - [x] Check sound_def.throttle_ms (from RS_UISoundDefinition resource)
@@ -784,7 +784,7 @@ It ALREADY has pause checking (lines 36-45) but needs timer cleanup.
   - [x] Test audio settings apply when hash changes
 
 ### 9.2 Manager Subscription Optimization - Implementation
-- [x] 🔧 Update `scripts/managers/m_audio_manager.gd`
+- [x] 🔧 Update `scripts/core/managers/m_audio_manager.gd`
   - [x] Add field: `var _last_audio_hash: int = 0`
   - [x] Update _on_state_changed(action, state)
     - [x] Extract audio slice

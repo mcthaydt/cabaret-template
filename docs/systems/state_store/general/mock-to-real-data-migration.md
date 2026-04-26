@@ -62,7 +62,7 @@ static func get_completion_percentage(gameplay_state: Dictionary) -> float
 
 ```gdscript
 # REMOVED
-scripts/ecs/systems/s_health_system.gd
+scripts/core/ecs/systems/s_health_system.gd
 ```
 
 **Why removed**: This was a proof-of-concept system that only applied periodic damage for testing. It had no real gameplay value and used removed mock actions.

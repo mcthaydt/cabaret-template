@@ -13,8 +13,8 @@ The cutscene system orchestrates scripted camera sequences, entity actions, and 
 ## Repo Reality Checks
 
 - `M_TimeManager` already defines `CHANNEL_CUTSCENE = &"cutscene"` pause channel — infrastructure ready, no consumer exists yet
-- `M_VCamManager` supports vCam blending with easing, transition types, and mid-blend interruption (`scripts/managers/m_vcam_manager.gd`)
-- `M_CameraManager` has `apply_shake_offset()` and scene transition camera (`scripts/managers/m_camera_manager.gd`)
+- `M_VCamManager` supports vCam blending with easing, transition types, and mid-blend interruption (`scripts/core/managers/m_vcam_manager.gd`)
+- `M_CameraManager` has `apply_shake_offset()` and scene transition camera (`scripts/core/managers/m_camera_manager.gd`)
 - Scene Director `RS_BeatDefinition` supports typed effects, wait modes (INSTANT, TIMED, SIGNAL), and flow control (next_beat_id, parallel fork/join)
 - `U_BeatRunner` manages beat execution state machine — cutscene beats execute within this existing runner
 - VFX Manager provides screen shake, damage flash, and particle gating
@@ -49,7 +49,7 @@ The cutscene system orchestrates scripted camera sequences, entity actions, and 
 ```
 Cutscene System (extends Scene Director with new effect types — not a separate manager)
 
-New Effect Types (scripts/resources/qb/effects/):
+New Effect Types (scripts/core/resources/qb/effects/):
   ├── RS_EffectCameraMove       → Tween a cutscene vCam to target transform over duration
   ├── RS_EffectCameraBlend      → Blend between two vCams using M_VCamManager
   ├── RS_EffectCameraCut        → Instant switch to a cutscene vCam

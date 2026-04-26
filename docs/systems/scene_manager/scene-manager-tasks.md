@@ -111,7 +111,7 @@
 
 ### Gameplay Scene Extraction
 
-- [x] T011 Duplicate templates/base_scene_template.tscn → scenes/gameplay/gameplay_base.tscn
+- [x] T011 Duplicate templates/base_scene_template.tscn → scenes/demo/gameplay/gameplay_base.tscn
 - [x] T012 Remove M_StateStore from gameplay_base.tscn (stays in root)
 - [x] T013 Remove M_CursorManager from gameplay_base.tscn (stays in root)
 - [x] T014 Keep M_ECSManager in gameplay_base.tscn (per-scene pattern)
@@ -166,21 +166,21 @@
 
 ### Implementation for User Story 1
 
-- [x] T030 [P] [US1] Create scripts/state/resources/rs_scene_initial_state.gd (scene slice initial state resource) - **COMPLETE**
-- [x] T031 [P] [US1] Create scripts/state/reducers/u_scene_reducer.gd (handles scene actions) - **COMPLETE** (U_SceneReducer with immutable updates)
-- [x] T032 [US1] Create scripts/state/actions/u_scene_actions.gd with ActionRegistry registration in _static_init() - **COMPLETE** (4 actions registered)
-- [x] T033 [US1] Modify scripts/managers/m_state_store.gd: add @export var scene_initial_state: RS_SceneInitialState and register in _initialize_slices() (FR-112) - **COMPLETE** (transient fields configured)
+- [x] T030 [P] [US1] Create scripts/core/state/resources/rs_scene_initial_state.gd (scene slice initial state resource) - **COMPLETE**
+- [x] T031 [P] [US1] Create scripts/core/state/reducers/u_scene_reducer.gd (handles scene actions) - **COMPLETE** (U_SceneReducer with immutable updates)
+- [x] T032 [US1] Create scripts/core/state/actions/u_scene_actions.gd with ActionRegistry registration in _static_init() - **COMPLETE** (4 actions registered)
+- [x] T033 [US1] Modify scripts/core/managers/m_state_store.gd: add @export var scene_initial_state: RS_SceneInitialState and register in _initialize_slices() (FR-112) - **COMPLETE** (transient fields configured)
 - [x] T034 [US1] Run unit tests for scene slice and verify they pass - **COMPLETE** (10/10 tests passing ✅)
 - [x] T035 [US1] Test transient fields (is_transitioning) excluded from save_state() - **COMPLETE** (test added to test_state_persistence.gd, verifies is_transitioning and transition_type excluded)
 - [x] T036 [US1] Validate ALL ~212 existing tests still pass (no regressions) - **COMPLETE** (213/213 unit + 10/10 integration = 223/223 passing ✅)
-- [x] T037 [P] [US1] Create scripts/scene_management/u_scene_registry.gd static class - **COMPLETE** (SceneType enum, scene metadata, door pairings)
+- [x] T037 [P] [US1] Create scripts/core/scene_management/u_scene_registry.gd static class - **COMPLETE** (SceneType enum, scene metadata, door pairings)
 - [x] T038 [P] [US1] Define scene metadata in U_SceneRegistry (paths, types, transitions, preload priority) - **COMPLETE** (5 scenes registered)
 - [x] T039 [P] [US1] Define door pairing structure in U_SceneRegistry - **COMPLETE** (exterior ↔ interior_house pairings)
 - [x] T040 [P] [US1] Implement U_SceneRegistry.validate_door_pairings() method - **COMPLETE** (validates target scenes exist)
 - [x] T041 [US1] Add "gameplay_base", "main_menu", "settings_menu" to U_SceneRegistry - **COMPLETE** (all 3 scenes registered with metadata)
 - [x] T042 [US1] Run unit tests for U_SceneRegistry and verify they pass - **COMPLETE** (19/19 tests passing ✅)
 - [x] T042.5 [US1] Add U_SceneRegistry.validate_door_pairings() call to M_SceneManager._ready() and log any validation errors - **COMPLETE** (validation in _ready())
-- [x] T043 [US1] Create scripts/managers/m_scene_manager.gd node - **COMPLETE** (coordinator with queue, overlays, state integration)
+- [x] T043 [US1] Create scripts/core/managers/m_scene_manager.gd node - **COMPLETE** (coordinator with queue, overlays, state integration)
 - [x] T044 [US1] Implement M_SceneManager._ready(): add to "scene_manager" group, find M_StateStore - **COMPLETE** (group discovery pattern)
 - [x] T045 [US1] Implement transition queue with priority system (CRITICAL > HIGH > NORMAL) - **COMPLETE** (Priority enum, priority-based queue insertion)
 - [x] T046 [US1] Implement M_SceneManager.transition_to_scene(scene_id, transition_type, priority) - **COMPLETE** (dispatches actions, queues transitions)
@@ -189,9 +189,9 @@
 - [x] T049 [US1] Implement scene addition to ActiveSceneContainer (triggers StateHandoff restoration) - **COMPLETE** (_add_scene())
 - [x] T050 [US1] Implement subscribe to scene slice updates via M_StateStore.subscribe() - **COMPLETE** (_on_state_changed() callback)
 - [x] T051 [US1] Run unit tests for M_SceneManager (including queue priority) and verify they pass - **COMPLETE** (45/47 tests passing, 2 expected failures)
-- [x] T052 [P] [US1] Create scripts/scene_management/transitions/base_transition_effect.gd base class - **COMPLETE** (virtual execute() and get_duration())
-- [x] T053 [P] [US1] Create scripts/scene_management/transitions/trans_instant.gd - **COMPLETE** (synchronous callback)
-- [x] T054 [P] [US1] Create scripts/scene_management/transitions/trans_fade.gd with Tween - **COMPLETE** (fade out→in, mid_transition_callback, configurable easing)
+- [x] T052 [P] [US1] Create scripts/core/scene_management/transitions/base_transition_effect.gd base class - **COMPLETE** (virtual execute() and get_duration())
+- [x] T053 [P] [US1] Create scripts/core/scene_management/transitions/trans_instant.gd - **COMPLETE** (synchronous callback)
+- [x] T054 [P] [US1] Create scripts/core/scene_management/transitions/trans_fade.gd with Tween - **COMPLETE** (fade out→in, mid_transition_callback, configurable easing)
 - [x] T055 [US1] Implement input blocking during transitions (set_input_as_handled) - **COMPLETE** (block_input property)
 - [x] T056 [US1] Update TransitionOverlay in root.tscn (ColorRect with modulate.a = 0) - **COMPLETE** (already configured in root.tscn)
 - [x] T057 [US1] Integrate transition effects with M_SceneManager.transition_to_scene() - **COMPLETE** (M_SceneManager calls transition effects)
@@ -346,16 +346,16 @@
 
 ### Implementation for User Story 3
 
-- [x] T081 [P] [US3] Create scripts/ecs/components/c_scene_trigger_component.gd (door_id, target, spawn_point, trigger_mode, cooldown) - **COMPLETE** (171 lines, AUTO/INTERACT modes)
-- [x] T082 [P] [US3] Create scripts/ecs/systems/s_scene_trigger_system.gd (collision detection, input handling) - **COMPLETE** (66 lines, INTERACT mode)
+- [x] T081 [P] [US3] Create scripts/core/ecs/components/c_scene_trigger_component.gd (door_id, target, spawn_point, trigger_mode, cooldown) - **COMPLETE** (171 lines, AUTO/INTERACT modes)
+- [x] T082 [P] [US3] Create scripts/core/ecs/systems/s_scene_trigger_system.gd (collision detection, input handling) - **COMPLETE** (66 lines, INTERACT mode)
 - [x] T083 [US3] Extend U_SceneRegistry with door pairing definitions (bidirectional) - **COMPLETE** (already existed from Phase 0)
 - [x] T084 [US3] Implement C_SceneTriggerComponent Area3D collision detection (_on_body_entered/_on_body_exited) - **COMPLETE** (AUTO mode via collision callbacks)
 - [x] T085 [US3] Implement S_SceneTriggerSystem interaction input handling (Interact mode) - **COMPLETE** (checks interact input + player_in_zone)
 - [x] T086 [US3] Implement S_SceneTriggerSystem auto-trigger for Auto mode - **COMPLETE** (handled by component collision callbacks)
 - [x] T087 [US3] Dispatch U_GameplayActions.set_target_spawn_point() before transition - **COMPLETE** (action + reducer + state field)
 - [x] T088 [US3] Dispatch U_SceneActions.transition_to() from trigger system - **DEFERRED** (handled by C_SceneTriggerComponent directly)
-- [x] T089 [P] [US3] Create scenes/gameplay/exterior_template.tscn with M_ECSManager - **COMPLETE** (programmatically via U_SceneBuilder)
-- [x] T090 [P] [US3] Create scenes/gameplay/interior_template.tscn with M_ECSManager - **COMPLETE** (programmatically via U_SceneBuilder)
+- [x] T089 [P] [US3] Create scenes/demo/gameplay/exterior_template.tscn with M_ECSManager - **COMPLETE** (programmatically via U_SceneBuilder)
+- [x] T090 [P] [US3] Create scenes/demo/gameplay/interior_template.tscn with M_ECSManager - **COMPLETE** (programmatically via U_SceneBuilder)
 - [x] T091 [US3] Add door trigger Area3D with C_SceneTriggerComponent to exterior_template.tscn - **COMPLETE** (E_DoorTrigger with door_to_house)
 - [x] T092 [US3] Add exit door trigger Area3D with C_SceneTriggerComponent to interior_template.tscn - **COMPLETE** (E_DoorTrigger with door_to_exterior)
 - [x] T093 [US3] Add spawn point markers (Node3D with unique names) to both templates - **COMPLETE** (sp_exit_from_house, sp_entrance_from_exterior)
@@ -364,7 +364,7 @@
 
 ### Refinement: Trigger Geometry (Shape-Agnostic)
 
-- [x] R-TRIG-01 Add RS_SceneTriggerSettings resource with shape enum (Box, Cylinder), cylinder radius/height, box size, local offset, and player mask - **COMPLETE** (scripts/ecs/resources/rs_scene_trigger_settings.gd, resources/triggers/cfg_scene_trigger_settings.tres)
+- [x] R-TRIG-01 Add RS_SceneTriggerSettings resource with shape enum (Box, Cylinder), cylinder radius/height, box size, local offset, and player mask - **COMPLETE** (scripts/core/ecs/resources/rs_scene_trigger_settings.gd, resources/triggers/cfg_scene_trigger_settings.tres)
 - [x] R-TRIG-02 Refactor C_SceneTriggerComponent to construct `CollisionShape3D` from settings; default to Cylinder (radius=1.0, height=3.0, offset=Vector3(0,1.5,0)) while preserving guards and signals - **COMPLETE**
 - [x] R-TRIG-03 Update gameplay scenes/templates to assign RS_SceneTriggerSettings explicitly where desired (optional; component has sensible defaults) - **COMPLETE**
   - exterior.tscn uses component defaults (cylinder, matches CSGCylinder3D door visual)
@@ -406,12 +406,12 @@
 **Phase 6 Complete**: All core area transition functionality implemented and tested
 
 **Files Created**:
-- `scripts/utils/u_scene_builder.gd` - Programmatic scene generation utility (421 lines)
-- `scripts/utils/generate_area_scenes.gd` - Tool script for scene generation
-- `scenes/gameplay/exterior.tscn` - Exterior area with door_to_house trigger
-- `scenes/gameplay/interior_house.tscn` - Interior area with door_to_exterior trigger
+- `scripts/core/utils/u_scene_builder.gd` - Programmatic scene generation utility (421 lines)
+- `scripts/core/utils/generate_area_scenes.gd` - Tool script for scene generation
+- `scenes/demo/gameplay/exterior.tscn` - Exterior area with door_to_house trigger
+- `scenes/demo/gameplay/interior_house.tscn` - Interior area with door_to_exterior trigger
 - `tests/utils/test_scene_generation.gd` - Scene generation validation tests
- - `scripts/ecs/resources/rs_scene_trigger_settings.gd` - Trigger geometry/resource settings (shape-agnostic)
+ - `scripts/core/ecs/resources/rs_scene_trigger_settings.gd` - Trigger geometry/resource settings (shape-agnostic)
  - `resources/triggers/cfg_scene_trigger_settings.tres` - Default trigger settings (Cylinder)
 
 ---
@@ -444,9 +444,9 @@
 - **Clean codebase**: Removed 26 lines of hardcoded logic, added 70 lines of generic infrastructure
 
 **Files Modified**:
-- `scripts/managers/m_scene_manager.gd`: Added overlay return stack, new methods, removed deprecated code
-- `scripts/ui/pause_menu.gd`: Updated to use `push_overlay_with_return()`
-- `scripts/ui/settings_menu.gd`: Updated to use `pop_overlay_with_return()`
+- `scripts/core/managers/m_scene_manager.gd`: Added overlay return stack, new methods, removed deprecated code
+- `scripts/core/ui/pause_menu.gd`: Updated to use `push_overlay_with_return()`
+- `scripts/core/ui/settings_menu.gd`: Updated to use `pop_overlay_with_return()`
 - `tests/unit/scene_manager/test_m_scene_manager.gd`: Added 8 new tests for overlay return stack
 - `tests/integration/scene_manager/test_pause_settings_flow.gd`: Updated to test new API
 
@@ -476,7 +476,7 @@
 ### Implementation for User Story 5
 
 - [x] T130 [P] [US5] Create scenes/ui/loading_screen.tscn with ProgressBar
-- [x] T131 [P] [US5] Create scripts/scene_management/transitions/trans_loading_screen.gd
+- [x] T131 [P] [US5] Create scripts/core/scene_management/transitions/trans_loading_screen.gd
 - [x] T132 [US5] Implement Trans_LoadingScreen.update_progress(progress) for ProgressBar
 - [x] T133 [US5] Add LoadingOverlay reference in root.tscn
 - [x] T134 [US5] Integrate loading_screen_transition with M_SceneManager
@@ -568,10 +568,10 @@
 10. test_real_progress_in_loading_transition - Trans_LoadingScreen shows real progress
 
 **Files Modified**:
-- `scripts/managers/m_scene_manager.gd`: Added _load_scene_async(), cache management, preloading, hints (+360 lines)
-- `scripts/scene_management/u_scene_registry.gd`: Updated priorities, added get_preloadable_scenes() (+28 lines)
-- `scripts/scene_management/transitions/trans_loading_screen.gd`: Real progress polling with stuck detection (+110 lines)
-- `scripts/ecs/components/c_scene_trigger_component.gd`: Added automatic preload hints on door approach (+26 lines)
+- `scripts/core/managers/m_scene_manager.gd`: Added _load_scene_async(), cache management, preloading, hints (+360 lines)
+- `scripts/core/scene_management/u_scene_registry.gd`: Updated priorities, added get_preloadable_scenes() (+28 lines)
+- `scripts/core/scene_management/transitions/trans_loading_screen.gd`: Real progress polling with stuck detection (+110 lines)
+- `scripts/core/ecs/components/c_scene_trigger_component.gd`: Added automatic preload hints on door approach (+26 lines)
 
 **Files Created**:
 - `tests/integration/scene_manager/test_scene_preloading.gd`: 10 comprehensive tests (292 lines)
@@ -643,19 +643,19 @@
 
 ### Part 1: Health System Implementation (T145.4 - T145.9)
 
-- [x] T145.4 [P] Create scripts/ecs/components/c_health_component.gd (implemented player health storage and queueing in scripts/ecs/components/c_health_component.gd)
+- [x] T145.4 [P] Create scripts/core/ecs/components/c_health_component.gd (implemented player health storage and queueing in scripts/core/ecs/components/c_health_component.gd)
   - Properties: current_health (float), max_health (float), is_invincible (bool), invincibility_timer (float)
   - Properties: time_since_last_damage (float), is_dead (bool), death_timer (float) - for regeneration and delayed death
   - Pattern: Extend C_Component, follow C_JumpComponent structure
   - Signals: health_changed(old_health, new_health), death()
 
-- [x] T145.5 [P] Create scripts/ecs/resources/rs_health_settings.gd (new resource at scripts/ecs/resources/rs_health_settings.gd)
+- [x] T145.5 [P] Create scripts/core/ecs/resources/rs_health_settings.gd (new resource at scripts/core/ecs/resources/rs_health_settings.gd)
   - Properties: default_max_health (100.0), invincibility_duration (1.0)
   - Properties: regen_enabled (true), regen_delay (3.0), regen_rate (10.0) - auto health regeneration after not taking damage
   - Properties: death_animation_duration (2.5) - delay before game_over transition for cinematic death
   - Pattern: Extend Resource, follow RS_JumpSettings structure
 
-- [x] T145.6 Create resources/base_settings/gameplay/cfg_health_settings.tres (default values in resources/base_settings/gameplay/cfg_health_settings.tres)
+- [x] T145.6 Create resources/core/base_settings/gameplay/cfg_health_settings.tres (default values in resources/core/base_settings/gameplay/cfg_health_settings.tres)
   - Instance of RS_HealthSettings with default values
   - default_max_health = 100.0
   - invincibility_duration = 1.0
@@ -664,7 +664,7 @@
   - regen_rate = 10.0
   - death_animation_duration = 2.5
 
-- [x] T145.7 [P] Create scripts/ecs/systems/s_health_system.gd (core processing in scripts/ecs/systems/s_health_system.gd)
+- [x] T145.7 [P] Create scripts/core/ecs/systems/s_health_system.gd (core processing in scripts/core/ecs/systems/s_health_system.gd)
   - Extends S_System (category: CORE, priority: 200)
   - _process_system(): Update invincibility timers, health regeneration, detect death
   - Health regeneration: Track time_since_last_damage per entity, start regen after regen_delay expires
@@ -675,37 +675,37 @@
   - Integration: Use U_StateUtils.get_store() and M_SceneManager group
 
 - [x] T145.8 Integrate health with state management (updated rs_gameplay_initial_state.gd, u_entity_selectors.gd, u_gameplay_actions.gd, u_gameplay_reducer.gd)
-  - Modify: scripts/state/resources/rs_gameplay_initial_state.gd
+  - Modify: scripts/core/state/resources/rs_gameplay_initial_state.gd
     - Actually implement health field in entity snapshots (currently comment only, line 44)
     - Add: player_health: float = 100.0
     - Add: player_max_health: float = 100.0
-  - Modify: scripts/state/selectors/u_entity_selectors.gd
+  - Modify: scripts/core/state/selectors/u_entity_selectors.gd
     - Make get_entity_health() return real health from component (not hardcoded 100, line 42)
-  - Modify: scripts/state/actions/u_gameplay_actions.gd
+  - Modify: scripts/core/state/actions/u_gameplay_actions.gd
     - Add: take_damage(entity_id: int, amount: float) → Dictionary
     - Add: heal(entity_id: int, amount: float) → Dictionary
     - Add: trigger_death(entity_id: int) → Dictionary
     - Add: increment_death_count() → Dictionary
-  - Modify: scripts/state/reducers/u_gameplay_reducer.gd
+  - Modify: scripts/core/state/reducers/u_gameplay_reducer.gd
     - Handle ACTION_TAKE_DAMAGE: reduce player_health, clamp to 0
     - Handle ACTION_HEAL: increase player_health, clamp to player_max_health
     - Handle ACTION_TRIGGER_DEATH: set player_health = 0, increment death_count
     - Handle ACTION_INCREMENT_DEATH_COUNT: death_count += 1
 
-- [x] T145.9 Add health display to HUD (HUD wiring in scenes/ui/hud_overlay.tscn with scripts/ui/hud_controller.gd)
+- [x] T145.9 Add health display to HUD (HUD wiring in scenes/ui/hud_overlay.tscn with scripts/core/ui/hud_controller.gd)
   - Modify: scenes/ui/hud_overlay.tscn
     - Add ProgressBar node for health bar (numeric display, simple and flexible)
     - Configure: min_value = 0, max_value = 100, show_percentage = true
     - Position: Top-left corner, below debug overlay
     - Style: Green fill color, rounded corners, border
-  - Modify: scripts/ui/hud_controller.gd (or create if doesn't exist)
+  - Modify: scripts/core/ui/hud_controller.gd (or create if doesn't exist)
     - Connect to health via U_EntitySelectors.get_entity_health()
     - Update ProgressBar.value on state change
     - Subscribe to M_StateStore.state_changed signal
 
 ### Part 2: Damage System Implementation (T145.10 - T145.14)
 
-- [x] T145.10 [P] Create scripts/ecs/components/c_damage_zone_component.gd (implemented Area3D wrapper in scripts/ecs/components/c_damage_zone_component.gd)
+- [x] T145.10 [P] Create scripts/core/ecs/components/c_damage_zone_component.gd (implemented Area3D wrapper in scripts/core/ecs/components/c_damage_zone_component.gd)
   - Extends C_Component
   - Uses Area3D (copy pattern from C_SceneTriggerComponent)
   - Properties: damage_amount (float), is_instant_death (bool), damage_cooldown (float), collision_layer_mask (int)
@@ -713,7 +713,7 @@
   - _on_body_entered(): Check if body is player → emit player_entered
   - _on_body_exited(): emit player_exited
 
-- [x] T145.11 [P] Create scripts/ecs/systems/s_damage_system.gd (cooldown-aware processing in scripts/ecs/systems/s_damage_system.gd)
+- [x] T145.11 [P] Create scripts/core/ecs/systems/s_damage_system.gd (cooldown-aware processing in scripts/core/ecs/systems/s_damage_system.gd)
   - Extends S_System (category: CORE, priority: 250)
   - _process_system(): Monitor entities with C_DamageZoneComponent
   - Track damage cooldowns per entity (Dictionary[int, float])
@@ -740,20 +740,20 @@
   - Visual: Spikes protruding from ground
 
 - [x] T145.14 Add hazards to test levels (Fall Death + Damage Zones) (hazards + S_DamageSystem wired into exterior/interior scenes)
-  - Modify: scenes/gameplay/exterior.tscn
+  - Modify: scenes/demo/gameplay/exterior.tscn
     - Add death_zone instance (Position: 0, -10, 0) - catches all fall-off-map scenarios
       - Ensure it's centered under the playable area with large enough coverage
       - Test: Walk off platform edge → fall → death zone triggers → game_over after 2.5s
     - Add 1-2 spike_trap instances near spawn for damage testing
       - Position on ground where player can easily test
-  - Modify: scenes/gameplay/interior_house.tscn
+  - Modify: scenes/demo/gameplay/interior_house.tscn
     - Add death_zone instance if interior has drop hazards
   - Add S_DamageSystem to Systems/Core in gameplay scenes
-    - Modify: scenes/gameplay/gameplay_base.tscn (add S_DamageSystem to Systems/Core, priority 250)
+    - Modify: scenes/demo/gameplay/gameplay_base.tscn (add S_DamageSystem to Systems/Core, priority 250)
 
 ### Part 3: Victory System Implementation (T145.15 - T145.19)
 
-- [x] T145.15 [P] Create scripts/ecs/components/c_victory_trigger_component.gd (Area3D trigger implemented in scripts/ecs/components/c_victory_trigger_component.gd)
+- [x] T145.15 [P] Create scripts/core/ecs/components/c_victory_trigger_component.gd (Area3D trigger implemented in scripts/core/ecs/components/c_victory_trigger_component.gd)
   - Extends C_Component
   - Copy structure from C_SceneTriggerComponent (similar Area3D pattern)
   - Enum: VictoryType { LEVEL_COMPLETE, GAME_COMPLETE }
@@ -764,7 +764,7 @@
   - Signals: player_entered, victory_triggered
   - _on_body_entered(): Check if player → emit player_entered → set is_triggered if trigger_once
 
-- [x] T145.16 [P] Create scripts/ecs/systems/s_victory_system.gd (victory dispatch + transitions in scripts/ecs/systems/s_victory_system.gd)
+- [x] T145.16 [P] Create scripts/core/ecs/systems/s_victory_system.gd (victory dispatch + transitions in scripts/core/ecs/systems/s_victory_system.gd)
   - Extends S_System (category: CORE, priority: 300)
   - _process_system(): Monitor entities with C_VictoryTriggerComponent
   - When player_entered signal received and not is_triggered:
@@ -785,19 +785,19 @@
     - victory_type = VictoryType.LEVEL_COMPLETE (returns to exterior with progress tracked)
 
 - [x] T145.18 Add goal zone to test level (goal zone + S_VictorySystem wired into interior_house/exterior scenes)
-  - Modify: scenes/gameplay/interior_house.tscn
+  - Modify: scenes/demo/gameplay/interior_house.tscn
     - Add goal_zone instance at end of level (visible location)
   - Add S_VictorySystem to Systems/Core in gameplay scenes
-    - Modify: scenes/gameplay/gameplay_base.tscn (add S_VictorySystem to Systems/Core)
+    - Modify: scenes/demo/gameplay/gameplay_base.tscn (add S_VictorySystem to Systems/Core)
 
 - [x] T145.19 Add victory actions to state (u_gameplay_actions.gd, u_gameplay_reducer.gd, rs_gameplay_initial_state.gd updated)
-  - Modify: scripts/state/actions/u_gameplay_actions.gd
+  - Modify: scripts/core/state/actions/u_gameplay_actions.gd
     - Add: trigger_victory(objective_id: StringName) → Dictionary
     - Add: mark_area_complete(area_id: String) → Dictionary
-  - Modify: scripts/state/reducers/u_gameplay_reducer.gd
+  - Modify: scripts/core/state/reducers/u_gameplay_reducer.gd
     - Handle ACTION_TRIGGER_VICTORY: log victory event
     - Handle ACTION_MARK_AREA_COMPLETE: append area_id to completed_areas array (if not already present)
-  - Modify: scripts/state/resources/rs_gameplay_initial_state.gd
+  - Modify: scripts/core/state/resources/rs_gameplay_initial_state.gd
     - Add: completed_areas: Array[String] = []
 
 ### Integration Tests for Gameplay Mechanics (T145.20 - T145.22)
@@ -853,30 +853,30 @@
 - All tests passing (74+ existing + new gameplay tests)
 
 **Files Created**:
-- `scripts/ecs/components/c_health_component.gd`
-- `scripts/ecs/resources/rs_health_settings.gd`
-- `resources/base_settings/gameplay/cfg_health_settings.tres`
-- `scripts/ecs/systems/s_health_system.gd`
-- `scripts/ecs/components/c_damage_zone_component.gd`
-- `scripts/ecs/systems/s_damage_system.gd`
+- `scripts/core/ecs/components/c_health_component.gd`
+- `scripts/core/ecs/resources/rs_health_settings.gd`
+- `resources/core/base_settings/gameplay/cfg_health_settings.tres`
+- `scripts/core/ecs/systems/s_health_system.gd`
+- `scripts/core/ecs/components/c_damage_zone_component.gd`
+- `scripts/core/ecs/systems/s_damage_system.gd`
 - `scenes/hazards/death_zone.tscn`
 - `scenes/hazards/spike_trap.tscn`
-- `scripts/ecs/components/c_victory_trigger_component.gd`
-- `scripts/ecs/systems/s_victory_system.gd`
+- `scripts/core/ecs/components/c_victory_trigger_component.gd`
+- `scripts/core/ecs/systems/s_victory_system.gd`
 - `scenes/objectives/goal_zone.tscn`
 - `tests/integration/gameplay/test_health_system.gd`
 - `tests/integration/gameplay/test_damage_system.gd`
 - `tests/integration/gameplay/test_victory_system.gd`
 
 **Files Modified**:
-- `scripts/state/resources/rs_gameplay_initial_state.gd` (added health, deaths, completed_areas)
-- `scripts/state/selectors/u_entity_selectors.gd` (real health selector)
-- `scripts/state/actions/u_gameplay_actions.gd` (health/death/victory actions)
-- `scripts/state/reducers/u_gameplay_reducer.gd` (health/death/victory reducers)
+- `scripts/core/state/resources/rs_gameplay_initial_state.gd` (added health, deaths, completed_areas)
+- `scripts/core/state/selectors/u_entity_selectors.gd` (real health selector)
+- `scripts/core/state/actions/u_gameplay_actions.gd` (health/death/victory actions)
+- `scripts/core/state/reducers/u_gameplay_reducer.gd` (health/death/victory reducers)
 - `scenes/ui/hud_overlay.tscn` (added health display)
-- `scenes/gameplay/gameplay_base.tscn` (added S_HealthSystem, S_DamageSystem, S_VictorySystem)
-- `scenes/gameplay/exterior.tscn` (added death zone, spike traps)
-- `scenes/gameplay/interior_house.tscn` (added goal zone)
+- `scenes/demo/gameplay/gameplay_base.tscn` (added S_HealthSystem, S_DamageSystem, S_VictorySystem)
+- `scenes/demo/gameplay/exterior.tscn` (added death zone, spike traps)
+- `scenes/demo/gameplay/interior_house.tscn` (added goal zone)
 
 ---
 
@@ -995,23 +995,23 @@
     3. ✅ Create transition Camera3D in M_SceneManager._ready(), add as child
     4. ✅ Tween from old position → new scene camera position (0.2s to match fade duration)
     5. ✅ Use Tween.TRANS_CUBIC, Tween.EASE_IN_OUT
-  - **Files**: scripts/managers/m_scene_manager.gd:46-55 (CameraState), 976-980 (_create_transition_camera), 988-1001 (_capture_camera_state), 1014-1076 (_blend_camera)
+  - **Files**: scripts/core/managers/m_scene_manager.gd:46-55 (CameraState), 976-980 (_create_transition_camera), 988-1001 (_capture_camera_state), 1014-1076 (_blend_camera)
 - [x] T179 [P] Implement camera rotation blending using Tween
   - ✅ Capture old camera global_rotation before unload
   - ✅ Tween transition camera rotation from old → new using quaternion interpolation
   - ✅ Same timing/easing as position (0.2s, TRANS_CUBIC, EASE_IN_OUT)
-  - **Files**: scripts/managers/m_scene_manager.gd:1071 (rotation blending in _blend_camera)
+  - **Files**: scripts/core/managers/m_scene_manager.gd:1071 (rotation blending in _blend_camera)
 - [x] T180 [P] Implement camera FOV blending
   - ✅ Capture old camera fov before unload
   - ✅ Tween transition camera fov from old → new
   - ✅ Scene variations implemented (see T182.6)
-  - **Files**: scripts/managers/m_scene_manager.gd:1074 (FOV blending in _blend_camera)
+  - **Files**: scripts/core/managers/m_scene_manager.gd:1074 (FOV blending in _blend_camera)
 - [x] T181 Add dedicated transition camera to M_SceneManager for blending
   - ✅ Create Camera3D node in M_SceneManager._ready()
   - ✅ Add to scene tree as child of M_SceneManager
   - ✅ Set current=true during blend via _blend_camera, current=false after via _finalize_camera_blend
   - ✅ Reusable across transitions (persists as member variable)
-  - **Files**: scripts/managers/m_scene_manager.gd:70-72 (member variables), 976-980 (_create_transition_camera), 1080-1089 (_finalize_camera_blend)
+  - **Files**: scripts/core/managers/m_scene_manager.gd:70-72 (member variables), 976-980 (_create_transition_camera), 1080-1089 (_finalize_camera_blend)
 - [x] T182 Test camera transitions are smooth (no jitter, no pop)
   - ✅ Integration test: tests/integration/scene_manager/test_camera_blending.gd (6 tests, all passing)
   - ✅ Tests exterior → interior → exterior transitions
@@ -1023,12 +1023,12 @@
   - ✅ Uses Tween.finished signal with CONNECT_ONE_SHOT for finalization
   - ✅ _perform_transition returns immediately after transition completes
   - ✅ No sequential blocking - state dispatch happens without delay
-  - **Files**: scripts/managers/m_scene_manager.gd:411-433 (camera blend integration in _perform_transition)
+  - **Files**: scripts/core/managers/m_scene_manager.gd:411-433 (camera blend integration in _perform_transition)
 - [x] T182.6 [OPTIONAL] Create scene-specific camera variations to demonstrate blending
   - ✅ Exterior (exterior.tscn): Camera at (0, 1.5, 4.5), FOV 80° (higher, wider for open space)
   - ✅ Interior (interior_house.tscn): Camera at (0, 0.8, 4.5), FOV 65° (lower, narrower for enclosed space)
   - ✅ Camera blending now clearly visible and meaningful
-  - **Files**: scenes/gameplay/exterior.tscn:192-195, scenes/gameplay/interior_house.tscn:185-188
+  - **Files**: scenes/demo/gameplay/exterior.tscn:192-195, scenes/demo/gameplay/interior_house.tscn:185-188
 
 ### Edge Case Testing
 
@@ -1130,7 +1130,7 @@
 - [x] T203 Remove debug print statements
   - ✅ Converted print() to print_debug() for preloading status updates (3 locations in m_scene_manager.gd)
   - ✅ All remaining prints are either push_warning/push_error (error handling) or print_debug (debugging, disabled in release)
-  - **Files modified**: scripts/managers/m_scene_manager.gd (lines 1224, 1275, 1298)
+  - **Files modified**: scripts/core/managers/m_scene_manager.gd (lines 1224, 1275, 1298)
 - [x] T204 Remove commented-out code
   - ✅ No commented-out code found in Scene Manager files
   - ✅ Disabled tests in test_transitions.gd use proper GUT pending mechanism (not comments)
@@ -1170,7 +1170,7 @@
     2. If not found: Log push_error() with scene name and spawn point name
     3. Do NOT spawn player at origin as fallback
     4. Return early, let scene handle missing player gracefully
-  - **Files**: scripts/managers/m_scene_manager.gd (line ~1100)
+  - **Files**: scripts/core/managers/m_scene_manager.gd (line ~1100)
   - **Effort**: 30 minutes
 
 - [x] T208 [P] Document closure patterns in M_SceneManager
@@ -1181,7 +1181,7 @@
     2. Document why `var closure_vars: Array = [...]` pattern is used
     3. Reference GDScript limitation: cannot capture mutable locals
     4. Provide example of closure pattern vs alternative approaches
-  - **Files**: scripts/managers/m_scene_manager.gd (line ~295, ~410)
+  - **Files**: scripts/core/managers/m_scene_manager.gd (line ~295, ~410)
   - **Effort**: 30 minutes
 
 ### Priority 2: Modularity Improvements (2-3 hours)
@@ -1190,15 +1190,15 @@
   - **Issue**: Adding new transition types requires modifying M_SceneManager code (70% extensible)
   - **Goal**: Allow runtime registration of custom transition types without code changes
   - **Implementation**:
-    1. Create `scripts/scene_management/u_transition_factory.gd` static class
+    1. Create `scripts/core/scene_management/u_transition_factory.gd` static class
     2. Implement `register_transition(type_name: String, transition_class: GDScript)` method
     3. Implement `create_transition(type_name: String) -> BaseTransitionEffect` method
     4. Pre-register built-in transitions (instant, fade, loading) in `_static_init()`
     5. Update M_SceneManager to use `U_TransitionFactory.create_transition()`
     6. Remove `_create_transition_effect()` method from M_SceneManager
   - **Files**:
-    - NEW: scripts/scene_management/u_transition_factory.gd (~80 lines)
-    - MODIFY: scripts/managers/m_scene_manager.gd (remove _create_transition_effect, use factory)
+    - NEW: scripts/core/scene_management/u_transition_factory.gd (~80 lines)
+    - MODIFY: scripts/core/managers/m_scene_manager.gd (remove _create_transition_effect, use factory)
   - **Effort**: 2-3 hours
   - **Impact**: +20% extensibility (70% → 90%)
 
@@ -1232,16 +1232,16 @@
   - **Issue**: Non-coders must edit code to add scenes (85% user-friendly)
   - **Goal**: Allow scene registration via editor UI without code
   - **Implementation**:
-    1. Create `scripts/scene_management/resources/rs_scene_registry_entry.gd`
+    1. Create `scripts/core/scene_management/resources/rs_scene_registry_entry.gd`
     2. Define @export fields: scene_id, scene_path, scene_type, default_transition, preload_priority
-    3. Create base resource file: `resources/scene_registry/cfg_template_entry.tres`
-    4. Update U_SceneRegistry to scan `resources/scene_registry/` folder for .tres files
+    3. Create base resource file: `resources/core/scene_registry/cfg_template_entry.tres`
+    4. Update U_SceneRegistry to scan `resources/core/scene_registry/` folder for .tres files
     5. Load all RS_SceneRegistryEntry resources on _static_init()
     6. Maintain backward compatibility with hardcoded _register_scene() calls
   - **Files**:
-    - NEW: scripts/scene_management/resources/rs_scene_registry_entry.gd (~60 lines)
-    - NEW: resources/scene_registry/cfg_template_entry.tres (example resource)
-    - MODIFY: scripts/scene_management/u_scene_registry.gd (add resource loading)
+    - NEW: scripts/core/scene_management/resources/rs_scene_registry_entry.gd (~60 lines)
+    - NEW: resources/core/scene_registry/cfg_template_entry.tres (example resource)
+    - MODIFY: scripts/core/scene_management/u_scene_registry.gd (add resource loading)
   - **Effort**: 4-5 hours
   - **Impact**: +10% user-friendliness (85% → 95%)
   - **Status**: REQUIRED for target 95%+ score
@@ -1307,7 +1307,7 @@
 - [x] T216 [P] Document current spawn call sites in M_SceneManager (lines 960-1066)
 - [x] T217 [P] Write `tests/integration/spawn_system/test_spawn_manager.gd` (spawn point discovery, player positioning, validation) - TDD RED
 - [x] T218 [P] Write `tests/unit/spawn_system/test_spawn_validation.gd` (edge cases, missing spawn points, type validation) - TDD RED
-- [x] T219 Create `scripts/managers/m_spawn_manager.gd` extending Node
+- [x] T219 Create `scripts/core/managers/m_spawn_manager.gd` extending Node
   - Add to "spawn_manager" group in _ready()
   - Member variables: _scene_manager, _state_store
 - [x] T220 Implement `spawn_player_at_point(scene: Node, spawn_point_id: StringName) -> bool`
@@ -1355,7 +1355,7 @@
 - [x] T232 [P] Write `tests/integration/camera_system/test_camera_manager.gd` (camera blending, state capture, handoff) - TDD RED
 - [x] T233 [P] Write tests for camera state capture (CameraState object creation)
 - [x] T234 [P] Write tests for camera handoff between camera and scene managers
-- [x] T235 Create `scripts/managers/m_camera_manager.gd` extending Node
+- [x] T235 Create `scripts/core/managers/m_camera_manager.gd` extending Node
   - Add to "camera_manager" group in _ready()
   - Member variables: _scene_manager, _transition_camera, _camera_blend_tween
 - [x] T236 Move CameraState class from M_SceneManager to M_CameraManager
@@ -1432,7 +1432,7 @@
 - [x] T274 ~~Add spawn_effect field to checkpoint registration~~ - **NOT NEEDED**: Event-driven pattern handles all spawn types automatically
 
 **Implementation Details (commit 9b23296)**:
-- Created `scripts/ecs/systems/s_spawn_particles_system.gd` extending BaseEventVFXSystem
+- Created `scripts/core/ecs/systems/s_spawn_particles_system.gd` extending BaseEventVFXSystem
 - M_SpawnManager publishes "player_spawned" event when positioning player
 - S_SpawnParticlesSystem listens for event and spawns particle burst at spawn point
 - Uses existing U_PARTICLE_SPAWNER utility (same pattern as jump/landing particles)
@@ -1455,10 +1455,10 @@
   - ✅ Covered by spawn registry priority tests in `test_spawn_registry.gd` and spawn selection tests in `test_spawn_validation.gd`.
 - [x] T285 [P] Write tests for spawn tags (outdoor, indoor, safe, dangerous)  
   - ✅ Covered by tag-based lookup tests in `test_spawn_registry.gd`.
-- [x] T286 Create `scripts/scene_management/u_spawn_registry.gd` static class  
+- [x] T286 Create `scripts/core/scene_management/u_spawn_registry.gd` static class  
   - ✅ Implemented as `U_SpawnRegistry` with scene-attached metadata support (see Phase 8 T081/T086).
 - [x] T287 Define spawn metadata structure  
-  - ✅ Implemented as `RS_SpawnMetadata` Resource in `scripts/scene_management/resources/rs_spawn_metadata.gd` with `.tres` assets under `resources/spawn_metadata/` (Phase 8 T080/T084).
+  - ✅ Implemented as `RS_SpawnMetadata` Resource in `scripts/core/scene_management/resources/rs_spawn_metadata.gd` with `.tres` assets under `resources/core/spawn_metadata/` (Phase 8 T080/T084).
 - [x] T288 Integrate U_SpawnRegistry with M_SpawnManager  
   - ✅ `M_SpawnManager.spawn_at_last_spawn()` now calls `U_SpawnRegistry.reload_from_scene(scene)` and gates all spawn ids through `_is_spawn_allowed()` (Phase 8 T082/T086).
 - [x] T289 Update scene templates to register spawn points in _ready()  
@@ -1486,7 +1486,7 @@
 - [x] T299 [P] Write `tests/unit/scene_validation/test_scene_contract.gd` - TDD RED
 - [x] T300 [P] Write tests for gameplay scene validation (player, camera, spawn points required)
 - [x] T301 [P] Write tests for UI scene validation (no player/spawn required, optional camera)
-- [x] T302 Create `scripts/scene_management/i_scene_contract.gd` class
+- [x] T302 Create `scripts/core/scene_management/i_scene_contract.gd` class
   - validate_scene(scene: Node, scene_type: SceneType) -> ValidationResult
   - ValidationResult: { valid: bool, errors: Array[String], warnings: Array[String] }
 - [x] T303 Implement gameplay scene validation rules

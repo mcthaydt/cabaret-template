@@ -13,8 +13,8 @@ Before starting Phase 1, verify:
 - [x] **PRE-1**: Read required documentation
   - Read `AGENTS.md`, `docs/guides/pitfalls/`, `docs/guides/STYLE_GUIDE.md`
   - Read `docs/vcam_manager/vcam-manager-overview.md` and `vcam-manager-continuation-prompt.md`
-  - Read `scripts/ecs/systems/s_vcam_system.gd` (understand full evaluation pipeline)
-  - Read `scripts/managers/m_vcam_manager.gd` (understand blend + registration)
+  - Read `scripts/core/ecs/systems/s_vcam_system.gd` (understand full evaluation pipeline)
+  - Read `scripts/core/managers/m_vcam_manager.gd` (understand blend + registration)
 
 - [x] **PRE-2**: Verify branch is `vcam` and working tree is clean
 
@@ -81,7 +81,7 @@ Completion notes (2026-03-22):
 - `RS_VCamModeFirstPerson` now exports `aim_blend_duration` + `aim_exit_blend_duration` with resolved minimum clamp (`0.01`).
 - Updated aim-focused system tests and first-person resource tests for new behavior.
 - Validation runs:
-  - `tools/run_gut_suite.sh -gdir=res://tests/unit/resources/display/vcam -gselect=test_vcam_mode_first_person` (`14/14`)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/resources/core/display/vcam -gselect=test_vcam_mode_first_person` (`14/14`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd -gunit_test_name=aim` (`5/5`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
 
@@ -109,7 +109,7 @@ Completion notes (2026-03-22):
   - removed fixed branches from `_evaluate_and_submit`, `_apply_rotation_transition`, `_is_follow_target_required`, and `_step_smoothing_state`
 - `S_VCamSystem` now treats follow targets as required only for orbit and first-person paths.
 - Validation runs:
-  - `tools/run_gut_suite.sh -gdir=res://tests/unit/resources/display/vcam -gselect=test_vcam_mode_first_person` (`14/14`)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/resources/core/display/vcam -gselect=test_vcam_mode_first_person` (`14/14`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd -gunit_test_name=aim` (`5/5`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
 
@@ -133,7 +133,7 @@ Completion notes (2026-03-22):
   - `tests/unit/managers/helpers/test_vcam_mode_evaluator.gd` now covers orbit + first-person + unsupported-mode guard (OTS/fixed evaluator assertions removed)
 - Validation runs:
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/managers/helpers/test_vcam_mode_evaluator.gd` (`25/25`)
-  - `tools/run_gut_suite.sh -gdir=res://tests/unit/resources/display/vcam -gselect=test_vcam_mode_first_person` (`14/14`)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/resources/core/display/vcam -gselect=test_vcam_mode_first_person` (`14/14`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` (`17/17`)
 
 ### Phase 1D: Remove OTS from external systems
@@ -183,14 +183,14 @@ Completion notes (2026-03-22):
 ### Phase 1F: Delete resources and scene nodes
 
 - [x] **Task 1F.1**: Delete resource files
-  - Delete `scripts/resources/display/vcam/rs_vcam_mode_ots.gd`
-  - Delete `scripts/resources/display/vcam/rs_vcam_mode_fixed.gd`
-  - Delete `resources/display/vcam/cfg_default_ots.tres`
-  - Delete `resources/display/vcam/cfg_default_fixed.tres`
-  - Delete `resources/base_settings/gameplay/cfg_ots_movement_default.tres`
+  - Delete `scripts/core/resources/display/vcam/rs_vcam_mode_ots.gd`
+  - Delete `scripts/core/resources/display/vcam/rs_vcam_mode_fixed.gd`
+  - Delete `resources/core/display/vcam/cfg_default_ots.tres`
+  - Delete `resources/core/display/vcam/cfg_default_fixed.tres`
+  - Delete `resources/core/base_settings/gameplay/cfg_ots_movement_default.tres`
   - Note: `cfg_default_first_person.tres` already exists and is NOT deleted
 
-- [x] **Task 1F.2**: Update `scenes/templates/tmpl_camera.tscn`
+- [x] **Task 1F.2**: Update `scenes/core/templates/tmpl_camera.tscn`
   - Remove C_VCamOTSComponent node and cfg_default_ots ext_resource
   - Add C_VCamFirstPersonComponent node (`c_vcam_component.gd` script) with:
     - `vcam_id = &"camera_first_person"`, `priority = 10`
@@ -205,7 +205,7 @@ Completion notes (2026-03-22):
   - deleted scripts: `rs_vcam_mode_ots.gd`, `rs_vcam_mode_fixed.gd`
   - deleted presets: `cfg_default_ots.tres`, `cfg_default_fixed.tres`, `cfg_ots_movement_default.tres`
 - Updated authored scenes to remove OTS wiring:
-  - `scenes/templates/tmpl_camera.tscn` now uses `cfg_default_first_person.tres` with `C_VCamFirstPersonComponent` (`vcam_id = &"camera_first_person"`).
+  - `scenes/core/templates/tmpl_camera.tscn` now uses `cfg_default_first_person.tres` with `C_VCamFirstPersonComponent` (`vcam_id = &"camera_first_person"`).
   - `scenes/ui/hud/ui_hud_overlay.tscn` no longer contains `OTSReticleContainer` / `ReticleDot`.
 - Validation runs:
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -gselect=test_style_enforcement` (`17/17`)
@@ -214,8 +214,8 @@ Completion notes (2026-03-22):
 ### Phase 1G: Update tests
 
 - [x] **Task 1G.1**: Delete mode-specific test files
-  - Delete `tests/unit/resources/display/vcam/test_vcam_mode_ots.gd`
-  - Delete `tests/unit/resources/display/vcam/test_vcam_mode_fixed.gd`
+  - Delete `tests/unit/resources/core/display/vcam/test_vcam_mode_ots.gd`
+  - Delete `tests/unit/resources/core/display/vcam/test_vcam_mode_fixed.gd`
 
 - [x] **Task 1G.2**: Update evaluator tests
   - Remove OTS/fixed test cases from `test_vcam_mode_evaluator.gd`
@@ -246,7 +246,7 @@ Completion notes (2026-03-22):
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd` (`94/94`)
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/managers/test_vcam_manager.gd` (`45/45`)
   - `tools/run_gut_suite.sh -gdir=res://tests/integration/vcam` (`26/26`)
-  - `tools/run_gut_suite.sh -gdir=res://tests/unit/resources/display/vcam` (`91/91`)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/resources/core/display/vcam` (`91/91`)
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -gselect=test_style_enforcement` (`17/17`)
   - `tools/run_gut_suite.sh -gdir=res://tests -ginclude_subdirs=true` (`3481/3490` passing, `9` pending baseline)
 
@@ -326,7 +326,7 @@ Completion notes (2026-03-22):
   - Test prune/clear_all/clear_for_vcam lifecycle
   - **Target: ~8 tests**
 
-- [x] **Task 2A.2 (Green)**: Create `scripts/ecs/systems/helpers/u_vcam_look_input.gd`
+- [x] **Task 2A.2 (Green)**: Create `scripts/core/ecs/systems/helpers/u_vcam_look_input.gd`
   - Extract `_resolve_filtered_look_input`, `_is_filtered_look_input_active` from s_vcam_system.gd
   - Move `_look_input_filter_state` dict, look filter constants, debug log functions
   - API: `filter_look_input(vcam_id, raw_input, response_values, delta) -> Vector2`
@@ -338,13 +338,13 @@ Completion notes (2026-03-22):
   - Verify all existing tests pass
 
 Completion notes (2026-03-22):
-- Added `scripts/ecs/systems/helpers/u_vcam_look_input.gd` (`U_VCamLookInput`) with extracted look-filter state + API (`filter_look_input`, `is_active`, `prune`, `clear_all`, `clear_for_vcam`).
+- Added `scripts/core/ecs/systems/helpers/u_vcam_look_input.gd` (`U_VCamLookInput`) with extracted look-filter state + API (`filter_look_input`, `is_active`, `prune`, `clear_all`, `clear_for_vcam`).
 - Added dedicated helper coverage in `tests/unit/ecs/systems/helpers/test_vcam_look_input.gd` (`8/8`).
 - Refactored `S_VCamSystem` to delegate look-input filtering/lifecycle to `_look_input_helper`:
   - removed inlined look-filter constants/state/functions from `s_vcam_system.gd`
   - replaced `_resolve_filtered_look_input` / `_is_filtered_look_input_active` call sites with helper APIs
   - delegated prune/clear lifecycle to helper and reused helper defaults in response signatures
-- Updated style enforcement to recognize helper prefixing in `scripts/ecs/systems/helpers` (`u_`).
+- Updated style enforcement to recognize helper prefixing in `scripts/core/ecs/systems/helpers` (`u_`).
 - Updated `tests/unit/ecs/systems/test_vcam_system.gd` look-filter spike test to validate via `U_VCamLookInput` state snapshot.
 - Validation runs:
   - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/helpers/test_vcam_look_input.gd` (`8/8`)
@@ -362,7 +362,7 @@ Completion notes (2026-03-22):
   - Test prune/clear lifecycle
   - **Target: ~12 tests**
 
-- [x] **Task 2B.2 (Green)**: Create `scripts/ecs/systems/helpers/u_vcam_rotation.gd`
+- [x] **Task 2B.2 (Green)**: Create `scripts/core/ecs/systems/helpers/u_vcam_rotation.gd`
   - Extract rotation continuity, runtime yaw/pitch management, look smoothing springs, orbit centering, release damping
   - Move `_look_rotation_state`, `_rotation_target_cache`, `_orbit_centering_state`, `_orbit_no_look_input_timers`
 
@@ -370,7 +370,7 @@ Completion notes (2026-03-22):
   - Verify all existing tests pass
 
 Completion notes (2026-03-22):
-- Added `scripts/ecs/systems/helpers/u_vcam_rotation.gd` (`U_VCamRotation`) with extracted:
+- Added `scripts/core/ecs/systems/helpers/u_vcam_rotation.gd` (`U_VCamRotation`) with extracted:
   - active-camera continuity handoff policy (same-mode carry / authored reseed)
   - orbit runtime yaw/pitch update flow (lock handling, player look, delayed auto-level)
   - orbit button recenter lifecycle/state (`_orbit_centering_state`)
@@ -400,7 +400,7 @@ Completion notes (2026-03-22):
   - Test position smoothing bypass for stationary targets
   - **Target: ~12 tests**
 
-- [x] **Task 2C.2 (Green)**: Create `scripts/ecs/systems/helpers/u_vcam_orbit_effects.gd`
+- [x] **Task 2C.2 (Green)**: Create `scripts/core/ecs/systems/helpers/u_vcam_orbit_effects.gd`
   - Extract look-ahead, ground-relative, soft-zone dead zone, motion sampling, bypass logic
   - Move `_look_ahead_state`, `_ground_relative_state`, `_soft_zone_dead_zone_state`, `_follow_target_motion_state`
 
@@ -408,7 +408,7 @@ Completion notes (2026-03-22):
   - Verify all existing tests pass
 
 Completion notes (2026-03-22):
-- Added `scripts/ecs/systems/helpers/u_vcam_orbit_effects.gd` (`U_VCamOrbitEffects`) with extracted:
+- Added `scripts/core/ecs/systems/helpers/u_vcam_orbit_effects.gd` (`U_VCamOrbitEffects`) with extracted:
   - orbit look-ahead state/offset logic
   - orbit ground-relative anchor state/landing re-anchor logic
   - orbit soft-zone correction + dead-zone hysteresis state ownership
@@ -434,7 +434,7 @@ Completion notes (2026-03-22):
   - Test euler unwrapping avoids long-path spins
   - **Target: ~10 tests**
 
-- [x] **Task 2D.2 (Green)**: Create `scripts/ecs/systems/helpers/u_vcam_response_smoother.gd`
+- [x] **Task 2D.2 (Green)**: Create `scripts/core/ecs/systems/helpers/u_vcam_response_smoother.gd`
   - Extract response smoothing, follow/rotation dynamics, smoothing metadata, euler unwrapping, basis composition
   - Move `_follow_dynamics`, `_rotation_dynamics`, `_smoothing_metadata`
 
@@ -442,7 +442,7 @@ Completion notes (2026-03-22):
   - Verify all existing tests pass
 
 Completion notes (2026-03-22):
-- Added `scripts/ecs/systems/helpers/u_vcam_response_smoother.gd` (`U_VCamResponseSmoother`) with extracted:
+- Added `scripts/core/ecs/systems/helpers/u_vcam_response_smoother.gd` (`U_VCamResponseSmoother`) with extracted:
   - response smoothing orchestration and per-vCam dynamic state ownership
   - smoothing metadata + response/mode/target change reset handling
   - euler unwrapping cache for rotation continuity
@@ -468,7 +468,7 @@ Completion notes (2026-03-22):
   - Test clear resets all state
   - **Target: ~6 tests**
 
-- [x] **Task 2E.2 (Green)**: Create `scripts/ecs/systems/helpers/u_vcam_landing_impact.gd`
+- [x] **Task 2E.2 (Green)**: Create `scripts/core/ecs/systems/helpers/u_vcam_landing_impact.gd`
   - Extract landing event handling, impact offset dynamics, recovery state
   - Move `_landing_recovery_dynamics`, `_landing_recovery_state_id`, `_landing_recovery_frequency_hz`, `_landing_response_event_serial/normalized`
 
@@ -476,7 +476,7 @@ Completion notes (2026-03-22):
   - Verify all existing tests pass
 
 Completion notes (2026-03-22):
-- Added `scripts/ecs/systems/helpers/u_vcam_landing_impact.gd` (`U_VCamLandingImpact`) with extracted:
+- Added `scripts/core/ecs/systems/helpers/u_vcam_landing_impact.gd` (`U_VCamLandingImpact`) with extracted:
   - landing event normalization/state tracking (`record_landing_event`, `normalize_fall_speed`)
   - landing-impact recovery state ownership (`_landing_recovery_dynamics`, state-id/frequency tracking)
   - landing offset APIs (`resolve_offset`, `apply_offset`) plus helper lifecycle reset (`clear_state`)
@@ -518,13 +518,13 @@ Progress notes (2026-03-22):
   - `_prune_smoothing_state(...)` now delegates stale-state pruning through helper APIs (`prune(...)`) instead of snapshot dictionary loops.
   - Added debug-map pruning helpers (`_prune_debug_tracking`, `_prune_debug_dictionary`) and centralized per-vcam debug cleanup (`_clear_debug_tracking_for_vcam`).
 - Completed `2G.3` coordinator decomposition closure:
-  - Extracted runtime-context responsibilities from `S_VCamSystem` into `scripts/ecs/systems/helpers/u_vcam_runtime_context.gd`:
+  - Extracted runtime-context responsibilities from `S_VCamSystem` into `scripts/core/ecs/systems/helpers/u_vcam_runtime_context.gd`:
     - follow-target resolution (NodePath -> entity_id -> tag fallback + multi-tag debug issue)
     - look-ahead velocity sourcing (gameplay slice -> movement component -> character body fallback)
     - grounded/probe utilities for orbit ground-relative behavior
     - projection-camera and primary camera-state resolution utilities
     - camera-state read/write helpers and base-fov sync write path
-  - Extracted debug/logging concerns into `scripts/ecs/systems/helpers/u_vcam_debug.gd`:
+  - Extracted debug/logging concerns into `scripts/core/ecs/systems/helpers/u_vcam_debug.gd`:
     - debug issue buffer + report path
     - cooldown-driven rotation/state logging
     - per-vCam debug tracking lifecycle (`prune`, `clear_all`, `clear_for_vcam`)
@@ -533,20 +533,20 @@ Progress notes (2026-03-22):
     - moved component-response resolution/fallback dictionary building out of `S_VCamSystem`
     - moved response-signature construction (`look` + `ground_relative` fields) out of `S_VCamSystem`
     - expanded helper coverage in `tests/unit/ecs/systems/helpers/test_vcam_response_smoother.gd` (`11/11`)
-  - Extracted runtime input + target observability/recovery state into `scripts/ecs/systems/helpers/u_vcam_runtime_state.gd`:
+  - Extracted runtime input + target observability/recovery state into `scripts/core/ecs/systems/helpers/u_vcam_runtime_state.gd`:
     - moved active-target validity/recovery dispatch + `EVENT_VCAM_RECOVERY` publish/reselection out of `S_VCamSystem`
     - moved shared input reads (`look_input`, `move_input`, `camera_center_just_pressed`) behind helper APIs
-  - Extracted runtime service/index utility responsibilities into `scripts/ecs/systems/helpers/u_vcam_runtime_services.gd`:
+  - Extracted runtime service/index utility responsibilities into `scripts/core/ecs/systems/helpers/u_vcam_runtime_services.gd`:
     - moved service/store resolution (`vcam_manager`, `state_store`) out of `S_VCamSystem`
     - moved vCam index/id utilities (`build_vcam_index`, `resolve_component_vcam_id`) out of `S_VCamSystem`
     - moved follow-target-required and node-instance-id utility helpers out of `S_VCamSystem`
     - retained `_vcam_manager`/`_state_store` as thin compatibility cache fields in `S_VCamSystem` for existing integration/unit test contract surfaces
-  - Extracted effect pipeline coordination into `scripts/ecs/systems/helpers/u_vcam_effect_pipeline.gd`:
+  - Extracted effect pipeline coordination into `scripts/core/ecs/systems/helpers/u_vcam_effect_pipeline.gd`:
     - moved orbit effect sequencing (`look_ahead`, `ground_relative`, `soft_zone`) out of `S_VCamSystem`
     - moved response-value/signature plumbing + response smoothing application out of `S_VCamSystem`
     - moved landing-impact apply-offset path and shared transform-offset helper out of `S_VCamSystem`
     - `S_VCamSystem` now delegates `_apply_vcam_effect_pipeline(...)` to `_effect_pipeline_helper`
-  - `scripts/ecs/systems/s_vcam_system.gd` line count reduced from `1537` -> `1185` -> `909` -> `826` -> `782` -> `728` -> `528` while preserving compatibility wrappers (`_step_orbit_release_axis`, `_resolve_orbit_center_target_yaw`) and test probe caches (`_vcam_manager`, `_state_store`).
+  - `scripts/core/ecs/systems/s_vcam_system.gd` line count reduced from `1537` -> `1185` -> `909` -> `826` -> `782` -> `728` -> `528` while preserving compatibility wrappers (`_step_orbit_release_axis`, `_resolve_orbit_center_target_yaw`) and test probe caches (`_vcam_manager`, `_state_store`).
   - Validation additions for this extraction pass:
     - `tools/run_gut_suite.sh -gtest=res://tests/integration/vcam/test_vcam_runtime.gd` (`5/5`)
     - `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_vcam_system.gd` (`78/78`)
@@ -584,7 +584,7 @@ Completion notes (2026-03-22):
   - Test reentrant blend snapshots current blended pose
   - **Target: ~10 tests**
 
-- [x] **Task 3A.2 (Green)**: Create `scripts/managers/helpers/u_vcam_blend_manager.gd`
+- [x] **Task 3A.2 (Green)**: Create `scripts/core/managers/helpers/u_vcam_blend_manager.gd`
   - Extract live blend + startup blend state machines from m_vcam_manager.gd
   - Move all blend state variables
   - API: `configure_transition(...)`, `advance(delta)`, `is_active()`, `get_progress()`, `queue_startup_blend(...)`, `resolve_startup_transform(...)`, `recover_invalid_members(...)`, `clear()`
@@ -600,8 +600,8 @@ Completion notes (2026-03-22):
   - startup blend queue + transform resolution (including cut threshold)
   - invalid-member recovery (`blend_from_invalid`, `blend_to_invalid`, `blend_both_invalid`)
   - reentrant snapshot source behavior
-- Added `scripts/managers/helpers/u_vcam_blend_manager.gd` and extracted live/startup blend state machines out of `M_VCamManager`.
-- Refactored `scripts/managers/m_vcam_manager.gd` to delegate blend transition, advance, recovery, startup queue/resolve, and cut-completion handling to `_blend_manager` while preserving event/dispatch ordering.
+- Added `scripts/core/managers/helpers/u_vcam_blend_manager.gd` and extracted live/startup blend state machines out of `M_VCamManager`.
+- Refactored `scripts/core/managers/m_vcam_manager.gd` to delegate blend transition, advance, recovery, startup queue/resolve, and cut-completion handling to `_blend_manager` while preserving event/dispatch ordering.
 - Kept compatibility debug probe fields (`_blend_trans_type`, `_blend_ease_type`) in `M_VCamManager` for existing integration test surfaces.
 - `M_VCamManager` size after extraction is `905` lines; the Phase 3 exit-size target (`~600–700`) remains a follow-up item for the next decomposition pass.
 - Validation runs:

@@ -189,7 +189,7 @@ func get_input_component() -> C_InputComponent:
 
 **Example**:
 ```gdscript
-# scripts/ecs/base_ecs_system.gd
+# scripts/core/ecs/base_ecs_system.gd
 @export var execution_priority: int = 100  # Lower = earlier
 
 # M_ECSManager sorts systems by priority before _physics_process
@@ -370,7 +370,7 @@ Component Structure (decoupled):
 #### 1. U_EntityQuery
 
 ```gdscript
-# scripts/ecs/u_entity_query.gd
+# scripts/core/ecs/u_entity_query.gd
 class_name U_EntityQuery
 
 var entity: Node  # The E_* root node (scene organization node)
@@ -456,7 +456,7 @@ static func _duplicate_payload(payload: Variant) -> Variant:
 #### 3. M_ECSManager (Enhanced)
 
 ```gdscript
-# scripts/managers/m_ecs_manager.gd - NEW METHODS
+# scripts/core/managers/m_ecs_manager.gd - NEW METHODS
 func query_entities(
     required: Array[StringName],
     optional: Array[StringName] = []
@@ -495,7 +495,7 @@ func query_entities(
 #### 4. U_ECSUtils (New Utility Class)
 
 ```gdscript
-# scripts/utils/ecs/u_ecs_utils.gd
+# scripts/core/utils/ecs/u_ecs_utils.gd
 class_name U_ECSUtils
 
 static func get_manager(from_node: Node) -> M_ECSManager:
@@ -538,7 +538,7 @@ static func map_components_by_body(
 ### File Structure
 
 ```
-scripts/ecs/
+scripts/core/ecs/
 ├── base_ecs_component.gd           # Base component class (existing)
 ├── base_ecs_system.gd              # Base system class (existing, enhanced)
 ├── u_entity_query.gd            # NEW: Query result wrapper
@@ -894,14 +894,14 @@ support_component_path = NodePath("../C_FloatingComponent")     # Manual wiring!
 ### Before: Tight Coupling via NodePaths
 
 ```gdscript
-# scripts/ecs/components/c_movement_component.gd
+# scripts/core/ecs/components/c_movement_component.gd
 ## Removed in Story 4.2: input resolved via query_entities(), no NodePath export
 @export_node_path("C_FloatingComponent") var support_component_path: NodePath
 
 func get_input_component() -> C_InputComponent:
     # Removed in Story 4.2
 
-# scripts/ecs/systems/s_movement_system.gd
+# scripts/core/ecs/systems/s_movement_system.gd
 func process_tick(delta: float) -> void:
     var movement_components = get_components(C_MovementComponent.COMPONENT_TYPE)
 
@@ -928,10 +928,10 @@ func process_tick(delta: float) -> void:
 ### After: Decoupled via Queries
 
 ```gdscript
-# scripts/ecs/components/c_movement_component.gd
+# scripts/core/ecs/components/c_movement_component.gd
 # NO NodePath exports! Clean, simple data container.
 
-# scripts/ecs/systems/s_movement_system.gd
+# scripts/core/ecs/systems/s_movement_system.gd
 func process_tick(delta: float) -> void:
     # Query entities with Movement AND Input (required), optionally Floating
     var entities = query_entities(
@@ -964,7 +964,7 @@ func process_tick(delta: float) -> void:
 ### Event System Example
 
 ```gdscript
-# scripts/ecs/systems/s_jump_system.gd
+# scripts/core/ecs/systems/s_jump_system.gd
 func process_tick(delta: float) -> void:
     var entities = query_entities(
         [C_JumpComponent.COMPONENT_TYPE, C_InputComponent.COMPONENT_TYPE]
@@ -988,7 +988,7 @@ func process_tick(delta: float) -> void:
                 "timestamp": U_ECSUtils.get_current_time()
             })
 
-# scripts/ecs/systems/s_particle_system.gd
+# scripts/core/ecs/systems/s_particle_system.gd
 func _ready():
     U_ECSEventBus.subscribe("entity_jumped", _on_entity_jumped)
 
@@ -996,7 +996,7 @@ func _on_entity_jumped(event_data: Dictionary):
     # Spawn dust particles at jump location
     spawn_dust_particles(event_data.position)
 
-# scripts/ecs/systems/s_sound_system.gd
+# scripts/core/ecs/systems/s_sound_system.gd
 func _ready():
     U_ECSEventBus.subscribe("entity_jumped", _on_entity_jumped)
 
@@ -1004,7 +1004,7 @@ func _on_entity_jumped(event_data: Dictionary):
     # Play jump sound
     play_jump_sound(event_data.entity)
 
-# scripts/ecs/systems/s_camera_system.gd
+# scripts/core/ecs/systems/s_camera_system.gd
 func _ready():
     U_ECSEventBus.subscribe("entity_jumped", _on_entity_jumped)
 

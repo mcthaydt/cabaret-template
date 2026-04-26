@@ -69,7 +69,7 @@ Story Point Breakdown:
 
 Epic 1 – Code Quality Refactors (15 points)
 
-- [x] Story 1.1: Extract manager discovery utility (U_ECSUtils.get_manager()) (2 points) — Implemented `scripts/utils/ecs/u_ecs_utils.gd`, updated base classes, and added `tests/unit/ecs/test_u_ecs_utils.gd` (GUT `-gselect=test_u_ecs_utils -gexit` green)
+- [x] Story 1.1: Extract manager discovery utility (U_ECSUtils.get_manager()) (2 points) — Implemented `scripts/core/utils/ecs/u_ecs_utils.gd`, updated base classes, and added `tests/unit/ecs/test_u_ecs_utils.gd` (GUT `-gselect=test_u_ecs_utils -gexit` green)
 - [x] Story 1.2: Extract time utilities (U_ECSUtils.get_current_time()) (1 point) — Added `get_current_time()` helper, refactored components/systems/tests, full ECS suite passing with `-gexit`
 - [x] Story 1.3: Extract settings validation pattern (ECSComponent._validate_required_settings()) (3 points) — Added validation hooks to base component, migrated settings-based components, new `tests/unit/ecs/test_base_ecs_component.gd` coverage
 - [x] Story 1.4: Extract body mapping helper (U_ECSUtils.map_components_by_body()) (3 points) — Added helper + tests, refactored S_JumpSystem & S_GravitySystem to reuse it
@@ -78,7 +78,7 @@ Epic 1 – Code Quality Refactors (15 points)
 
 Epic 2 – Multi-Component Query System (18 points)
 
-- [x] Story 2.1: Implement U_EntityQuery class (3 points) — Added `scripts/ecs/u_entity_query.gd` with encapsulated component accessors and coverage via `tests/unit/ecs/test_u_entity_query.gd` (GUT `-gselect=test_entity_query -gexit`)
+- [x] Story 2.1: Implement U_EntityQuery class (3 points) — Added `scripts/core/ecs/u_entity_query.gd` with encapsulated component accessors and coverage via `tests/unit/ecs/test_u_entity_query.gd` (GUT `-gselect=test_entity_query -gexit`)
 - [x] Story 2.2: Implement entity-component tracking in M_ECSManager (4 points) — Introduced `_entity_component_map`, entity lookup helpers, and `get_components_for_entity()` with regression coverage in `tests/unit/ecs/test_ecs_manager.gd` (GUT `-gselect=test_ecs_manager -gexit`)
 - [x] Story 2.3: Implement M_ECSManager.query_entities() (5 points) — Added multi-component query API backed by entity tracking, plus new GUT coverage for required/optional component combinations in `tests/unit/ecs/test_ecs_manager.gd` (GUT `-gselect=test_ecs_manager -gexit`)
 - [x] Story 2.4: Migrate S_MovementSystem to query-based approach (2 points) — Refactored `s_movement_system.gd` to consume `query_entities()` and optional floating components; strengthened coverage with `tests/unit/ecs/systems/test_movement_system.gd` (GUT `-gselect=test_movement_system -gexit`)
@@ -121,14 +121,14 @@ Testing & Documentation (7 points)
 
 | Plan Reference | Actual Codebase Path | Class Name |
 |----------------|----------------------|------------|
-| `M_ECSManager` | `scripts/managers/m_ecs_manager.gd` | `M_ECSManager` |
-| `BaseECSSystem` | `scripts/ecs/base_ecs_system.gd` | `BaseECSSystem` |
-| `BaseECSComponent` | `scripts/ecs/base_ecs_component.gd` | `BaseECSComponent` |
-| `U_ECSUtils` (NEW) | `scripts/utils/ecs/u_ecs_utils.gd` | `U_ECSUtils` |
-| `U_EntityQuery` (NEW) | `scripts/ecs/u_entity_query.gd` | `U_EntityQuery` |
+| `M_ECSManager` | `scripts/core/managers/m_ecs_manager.gd` | `M_ECSManager` |
+| `BaseECSSystem` | `scripts/core/ecs/base_ecs_system.gd` | `BaseECSSystem` |
+| `BaseECSComponent` | `scripts/core/ecs/base_ecs_component.gd` | `BaseECSComponent` |
+| `U_ECSUtils` (NEW) | `scripts/core/utils/ecs/u_ecs_utils.gd` | `U_ECSUtils` |
+| `U_EntityQuery` (NEW) | `scripts/core/ecs/u_entity_query.gd` | `U_EntityQuery` |
 | `U_ECSEventBus` (NEW) | `scripts/core/events/ecs/u_ecs_event_bus.gd` | `U_ECSEventBus` |
-| Systems | `scripts/ecs/systems/s_*_system.gd` | `S_*System` |
-| Components | `scripts/ecs/components/c_*_component.gd` | `C_*Component` |
+| Systems | `scripts/core/ecs/systems/s_*_system.gd` | `S_*System` |
+| Components | `scripts/core/ecs/components/c_*_component.gd` | `C_*Component` |
 
 **Terminology Mapping**:
 - `get_components()` → existing API (unchanged)
@@ -161,7 +161,7 @@ Goal: Eliminate code duplication, improve maintainability, lay foundation for qu
   - Assert: Returns M_ECSManager instance
 
 - [x] 1.1b – GREEN: Implement get_manager parent search
-- Create `scripts/utils/ecs/u_ecs_utils.gd` (class_name U_ECSUtils)
+- Create `scripts/core/utils/ecs/u_ecs_utils.gd` (class_name U_ECSUtils)
 - Implement: `static func get_manager(from_node: Node) -> M_ECSManager`
   - Walk up parent hierarchy
   - Check has_method("register_component") && has_method("get_components") (NOTE: Batch 1 uses "get_components" check; will update to "query_entities" in Batch 2)
@@ -350,7 +350,7 @@ static func get_active_camera(from_node: Node) -> Camera3D:
   - Assert: Component NOT registered (validation failed)
 
 - [x] 3.1b – GREEN: Implement validation hook in ECSComponent
-- Modify `scripts/ecs/base_ecs_component.gd`
+- Modify `scripts/core/ecs/base_ecs_component.gd`
 - Add: `func _validate_required_settings() -> bool: return true` (default: pass)
 - Modify _ready(): Call _validate_required_settings() before registration
 - If validation fails, push_error() and skip registration
@@ -434,7 +434,7 @@ static func map_components_by_body(
   - Assert: Returned array contains no nulls
 
 - [x] 5.1b – GREEN: Implement null filtering
-- Modify `scripts/managers/m_ecs_manager.gd`
+- Modify `scripts/core/managers/m_ecs_manager.gd`
 - Update get_components(): Filter out null before returning
 ```gdscript
 func get_components(component_type: StringName) -> Array:
@@ -513,7 +513,7 @@ Goal: Implement multi-component query system, migrate 2 systems as proof-of-conc
   - Assert: entity property and components property correctly set
 
 - [x] 1.1b – GREEN: Implement U_EntityQuery class
-- Create `scripts/ecs/u_entity_query.gd`
+- Create `scripts/core/ecs/u_entity_query.gd`
 ```gdscript
 class_name U_EntityQuery
 
@@ -579,7 +579,7 @@ func has_component(type: StringName) -> bool:
   - Assert: Manager's entity map has entry {E_* root: {"C_MovementComponent": component}}
 
 - [x] 2.1b – GREEN: Implement entity-component tracking on registration
-- Modified `scripts/managers/m_ecs_manager.gd`
+- Modified `scripts/core/managers/m_ecs_manager.gd`
 - Added property: `_entity_component_map`  (Node → Dictionary[StringName, ECSComponent]) plus entity metadata helpers
 - Updated `register_component()`:
 ```gdscript
@@ -657,7 +657,7 @@ func _get_entity_for_component(component: BaseECSComponent) -> Node:
 **TDD Cycle 1: query_entities() - Single Required Component**
 
 - [x] 3.1a – RED: Added `test_query_entities_with_single_required_component()` in `tests/unit/ecs/test_ecs_manager.gd`, introducing lightweight mock components (`QueryMovementComponent`, `_spawn_query_entity()` helper) to outline the expected results.
-- [x] 3.1b – GREEN: Implemented `query_entities()` in `scripts/managers/m_ecs_manager.gd`, including `_get_smallest_component_type()` selection and entity de-duplication via `_entity_component_map`.
+- [x] 3.1b – GREEN: Implemented `query_entities()` in `scripts/core/managers/m_ecs_manager.gd`, including `_get_smallest_component_type()` selection and entity de-duplication via `_entity_component_map`.
 - [x] 3.1c – VERIFY: `Godot --headless ... -gselect=test_ecs_manager -gexit`
 
 **TDD Cycle 2: query_entities() - Multiple Required Components**
@@ -695,7 +695,7 @@ func _get_entity_for_component(component: BaseECSComponent) -> Node:
 **TDD Cycle 1: BaseECSSystem.query_entities() Convenience Method**
 
 - [x] 3.5a – RED: Added `tests/unit/ecs/test_base_ecs_system.gd` with `test_query_entities_passthrough_matches_manager_results()` to assert systems receive identical results when calling the convenience method.
-- [x] 3.5b – GREEN: Implemented `query_entities()` passthrough in `scripts/ecs/base_ecs_system.gd`, defending against missing managers.
+- [x] 3.5b – GREEN: Implemented `query_entities()` passthrough in `scripts/core/ecs/base_ecs_system.gd`, defending against missing managers.
 - [x] 3.5c – VERIFY: `Godot --headless ... -gdir=res://tests/unit/ecs -gselect=test_ecs_system -gexit`; full ECS suite remains green.
 
 **Rationale**: Systems can now call `query_entities([...])` directly instead of `get_manager().query_entities([...])`. Reduces boilerplate, consistent with existing `get_components()` pattern.
@@ -707,7 +707,7 @@ func _get_entity_for_component(component: BaseECSComponent) -> Node:
 **TDD Cycle 1: Update S_MovementSystem to use query_entities()**
 
 - [x] 4.1a – RED: Augmented `tests/unit/ecs/systems/test_movement_system.gd` so components live under `E_*` roots and added `test_movement_system_still_processes_without_input_nodepath_via_queries()` (fails until NodePath coupling is removed).
-- [x] 4.1b – GREEN: Refactored `scripts/ecs/systems/s_movement_system.gd` to gather movement/input pairs via `query_entities()` with optional floating support and fallbacks.
+- [x] 4.1b – GREEN: Refactored `scripts/core/ecs/systems/s_movement_system.gd` to gather movement/input pairs via `query_entities()` with optional floating support and fallbacks.
 - [x] 4.1c – VERIFY: `Godot --headless ... -gdir=res://tests/unit/ecs/systems -gselect=test_movement_system -gexit`, and full ECS suite `-gdir=res://tests/unit/ecs -gexit` remained green.
 
 ---
@@ -717,7 +717,7 @@ func _get_entity_for_component(component: BaseECSComponent) -> Node:
 **TDD Cycle 1: Update S_JumpSystem to use query_entities()**
 
 - [x] 5.1a – RED: Updated `tests/unit/ecs/systems/test_jump_system.gd` to register components under an `E_*` entity and added `test_jump_system_handles_missing_input_nodepath_via_queries()` to enforce query-based lookup.
-- [x] 5.1b – GREEN: Refactored `scripts/ecs/systems/s_jump_system.gd` to query jump/input pairs with optional floating support, falling back to `map_components_by_body()` only when the optional component is absent.
+- [x] 5.1b – GREEN: Refactored `scripts/core/ecs/systems/s_jump_system.gd` to query jump/input pairs with optional floating support, falling back to `map_components_by_body()` only when the optional component is absent.
 - [x] 5.1c – VERIFY: `Godot --headless ... -gdir=res://tests/unit/ecs/systems -gselect=test_jump_system -gexit` plus the full ECS suite.
 
 ---
@@ -901,7 +901,7 @@ static func _duplicate_payload(payload: Variant) -> Variant:
   - Assert: "entity_jumped" event published with correct payload
 
 - [x] 3.1b – GREEN: Add event publication to S_JumpSystem
-- Modify `scripts/ecs/systems/s_jump_system.gd`:
+- Modify `scripts/core/ecs/systems/s_jump_system.gd`:
 ```gdscript
 # After applying jump...
 if can_jump:
@@ -1035,7 +1035,7 @@ Goal: Explicit system execution order, debug tools, migration guide, documentati
   - Assert: Property value == 50
 
 - [x] 1.1b – GREEN: Add execution_priority to ECSSystem
-- Modify `scripts/ecs/base_ecs_system.gd`:
+- Modify `scripts/core/ecs/base_ecs_system.gd`:
 ```gdscript
 var _execution_priority: int = 0
 
@@ -1061,7 +1061,7 @@ var _execution_priority: int = 0
   - Assert: Systems executed in order: 0, 50, 100
 
 - [x] 1.2b – GREEN: Implement system sorting and manager-driven execution
-- Modify `scripts/managers/m_ecs_manager.gd`:
+- Modify `scripts/core/managers/m_ecs_manager.gd`:
 ```gdscript
 var _sorted_systems: Array[BaseECSSystem] = []
 var _systems_dirty: bool = true
@@ -1092,7 +1092,7 @@ func _sort_systems() -> void:
 	_sorted_systems.sort_custom(Callable(self, "_compare_system_priority"))
 ```
 
-- Modify `scripts/ecs/base_ecs_system.gd`:
+- Modify `scripts/core/ecs/base_ecs_system.gd`:
   - Call `_notify_manager_priority_changed()` inside `configure()` so registration marks the sort order dirty
   - Guard `_physics_process()` to only invoke `process_tick()` when `_manager` is `null` (manager disables physics stepping with `set_physics_process(false)`)
 
@@ -1212,7 +1212,7 @@ Combine all four batches into cohesive codebase:
 File tree verification:
 
 ```
-scripts/ecs/
+scripts/core/ecs/
 ├── base_ecs_component.gd           # MODIFIED: Added _validate_required_settings()
 ├── base_ecs_system.gd              # MODIFIED: Added execution_priority, query_entities()
 ├── u_entity_query.gd            # NEW: Query result wrapper

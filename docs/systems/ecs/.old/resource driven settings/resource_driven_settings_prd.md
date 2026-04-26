@@ -24,7 +24,7 @@ Move all tunable gameplay parameters from ECS components into dedicated Resource
 - NodePaths for wiring (e.g., `character_body_path`) stay on components.
 
 ## Architecture
-- Add typed Resource scripts under `scripts/ecs/resources/`:
+- Add typed Resource scripts under `scripts/core/ecs/resources/`:
   - `RS_MovementSettings`, `RS_JumpSettings`, `RS_FloatingSettings`, `RS_RotateToInputSettings`, `RS_AlignSettings`, `RS_LandingIndicatorSettings`.
 - Replace component per-field exports with `settings` and keep ephemeral state (e.g., dynamics/rotation velocities, debug snapshots) in components.
 - Strictness: Fail hard if `settings == null`. Each component validates in `_ready()` and will assert or error-out and disable processing when settings are missing. Scenes and tests must assign settings (either default `.tres` or `XxxSettings.new()`).
@@ -113,7 +113,7 @@ Move all tunable gameplay parameters from ECS components into dedicated Resource
 - Keep existing max speed/turn clamps to avoid overshoot in movement/rotation tests.
 
 ## Files to Add/Change (implementation plan)
-- New: `scripts/ecs/resources/*.gd` for all settings types.
+- New: `scripts/core/ecs/resources/*.gd` for all settings types.
 - New defaults: `resources/*_default.tres` for each settings type (committed) and referenced by templates.
 - Update: all components to export `settings` and remove legacy fields.
 - Update: systems to use `settings`.

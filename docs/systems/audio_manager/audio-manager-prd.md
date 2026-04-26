@@ -154,7 +154,7 @@ The system SHALL implement `U_AudioReducer` with:
 class_name U_AudioReducer
 extends RefCounted
 
-const U_AUDIO_ACTIONS := preload("res://scripts/state/actions/u_audio_actions.gd")
+const U_AUDIO_ACTIONS := preload("res://scripts/core/state/actions/u_audio_actions.gd")
 
 static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 	var action_type: StringName = action.get("type", StringName(""))
@@ -281,7 +281,7 @@ class_name M_AudioManager
 extends Node
 
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
-const U_AUDIO_SELECTORS := preload("res://scripts/state/selectors/u_audio_selectors.gd")
+const U_AUDIO_SELECTORS := preload("res://scripts/core/state/selectors/u_audio_selectors.gd")
 
 var _state_store: I_StateStore
 var _music_player_a: AudioStreamPlayer
@@ -1382,7 +1382,7 @@ The system SHALL integrate UI sounds into existing UI architecture:
 
 **BasePanel focus sounds**:
 ```gdscript
-# In scripts/ui/base/base_panel.gd
+# In scripts/core/ui/base/base_panel.gd
 # BasePanel plays focus sound on `Viewport.gui_focus_changed` for focus changes
 # within its subtree, and only when "armed" by real navigation input (initial
 # focus is silent).
@@ -1507,13 +1507,13 @@ func _update_volume_label(label: Label, value: float) -> void:
 
 | Asset Path | Description |
 |------------|-------------|
-| `resources/audio/music/main_menu.mp3` | Menu music track |
-| `resources/audio/music/exterior.mp3` | Exterior gameplay music track |
-| `resources/audio/music/interior.mp3` | Interior gameplay music track |
-| `resources/audio/music/pause.mp3` | Pause overlay music track |
-| `resources/audio/music/credits.mp3` | Credits music track |
+| `resources/demo/audio/music/main_menu.mp3` | Menu music track |
+| `resources/demo/audio/music/exterior.mp3` | Exterior gameplay music track |
+| `resources/demo/audio/music/interior.mp3` | Interior gameplay music track |
+| `resources/demo/audio/music/pause.mp3` | Pause overlay music track |
+| `resources/demo/audio/music/credits.mp3` | Credits music track |
 
-**Note**: Early silent-loop OGG placeholders live under `resources/audio/music/placeholders/`.
+**Note**: Early silent-loop OGG placeholders live under `resources/demo/audio/music/placeholders/`.
 
 ### Sound Effects (SFX)
 
@@ -1521,11 +1521,11 @@ func _update_volume_label(label: Label, value: float) -> void:
 
 | Asset Path | Description |
 |------------|-------------|
-| `resources/audio/sfx/placeholder_jump.wav` | Placeholder jump sound |
-| `resources/audio/sfx/placeholder_land.wav` | Placeholder landing sound |
-| `resources/audio/sfx/placeholder_death.wav` | Placeholder death sound |
-| `resources/audio/sfx/placeholder_checkpoint.wav` | Placeholder checkpoint sound |
-| `resources/audio/sfx/placeholder_victory.wav` | Placeholder victory sound |
+| `resources/demo/audio/sfx/placeholder_jump.wav` | Placeholder jump sound |
+| `resources/demo/audio/sfx/placeholder_land.wav` | Placeholder landing sound |
+| `resources/demo/audio/sfx/placeholder_death.wav` | Placeholder death sound |
+| `resources/demo/audio/sfx/placeholder_checkpoint.wav` | Placeholder checkpoint sound |
+| `resources/demo/audio/sfx/placeholder_victory.wav` | Placeholder victory sound |
 
 ### UI Sounds
 
@@ -1533,10 +1533,10 @@ func _update_volume_label(label: Label, value: float) -> void:
 
 | Asset Path | Description |
 |------------|-------------|
-| `resources/audio/sfx/placeholder_ui_focus.wav` | Focus change |
-| `resources/audio/sfx/placeholder_ui_confirm.wav` | Confirm |
-| `resources/audio/sfx/placeholder_ui_cancel.wav` | Cancel |
-| `resources/audio/sfx/placeholder_ui_tick.wav` | Slider tick (throttled) |
+| `resources/demo/audio/sfx/placeholder_ui_focus.wav` | Focus change |
+| `resources/demo/audio/sfx/placeholder_ui_confirm.wav` | Confirm |
+| `resources/demo/audio/sfx/placeholder_ui_cancel.wav` | Cancel |
+| `resources/demo/audio/sfx/placeholder_ui_tick.wav` | Slider tick (throttled) |
 
 ### Footstep Sounds
 
@@ -1544,12 +1544,12 @@ func _update_volume_label(label: Label, value: float) -> void:
 
 | Asset Paths | Description |
 |-------------|-------------|
-| `resources/audio/footsteps/placeholder_grass_01.wav` through `_04.wav` | Placeholder grass footsteps |
-| `resources/audio/footsteps/placeholder_stone_01.wav` through `_04.wav` | Placeholder stone footsteps |
-| `resources/audio/footsteps/placeholder_wood_01.wav` through `_04.wav` | Placeholder wood footsteps |
-| `resources/audio/footsteps/placeholder_metal_01.wav` through `_04.wav` | Placeholder metal footsteps |
-| `resources/audio/footsteps/placeholder_water_01.wav` through `_04.wav` | Placeholder water footsteps |
-| `resources/audio/footsteps/placeholder_default_01.wav` through `_04.wav` | Placeholder default footsteps |
+| `resources/demo/audio/footsteps/placeholder_grass_01.wav` through `_04.wav` | Placeholder grass footsteps |
+| `resources/demo/audio/footsteps/placeholder_stone_01.wav` through `_04.wav` | Placeholder stone footsteps |
+| `resources/demo/audio/footsteps/placeholder_wood_01.wav` through `_04.wav` | Placeholder wood footsteps |
+| `resources/demo/audio/footsteps/placeholder_metal_01.wav` through `_04.wav` | Placeholder metal footsteps |
+| `resources/demo/audio/footsteps/placeholder_water_01.wav` through `_04.wav` | Placeholder water footsteps |
+| `resources/demo/audio/footsteps/placeholder_default_01.wav` through `_04.wav` | Placeholder default footsteps |
 
 ### Ambient Tracks
 
@@ -1557,8 +1557,8 @@ func _update_volume_label(label: Label, value: float) -> void:
 
 | Asset Path | Description |
 |------------|-------------|
-| `resources/audio/ambient/placeholder_exterior.wav` | Placeholder exterior ambient loop |
-| `resources/audio/ambient/placeholder_interior.wav` | Placeholder interior ambient loop |
+| `resources/demo/audio/ambient/placeholder_exterior.wav` | Placeholder exterior ambient loop |
+| `resources/demo/audio/ambient/placeholder_interior.wav` | Placeholder interior ambient loop |
 
 ## Key Entities
 
@@ -1640,10 +1640,10 @@ func _update_volume_label(label: Label, value: float) -> void:
 **Objective**: Implement audio Redux layer with 9-field state management
 
 **Deliverables**:
-1. `scripts/state/resources/rs_audio_initial_state.gd`
-2. `scripts/state/actions/u_audio_actions.gd` (12 actions)
-3. `scripts/state/reducers/u_audio_reducer.gd`
-4. `scripts/state/selectors/u_audio_selectors.gd` (9 selectors)
+1. `scripts/core/state/resources/rs_audio_initial_state.gd`
+2. `scripts/core/state/actions/u_audio_actions.gd` (12 actions)
+3. `scripts/core/state/reducers/u_audio_reducer.gd`
+4. `scripts/core/state/selectors/u_audio_selectors.gd` (9 selectors)
 5. `tests/unit/state/test_audio_reducer.gd` (25 tests)
 
 **Commit 1**: Audio initial state resource
@@ -1663,7 +1663,7 @@ func _update_volume_label(label: Label, value: float) -> void:
 **Objective**: Implement M_AudioManager with audio bus management
 
 **Deliverables**:
-1. `scripts/managers/m_audio_manager.gd`
+1. `scripts/core/managers/m_audio_manager.gd`
 2. Update `scenes/root.tscn` - Add M_AudioManager
 3. Update `scripts/core/root.gd` - ServiceLocator registration (Root bootstrap)
 4. `tests/unit/managers/test_audio_manager.gd` (30 tests)
@@ -1708,7 +1708,7 @@ func _update_volume_label(label: Label, value: float) -> void:
 **Objective**: Implement base class for event-driven SFX systems
 
 **Deliverables**:
-1. `scripts/ecs/base_event_sfx_system.gd`
+1. `scripts/core/ecs/base_event_sfx_system.gd`
 2. `tests/unit/ecs/test_base_event_sfx_system.gd` (15 tests)
 
 **Commit 1**: BaseEventSFXSystem base class (mirrors BaseEventVFXSystem)
@@ -1727,12 +1727,12 @@ func _update_volume_label(label: Label, value: float) -> void:
 **Objective**: Implement 5 SFX systems + spawner utility
 
 **Deliverables**:
-1. `scripts/managers/helpers/u_sfx_spawner.gd`
-2. `scripts/ecs/systems/s_jump_sound_system.gd` + settings resource
-3. `scripts/ecs/systems/s_landing_sound_system.gd` + settings resource
-4. `scripts/ecs/systems/s_death_sound_system.gd` + settings resource
-5. `scripts/ecs/systems/s_checkpoint_sound_system.gd` + settings resource
-6. `scripts/ecs/systems/s_victory_sound_system.gd` + settings resource
+1. `scripts/core/managers/helpers/u_sfx_spawner.gd`
+2. `scripts/core/ecs/systems/s_jump_sound_system.gd` + settings resource
+3. `scripts/core/ecs/systems/s_landing_sound_system.gd` + settings resource
+4. `scripts/core/ecs/systems/s_death_sound_system.gd` + settings resource
+5. `scripts/core/ecs/systems/s_checkpoint_sound_system.gd` + settings resource
+6. `scripts/core/ecs/systems/s_victory_sound_system.gd` + settings resource
 7. `tests/unit/ecs/systems/test_*_sound_system.gd` (49 tests total)
 
 **Commit 1**: U_SFXSpawner utility (pooled players)
@@ -1752,9 +1752,9 @@ func _update_volume_label(label: Label, value: float) -> void:
 **Objective**: Implement surface-aware footsteps
 
 **Deliverables**:
-1. `scripts/ecs/components/c_surface_detector_component.gd`
-2. `scripts/ecs/systems/s_footstep_sound_system.gd`
-3. `scripts/ecs/resources/rs_footstep_sound_settings.gd`
+1. `scripts/core/ecs/components/c_surface_detector_component.gd`
+2. `scripts/core/ecs/systems/s_footstep_sound_system.gd`
+3. `scripts/core/ecs/resources/rs_footstep_sound_settings.gd`
 4. `tests/unit/ecs/systems/test_footstep_sound_system.gd` (20 tests)
 
 **Commit 1**: C_SurfaceDetectorComponent with raycast
@@ -1773,7 +1773,7 @@ func _update_volume_label(label: Label, value: float) -> void:
 **Objective**: Implement per-scene ambient loops
 
 **Deliverables**:
-1. `scripts/ecs/systems/s_ambient_sound_system.gd`
+1. `scripts/core/ecs/systems/s_ambient_sound_system.gd`
 2. Ambient track registry
 3. `tests/unit/ecs/systems/test_ambient_sound_system.gd` (10 tests)
 
@@ -1792,7 +1792,7 @@ func _update_volume_label(label: Label, value: float) -> void:
 **Objective**: Integrate UI sounds into existing UI architecture
 
 **Deliverables**:
-1. `scripts/managers/helpers/u_ui_sound_player.gd`
+1. `scripts/core/managers/helpers/u_ui_sound_player.gd`
 2. BasePanel focus sound integration
 3. Button handler sound integration
 4. Tab switch + slider sound integration (throttled)
@@ -1986,15 +1986,15 @@ if not loaded_state.has("audio"):
 ## File Structure
 
 ```
-scripts/managers/
+scripts/core/managers/
   m_audio_manager.gd
-scripts/managers/helpers/
+scripts/core/managers/helpers/
   u_audio_player_pool.gd
   u_sfx_spawner.gd
   u_ui_sound_player.gd
-scripts/ecs/
+scripts/core/ecs/
   base_event_sfx_system.gd
-scripts/ecs/systems/
+scripts/core/ecs/systems/
   s_jump_sound_system.gd
   s_landing_sound_system.gd
   s_death_sound_system.gd
@@ -2002,9 +2002,9 @@ scripts/ecs/systems/
   s_victory_sound_system.gd
   s_footstep_sound_system.gd
   s_ambient_sound_system.gd
-scripts/ecs/components/
+scripts/core/ecs/components/
   c_surface_detector_component.gd
-scripts/ecs/resources/
+scripts/core/ecs/resources/
   rs_jump_sound_settings.gd
   rs_landing_sound_settings.gd
   rs_death_sound_settings.gd
@@ -2012,15 +2012,15 @@ scripts/ecs/resources/
   rs_victory_sound_settings.gd
   rs_footstep_sound_settings.gd
   rs_ambient_sound_settings.gd
-scripts/state/resources/
+scripts/core/state/resources/
   rs_audio_initial_state.gd
-scripts/state/actions/
+scripts/core/state/actions/
   u_audio_actions.gd
-scripts/state/reducers/
+scripts/core/state/reducers/
   u_audio_reducer.gd
-scripts/state/selectors/
+scripts/core/state/selectors/
   u_audio_selectors.gd
-resources/audio/
+resources/demo/audio/
   music/
     main_menu.mp3
     exterior.mp3
@@ -2051,7 +2051,7 @@ resources/audio/
     placeholder_metal_01.wav through _04.wav
     placeholder_water_01.wav through _04.wav
     placeholder_default_01.wav through _04.wav
-resources/base_settings/
+resources/core/base_settings/
   jump_sound_default.tres
   landing_sound_default.tres
   death_sound_default.tres
@@ -2087,10 +2087,10 @@ tests/integration/audio/
 
 ### Existing Code Modifications
 
-**1. M_StateStore** (`scripts/state/m_state_store.gd`):
+**1. M_StateStore** (`scripts/core/state/m_state_store.gd`):
 - **Add Reducer Preload** (after line 27):
   ```gdscript
-  const U_AUDIO_REDUCER := preload("res://scripts/state/reducers/u_audio_reducer.gd")
+  const U_AUDIO_REDUCER := preload("res://scripts/core/state/reducers/u_audio_reducer.gd")
   ```
 - **Add Export Variable** (after line 56):
   ```gdscript
@@ -2124,7 +2124,7 @@ tests/integration/audio/
   U_ServiceLocator.register(StringName("audio_manager"), audio_manager)
   ```
 
-**4. scripts/ui/base_panel.gd** (UI Sound Integration):
+**4. scripts/core/ui/base_panel.gd** (UI Sound Integration):
 - Connect `focus_entered` signal to UI sound player:
   BasePanel focus sound is input-gated and driven by `Viewport.gui_focus_changed` (initial/programmatic focus changes are silent).
 

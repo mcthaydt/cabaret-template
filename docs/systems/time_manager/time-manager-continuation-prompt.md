@@ -44,7 +44,7 @@ We are on branch `TimeManager` with `M_TimeManager` implementation complete.
 
 **Key files to read before starting**:
 - `docs/time_manager/time-manager-plan.md` (full spec)
-- `scripts/managers/m_time_manager.gd` (Phase 1 baseline for Phase 2+)
+- `scripts/core/managers/m_time_manager.gd` (Phase 1 baseline for Phase 2+)
 - `scripts/core/root.gd` (ServiceLocator wiring to update in Phase 1 Commit 4)
 - `AGENTS.md`
 - `docs/guides/pitfalls/`

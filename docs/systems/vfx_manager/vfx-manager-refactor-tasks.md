@@ -122,7 +122,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
   - Tests GREEN ✅
 
 - [x] **T1.8**: Create `S_ScreenShakePublisherSystem`
-  - Location: `scripts/ecs/systems/s_screen_shake_publisher_system.gd`
+  - Location: `scripts/core/ecs/systems/s_screen_shake_publisher_system.gd`
   - Extends: `BaseECSSystem`
   - Class name: `S_ScreenShakePublisherSystem`
   - Add icon: `@icon("res://assets/editor_icons/system.svg")`
@@ -150,7 +150,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
   - Tests GREEN ✅
 
 - [x] **T1.9**: Create `S_DamageFlashPublisherSystem`
-  - Location: `scripts/ecs/systems/s_damage_flash_publisher_system.gd`
+  - Location: `scripts/core/ecs/systems/s_damage_flash_publisher_system.gd`
   - Extends: `BaseECSSystem`
   - Class name: `S_DamageFlashPublisherSystem`
   - Add icon: `@icon("res://assets/editor_icons/system.svg")`
@@ -164,7 +164,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
   - Tests GREEN ✅
 
 - [x] **T1.10**: Update `M_VFXManager` to use VFX request events with queue pattern
-  - Location: `scripts/managers/m_vfx_manager.gd`
+  - Location: `scripts/core/managers/m_vfx_manager.gd`
   - Remove: `health_changed`, `entity_landed`, `entity_death` subscriptions (lines 90-92)
   - Add request queue fields:
     ```gdscript
@@ -254,7 +254,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
     ```
 
 - [x] **T1.11**: Add publisher systems to gameplay scene
-  - Location: `scenes/gameplay/gameplay_base.tscn`
+  - Location: `scenes/demo/gameplay/gameplay_base.tscn`
   - Under `Systems` node, add:
     - `S_ScreenShakePublisherSystem` (name: "S_ScreenShakePublisherSystem")
     - `S_DamageFlashPublisherSystem` (name: "S_DamageFlashPublisherSystem")
@@ -319,7 +319,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 ### Implementation
 
 - [x] **T2.2**: Add dependency injection exports to `M_VFXManager`
-  - Location: `scripts/managers/m_vfx_manager.gd`
+  - Location: `scripts/core/managers/m_vfx_manager.gd`
   - After line 27 (after constants), add:
     ```gdscript
     ## Injected dependencies (for testing)
@@ -352,7 +352,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
     ```
 
 - [x] **T2.4**: Remove self-registration from `M_VFXManager`
-  - Location: `scripts/managers/m_vfx_manager.gd`
+  - Location: `scripts/core/managers/m_vfx_manager.gd`
   - Remove: Line 61 `U_SERVICE_LOCATOR.register(StringName("vfx_manager"), self)`
   - Keep: `add_to_group("vfx_manager")` for backward compatibility
 
@@ -426,13 +426,13 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 - [x] **T3.5**: Add gating constants to `M_VFXManager`
   - Add preload statements:
     ```gdscript
-    const U_GAMEPLAY_SELECTORS := preload("res://scripts/state/selectors/u_gameplay_selectors.gd")
-    const U_SCENE_SELECTORS := preload("res://scripts/state/selectors/u_scene_selectors.gd")
-    const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
+    const U_GAMEPLAY_SELECTORS := preload("res://scripts/core/state/selectors/u_gameplay_selectors.gd")
+    const U_SCENE_SELECTORS := preload("res://scripts/core/state/selectors/u_scene_selectors.gd")
+    const U_NAVIGATION_SELECTORS := preload("res://scripts/core/state/selectors/u_navigation_selectors.gd")
     ```
 
 - [x] **T3.5b**: Create `u_scene_selectors.gd` (REQUIRED - does not exist)
-  - Location: `scripts/state/selectors/u_scene_selectors.gd`
+  - Location: `scripts/core/state/selectors/u_scene_selectors.gd`
   - Class name: `U_SceneSelectors`
   - Add selector:
     ```gdscript
@@ -591,7 +591,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 ### Implementation
 
 - [x] **T4.3**: Create `RS_ScreenShakeTuning` resource class
-  - Location: `scripts/ecs/resources/rs_screen_shake_tuning.gd`
+  - Location: `scripts/core/ecs/resources/rs_screen_shake_tuning.gd`
   - Extends: `Resource`
   - Class name: `RS_ScreenShakeTuning`
   - Fields:
@@ -630,12 +630,12 @@ This document tracks the refactoring of the existing VFX Manager system to impro
   - Tests GREEN ✅
 
 - [x] **T4.4**: Create default tuning resource file
-  - Location: `resources/vfx/cfg_screen_shake_tuning.tres`
+  - Location: `resources/core/vfx/cfg_screen_shake_tuning.tres`
   - Format:
     ```
     [gd_resource type="Resource" script_class="RS_ScreenShakeTuning" load_steps=2 format=3]
 
-    [ext_resource type="Script" path="res://scripts/ecs/resources/rs_screen_shake_tuning.gd" id="1"]
+    [ext_resource type="Script" path="res://scripts/core/ecs/resources/rs_screen_shake_tuning.gd" id="1"]
 
     [resource]
     script = ExtResource("1")
@@ -651,7 +651,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
     ```
 
 - [x] **T4.5**: Create `RS_ScreenShakeConfig` resource class
-  - Location: `scripts/ecs/resources/rs_screen_shake_config.gd`
+  - Location: `scripts/core/ecs/resources/rs_screen_shake_config.gd`
   - Extends: `Resource`
   - Class name: `RS_ScreenShakeConfig`
   - Fields:
@@ -662,7 +662,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
     ```
 
 - [x] **T4.6**: Create default config resource file
-  - Location: `resources/vfx/cfg_screen_shake_config.tres`
+  - Location: `resources/core/vfx/cfg_screen_shake_config.tres`
   - Set default values from U_ScreenShake
 
 - [x] **T4.7**: Update `S_ScreenShakePublisherSystem` to use tuning
@@ -676,7 +676,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
         if tuning != null:
             return tuning
         # Fallback to default
-        return preload("res://resources/vfx/cfg_screen_shake_tuning.tres")
+        return preload("res://resources/core/vfx/cfg_screen_shake_tuning.tres")
     ```
   - Replace constants with tuning calls:
     ```gdscript
@@ -721,7 +721,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 - [x] **T4.9**: Update `M_VFXManager` to use config resource
   - Update `_ready()`:
     ```gdscript
-    var shake_config := preload("res://resources/vfx/cfg_screen_shake_config.tres")
+    var shake_config := preload("res://resources/core/vfx/cfg_screen_shake_config.tres")
     _screen_shake = U_ScreenShake.new(shake_config)
     ```
   - Remove `TRAUMA_DECAY_RATE` constant
@@ -783,7 +783,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 ### Implementation
 
 - [x] **T5.4**: Create `U_ShakeResult` class
-  - Location: `scripts/managers/helpers/u_shake_result.gd`
+  - Location: `scripts/core/managers/helpers/u_shake_result.gd`
   - Extends: `RefCounted`
   - Class name: `U_ShakeResult`
   - Fields:
@@ -853,7 +853,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
   - Tests GREEN ✅
 
 - [x] **T5.8**: Add tween pause mode to `U_DamageFlash`
-  - Location: `scripts/managers/helpers/u_damage_flash.gd`
+  - Location: `scripts/core/managers/helpers/u_damage_flash.gd`
   - Update `trigger_flash()` after tween creation:
     ```gdscript
     _tween = _scene_tree.create_tween()
@@ -1097,7 +1097,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
     ```
 
 - [x] **T8.7**: Update `UI_VFXSettingsOverlay` to use preview
-  - Location: `scripts/ui/settings/ui_vfx_settings_overlay.gd`
+  - Location: `scripts/core/ui/settings/ui_vfx_settings_overlay.gd`
   - Add in `_ready()`:
 
     ```gdscript
