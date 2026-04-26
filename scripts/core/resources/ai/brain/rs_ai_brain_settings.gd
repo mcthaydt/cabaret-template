@@ -9,6 +9,9 @@ const MIGRATION_ERROR_TEMPLATE := "RS_AIBrainSettings migration required: legacy
 @export var evaluation_interval: float = 0.5
 var _legacy_goals_detected: bool = false
 
+func get_root() -> RS_BTNode:
+	return root
+
 func _set(property: StringName, _value: Variant) -> bool:
 	if property != LEGACY_FIELD_GOALS:
 		return false
