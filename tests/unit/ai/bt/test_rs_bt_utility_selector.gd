@@ -7,6 +7,7 @@ const RS_AI_SCORER_CONSTANT_PATH := "res://scripts/core/resources/ai/bt/scorers/
 const RS_AI_SCORER_CONDITION_PATH := "res://scripts/core/resources/ai/bt/scorers/rs_ai_scorer_condition.gd"
 const RS_AI_SCORER_CONTEXT_FIELD_PATH := "res://scripts/core/resources/ai/bt/scorers/rs_ai_scorer_context_field.gd"
 const RS_CONDITION_CONSTANT_PATH := "res://scripts/core/resources/qb/conditions/rs_condition_constant.gd"
+const RS_BT_SCORED_NODE_PATH := "res://scripts/core/resources/bt/rs_bt_scored_node.gd"
 
 class ScoreStub extends Resource:
 	var score_value: float = 0.0
@@ -262,3 +263,99 @@ func test_utility_selector_with_mixed_resource_scorers() -> void:
 	assert_eq(status, _status("SUCCESS"))
 	assert_eq(low_child.get("tick_count"), 0, "Condition scorer child (score=2.0) should not be ticked")
 	assert_eq(high_child.get("tick_count"), 1, "Context-field scorer child (score=5.0) should be ticked")
+
+func _new_scored_node(child: Resource, scorer: Resource) -> Resource:
+	var script: Script = _load_script(RS_BT_SCORED_NODE_PATH)
+	if script == null:
+		return null
+	var node_variant: Variant = script.new()
+	assert_not_null(node_variant, "Expected RS_BTScoredNode.new() to succeed")
+	if node_variant == null:
+		return null
+	var node: Resource = node_variant as Resource
+	node.set("child", child)
+	node.set("scorer", scorer)
+	return node
+
+func test_utility_selector_uses_scored_node_scorer() -> void:
+	var selector: Resource = _new_utility_selector()
+	if selector == null:
+		return
+	var first_child: Resource = _new_status_node(_status("SUCCESS"))
+	var second_child: Resource = _new_status_node(_status("SUCCESS"))
+	if first_child == null or second_child == null:
+		return
+	var first_scored: Resource = _new_scored_node(first_child, ScoreStub.new(0.1))
+	var second_scored: Resource = _new_scored_node(second_child, ScoreStub.new(0.9))
+	if first_scored == null or second_scored == null:
+		return
+	_set_children_for_test(selector, [first_scored, second_scored])
+
+	var status: Variant = selector.call("tick", {}, {})
+	assert_eq(status, _status("SUCCESS"), "Utility selector should select highest-scored child")
+	assert_eq(first_child.get("tick_count"), 0, "Lower-scored child should not be ticked")
+	assert_eq(second_child.get("tick_count"), 1, "Higher-scored child should be ticked")
+
+func test_utility_selector_falls_back_to_child_scorers_for_plain_nodes() -> void:
+	var selector: Resource = _new_utility_selector()
+	if selector == null:
+		return
+	var plain_child: Resource = _new_status_node(_status("SUCCESS"))
+	var inner_child: Resource = _new_status_node(_status("SUCCESS"))
+	if plain_child == null or inner_child == null:
+		return
+	var scored_node: Resource = _new_scored_node(inner_child, ScoreStub.new(0.9))
+	if scored_node == null:
+		return
+	_set_children_for_test(selector, [plain_child, scored_node])
+	_set_child_scorers_for_test(selector, [ScoreStub.new(0.1)])
+
+	var status: Variant = selector.call("tick", {}, {})
+	assert_eq(status, _status("SUCCESS"), "Selector should pick highest-scoring child")
+	assert_eq(plain_child.get("tick_count"), 0, "Plain child (score=0.1 via child_scorers) should not be ticked")
+	assert_eq(inner_child.get("tick_count"), 1, "Scored node child (score=0.9 via node scorer) should be ticked")
+
+func test_utility_selector_scored_node_overrides_child_scorers_at_same_index() -> void:
+	var selector: Resource = _new_utility_selector()
+	if selector == null:
+		return
+	var scored_child: Resource = _new_status_node(_status("SUCCESS"))
+	var plain_child: Resource = _new_status_node(_status("SUCCESS"))
+	if scored_child == null or plain_child == null:
+		return
+	var scored_node: Resource = _new_scored_node(scored_child, ScoreStub.new(0.3))
+	if scored_node == null:
+		return
+	_set_children_for_test(selector, [scored_node, plain_child])
+	_set_child_scorers_for_test(selector, [ScoreStub.new(5.0), ScoreStub.new(0.4)])
+
+	var status: Variant = selector.call("tick", {}, {})
+	assert_eq(status, _status("SUCCESS"), "Selector should pick winning child")
+	assert_eq(scored_child.get("tick_count"), 0, "Scored node child (own scorer=0.3) must not be ticked (loses to plain child at 0.4)")
+	assert_eq(plain_child.get("tick_count"), 1, "Plain child (child_scorers=0.4) should win over scored node (own scorer=0.3, not child_scorers=5.0)")
+
+func test_utility_selector_pins_running_scored_node_child() -> void:
+	var selector: Resource = _new_utility_selector()
+	if selector == null:
+		return
+	var inner_child: Resource = _new_status_node(_status("RUNNING"))
+	if inner_child == null:
+		return
+	var first_scorer := ScoreStub.new(1.0)
+	var scored_node: Resource = _new_scored_node(inner_child, first_scorer)
+	if scored_node == null:
+		return
+	_set_children_for_test(selector, [scored_node])
+
+	var state_bag := {}
+	var first_tick: Variant = selector.call("tick", {}, state_bag)
+	assert_eq(first_tick, _status("RUNNING"), "Initial tick should run scored node's child")
+	assert_eq(inner_child.get("tick_count"), 1)
+	var calls_after_tick_one: int = first_scorer.call_count
+
+	inner_child.set("fixed_status", _status("SUCCESS"))
+	first_scorer.score_value = 0.0
+	var second_tick: Variant = selector.call("tick", {}, state_bag)
+	assert_eq(second_tick, _status("SUCCESS"), "Pinned running child must be resumed until completion")
+	assert_eq(inner_child.get("tick_count"), 2, "Pinned inner child must be re-ticked")
+	assert_eq(first_scorer.call_count, calls_after_tick_one, "Scorer must not be re-called while child is pinned")
