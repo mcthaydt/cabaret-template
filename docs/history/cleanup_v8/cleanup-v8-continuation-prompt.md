@@ -5,9 +5,9 @@
 Implements `docs/history/cleanup_v8/cleanup-v8-tasks.md` in phase order with TDD discipline. V8 is the follow-up to V7.2, addressing structural/organizational debt rather than internal architectural issues.
 
 **Branch**: `cleanup-v8` (off `main`, after `GOAP-AI` merged via PR #16).
-**Status**: Phases 1–4 complete. Phase 5 not started (deferred to last per sequencing plan). Phase 6 in progress — P6.1 complete, P6.2 complete, P6.3 complete, P6.4 next.
-**Next Task**: P6.4 — `RS_AIBrainScriptSettings` (script-backed brain settings).
-**Prerequisite**: V7.2 complete (`e015aff2`). Phase 4 complete (`cbf0fd61`). All 18 P3.5 extension recipes complete (`b0c5b1cd`). P6.1 complete (`ec14181a`). P6.2 complete (`a23270b1`). P6.3 complete (`0cd59475`).
+**Status**: Phases 1–4 complete. Phase 5 not started (deferred to last per sequencing plan). Phase 6 in progress — P6.1 complete, P6.2 complete, P6.3 complete, P6.4 complete, P6.5 next.
+**Next Task**: P6.5 — BT Migration (`.tres` → builder scripts).
+**Prerequisite**: V7.2 complete (`e015aff2`). Phase 4 complete (`cbf0fd61`). All 18 P3.5 extension recipes complete (`b0c5b1cd`). P6.1 complete (`ec14181a`). P6.2 complete (`a23270b1`). P6.3 complete (`0cd59475`). P6.4 complete (`c6608c79`).
 
 ---
 
@@ -39,7 +39,7 @@ Six phases bundled for one goal: make the template LLM-friendly, modular, and sh
   - P4.10: `prototype_grids_png` → `assets/demo/textures/`; `editor_icons` → `assets/core/`; remaining core dirs → `assets/core/` (`bfc64316`–`58e4263e`).
   - Style suite: **89/89** after P4.10.
 - **Phase 5**: NOT STARTED. Deferred to last.
-- **Phase 6**: IN PROGRESS. P6.1 complete (`10310f00`–`ec14181a`). P6.2 complete (`a4c41434`–`a23270b1`). P6.3 complete (`d0c1224a`–`0cd59475`). Style suite 92/92. Full suite 4640/4648 (8 pre-existing pending).
+- **Phase 6**: IN PROGRESS. P6.1 complete (`10310f00`–`ec14181a`). P6.2 complete (`a4c41434`–`a23270b1`). P6.3 complete (`d0c1224a`–`0cd59475`). P6.4 complete (`4a1218f1`–`c6608c79`). Style suite 92/92. Full suite 4651/4659 (8 pre-existing pending).
 
 ---
 
@@ -102,6 +102,21 @@ Six phases bundled for one goal: make the template LLM-friendly, modular, and sh
 
 ---
 
+## P6.4 — Script-Backed Brain Settings (`RS_AIBrainScriptSettings`) — COMPLETE
+
+**Commits**: `4a1218f1`–`c6608c79` (4 commits + docs).
+
+**Key implementation notes**:
+- `RS_AIBrainSettings.get_root()` is a virtual returning `root` by default; subclasses override.
+- `RS_AIBrainScriptSettings.get_root()` checks `root != null` first (cached/pre-assigned), then instantiates `builder_script`, calls `build()`, type-checks result with `is RS_BTNode`, caches in `root`.
+- `u_ai_bt_task_label_resolver.gd` also accessed `brain_settings.root` directly; updated alongside `s_ai_behavior_system.gd` in commit 4.
+- Dynamic GDScript creation (GDScript.new() + reload()) used in tests for mock builder scripts — no fixture files needed.
+- `root` serves as both the export and the in-memory cache; `RS_BTNode` has a UID so `is RS_BTNode` is safe in headless.
+
+**Result**: style suite 92/92; full suite 4651/4659 (8 pre-existing pending); 11 new script-settings tests all green.
+
+---
+
 ## Sequencing
 
 ```
@@ -142,9 +157,10 @@ Test command: `tools/run_gut_suite.sh` (or `-gtest=<path>` for targeted runs).
 
 ## Next Steps
 
-1. **P6.4 Commit 1 (RED)** — Write `tests/unit/ai/bt/test_rs_ai_brain_script_settings.gd`: `RS_AIBrainScriptSettings` extends `RS_AIBrainSettings`, has `@export var builder_script: Script`, `get_root()` returns cached root if set, instantiates builder script and calls `build()`, returns null if no script or method missing.
-2. **P6.4 Commit 2 (GREEN)** — Add `get_root()` virtual method to `scripts/core/resources/ai/brain/rs_ai_brain_settings.gd` returning `root` by default.
-3. **P6.4 Commit 3 (GREEN)** — Implement `scripts/core/resources/ai/brain/rs_ai_brain_script_settings.gd` overriding `get_root()`.
-4. **P6.4 Commit 4 (GREEN)** — Update `c_ai_brain_component.gd` and `s_ai_behavior_system.gd` to use `brain_settings.get_root()`.
-5. After P6.4: proceed to P6.5 — migrate creature BT `.tres` files to builder scripts.
-6. Keep docs/history references archived; new evergreen guidance belongs under `docs/guides/` or `docs/systems/`.
+1. **P6.5 Commit 1 (RED)** — Write integration tests in `tests/unit/ai/integration/` (or `tests/unit/ai/bt/`) for each creature brain: assert that a builder script produces a BT root structurally equivalent to the existing `.tres`-authored root (same node types, nesting, scorer values).
+2. **P6.5 Commit 2 (GREEN)** — Create builder scripts for each creature under `scripts/demo/ai/trees/`: `patrol_drone_behavior.gd`, `guide_prism_behavior.gd`, `sentry_behavior.gd`, `wolf_behavior.gd`, `rabbit_behavior.gd`, `builder_behavior.gd`. Each extends `RefCounted`, has `build() -> RS_BTNode`.
+3. **P6.5 Commit 3 (GREEN)** — Create `RS_AIBrainScriptSettings` `.tres` resources for each creature (`cfg_*_brain_script.tres`), each referencing its builder script via `builder_script`.
+4. **P6.5 Commit 4 (GREEN)** — Replace prefab NPC `brain_settings` references to point to the new script-backed `.tres` files. Verify full suite passes.
+5. **P6.5 Commit 5 (GREEN)** — Delete the original creature BT `.tres` files after visual parity confirmed.
+6. After P6.5: proceed to P6.6 — Scene Registry Builder.
+7. Keep docs/history references archived; new evergreen guidance belongs under `docs/guides/` or `docs/systems/`.

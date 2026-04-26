@@ -1,7 +1,7 @@
 # Cross-System Cleanup V8 — Tasks Checklist
 
 **Branch**: `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch. Subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred. Matches continuation prompt.
-**Status**: Phase 1 complete — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 complete (`26289494`, `fffa2e55`, `7de2a6cf`, `c1d7b0fb`, `a2766455`, `2aacb999` + remediation `91c094c0`..`e416469c`); P1.9b complete (`348802ca`, `b2c67185`, `7a96c4b0`, `d2644cf3`, `0bb07870`, `085c428d`, `73a66510`, `cd2afbcf`, `94d4b7c6` + 2026-04-22 verification follow-through); P1.10 BT-only legacy cleanup complete (`43035ad6`, `6a30f13c` + 2026-04-23 docs hygiene follow-through). Phase 2 complete through P2.4 (`28702b95`) with style recheck passing (`83/83`). Phase 3 complete as of 2026-04-23: P3.0–P3.4 + P3.6 landed, and the P3.5 framework deliverable (dir + `README.md` + `TEMPLATE.md` + `test_extension_recipe_structure`) shipped; the 18 individual extension recipes still ship at the tail of their owning phase (Phases 1/4/5), so overall P3 Verification closes only once those recipe commits land. Style recheck now `86/86` after `test_adr_structure` + `test_extension_recipe_structure` were added. Phase 4: P4.1–P4.2 complete; P4.3 complete (`0dba3719`..`ed8e5de0` — all scripts moved to scripts/core/ or scripts/demo/, core→demo import violations eliminated, stale dirs removed, full suite 4587/4595 green); P4.4 enforcement test already in style suite (`test_core_scripts_never_import_from_demo` 87/87). P4 Scripts Verification complete (2026-04-24). P4.5 complete (`72272902` audit); P4.6 complete (`2f753915`..`7c33705b` — all core resources → resources/core/); P4.7 complete (`f66a7ce7`..`ef5d8e07` — core scenes → scenes/core/, demo scenes → scenes/demo/); P4.8 complete (`fece8d8c` — demo audio/models/textures → assets/demo/); P4.9 complete (`a85d963b` — core-never-references-demo enforcement tests, 6 violations fixed); P4.10 complete (`bfc64316`..`58e4263e` — prototype_grids → assets/demo/textures/, editor_icons → assets/core/, remaining core dirs → assets/core/). Style suite 89/89. Phase 6: P6.1 complete (`10310f00`..`ec14181a` — RS_BTScoredNode decorator + utility selector scored-node detection, duck-typing, style cap 50 lines). Style suite 90/90. Full suite 4601/4601 passing.
+**Status**: Phase 1 complete — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 complete (`26289494`, `fffa2e55`, `7de2a6cf`, `c1d7b0fb`, `a2766455`, `2aacb999` + remediation `91c094c0`..`e416469c`); P1.9b complete (`348802ca`, `b2c67185`, `7a96c4b0`, `d2644cf3`, `0bb07870`, `085c428d`, `73a66510`, `cd2afbcf`, `94d4b7c6` + 2026-04-22 verification follow-through); P1.10 BT-only legacy cleanup complete (`43035ad6`, `6a30f13c` + 2026-04-23 docs hygiene follow-through). Phase 2 complete through P2.4 (`28702b95`) with style recheck passing (`83/83`). Phase 3 complete as of 2026-04-23: P3.0–P3.4 + P3.6 landed, and the P3.5 framework deliverable (dir + `README.md` + `TEMPLATE.md` + `test_extension_recipe_structure`) shipped; the 18 individual extension recipes still ship at the tail of their owning phase (Phases 1/4/5), so overall P3 Verification closes only once those recipe commits land. Style recheck now `86/86` after `test_adr_structure` + `test_extension_recipe_structure` were added. Phase 4: P4.1–P4.2 complete; P4.3 complete (`0dba3719`..`ed8e5de0` — all scripts moved to scripts/core/ or scripts/demo/, core→demo import violations eliminated, stale dirs removed, full suite 4587/4595 green); P4.4 enforcement test already in style suite (`test_core_scripts_never_import_from_demo` 87/87). P4 Scripts Verification complete (2026-04-24). P4.5 complete (`72272902` audit); P4.6 complete (`2f753915`..`7c33705b` — all core resources → resources/core/); P4.7 complete (`f66a7ce7`..`ef5d8e07` — core scenes → scenes/core/, demo scenes → scenes/demo/); P4.8 complete (`fece8d8c` — demo audio/models/textures → assets/demo/); P4.9 complete (`a85d963b` — core-never-references-demo enforcement tests, 6 violations fixed); P4.10 complete (`bfc64316`..`58e4263e` — prototype_grids → assets/demo/textures/, editor_icons → assets/core/, remaining core dirs → assets/core/). Style suite 89/89. Phase 6: P6.1 complete (`10310f00`..`ec14181a` — RS_BTScoredNode decorator + utility selector scored-node detection, duck-typing, style cap 50 lines). Style suite 90/90. Full suite 4601/4601 passing. P6.2 complete (`a4c41434`..`a23270b1`). P6.3 complete (`d0c1224a`..`0cd59475`). P6.4 complete (`4a1218f1`..`c6608c79` — RS_AIBrainScriptSettings, get_root() virtual, caller updates). Style suite 92/92. Full suite 4651/4659 (8 pre-existing pending).
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred.
 **Scope**: Six phases. Phase 1 is the largest (AI rewrite) and must complete before Phases 2–5, because Phases 4–5 depend on a stable AI architecture to decide what is "core template" vs "demo content." Phase 6 (fluent builders) can proceed after Phase 4 completes.
 
@@ -1528,31 +1528,21 @@ resources/
 
 **Goal**: Allow brain settings to generate their BT root from a builder script instead of a static `.tres` resource.
 
-- [ ] **Commit 1** (RED) — `tests/unit/ai/bt/test_rs_ai_brain_script_settings.gd`:
-  - `RS_AIBrainScriptSettings` extends `RS_AIBrainSettings`
-  - Has `@export var builder_script: Script`
-  - `get_root()` returns cached `root` if already set
-  - `get_root()` instantiates `builder_script`, calls `build()`, caches and returns result
-  - `get_root()` returns null if no builder script or `build()` method missing
-  - Brain with `RS_AIBrainScriptSettings` works through `S_AIBehaviorSystem` tick cycle
-- [ ] **Commit 2** (GREEN) — Add `get_root()` to `scripts/core/resources/ai/brain/rs_ai_brain_settings.gd`:
-  - Virtual method returning `root` by default
-  - Subclasses override to generate root dynamically
-- [ ] **Commit 3** (GREEN) — `scripts/core/resources/ai/brain/rs_ai_brain_script_settings.gd`:
-  - `class_name RS_AIBrainScriptSettings`, extends `RS_AIBrainSettings`
-  - `@export var builder_script: Script = null`
-  - Overrides `get_root()` to instantiate builder script and call `build()`
-  - Caches result in `root`
-- [ ] **Commit 4** (GREEN) — Update `scripts/demo/ecs/components/c_ai_brain_component.gd`:
-  - Replace direct `brain_settings.root` access with `brain_settings.get_root()`
-- [ ] **Commit 5** (GREEN) — Update `scripts/demo/ecs/systems/s_ai_behavior_system.gd`:
-  - Replace direct `brain_settings.root` access with `brain_settings.get_root()`
+- [x] **Commit 1** (RED) — `tests/unit/ai/bt/test_rs_ai_brain_script_settings.gd` (`4a1218f1`)
+- [x] **Commit 2** (GREEN) — Add `get_root()` virtual to `rs_ai_brain_settings.gd` (`f0652db7`)
+- [x] **Commit 3** (GREEN) — `scripts/core/resources/ai/brain/rs_ai_brain_script_settings.gd` (`25da8c65`)
+- [x] **Commit 4** (GREEN) — Update callers: `s_ai_behavior_system.gd` + `u_ai_bt_task_label_resolver.gd` (`c6608c79`)
 
 **P6.4 Verification**:
-- [ ] Existing `.tres`-backed brains still work (backward compat)
-- [ ] Script-backed brains generate and cache BT roots correctly
-- [ ] Full AI behavior system test green
-- [ ] Full suite green
+- [x] Existing `.tres`-backed brains still work (backward compat)
+- [x] Script-backed brains generate and cache BT roots correctly
+- [x] Full AI behavior system test green
+- [x] Full suite green (4651/4659, 8 pre-existing pending)
+
+**P6.4 Completion Notes (2026-04-26)**:
+- `u_ai_bt_task_label_resolver.gd` also accessed `brain_settings.root` directly; updated alongside `s_ai_behavior_system.gd` in commit 4.
+- Dynamic GDScript creation in tests (GDScript.new() + reload()) used for mock builder scripts — avoids fixture files, works in headless mode.
+- `root` property serves as the cache: first call builds and stores in `root`, subsequent calls return the cached value.
 
 ---
 
