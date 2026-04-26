@@ -90,6 +90,8 @@ const BT_PLANNER_PATH := "res://scripts/core/resources/ai/bt/rs_bt_planner.gd"
 const BT_PLANNER_SEARCH_PATH := "res://scripts/core/utils/ai/u_bt_planner_search.gd"
 const BT_PLANNER_MAX_LINES := 149
 const BT_PLANNER_SEARCH_MAX_LINES := 119
+const RS_BT_SCORED_NODE_PATH := "res://scripts/core/resources/bt/rs_bt_scored_node.gd"
+const RS_BT_SCORED_NODE_MAX_LINES := 50
 const BT_GENERAL_FORBIDDEN_TOKENS := [
 	"U_AI",
 	"I_AIAction",
@@ -682,6 +684,14 @@ func test_bt_planner_scripts_stay_within_loc_caps() -> void:
 	_collect_gd_single_file_line_limit_violation(BT_PLANNER_SEARCH_PATH, BT_PLANNER_SEARCH_MAX_LINES, violations)
 
 	var message := "Planner scripts must stay within enforced LOC caps"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+	assert_eq(violations.size(), 0, message)
+
+func test_rs_bt_scored_node_stays_under_fifty_lines() -> void:
+	var violations: Array[String] = []
+	_collect_gd_single_file_line_limit_violation(RS_BT_SCORED_NODE_PATH, RS_BT_SCORED_NODE_MAX_LINES, violations)
+	var message := "RS_BTScoredNode must stay under 50 lines (it is a thin decorator — keep it minimal)"
 	if violations.size() > 0:
 		message += ":\n" + "\n".join(violations)
 	assert_eq(violations.size(), 0, message)
