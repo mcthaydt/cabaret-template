@@ -111,7 +111,7 @@ func _get_store_custom_bindings() -> Dictionary:
 	return {}
 
 func before_each() -> void:
-	U_StateHandoff.clear_all()  # Prevent StateHandoff pollution across tests (see DEV_PITFALLS)
+	U_StateHandoff.clear_all()  # Prevent StateHandoff pollution across tests (see docs/guides/pitfalls/TESTING.md)
 	_cleanup_input_settings_files()
 	# Create state store with gameplay slice so pause gating can be tested
 	_store = M_StateStore.new()

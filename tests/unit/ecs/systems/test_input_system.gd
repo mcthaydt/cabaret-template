@@ -26,7 +26,7 @@ func before_all() -> void:
 	_ensure_action("sprint")
 
 func before_each() -> void:
-	U_StateHandoff.clear_all()  # Prevent StateHandoff pollution across tests (see DEV_PITFALLS)
+	U_StateHandoff.clear_all()  # Prevent StateHandoff pollution across tests (see docs/guides/pitfalls/TESTING.md)
 
 func after_each() -> void:
 	U_StateHandoff.clear_all()
