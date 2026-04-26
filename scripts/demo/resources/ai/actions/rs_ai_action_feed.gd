@@ -7,9 +7,12 @@ const C_DETECTION_COMPONENT := preload("res://scripts/demo/ecs/components/c_dete
 const U_ECS_UTILS := preload("res://scripts/core/utils/ecs/u_ecs_utils.gd")
 const U_ENTITY_ACTIONS := preload("res://scripts/core/state/actions/u_entity_actions.gd")
 const U_AI_ACTION_POSITION_RESOLVER := preload("res://scripts/core/utils/ai/u_ai_action_position_resolver.gd")
+const U_DEBUG_LOG_THROTTLE := preload("res://scripts/core/utils/debug/u_debug_log_throttle.gd")
 
 @export var consume_detected_target: bool = false
 @export var consume_radius: float = 1.25
+@export var debug_logging: bool = false
+var _debug_log_throttle: U_DebugLogThrottle = U_DEBUG_LOG_THROTTLE.new()
 
 func start(context: Dictionary, task_state: Dictionary) -> void:
 	var hunger_before: float = 0.0
@@ -41,15 +44,16 @@ func start(context: Dictionary, task_state: Dictionary) -> void:
 		var current_hunger: float = float(needs_component.get("hunger"))
 		needs_component.set("hunger", clampf(current_hunger + gain_on_feed, 0.0, 1.0))
 	var hunger_after: float = float(needs_component.get("hunger"))
-	print("[ACTION] %s Feed consume_required=%s consumed=%s reason=%s target=%s hunger %.2f → %.2f" % [
-		_resolve_entity_label(context),
-		consume_detected_target,
-		did_consume_target,
-		consume_reason,
-		consume_target_id,
-		hunger_before,
-		hunger_after
-	])
+	if debug_logging and _debug_log_throttle.consume_budget(&"action_feed", 1.0):
+		_debug_log_throttle.log_message("[ACTION] %s Feed consume_required=%s consumed=%s reason=%s target=%s hunger %.2f -> %.2f" % [
+			_resolve_entity_label(context),
+			consume_detected_target,
+			did_consume_target,
+			consume_reason,
+			consume_target_id,
+			hunger_before,
+			hunger_after
+		])
 	task_state[U_AITaskStateKeys.COMPLETED] = true
 
 func tick(_context: Dictionary, _task_state: Dictionary, _delta: float) -> void:
@@ -200,18 +204,19 @@ func _print_feed_target_trace(
 	if target_entity != null and is_instance_valid(target_entity):
 		target_tags = U_ECS_UTILS.get_entity_tags(target_entity)
 	var distance_xz: float = _resolve_xz_distance_to_target(context, target_entity)
-	print("[ACTION_TRACE] %s FeedTarget locked=%s pending=%s live=%s resolved=%s tags=%s dist_xz=%.2f radius=%.2f consumed=%s reason=%s" % [
-		_resolve_entity_label(context),
-		task_locked_target_id,
-		pending_target_id,
-		live_target_id,
-		target_entity_id,
-		_format_tags_for_debug(target_tags),
-		distance_xz,
-		maxf(consume_radius, 0.0),
-		consumed,
-		reason,
-	])
+	if debug_logging and _debug_log_throttle.consume_budget(&"action_feed_trace", 0.5):
+		_debug_log_throttle.log_message("[ACTION_TRACE] %s FeedTarget locked=%s pending=%s live=%s resolved=%s tags=%s dist_xz=%.2f radius=%.2f consumed=%s reason=%s" % [
+			_resolve_entity_label(context),
+			task_locked_target_id,
+			pending_target_id,
+			live_target_id,
+			target_entity_id,
+			_format_tags_for_debug(target_tags),
+			distance_xz,
+			maxf(consume_radius, 0.0),
+			consumed,
+			reason,
+		])
 
 func _resolve_xz_distance_to_target(context: Dictionary, target_entity: Node3D) -> float:
 	if target_entity == null or not is_instance_valid(target_entity):

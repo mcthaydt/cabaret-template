@@ -4,12 +4,16 @@ class_name RS_AIActionDrink
 
 const C_NEEDS_COMPONENT := preload("res://scripts/demo/ecs/components/c_needs_component.gd")
 const RS_NEEDS_SETTINGS := preload("res://scripts/core/resources/ecs/rs_needs_settings.gd")
+const U_DEBUG_LOG_THROTTLE := preload("res://scripts/core/utils/debug/u_debug_log_throttle.gd")
 
 @export var drink_seconds: float = 1.5
+@export var debug_logging: bool = false
+var _debug_log_throttle: U_DebugLogThrottle = U_DEBUG_LOG_THROTTLE.new()
 
 func start(context: Dictionary, task_state: Dictionary) -> void:
 	task_state[U_AITaskStateKeys.ELAPSED] = 0.0
-	print("[ACTION] %s Drink started (duration=%.2fs)" % [_resolve_entity_label(context), maxf(drink_seconds, 0.0)])
+	if debug_logging and _debug_log_throttle.consume_budget(&"action_drink_start", 1.0):
+		_debug_log_throttle.log_message("[ACTION] %s Drink started (duration=%.2fs)" % [_resolve_entity_label(context), maxf(drink_seconds, 0.0)])
 
 func tick(_context: Dictionary, task_state: Dictionary, delta: float) -> void:
 	var elapsed: float = task_state.get(U_AITaskStateKeys.ELAPSED, 0.0)
@@ -20,7 +24,8 @@ func is_complete(context: Dictionary, task_state: Dictionary) -> bool:
 	if elapsed < maxf(drink_seconds, 0.0):
 		return false
 	_apply_drink(context)
-	print("[ACTION] %s Drink complete after %.2fs" % [_resolve_entity_label(context), elapsed])
+	if debug_logging and _debug_log_throttle.consume_budget(&"action_drink_complete", 1.0):
+		_debug_log_throttle.log_message("[ACTION] %s Drink complete after %.2fs" % [_resolve_entity_label(context), elapsed])
 	return true
 
 func _apply_drink(context: Dictionary) -> void:

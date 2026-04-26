@@ -5,12 +5,17 @@ class_name RS_AIActionBuildStage
 const C_BUILD_SITE_COMPONENT := preload("res://scripts/demo/ecs/components/c_build_site_component.gd")
 const C_DETECTION_COMPONENT := preload("res://scripts/demo/ecs/components/c_detection_component.gd")
 const RS_BUILD_STAGE := preload("res://scripts/demo/resources/ai/world/rs_build_stage.gd")
+const U_DEBUG_LOG_THROTTLE := preload("res://scripts/core/utils/debug/u_debug_log_throttle.gd")
+
+@export var debug_logging: bool = false
+var _debug_log_throttle: U_DebugLogThrottle = U_DEBUG_LOG_THROTTLE.new()
 
 func start(context: Dictionary, task_state: Dictionary) -> void:
 	task_state[U_AITaskStateKeys.BUILD_ELAPSED] = 0.0
 	var build_site: Object = _resolve_build_site(context)
 	if build_site == null:
-		print("[ACTION] %s BuildStage started (no build site)" % _resolve_entity_label(context))
+		if debug_logging and _debug_log_throttle.consume_budget(&"build_stage_start_no_site", 1.0):
+			_debug_log_throttle.log_message("[ACTION] %s BuildStage started (no build site)" % _resolve_entity_label(context))
 		return
 	var stage_id_text: String = ""
 	var required_materials_text: String = "{}"
@@ -19,14 +24,15 @@ func start(context: Dictionary, task_state: Dictionary) -> void:
 		var stage: RS_BuildStage = current_stage_variant as RS_BuildStage
 		stage_id_text = str(stage.stage_id)
 		required_materials_text = str(stage.required_materials)
-	print("[ACTION] %s BuildStage started stage_index=%d stage_id=%s required=%s placed=%s materials_ready=%s" % [
-		_resolve_entity_label(context),
-		int(build_site.get("current_stage_index")),
-		stage_id_text,
-		required_materials_text,
-		str(build_site.get("placed_materials")),
-		str(bool(build_site.get("materials_ready"))),
-	])
+	if debug_logging and _debug_log_throttle.consume_budget(&"build_stage_start", 1.0):
+		_debug_log_throttle.log_message("[ACTION] %s BuildStage started stage_index=%d stage_id=%s required=%s placed=%s materials_ready=%s" % [
+			_resolve_entity_label(context),
+			int(build_site.get("current_stage_index")),
+			stage_id_text,
+			required_materials_text,
+			str(build_site.get("placed_materials")),
+			str(bool(build_site.get("materials_ready"))),
+		])
 
 func tick(_context: Dictionary, task_state: Dictionary, delta: float) -> void:
 	var elapsed: float = task_state.get(U_AITaskStateKeys.BUILD_ELAPSED, 0.0)
@@ -35,11 +41,13 @@ func tick(_context: Dictionary, task_state: Dictionary, delta: float) -> void:
 func is_complete(context: Dictionary, task_state: Dictionary) -> bool:
 	var build_site: Object = _resolve_build_site(context)
 	if build_site == null:
-		print("[ACTION] %s BuildStage skipped (no build site)" % _resolve_entity_label(context))
+		if debug_logging and _debug_log_throttle.consume_budget(&"build_stage_skip_no_site", 1.0):
+			_debug_log_throttle.log_message("[ACTION] %s BuildStage skipped (no build site)" % _resolve_entity_label(context))
 		return true
 	var current_stage_variant: Variant = build_site.call("current_stage")
 	if current_stage_variant == null:
-		print("[ACTION] %s BuildStage complete (all stages done)" % _resolve_entity_label(context))
+		if debug_logging and _debug_log_throttle.consume_budget(&"build_stage_complete", 1.0):
+			_debug_log_throttle.log_message("[ACTION] %s BuildStage complete (all stages done)" % _resolve_entity_label(context))
 		return true
 	var build_seconds: float = 3.0
 	if current_stage_variant is RS_BuildStage:
@@ -49,13 +57,14 @@ func is_complete(context: Dictionary, task_state: Dictionary) -> bool:
 	if elapsed < maxf(build_seconds, 0.0):
 		return false
 	build_site.call("advance_stage")
-	print("[ACTION] %s BuildStage advanced after %.2fs -> stage_index=%d completed=%s materials_ready=%s" % [
-		_resolve_entity_label(context),
-		elapsed,
-		int(build_site.get("current_stage_index")),
-		str(bool(build_site.get("completed"))),
-		str(bool(build_site.get("materials_ready"))),
-	])
+	if debug_logging and _debug_log_throttle.consume_budget(&"build_stage_advance", 1.0):
+		_debug_log_throttle.log_message("[ACTION] %s BuildStage advanced after %.2fs -> stage_index=%d completed=%s materials_ready=%s" % [
+			_resolve_entity_label(context),
+			elapsed,
+			int(build_site.get("current_stage_index")),
+			str(bool(build_site.get("completed"))),
+			str(bool(build_site.get("materials_ready"))),
+		])
 	return true
 
 func _resolve_build_site(context: Dictionary) -> Object:

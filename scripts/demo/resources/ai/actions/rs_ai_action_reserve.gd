@@ -4,20 +4,25 @@ class_name RS_AIActionReserve
 
 const C_RESOURCE_NODE_COMPONENT := preload("res://scripts/demo/ecs/components/c_resource_node_component.gd")
 const C_DETECTION_COMPONENT := preload("res://scripts/demo/ecs/components/c_detection_component.gd")
+const U_DEBUG_LOG_THROTTLE := preload("res://scripts/core/utils/debug/u_debug_log_throttle.gd")
 
 @export var reserve_duration_seconds: float = 10.0
+@export var debug_logging: bool = false
+var _debug_log_throttle: U_DebugLogThrottle = U_DEBUG_LOG_THROTTLE.new()
 
 func start(context: Dictionary, task_state: Dictionary) -> void:
 	var resource_node: Object = _resolve_resource_node(context, task_state)
 	if resource_node == null:
 		task_state[U_AITaskStateKeys.COMPLETED] = true
-		print("[ACTION] %s Reserve skipped (no resource node)" % _resolve_entity_label(context))
+		if debug_logging and _debug_log_throttle.consume_budget(&"reserve_skip_no_node", 1.0):
+			_debug_log_throttle.log_message("[ACTION] %s Reserve skipped (no resource node)" % _resolve_entity_label(context))
 		return
 	if resource_node.has_method("is_available"):
 		var available_variant: Variant = resource_node.call("is_available")
 		if available_variant is bool and not bool(available_variant):
 			task_state[U_AITaskStateKeys.COMPLETED] = true
-			print("[ACTION] %s Reserve skipped (resource unavailable)" % _resolve_entity_label(context))
+			if debug_logging and _debug_log_throttle.consume_budget(&"reserve_skip_unavailable", 1.0):
+				_debug_log_throttle.log_message("[ACTION] %s Reserve skipped (resource unavailable)" % _resolve_entity_label(context))
 			return
 	var entity_id_variant: Variant = context.get("entity_id", StringName(""))
 	var entity_id: StringName = entity_id_variant as StringName if entity_id_variant is StringName else StringName("")
@@ -28,12 +33,13 @@ func start(context: Dictionary, task_state: Dictionary) -> void:
 		reserved_type = StringName(settings_variant.get("resource_type"))
 	task_state[U_AITaskStateKeys.INVENTORY_RESERVED_TYPE] = reserved_type
 	task_state[U_AITaskStateKeys.COMPLETED] = true
-	print("[ACTION] %s Reserve → entity_id=%s type=%s duration=%.2fs" % [
-		_resolve_entity_label(context),
-		entity_id,
-		reserved_type,
-		maxf(reserve_duration_seconds, 0.0),
-	])
+	if debug_logging and _debug_log_throttle.consume_budget(&"reserve_result", 1.0):
+		_debug_log_throttle.log_message("[ACTION] %s Reserve -> entity_id=%s type=%s duration=%.2fs" % [
+			_resolve_entity_label(context),
+			entity_id,
+			reserved_type,
+			maxf(reserve_duration_seconds, 0.0),
+		])
 
 func tick(_context: Dictionary, _task_state: Dictionary, _delta: float) -> void:
 	pass

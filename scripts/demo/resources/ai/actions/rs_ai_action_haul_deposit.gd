@@ -6,14 +6,19 @@ const C_INVENTORY_COMPONENT := preload("res://scripts/demo/ecs/components/c_inve
 const C_BUILD_SITE_COMPONENT := preload("res://scripts/demo/ecs/components/c_build_site_component.gd")
 const C_DETECTION_COMPONENT := preload("res://scripts/demo/ecs/components/c_detection_component.gd")
 const U_ECS_UTILS := preload("res://scripts/core/utils/ecs/u_ecs_utils.gd")
+const U_DEBUG_LOG_THROTTLE := preload("res://scripts/core/utils/debug/u_debug_log_throttle.gd")
 
 @export var deposit_target_tag: StringName = &"build_site"
+@export var debug_logging: bool = false
+var _debug_log_throttle: U_DebugLogThrottle = U_DEBUG_LOG_THROTTLE.new()
 
 func start(context: Dictionary, task_state: Dictionary) -> void:
-	print("[ACTION] %s HaulDeposit started" % _resolve_entity_label(context))
+	if debug_logging and _debug_log_throttle.consume_budget(&"haul_deposit_start", 1.0):
+		_debug_log_throttle.log_message("[ACTION] %s HaulDeposit started" % _resolve_entity_label(context))
 	_do_deposit(context, task_state)
 	task_state[U_AITaskStateKeys.COMPLETED] = true
-	print("[ACTION] %s HaulDeposit complete" % _resolve_entity_label(context))
+	if debug_logging and _debug_log_throttle.consume_budget(&"haul_deposit_complete", 1.0):
+		_debug_log_throttle.log_message("[ACTION] %s HaulDeposit complete" % _resolve_entity_label(context))
 
 func tick(_context: Dictionary, _task_state: Dictionary, _delta: float) -> void:
 	pass
@@ -116,13 +121,14 @@ func _deposit_to_build_site(inventory: Object, build_site: Object, context: Dict
 		moved_total += move_qty
 	if build_site.has_method("refresh_materials_ready"):
 		build_site.call("refresh_materials_ready")
-	print("[ACTION] %s HaulDeposit moved=%d placed=%s stage_index=%d materials_ready=%s" % [
-		_resolve_entity_label(context),
-		moved_total,
-		str(placed),
-		int(build_site.get("current_stage_index")),
-		str(bool(build_site.get("materials_ready"))),
-	])
+	if debug_logging and _debug_log_throttle.consume_budget(&"haul_deposit_result", 1.0):
+		_debug_log_throttle.log_message("[ACTION] %s HaulDeposit moved=%d placed=%s stage_index=%d materials_ready=%s" % [
+			_resolve_entity_label(context),
+			moved_total,
+			str(placed),
+			int(build_site.get("current_stage_index")),
+			str(bool(build_site.get("materials_ready"))),
+		])
 
 func _resolve_missing_materials(build_site: Object) -> Dictionary:
 	if build_site != null and build_site.has_method("get_current_stage_missing_materials"):

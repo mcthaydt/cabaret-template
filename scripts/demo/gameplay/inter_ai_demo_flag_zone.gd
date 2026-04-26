@@ -86,7 +86,7 @@ func _is_interact_mode() -> bool:
 func _dispatch_gameplay_updates() -> void:
 	var store: I_StateStore = U_DependencyResolution.resolve_state_store(null, null, self)
 	if store == null:
-		print("AIDemoFlagZone[%s]: ERROR - no state store found!" % ai_flag_id)
+		push_error("Inter_AIDemoFlagZone[%s]: no state store found" % ai_flag_id)
 		return
 
 	if ai_flag_id != StringName(""):
