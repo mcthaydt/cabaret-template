@@ -24,11 +24,11 @@ This recipe does **not** cover:
 
 ## Canonical Example
 
-- Condition: `scripts/resources/qb/conditions/rs_condition_component_field.gd`
-- Effect: `scripts/resources/qb/effects/rs_effect_publish_event.gd`
-- Rule: `resources/qb/<domain>/cfg_<name>.tres` (`RS_Rule`)
-- Consumer: `scripts/ecs/systems/s_character_state_system.gd`
-- Scoring: `scripts/utils/qb/u_rule_scorer.gd`
+- Condition: `scripts/core/resources/qb/conditions/rs_condition_component_field.gd`
+- Effect: `scripts/core/resources/qb/effects/rs_effect_publish_event.gd`
+- Rule: `resources/core/qb/<domain>/cfg_<name>.tres` (`RS_Rule`)
+- Consumer: `scripts/core/ecs/systems/s_character_state_system.gd`
+- Scoring: `scripts/core/utils/qb/u_rule_scorer.gd`
 
 ## Vocabulary
 
@@ -44,25 +44,25 @@ This recipe does **not** cover:
 | `U_RuleStateTracker` | Per-system instance: cooldowns, rising-edge, one-shot tracking. |
 | `U_RuleValidator` | Static: `validate_rules(rules) -> Dictionary`. Checks rule_id, conditions, event requirements. |
 
-Conditions under `scripts/resources/qb/conditions/`. Effects under `scripts/resources/qb/effects/`.
+Conditions under `scripts/core/resources/qb/conditions/`. Effects under `scripts/core/resources/qb/effects/`.
 
 ## Recipe
 
 ### Adding a new condition type
 
-1. Create `scripts/resources/qb/conditions/rs_condition_<name>.gd`: extend `RS_BaseCondition`, `class_name RS_Condition<Name>`, `@export` fields with `@export_group` annotations, override `_evaluate_raw(context) -> float` returning 0.0–1.0.
+1. Create `scripts/core/resources/qb/conditions/rs_condition_<name>.gd`: extend `RS_BaseCondition`, `class_name RS_Condition<Name>`, `@export` fields with `@export_group` annotations, override `_evaluate_raw(context) -> float` returning 0.0–1.0.
 2. Use inherited helpers: `_score_numeric_or_bool()`, `_matches_string()`, `_get_dict_value_string_or_name()`.
 3. Use `U_PathResolver.resolve()` for dot-path traversal if needed.
 4. Add validation case to `U_RuleValidator._validate_condition_entry()` for required fields.
 
 ### Adding a new effect type
 
-1. Create `scripts/resources/qb/effects/rs_effect_<name>.gd`: extend `RS_BaseEffect`, `class_name RS_Effect<Name>`, `@export` fields, override `execute(context) -> void`.
+1. Create `scripts/core/resources/qb/effects/rs_effect_<name>.gd`: extend `RS_BaseEffect`, `class_name RS_Effect<Name>`, `@export` fields, override `execute(context) -> void`.
 2. Add validation case to `U_RuleValidator._validate_effects()` for required fields.
 
 ### Adding a new rule
 
-1. Create `.tres` under `resources/qb/<domain>/cfg_<name>.tres` with `RS_Rule` class.
+1. Create `.tres` under `resources/core/qb/<domain>/cfg_<name>.tres` with `RS_Rule` class.
 2. Set `rule_id`, `trigger_mode`, `score_threshold`, `decision_group`, `priority`, `cooldown`, `one_shot`, `requires_rising_edge`.
 3. Add at least one condition. If `trigger_mode` is `"event"` or `"both"`, must include `RS_ConditionEventName`.
 4. Add effects.

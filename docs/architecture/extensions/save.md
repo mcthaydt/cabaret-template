@@ -21,10 +21,10 @@ This recipe does **not** cover:
 
 ## Canonical Example
 
-- Save manager: `scripts/managers/m_save_manager.gd`
-- Migration engine: `scripts/managers/helpers/u_save_migration_engine.gd`
-- Validator: `scripts/utils/u_save_validator.gd`
-- Atomic write: `scripts/managers/helpers/u_save_file_io.gd`
+- Save manager: `scripts/core/managers/m_save_manager.gd`
+- Migration engine: `scripts/core/managers/helpers/u_save_migration_engine.gd`
+- Validator: `scripts/core/utils/u_save_validator.gd`
+- Atomic write: `scripts/core/managers/helpers/u_save_file_io.gd`
 
 ## Vocabulary
 

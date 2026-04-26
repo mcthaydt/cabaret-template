@@ -23,10 +23,10 @@ This recipe does **not** cover:
 
 ## Canonical Example
 
-- Overlay: `scripts/ui/menus/ui_pause_menu.gd` (extends `BaseOverlay`)
-- Full-screen menu: `scripts/ui/menus/ui_main_menu.gd` (extends `BaseMenuScreen`)
-- Screen definition: `resources/ui_screens/cfg_pause_menu_overlay.tres`
-- Navigation actions: `scripts/state/actions/u_navigation_actions.gd`
+- Overlay: `scripts/core/ui/menus/ui_pause_menu.gd` (extends `BaseOverlay`)
+- Full-screen menu: `scripts/core/ui/menus/ui_main_menu.gd` (extends `BaseMenuScreen`)
+- Screen definition: `resources/core/ui_screens/cfg_pause_menu_overlay.tres`
+- Navigation actions: `scripts/core/state/actions/u_navigation_actions.gd`
 
 ## Vocabulary
 
@@ -47,10 +47,10 @@ This recipe does **not** cover:
 ### Adding a new overlay
 
 1. Register scene in `U_SceneRegistry` with `SceneType.UI`.
-2. Create `RS_UIScreenDefinition` `.tres` at `resources/ui_screens/cfg_<name>_overlay.tres`: set `screen_id`, `kind = OVERLAY`, `scene_id`, `allowed_shells`, `allowed_parents`, `close_mode`.
+2. Create `RS_UIScreenDefinition` `.tres` at `resources/core/ui_screens/cfg_<name>_overlay.tres`: set `screen_id`, `kind = OVERLAY`, `scene_id`, `allowed_shells`, `allowed_parents`, `close_mode`.
 3. Preload in `U_UIRegistry`: add `const <NAME>_OVERLAY := preload(...)` and `_register_definition()` in `_register_all_screens()`.
-4. Create script: `scripts/ui/<category>/ui_<name>.gd`, extend `BaseOverlay`, override `_on_panel_ready()` and `_on_back_pressed()`.
-5. Create `.tscn` scene under `scenes/ui/overlays/`.
+4. Create script: `scripts/core/ui/<category>/ui_<name>.gd`, extend `BaseOverlay`, override `_on_panel_ready()` and `_on_back_pressed()`.
+5. Create `.tscn` scene under `scenes/core/ui/overlays/`.
 6. All button handlers dispatch `U_NavigationActions` — never call `M_SceneManager` directly.
 
 ### Adding a new full-screen screen

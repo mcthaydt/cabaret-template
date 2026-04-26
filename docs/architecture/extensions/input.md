@@ -22,11 +22,11 @@ This recipe does **not** cover:
 
 ## Canonical Example
 
-- Bootstrapper: `scripts/input/u_input_map_bootstrapper.gd` (`REQUIRED_ACTIONS`)
-- Profile: `resources/input/profiles/cfg_default_keyboard.tres` (`RS_InputProfile`)
-- Profile loader: `scripts/managers/helpers/u_input_profile_loader.gd`
-- Source: `scripts/input/sources/keyboard_mouse_source.gd` (implements `I_InputSource`)
-- Actions: `scripts/state/actions/u_input_actions.gd`
+- Bootstrapper: `scripts/core/input/u_input_map_bootstrapper.gd` (`REQUIRED_ACTIONS`)
+- Profile: `resources/core/input/profiles/cfg_default_keyboard.tres` (`RS_InputProfile`)
+- Profile loader: `scripts/core/managers/helpers/u_input_profile_loader.gd`
+- Source: `scripts/core/input/sources/keyboard_mouse_source.gd` (implements `I_InputSource`)
+- Actions: `scripts/core/state/actions/u_input_actions.gd`
 
 ## Vocabulary
 
@@ -52,14 +52,14 @@ Profile naming: `cfg_<descriptor>_<device>.tres`. Action names: lowercase snake_
 
 ### Adding a new input profile
 
-1. Create `RS_InputProfile` `.tres` under `resources/input/profiles/`: `cfg_<descriptor>_<device>.tres`.
+1. Create `RS_InputProfile` `.tres` under `resources/core/input/profiles/`: `cfg_<descriptor>_<device>.tres`.
 2. Set `profile_name`, `device_type`, `action_mappings`, `description`, `is_system_profile`.
 3. Register in `U_InputProfileLoader.load_available_profiles()`: add `load()` + insert into `profiles` dictionary.
 4. Accessibility profiles (key starts with `"accessibility"`) auto-apply accessibility fields on switch.
 
 ### Adding a new input source device
 
-1. Create class extending `I_InputSource` in `scripts/input/sources/`.
+1. Create class extending `I_InputSource` in `scripts/core/input/sources/`.
 2. Add enum value to `U_DeviceTypeConstants.DeviceType`.
 3. Register in `M_InputDeviceManager._register_input_sources()` and handle events in `_input()`.
 

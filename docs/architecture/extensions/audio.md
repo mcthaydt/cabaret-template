@@ -23,11 +23,11 @@ This recipe does **not** cover:
 
 ## Canonical Example
 
-- Music track: `resources/audio/tracks/music_bar.tres` (`RS_MusicTrackDefinition`)
-- Ambient track: `resources/audio/ambient/ambient_exterior.tres` (`RS_AmbientTrackDefinition`)
-- UI sound: `resources/audio/ui/ui_confirm.tres` (`RS_UISoundDefinition`)
-- Scene mapping: `resources/audio/scene_mappings/scene_bar.tres` (`RS_SceneAudioMapping`)
-- Registry: `scripts/managers/helpers/u_audio_registry_loader.gd`
+- Music track: `resources/demo/audio/tracks/music_bar.tres` (`RS_MusicTrackDefinition`)
+- Ambient track: `resources/demo/audio/ambient/ambient_exterior.tres` (`RS_AmbientTrackDefinition`)
+- UI sound: `resources/demo/audio/ui/ui_confirm.tres` (`RS_UISoundDefinition`)
+- Scene mapping: `resources/demo/audio/scene_mappings/scene_bar.tres` (`RS_SceneAudioMapping`)
+- Registry: `scripts/core/managers/helpers/u_audio_registry_loader.gd`
 
 ## Vocabulary
 
@@ -45,23 +45,23 @@ Registry IDs are plain lowercase StringNames matching the `.tres` filename stem.
 
 ### Adding a new music track
 
-1. Create `RS_MusicTrackDefinition` `.tres` under `resources/audio/tracks/` named `music_<id>.tres`. Set `track_id`, `stream`, `default_fade_duration`, `base_volume_offset_db`, `loop`, `pause_behavior`.
+1. Create `RS_MusicTrackDefinition` `.tres` under `resources/demo/audio/tracks/` named `music_<id>.tres`. Set `track_id`, `stream`, `default_fade_duration`, `base_volume_offset_db`, `loop`, `pause_behavior`.
 2. Register in `U_AudioRegistryLoader._register_music_tracks()`: add `preload()` + `_music_tracks[StringName("<id>")]`.
 
 ### Adding a new ambient track
 
-1. Create `RS_AmbientTrackDefinition` `.tres` under `resources/audio/ambient/` named `ambient_<id>.tres`. Set fields.
+1. Create `RS_AmbientTrackDefinition` `.tres` under `resources/demo/audio/ambient/` named `ambient_<id>.tres`. Set fields.
 2. Register in `U_AudioRegistryLoader._register_ambient_tracks()`.
 
 ### Adding a new UI sound
 
-1. Create `RS_UISoundDefinition` `.tres` under `resources/audio/ui/` named `ui_<id>.tres`. Set `sound_id`, `stream`, `volume_db`, `pitch_variation`, `throttle_ms`.
+1. Create `RS_UISoundDefinition` `.tres` under `resources/demo/audio/ui/` named `ui_<id>.tres`. Set `sound_id`, `stream`, `volume_db`, `pitch_variation`, `throttle_ms`.
 2. Register in `U_AudioRegistryLoader._register_ui_sounds()`.
 3. Call: `U_AudioUtils.get_audio_manager().play_ui_sound(StringName("ui_<id>"))`.
 
 ### Adding a new scene audio mapping
 
-1. Create `RS_SceneAudioMapping` `.tres` under `resources/audio/scene_mappings/` named `scene_<scene_id>.tres`. Set `scene_id`, `music_track_id`, `ambient_track_id`. Empty `StringName` = no audio for that category.
+1. Create `RS_SceneAudioMapping` `.tres` under `resources/demo/audio/scene_mappings/` named `scene_<scene_id>.tres`. Set `scene_id`, `music_track_id`, `ambient_track_id`. Empty `StringName` = no audio for that category.
 2. Register in `U_AudioRegistryLoader._register_scene_audio_mappings()`.
 
 ## Anti-patterns

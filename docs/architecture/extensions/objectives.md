@@ -23,12 +23,12 @@ This recipe does **not** cover:
 
 ## Canonical Example
 
-- Objective: `resources/scene_director/objectives/cfg_obj_level_complete.tres` (`RS_ObjectiveDefinition`)
-- Objective set: `resources/scene_director/sets/cfg_objset_default.tres` (`RS_ObjectiveSet`)
-- Victory config: `resources/interactions/victory/cfg_victory_goal_bar.tres` (`RS_VictoryInteractionConfig`)
-- Victory zone: `scripts/gameplay/inter_victory_zone.gd`
-- Objectives manager: `scripts/managers/m_objectives_manager.gd`
-- Beat definition: `scripts/resources/scene_director/rs_beat_definition.gd`
+- Objective: `resources/core/scene_director/objectives/cfg_obj_level_complete.tres` (`RS_ObjectiveDefinition`)
+- Objective set: `resources/core/scene_director/sets/cfg_objset_default.tres` (`RS_ObjectiveSet`)
+- Victory config: `resources/demo/interactions/victory/cfg_victory_goal_bar.tres` (`RS_VictoryInteractionConfig`)
+- Victory zone: `scripts/demo/gameplay/inter_victory_zone.gd`
+- Objectives manager: `scripts/core/managers/m_objectives_manager.gd`
+- Beat definition: `scripts/core/resources/scene_director/rs_beat_definition.gd`
 
 ## Vocabulary
 
@@ -46,22 +46,22 @@ This recipe does **not** cover:
 
 ### Adding a new objective
 
-1. Create `RS_ObjectiveDefinition` `.tres` under `resources/scene_director/objectives/` named `cfg_obj_<name>.tres`. Set `objective_id`, `objective_type`, `conditions` (commonly `RS_ConditionEventPayload`), `completion_effects` (commonly `RS_EffectDispatchAction`), `dependencies`, `auto_activate`.
+1. Create `RS_ObjectiveDefinition` `.tres` under `resources/core/scene_director/objectives/` named `cfg_obj_<name>.tres`. Set `objective_id`, `objective_type`, `conditions` (commonly `RS_ConditionEventPayload`), `completion_effects` (commonly `RS_EffectDispatchAction`), `dependencies`, `auto_activate`.
 2. Add to an `RS_ObjectiveSet` `.tres` (e.g., `cfg_objset_default.tres`).
 3. Wire a trigger: place `Inter_VictoryZone` with `RS_VictoryInteractionConfig` whose `objective_id` matches a condition's `match_value_string`.
 4. If visibility-gated: set `visibility_objective_id` on the config.
 
 ### Adding a new victory route
 
-1. Create `RS_VictoryInteractionConfig` `.tres` under `resources/interactions/victory/` named `cfg_victory_<name>.tres`. Set `objective_id`, `victory_type` (LEVEL_COMPLETE/GAME_COMPLETE), `trigger_once`.
+1. Create `RS_VictoryInteractionConfig` `.tres` under `resources/demo/interactions/victory/` named `cfg_victory_<name>.tres`. Set `objective_id`, `victory_type` (LEVEL_COMPLETE/GAME_COMPLETE), `trigger_once`.
 2. Place `Inter_VictoryZone` in scene with the config assigned.
 3. Create `RS_ObjectiveDefinition` whose conditions match the trigger. For VICTORY type, set `objective_type = 1`.
 4. Completion effect dispatches `gameplay/trigger_victory_routing` with `target_scene` — routes through `S_VictoryHandlerSystem`.
 
 ### Adding a new scene directive (beats)
 
-1. Create `RS_BeatDefinition` `.tres` files under `resources/scene_director/beats/`: each with `beat_id`, `preconditions`, `effects`, `wait_mode` (INSTANT/TIMED/SIGNAL), `next_beat_id`, parallel fields.
-2. Create `RS_SceneDirective` `.tres` under `resources/scene_director/directives/` named `cfg_directive_<name>.tres`. Set `directive_id`, `target_scene_id`, `selection_conditions`, `priority`, `beats`.
+1. Create `RS_BeatDefinition` `.tres` files under `resources/core/scene_director/beats/`: each with `beat_id`, `preconditions`, `effects`, `wait_mode` (INSTANT/TIMED/SIGNAL), `next_beat_id`, parallel fields.
+2. Create `RS_SceneDirective` `.tres` under `resources/core/scene_director/directives/` named `cfg_directive_<name>.tres`. Set `directive_id`, `target_scene_id`, `selection_conditions`, `priority`, `beats`.
 3. Assign to `M_SceneDirectorManager.directives` in scene tree.
 
 ## Anti-patterns

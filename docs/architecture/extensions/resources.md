@@ -25,13 +25,13 @@ This recipe does **not** cover:
 
 ## Canonical Example
 
-- Scene registry resource type: `scripts/resources/scene_management/rs_scene_registry_entry.gd`
-- Scene registry instance: `resources/scene_registry/cfg_gameplay_base_entry.tres`
-- Spawn metadata resource type: `scripts/resources/scene_management/rs_spawn_metadata.gd`
-- Spawn metadata instance: `resources/spawn_metadata/cfg_sp_base.tres`
-- Input profile resource type: `scripts/resources/input/rs_input_profile.gd`
-- Display preset resource type: `scripts/resources/display/rs_quality_preset.gd`
-- Game config resource type: `scripts/resources/rs_game_config.gd`
+- Scene registry resource type: `scripts/core/resources/scene_management/rs_scene_registry_entry.gd`
+- Scene registry instance: `resources/core/scene_registry/cfg_gameplay_base_entry.tres`
+- Spawn metadata resource type: `scripts/core/resources/scene_management/rs_spawn_metadata.gd`
+- Spawn metadata instance: `resources/core/spawn_metadata/cfg_sp_base.tres`
+- Input profile resource type: `scripts/core/resources/input/rs_input_profile.gd`
+- Display preset resource type: `scripts/core/resources/display/rs_quality_preset.gd`
+- Game config resource type: `scripts/core/resources/rs_game_config.gd`
 
 ## Vocabulary
 
@@ -45,13 +45,13 @@ This recipe does **not** cover:
 | Core resource | Template infrastructure data that must survive demo removal. |
 | Demo resource | Example content data tied to forest/AI/demo scenes. |
 
-Resource classes live under `scripts/resources/**`. Resource instances live under `resources/**`. Do not reuse `rs_` for `.tres` instances.
+Resource classes live under `scripts/core/resources/**`. Resource instances live under `resources/**`. Do not reuse `rs_` for `.tres` instances.
 
 ## Recipe
 
 ### Adding a new resource class
 
-1. Pick the owning domain directory under `scripts/resources/**`.
+1. Pick the owning domain directory under `scripts/core/resources/**`.
 2. Create `rs_<domain>_<name>.gd`; extend `Resource` or the established domain base class.
 3. Add `class_name RS_<Domain><Name>` when the class is designer-facing or referenced by `.tres` files.
 4. Use typed exported properties where Godot 4.6 supports them.
@@ -98,5 +98,5 @@ Resource classes live under `scripts/resources/**`. Resource instances live unde
 
 - [Style Guide](../../guides/STYLE_GUIDE.md)
 - [Godot Engine Pitfalls](../../guides/pitfalls/GODOT_ENGINE.md)
-- [Target Structure](../../guides/cleanup_v8/target_structure.md)
-- [Template vs Demo Classification](../../guides/cleanup_v8/template_vs_demo.md)
+- [Target Structure](../../history/cleanup_v8/target_structure.md)
+- [Template vs Demo Classification](../../history/cleanup_v8/template_vs_demo.md)

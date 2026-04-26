@@ -18,8 +18,8 @@ This recipe does **not** cover:
 
 ## Canonical Example
 
-- Simple manager: `scripts/managers/m_cursor_manager.gd` (73 lines — minimal full pattern)
-- Interface: `scripts/interfaces/i_cursor_manager.gd`
+- Simple manager: `scripts/core/managers/m_cursor_manager.gd` (73 lines — minimal full pattern)
+- Interface: `scripts/core/interfaces/i_cursor_manager.gd`
 - Registration: `scripts/core/root.gd` (`_register_if_exists()`)
 - Service locator: `scripts/core/u_service_locator.gd`
 
@@ -37,12 +37,12 @@ Service name convention: snake_case of the domain (`"cursor_manager"`, `"save_ma
 
 ## Recipe
 
-1. Create interface: `scripts/interfaces/i_<name>_manager.gd` — extend `Node`, `class_name I_<Name>Manager`, stub every public method with `push_error` and default return.
-2. Create manager: `scripts/managers/m_<name>_manager.gd` — `@icon("res://assets/editor_icons/icn_manager.svg")`, `extends "res://scripts/interfaces/i_<name>_manager.gd"`, `class_name M_<Name>Manager`. In `_ready()`: register with `U_ServiceLocator.register(StringName("<name>_manager"), self)`, discover dependencies.
+1. Create interface: `scripts/core/interfaces/i_<name>_manager.gd` — extend `Node`, `class_name I_<Name>Manager`, stub every public method with `push_error` and default return.
+2. Create manager: `scripts/core/managers/m_<name>_manager.gd` — `@icon("res://assets/editor_icons/icn_manager.svg")`, `extends "res://scripts/core/interfaces/i_<name>_manager.gd"`, `class_name M_<Name>Manager`. In `_ready()`: register with `U_ServiceLocator.register(StringName("<name>_manager"), self)`, discover dependencies.
 3. Add node to `root.tscn` under the `Managers` container.
 4. Register in `root.gd` `_initialize_service_locator()`: add `_register_if_exists(managers_node, "M_<Name>Manager", StringName("<name>_manager"))` and `U_ServiceLocator.register_dependency()` for each dependency.
-5. If data-driven config needed: create `scripts/resources/managers/rs_<name>_config.gd` (extend `Resource`).
-6. If helpers needed: create under `scripts/managers/helpers/<domain>/`.
+5. If data-driven config needed: create `scripts/core/resources/managers/rs_<name>_config.gd` (extend `Resource`).
+6. If helpers needed: create under `scripts/core/managers/helpers/<domain>/`.
 
 ## Anti-patterns
 

@@ -22,8 +22,8 @@ This recipe does **not** cover:
 
 ## Canonical Example
 
-- Audio slice: `scripts/state/actions/u_audio_actions.gd`, `scripts/state/reducers/u_audio_reducer.gd`, `scripts/state/selectors/u_audio_selectors.gd`, `scripts/resources/state/rs_audio_initial_state.gd`
-- Store wiring: `scripts/state/m_state_store.gd` and `scripts/state/utils/u_state_slice_manager.gd`
+- Audio slice: `scripts/core/state/actions/u_audio_actions.gd`, `scripts/core/state/reducers/u_audio_reducer.gd`, `scripts/core/state/selectors/u_audio_selectors.gd`, `scripts/core/resources/state/rs_audio_initial_state.gd`
+- Store wiring: `scripts/core/state/m_state_store.gd` and `scripts/core/state/utils/u_state_slice_manager.gd`
 
 ## Vocabulary
 
@@ -44,10 +44,10 @@ Action type format: `"<slice>/<verb>"` (e.g., `"audio/set_master_volume"`).
 
 ### Adding a new state slice
 
-1. Create `scripts/resources/state/rs_<slice>_initial_state.gd`: extend `Resource`, `class_name RS_<Slice>InitialState`, `@export` all fields with defaults, implement `to_dictionary() -> Dictionary`.
-2. Create `scripts/state/actions/u_<slice>_actions.gd`: extend `RefCounted`, define `const ACTION_<VERB> := StringName("<slice>/<verb>")`, register each in `_static_init()` via `U_ActionRegistry.register_action()`, implement static factory methods returning `{"type": ACTION_X, "payload": {...}}`. Mark UI-critical actions with `"immediate": true`.
-3. Create `scripts/state/reducers/u_<slice>_reducer.gd`: extend `RefCounted`, define `const DEFAULT_<SLICE>_STATE := {...}`, implement `static func reduce(state, action) -> Variant`. Use `match action_type:`, `duplicate(true)` before mutation, return `state` for unrecognized, return `null` for unhandled cross-slice.
-4. Create `scripts/state/selectors/u_<slice>_selectors.gd`: extend `RefCounted`, all `static func` taking `state: Dictionary`, private `_get_<slice>_slice(state)` extractor, public selectors with defaults.
+1. Create `scripts/core/resources/state/rs_<slice>_initial_state.gd`: extend `Resource`, `class_name RS_<Slice>InitialState`, `@export` all fields with defaults, implement `to_dictionary() -> Dictionary`.
+2. Create `scripts/core/state/actions/u_<slice>_actions.gd`: extend `RefCounted`, define `const ACTION_<VERB> := StringName("<slice>/<verb>")`, register each in `_static_init()` via `U_ActionRegistry.register_action()`, implement static factory methods returning `{"type": ACTION_X, "payload": {...}}`. Mark UI-critical actions with `"immediate": true`.
+3. Create `scripts/core/state/reducers/u_<slice>_reducer.gd`: extend `RefCounted`, define `const DEFAULT_<SLICE>_STATE := {...}`, implement `static func reduce(state, action) -> Variant`. Use `match action_type:`, `duplicate(true)` before mutation, return `state` for unrecognized, return `null` for unhandled cross-slice.
+4. Create `scripts/core/state/selectors/u_<slice>_selectors.gd`: extend `RefCounted`, all `static func` taking `state: Dictionary`, private `_get_<slice>_slice(state)` extractor, public selectors with defaults.
 5. Wire into `M_StateStore`: add `@export var <slice>_initial_state: Resource` and pass to `_initialize_slices()`.
 6. Wire into `U_StateSliceManager.initialize_slices()`: create `RS_StateSliceConfig.new(StringName("<slice>"))`, set `reducer`, `initial_state`, `dependencies`, `transient_fields`, `is_transient`, call `register_slice()`.
 

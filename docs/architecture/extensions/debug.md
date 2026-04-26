@@ -25,12 +25,12 @@ This recipe does **not** cover:
 ## Canonical Example
 
 - Perf probe: Any system using `U_PerfProbe.create("system_name")`
-- Log throttle: `scripts/utils/debug/u_debug_log_throttle.gd`
+- Log throttle: `scripts/core/utils/debug/u_debug_log_throttle.gd`
 - Debug panel: `scripts/demo/debug/debug_ai_brain_panel.gd` (extends `Control`)
 - 3D label: `scripts/demo/debug/debug_woods_agent_label.gd` (extends `Label3D`)
-- State overlay: `scripts/debug/debug_state_overlay.gd` (extends `CanvasLayer`)
-- Tracer: `scripts/utils/scene_director/u_objectives_debug_tracer.gd`
-- Debug Redux slice: `scripts/state/actions/u_debug_actions.gd`
+- State overlay: `scripts/core/debug/debug_state_overlay.gd` (extends `CanvasLayer`)
+- Tracer: `scripts/core/utils/scene_director/u_objectives_debug_tracer.gd`
+- Debug Redux slice: `scripts/core/state/actions/u_debug_actions.gd`
 
 ## Vocabulary
 
@@ -60,7 +60,7 @@ Debug panels use `Debug<Name>` prefix. CanvasLayer overlays use `SC_<Name>` pref
 
 ### Adding a new debug overlay panel
 
-1. Create under `scripts/debug/debug_<name>.gd`. Extend `Control` (inspector panels) or `CanvasLayer` (screen overlays) or `Label3D` (3D world labels).
+1. Create under `scripts/core/debug/debug_<name>.gd`. Extend `Control` (inspector panels) or `CanvasLayer` (screen overlays) or `Label3D` (3D world labels).
 2. CanvasLayer overlays: set `process_mode = PROCESS_MODE_ALWAYS`, `layer = U_CANVAS_LAYERS.DEBUG_OVERLAY`.
 3. Use `_ready()` with `await get_tree().process_frame` before accessing store/tree.
 4. Connect to `M_StateStore` signals (`slice_updated`, `action_dispatched`). Disconnect in `_exit_tree()`.

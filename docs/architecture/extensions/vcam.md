@@ -22,10 +22,10 @@ This recipe does **not** cover:
 
 ## Canonical Example
 
-- Effect helper: `scripts/ecs/systems/helpers/u_vcam_landing_impact.gd`
-- Mode resource: `scripts/resources/display/vcam/rs_vcam_mode_orbit.gd`
-- State slice: `scripts/state/actions/u_vcam_actions.gd`
-- vCam system: `scripts/ecs/systems/s_vcam_system.gd`
+- Effect helper: `scripts/core/ecs/systems/helpers/u_vcam_landing_impact.gd`
+- Mode resource: `scripts/core/resources/display/vcam/rs_vcam_mode_orbit.gd`
+- State slice: `scripts/core/state/actions/u_vcam_actions.gd`
+- vCam system: `scripts/core/ecs/systems/s_vcam_system.gd`
 
 ## Vocabulary
 
@@ -40,16 +40,16 @@ This recipe does **not** cover:
 | `M_CameraManager` | Applies final transforms; vCam never writes `camera.global_transform` directly. |
 | `vcam` slice | Transient Redux slice (`is_transient = true`). Never persisted to save. |
 
-Resources live under `scripts/resources/display/vcam/`. Helpers live under `scripts/ecs/systems/helpers/`.
+Resources live under `scripts/core/resources/display/vcam/`. Helpers live under `scripts/core/ecs/systems/helpers/`.
 
 ## Recipe
 
 ### Adding a new vCam effect
 
-1. Create helper at `scripts/ecs/systems/helpers/u_vcam_<effect_name>.gd`: extend `RefCounted`, implement effect logic, keep per-vcam-id state in internal Dictionary keyed by `vcam_id: StringName`, implement `prune(active_ids)`, `clear_for_vcam(vcam_id)`, `clear_all()`.
+1. Create helper at `scripts/core/ecs/systems/helpers/u_vcam_<effect_name>.gd`: extend `RefCounted`, implement effect logic, keep per-vcam-id state in internal Dictionary keyed by `vcam_id: StringName`, implement `prune(active_ids)`, `clear_for_vcam(vcam_id)`, `clear_all()`.
 2. Instantiate in `S_VCamSystem`, call in `process_tick()` flow (before or after `apply_vcam_effect_pipeline`).
 3. Add pruning in `_prune_smoothing_state()` and cleanup in `_clear_all_smoothing_state()`.
-4. If configurable: create `RS_VCam*` resource in `scripts/resources/display/vcam/` with `@export` fields and `get_resolved_values() -> Dictionary`.
+4. If configurable: create `RS_VCam*` resource in `scripts/core/resources/display/vcam/` with `@export` fields and `get_resolved_values() -> Dictionary`.
 5. If Redux state needed: add action to `U_VCamActions`, handle in `U_VCamReducer.reduce()`, add selector to `U_VCamSelectors`.
 
 ### Adding a new vCam state field

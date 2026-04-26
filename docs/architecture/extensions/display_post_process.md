@@ -24,11 +24,11 @@ This recipe does **not** cover:
 
 ## Canonical Example
 
-- Post-processing: `resources/display/cfg_post_processing_presets/cfg_post_processing_medium.tres` (`RS_PostProcessingPreset`)
-- Quality: `resources/display/cfg_quality_presets/cfg_quality_high.tres` (`RS_QualityPreset`)
-- Window size: `resources/display/cfg_window_size_presets/cfg_window_size_1920x1080.tres` (`RS_WindowSizePreset`)
-- Color grading: `resources/display/color_gradings/cfg_color_grading_bar.tres` (`RS_SceneColorGrading`)
-- Catalog: `scripts/utils/display/u_display_option_catalog.gd`
+- Post-processing: `resources/core/display/cfg_post_processing_presets/cfg_post_processing_medium.tres` (`RS_PostProcessingPreset`)
+- Quality: `resources/core/display/cfg_quality_presets/cfg_quality_high.tres` (`RS_QualityPreset`)
+- Window size: `resources/core/display/cfg_window_size_presets/cfg_window_size_1920x1080.tres` (`RS_WindowSizePreset`)
+- Color grading: `resources/demo/display/color_gradings/cfg_color_grading_bar.tres` (`RS_SceneColorGrading`)
+- Catalog: `scripts/core/utils/display/u_display_option_catalog.gd`
 
 ## Vocabulary
 
@@ -49,22 +49,22 @@ Resource instances: `cfg_` prefix. Script classes: `RS_` prefix. Actions: `displ
 
 ### Adding a new post-processing preset
 
-1. Create `RS_PostProcessingPreset` `.tres` under `resources/display/cfg_post_processing_presets/cfg_post_processing_<name>.tres`. Set `preset_name`, `display_name`, `sort_order`, intensity fields.
+1. Create `RS_PostProcessingPreset` `.tres` under `resources/core/display/cfg_post_processing_presets/cfg_post_processing_<name>.tres`. Set `preset_name`, `display_name`, `sort_order`, intensity fields.
 2. Add `preload()` to `U_PostProcessingPresetValues._PRESET_RESOURCES`.
 
 ### Adding a new quality preset
 
-1. Create `RS_QualityPreset` `.tres` under `resources/display/cfg_quality_presets/cfg_quality_<name>.tres`. Set fields.
+1. Create `RS_QualityPreset` `.tres` under `resources/core/display/cfg_quality_presets/cfg_quality_<name>.tres`. Set fields.
 2. Add `preload()` to `U_DisplayOptionCatalog.QUALITY_PRESETS`.
 
 ### Adding a new window size preset
 
-1. Create `RS_WindowSizePreset` `.tres` under `resources/display/cfg_window_size_presets/cfg_window_size_<W>x<H>.tres`. Set `preset_id`, `size`, `label`, `sort_order`.
+1. Create `RS_WindowSizePreset` `.tres` under `resources/core/display/cfg_window_size_presets/cfg_window_size_<W>x<H>.tres`. Set `preset_id`, `size`, `label`, `sort_order`.
 2. Add `preload()` to `U_DisplayOptionCatalog.WINDOW_SIZE_PRESETS`.
 
 ### Adding a new color grading preset
 
-1. Create `RS_SceneColorGrading` `.tres` under `resources/display/color_gradings/cfg_color_grading_<scene_id>.tres`. Set `scene_id`, `filter_preset`, artistic parameters.
+1. Create `RS_SceneColorGrading` `.tres` under `resources/demo/display/color_gradings/cfg_color_grading_<scene_id>.tres`. Set `scene_id`, `filter_preset`, artistic parameters.
 2. Add `preload()` + `_scene_grades[StringName("scene_id")] = resource` to `U_ColorGradingRegistry._register_scene_grades()`.
 3. Scene transition flow (`scene/swapped`) automatically picks up the new grading.
 

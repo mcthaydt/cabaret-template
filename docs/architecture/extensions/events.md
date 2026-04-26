@@ -25,7 +25,7 @@ This recipe does **not** cover:
 - Event names: `scripts/core/events/ecs/u_ecs_event_names.gd`
 - Event bus: `scripts/core/events/ecs/u_ecs_event_bus.gd`
 - Base event bus: `scripts/core/events/base_event_bus.gd` (`BaseEventBus`)
-- Subscription pattern: `scripts/ecs/systems/s_victory_handler_system.gd`
+- Subscription pattern: `scripts/core/ecs/systems/s_victory_handler_system.gd`
 
 ## Vocabulary
 

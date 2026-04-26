@@ -21,10 +21,10 @@ This recipe does **not** cover:
 
 ## Canonical Example
 
-- Translation resource: `resources/localization/cfg_locale_en_ui.tres` (`RS_LocaleTranslations`)
-- Catalog: `scripts/managers/helpers/localization/u_localization_catalog.gd`
-- Utils: `scripts/utils/localization/u_localization_utils.gd`
-- Language selector: `scripts/ui/menus/ui_language_selector.gd`
+- Translation resource: `resources/core/localization/cfg_locale_en_ui.tres` (`RS_LocaleTranslations`)
+- Catalog: `scripts/core/managers/helpers/localization/u_localization_catalog.gd`
+- Utils: `scripts/core/utils/localization/u_localization_utils.gd`
+- Language selector: `scripts/core/ui/menus/ui_language_selector.gd`
 
 ## Vocabulary
 
@@ -44,7 +44,7 @@ Supported locales: `en`, `es`, `pt`, `zh_CN`, `ja`.
 
 ### Adding a new localization key
 
-1. Add the key to every locale's `translations` Dictionary in the appropriate domain resource files: `resources/localization/cfg_locale_{code}_ui.tres` or `cfg_locale_{code}_hud.tres`.
+1. Add the key to every locale's `translations` Dictionary in the appropriate domain resource files: `resources/core/localization/cfg_locale_{code}_ui.tres` or `cfg_locale_{code}_hud.tres`.
 2. Follow key naming conventions: `menu.*`, `settings.*`, `hud.*`, `signpost.*`, `common.*`.
 3. In UI code, resolve via `U_LocalizationUtils.localize(StringName("key_name"))` — never bare `tr(key)`.
 4. Implement `_on_locale_changed(_locale: StringName)` on UI panels displaying the key, re-querying `localize()`.
@@ -52,12 +52,12 @@ Supported locales: `en`, `es`, `pt`, `zh_CN`, `ja`.
 
 ### Adding a new language
 
-1. Create two `.tres` files: `resources/localization/cfg_locale_{code}_ui.tres` and `cfg_locale_{code}_hud.tres` using `RS_LocaleTranslations`, with `locale` and `domain` set and all existing keys translated.
+1. Create two `.tres` files: `resources/core/localization/cfg_locale_{code}_ui.tres` and `cfg_locale_{code}_hud.tres` using `RS_LocaleTranslations`, with `locale` and `domain` set and all existing keys translated.
 2. Add both to `U_LocalizationCatalog._LOCALE_RESOURCES` (const preload array).
 3. Add locale code to `U_LocalizationCatalog.SUPPORTED_LOCALES`.
 4. If CJK font handling needed: add scale override entry in `U_LocalizationReducer` (auto-sets `ui_scale_override` to `1.1`).
 5. If CJK, ensure `fnt_cjk.otf` covers the glyphs. `U_LocalizationFontApplier` auto-selects for `zh_CN` and `ja`.
-6. Add locale option to `scripts/ui/menus/ui_language_selector.gd`.
+6. Add locale option to `scripts/core/ui/menus/ui_language_selector.gd`.
 
 ## Anti-patterns
 

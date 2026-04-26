@@ -24,11 +24,11 @@ This recipe does **not** cover:
 
 ## Canonical Example
 
-- Wolf brain: `resources/ai/woods/wolf/cfg_woods_wolf_brain.tres`
-- Wolf BT resources: `resources/ai/woods/wolf/bt/`
+- Wolf brain: `resources/demo/ai/woods/wolf/cfg_woods_wolf_brain.tres`
+- Wolf BT resources: `resources/demo/ai/woods/wolf/bt/`
 - Wolf integration test: `tests/unit/ai/integration/test_woods_wolf_brain_bt.gd`
-- Action resource: `scripts/resources/ai/actions/rs_ai_action_move_to.gd`
-- Scorer resource: `scripts/resources/ai/bt/scorers/rs_ai_scorer_condition.gd`
+- Action resource: `scripts/core/resources/ai/actions/rs_ai_action_move_to.gd`
+- Scorer resource: `scripts/core/resources/ai/bt/scorers/rs_ai_scorer_condition.gd`
 
 ## Vocabulary
 
@@ -37,8 +37,8 @@ This recipe does **not** cover:
 | `RS_BTNode` | Base BT resource. Three statuses: `RUNNING`, `SUCCESS`, `FAILURE`. |
 | `RS_BTComposite` | Branch node with typed `children: Array[RS_BTNode]`. Subtypes: `RS_BTSequence`, `RS_BTSelector`, `RS_BTUtilitySelector`. |
 | `RS_BTDecorator` | Wraps one `child: RS_BTNode`. Subtypes: `RS_BTCooldown`, `RS_BTOnce`, `RS_BTRisingEdge`, `RS_BTInverter`. |
-| `RS_BTAction` | AI-specific leaf wrapping `I_AIAction`. Lives under `scripts/resources/ai/bt/`. |
-| `RS_BTCondition` | AI-specific leaf wrapping `I_Condition`. Lives under `scripts/resources/ai/bt/`. |
+| `RS_BTAction` | AI-specific leaf wrapping `I_AIAction`. Lives under `scripts/core/resources/ai/bt/`. |
+| `RS_BTCondition` | AI-specific leaf wrapping `I_Condition`. Lives under `scripts/core/resources/ai/bt/`. |
 | `RS_AIScorer*` | Scorer resources for `RS_BTUtilitySelector`. Subtypes: `Constant`, `Condition`, `ContextField`. |
 | `RS_BTPlanner` | Opt-in planner node backed by `U_BTPlannerSearch` (A\*). |
 | `RS_AIBrainSettings` | Brain config resource. Exports `root: RS_BTNode` and `evaluation_interval: float`. |
@@ -49,8 +49,8 @@ This recipe does **not** cover:
 
 **Directory split** (per ADR 0007):
 
-- General BT framework: `scripts/resources/bt/`, `scripts/utils/bt/`
-- AI-specific BT nodes: `scripts/resources/ai/bt/`, `scripts/utils/ai/`
+- General BT framework: `scripts/core/resources/bt/`, `scripts/core/utils/bt/`
+- AI-specific BT nodes: `scripts/core/resources/ai/bt/`, `scripts/core/utils/ai/`
 
 A node that imports AI-specific types (`I_AIAction`, `I_Condition`, task-state keys) belongs under `ai/bt/`. A node with no AI imports belongs under `bt/`.
 
@@ -58,8 +58,8 @@ A node that imports AI-specific types (`I_AIAction`, `I_Condition`, task-state k
 
 ### Adding a new creature
 
-1. Create a brain settings `.tres` under `resources/ai/<creature>/cfg_<creature>_brain.tres` with type `RS_AIBrainSettings`.
-2. Author the BT resource tree as `.tres` files under `resources/ai/<creature>/bt/`. Start with an `RS_BTUtilitySelector` root, add scored branches for each behavior.
+1. Create a brain settings `.tres` under `resources/demo/ai/<creature>/cfg_<creature>_brain.tres` with type `RS_AIBrainSettings`.
+2. Author the BT resource tree as `.tres` files under `resources/demo/ai/<creature>/bt/`. Start with an `RS_BTUtilitySelector` root, add scored branches for each behavior.
 3. Wire the root node into `cfg_<creature>_brain.tres` via the `root` property. Set `evaluation_interval` (0.0 = every frame, 0.5 = default).
 4. Add a `C_AIBrainComponent` to the creature's entity scene with `brain_settings` pointing to the new `.tres`.
 5. Write an integration test under `tests/unit/ai/integration/test_<creature>_brain_bt.gd` that:
@@ -79,7 +79,7 @@ A node that imports AI-specific types (`I_AIAction`, `I_Condition`, task-state k
 
 ### Adding a new I_AIAction resource
 
-1. Create the action script under `scripts/resources/ai/actions/rs_ai_action_<name>.gd` extending `Resource` and implementing `I_AIAction` (`start`, `tick`, `is_complete`).
+1. Create the action script under `scripts/core/resources/ai/actions/rs_ai_action_<name>.gd` extending `Resource` and implementing `I_AIAction` (`start`, `tick`, `is_complete`).
 2. Add `@export` fields for inspector authoring.
 3. Use `U_AIActionPositionResolver` for movement-sensitive targets; use `U_AIContextAssembler` context keys for entity/scene resolution.
 4. Write a unit test under `tests/unit/ai/actions/test_rs_ai_action_<name>.gd`.
@@ -88,7 +88,7 @@ A node that imports AI-specific types (`I_AIAction`, `I_Condition`, task-state k
 
 ### Adding a new scorer type
 
-1. Create the scorer script under `scripts/resources/ai/bt/scorers/rs_ai_scorer_<name>.gd` extending `RS_AIScorer`.
+1. Create the scorer script under `scripts/core/resources/ai/bt/scorers/rs_ai_scorer_<name>.gd` extending `RS_AIScorer`.
 2. Implement `_get_score(context: Dictionary) -> float`.
 3. Write a unit test under `tests/unit/ai/bt/test_rs_ai_scorer_<name>.gd`.
 4. The scorer is now usable in any `RS_BTUtilitySelector` entry.
@@ -101,7 +101,7 @@ A node that imports AI-specific types (`I_AIAction`, `I_Condition`, task-state k
 - **Inline goal-selector/planner stacks**: `S_AIBehaviorSystem` runs one `U_BTRunner.tick()` per brain. No nested evaluation loops.
 - **Per-resource instance state**: BT resources are shared. Per-node runtime state must live in `bt_state_bag`, keyed by `node.get_instance_id()`. Never store tick-dependent state in the resource itself.
 - **Bare `print()` for debug output**: Use `U_DebugLogThrottle` for throttled logging and `U_AIRenderProbe` for debug draws.
-- **AI imports in general BT nodes**: `scripts/resources/bt/` must not import `I_AIAction`, `I_Condition`, or AI-specific utilities. Use `scripts/resources/ai/bt/` instead. Style boundary tests enforce this.
+- **AI imports in general BT nodes**: `scripts/core/resources/bt/` must not import `I_AIAction`, `I_Condition`, or AI-specific utilities. Use `scripts/core/resources/ai/bt/` instead. Style boundary tests enforce this.
 
 ## Out Of Scope
 

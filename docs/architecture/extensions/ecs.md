@@ -24,8 +24,8 @@ This recipe does **not** cover:
 
 ## Canonical Example
 
-- Component: `scripts/ecs/components/c_health_component.gd`
-- System: `scripts/ecs/systems/s_health_system.gd`
+- Component: `scripts/core/ecs/components/c_health_component.gd`
+- System: `scripts/core/ecs/systems/s_health_system.gd`
 - Typed event: `scripts/core/events/ecs/evn_health_changed.gd`
 - Event names: `scripts/core/events/ecs/u_ecs_event_names.gd`
 - Event bus: `scripts/core/events/ecs/u_ecs_event_bus.gd`
@@ -48,14 +48,14 @@ Prefix rules: `C_` components, `S_` systems, `E_` entities, `Evn_` typed events,
 
 ### Adding a new component
 
-1. Create `scripts/ecs/components/c_<name>_component.gd`: extend `BaseECSComponent`, set `const COMPONENT_TYPE := StringName("<Name>Component")`, `@export` fields, implement `_init()` setting `component_type = COMPONENT_TYPE`, override `_validate_required_settings() -> bool` if needed.
-2. If configurable: create `scripts/ecs/resources/rs_<name>_settings.gd` (extend `Resource`).
+1. Create `scripts/core/ecs/components/c_<name>_component.gd`: extend `BaseECSComponent`, set `const COMPONENT_TYPE := StringName("<Name>Component")`, `@export` fields, implement `_init()` setting `component_type = COMPONENT_TYPE`, override `_validate_required_settings() -> bool` if needed.
+2. If configurable: create `scripts/core/ecs/resources/rs_<name>_settings.gd` (extend `Resource`).
 3. Add component node to entity scene as child of the `E_*` root.
 4. Components auto-register with `M_ECSManager`.
 
 ### Adding a new system
 
-1. Create `scripts/ecs/systems/s_<name>_system.gd`: extend `BaseECSSystem`, override `get_phase()` and `process_tick(delta)`.
+1. Create `scripts/core/ecs/systems/s_<name>_system.gd`: extend `BaseECSSystem`, override `get_phase()` and `process_tick(delta)`.
 2. Use `get_components(component_type)` for single-type queries, `query_entities(required, optional)` for multi-component.
 3. Set `execution_priority` for ordering within phase (0-199, higher = later).
 4. Systems auto-register with `M_ECSManager`.
