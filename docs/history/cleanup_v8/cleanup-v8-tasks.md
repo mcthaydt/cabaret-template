@@ -1513,36 +1513,14 @@ resources/
 
 **Goal**: Convenience factory methods that create `RS_BTAction` nodes wrapping specific `I_AIAction` implementations. Lives in AI utils (can import AI types).
 
-- [ ] **Commit 1** (RED) — `tests/unit/ai/bt/test_u_ai_bt_factory.gd`:
-  - `move_to(target, radius)` creates `RS_BTAction` wrapping `RS_AIActionMoveTo`
-  - `move_to_detected(radius)` creates `RS_BTAction` wrapping `RS_AIActionMoveToDetected`
-  - `move_to_nearest(scan_type, radius)` creates `RS_BTAction` wrapping `RS_AIActionMoveToNearest`
-  - `flee(distance, radius)` creates `RS_BTAction` wrapping `RS_AIActionFleeFromDetected`
-  - `wander(home_radius)` creates `RS_BTAction` wrapping `RS_AIActionWander`
-  - `wait(duration)` creates `RS_BTAction` wrapping `RS_AIActionWait`
-  - `scan(duration, speed)` creates `RS_BTAction` wrapping `RS_AIActionScan`
-  - `animate(state_name)` creates `RS_BTAction` wrapping `RS_AIActionAnimate`
-  - `publish_event(name, payload)` creates `RS_BTAction` wrapping `RS_AIActionPublishEvent`
-  - `set_field(path, value)` creates `RS_BTAction` wrapping `RS_AIActionSetField`
-  - `always()` creates `RS_BTCondition` wrapping `RS_ConditionConstant` with score 1.0
-  - `never()` creates `RS_BTCondition` wrapping `RS_ConditionConstant` with score 0.0
-  - `component_field(type, field)` creates `RS_BTCondition` wrapping `RS_ConditionComponentField`
-  - `context_field(path)` creates `RS_BTCondition` wrapping `RS_ConditionContextField`
-  - `entity_tag(tag)` creates `RS_BTCondition` wrapping `RS_ConditionEntityTag`
-  - `redux_field(path)` creates `RS_BTCondition` wrapping `RS_ConditionReduxField`
-  - `composite_all([...])` creates `RS_BTCondition` wrapping `RS_ConditionComposite` (ALL mode)
-  - `composite_any([...])` creates `RS_BTCondition` wrapping `RS_ConditionComposite` (ANY mode)
-- [ ] **Commit 2** (GREEN) — `scripts/core/utils/ai/u_ai_bt_factory.gd`:
-  - `class_name U_AIBTFactory`, extends `RefCounted`
-  - All methods are `static`
-  - Action factories delegate to `U_BTBuilder.action()` with configured `I_AIAction` instances
-  - Condition factories delegate to `U_BTBuilder.condition()` with configured `I_Condition` instances
-- [ ] **Commit 3** (GREEN) — Style enforcement: add line-count guard (max 200 lines).
+- [x] **Commit 1** (RED) — `tests/unit/ai/bt/test_u_ai_bt_factory.gd` (`d0c1224a`)
+- [x] **Commit 2** (GREEN) — `scripts/core/utils/ai/u_ai_bt_factory.gd` (`bdd135b4`)
+- [x] **Commit 3** (GREEN) — Style enforcement LOC cap 200 lines (`0cd59475`)
 
 **P6.3 Verification**:
-- [ ] All factory tests green
-- [ ] Factory-created nodes work with `U_BTRunner`
-- [ ] Full suite green
+- [x] All 21 factory tests green
+- [x] wait(0.0) integration test ticks SUCCESS with U_BTRunner
+- [x] Full suite 4640/4648 (8 pre-existing pending); style 92/92
 
 ---
 
