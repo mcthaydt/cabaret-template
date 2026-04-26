@@ -1,7 +1,7 @@
 # Cross-System Cleanup V8 — Tasks Checklist
 
 **Branch**: `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch. Subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred. Matches continuation prompt.
-**Status**: Phase 1 complete — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 complete (`26289494`, `fffa2e55`, `7de2a6cf`, `c1d7b0fb`, `a2766455`, `2aacb999` + remediation `91c094c0`..`e416469c`); P1.9b complete (`348802ca`, `b2c67185`, `7a96c4b0`, `d2644cf3`, `0bb07870`, `085c428d`, `73a66510`, `cd2afbcf`, `94d4b7c6` + 2026-04-22 verification follow-through); P1.10 BT-only legacy cleanup complete (`43035ad6`, `6a30f13c` + 2026-04-23 docs hygiene follow-through). Phase 2 complete through P2.4 (`28702b95`) with style recheck passing (`83/83`). Phase 3 complete as of 2026-04-23: P3.0–P3.4 + P3.6 landed, and the P3.5 framework deliverable (dir + `README.md` + `TEMPLATE.md` + `test_extension_recipe_structure`) shipped; the 18 individual extension recipes still ship at the tail of their owning phase (Phases 1/4/5), so overall P3 Verification closes only once those recipe commits land. Style recheck now `86/86` after `test_adr_structure` + `test_extension_recipe_structure` were added. Phase 4: P4.1–P4.2 complete; P4.3 complete (`0dba3719`..`ed8e5de0` — all scripts moved to scripts/core/ or scripts/demo/, core→demo import violations eliminated, stale dirs removed, full suite 4587/4595 green); P4.4 enforcement test already in style suite (`test_core_scripts_never_import_from_demo` 87/87). P4 Scripts Verification complete (2026-04-24). P4.5 complete (`72272902` audit); P4.6 complete (`2f753915`..`7c33705b` — all core resources → resources/core/); P4.7 complete (`f66a7ce7`..`ef5d8e07` — core scenes → scenes/core/, demo scenes → scenes/demo/); P4.8 complete (`fece8d8c` — demo audio/models/textures → assets/demo/); P4.9 complete (`a85d963b` — core-never-references-demo enforcement tests, 6 violations fixed); P4.10 complete (`bfc64316`..`58e4263e` — prototype_grids → assets/demo/textures/, editor_icons → assets/core/, remaining core dirs → assets/core/). Style suite 89/89. Phase 6 (LLM-first fluent builders) not yet started.
+**Status**: Phase 1 complete — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 complete (`26289494`, `fffa2e55`, `7de2a6cf`, `c1d7b0fb`, `a2766455`, `2aacb999` + remediation `91c094c0`..`e416469c`); P1.9b complete (`348802ca`, `b2c67185`, `7a96c4b0`, `d2644cf3`, `0bb07870`, `085c428d`, `73a66510`, `cd2afbcf`, `94d4b7c6` + 2026-04-22 verification follow-through); P1.10 BT-only legacy cleanup complete (`43035ad6`, `6a30f13c` + 2026-04-23 docs hygiene follow-through). Phase 2 complete through P2.4 (`28702b95`) with style recheck passing (`83/83`). Phase 3 complete as of 2026-04-23: P3.0–P3.4 + P3.6 landed, and the P3.5 framework deliverable (dir + `README.md` + `TEMPLATE.md` + `test_extension_recipe_structure`) shipped; the 18 individual extension recipes still ship at the tail of their owning phase (Phases 1/4/5), so overall P3 Verification closes only once those recipe commits land. Style recheck now `86/86` after `test_adr_structure` + `test_extension_recipe_structure` were added. Phase 4: P4.1–P4.2 complete; P4.3 complete (`0dba3719`..`ed8e5de0` — all scripts moved to scripts/core/ or scripts/demo/, core→demo import violations eliminated, stale dirs removed, full suite 4587/4595 green); P4.4 enforcement test already in style suite (`test_core_scripts_never_import_from_demo` 87/87). P4 Scripts Verification complete (2026-04-24). P4.5 complete (`72272902` audit); P4.6 complete (`2f753915`..`7c33705b` — all core resources → resources/core/); P4.7 complete (`f66a7ce7`..`ef5d8e07` — core scenes → scenes/core/, demo scenes → scenes/demo/); P4.8 complete (`fece8d8c` — demo audio/models/textures → assets/demo/); P4.9 complete (`a85d963b` — core-never-references-demo enforcement tests, 6 violations fixed); P4.10 complete (`bfc64316`..`58e4263e` — prototype_grids → assets/demo/textures/, editor_icons → assets/core/, remaining core dirs → assets/core/). Style suite 89/89. Phase 6: P6.1 complete (`10310f00`..`ec14181a` — RS_BTScoredNode decorator + utility selector scored-node detection, duck-typing, style cap 50 lines). Style suite 90/90. Full suite 4601/4601 passing.
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred.
 **Scope**: Six phases. Phase 1 is the largest (AI rewrite) and must complete before Phases 2–5, because Phases 4–5 depend on a stable AI architecture to decide what is "core template" vs "demo content." Phase 6 (fluent builders) can proceed after Phase 4 completes.
 
@@ -1472,30 +1472,19 @@ resources/
 
 **Goal**: Introduce `RS_BTScoredNode` as an explicit child+scorer wrapper, update `RS_BTUtilitySelector` to use it, maintain backward compatibility with `child_scorers` array.
 
-- [ ] **Commit 1** (RED) — `tests/unit/ai/bt/test_rs_bt_scored_node.gd`:
-  - `RS_BTScoredNode` extends `RS_BTDecorator`, has `@export var scorer: Resource`
-  - `tick()` delegates to `child.tick()` (pass-through, no behavior change)
-  - Without child → returns `FAILURE`
-  - Scorer can be any `Resource` with a `score(context) -> float` method
-- [ ] **Commit 2** (GREEN) — `scripts/core/resources/bt/rs_bt_scored_node.gd`:
-  - `class_name RS_BTScoredNode`, extends `RS_BTDecorator`
-  - `@export var scorer: Resource = null`
-  - `tick()` delegates to child, returns `FAILURE` if no child
-- [ ] **Commit 3** (RED) — Add to `test_rs_bt_utility_selector.gd`:
-  - Utility selector with `RS_BTScoredNode` children: scorer comes from the scored node, not `child_scorers`
-  - Mixed: some children are `RS_BTScoredNode`, some are raw → `child_scorers` used as fallback
-  - `RS_BTScoredNode` children override parallel `child_scorers` entries at same index
-  - Running-child pinning still works when child is `RS_BTScoredNode`
-- [ ] **Commit 4** (GREEN) — Update `scripts/core/resources/bt/rs_bt_utility_selector.gd`:
-  - In scoring loop: if `children[i] is RS_BTScoredNode`, use its `scorer` property
-  - Fallback to `child_scorers[i]` for non-scored children (backward compat)
-  - Running-child tracking unchanged (index-based)
-- [ ] **Commit 5** (GREEN) — Style enforcement: add `rs_bt_scored_node.gd` line-count guard (max 50 lines), update BT import restrictions if needed.
+- [x] **Commit 1** (RED) — `tests/unit/ai/bt/test_rs_bt_scored_node.gd` (`10310f00`): 7 tests — script loads, extends RS_BTDecorator, scorer defaults null, null child → FAILURE, delegates tick to child (SUCCESS/RUNNING), scorer NOT called during tick.
+- [x] **Commit 2** (GREEN) — `scripts/core/resources/bt/rs_bt_scored_node.gd` (`c2fbd06e`): 10 lines. Extends RS_BTDecorator, `@export var scorer: Resource = null`, tick() delegates to _child or returns FAILURE.
+- [x] **Commit 3** (RED) — Add to `test_rs_bt_utility_selector.gd` (`0f35fe3a`): 4 new tests — uses scored node scorer, falls back to child_scorers for plain nodes, scored node overrides child_scorers at same index, pins running scored-node child.
+- [x] **Commit 4** (GREEN) — Update `scripts/core/resources/bt/rs_bt_utility_selector.gd` (`dc2951ee`): `_score_child()` now checks `"scorer" in child` (duck-typing; avoids class-name parse error in headless mode for un-indexed new files). New `_score_child_via_node_scorer()` helper mirrors the resource path. Backward compat unchanged.
+- [x] **Commit 5** (GREEN) — Style enforcement (`ec14181a`): `RS_BT_SCORED_NODE_MAX_LINES := 50` constant + `test_rs_bt_scored_node_stays_under_fifty_lines()` added. Style suite 90/90. Full suite 4601/4601 passing, 8 pending.
 
 **P6.1 Verification**:
-- [ ] All existing BT tests green (backward compat)
-- [ ] New scored-node tests green
-- [ ] Style enforcement green
+- [x] All existing BT tests green (backward compat) — full suite 4601/4601
+- [x] New scored-node tests green — 7/7
+- [x] Style enforcement green — 90/90
+
+**P6.1 Completion Notes (2026-04-26)**:
+- Duck-typing (`"scorer" in child`) used instead of `child is RS_BTScoredNode` in the utility selector because new .gd files created outside the editor lack UID registration in headless test mode, causing a parse-time "Could not find type" error. Duck-typing is more idiomatic GDScript and equally correct.
 
 ---
 

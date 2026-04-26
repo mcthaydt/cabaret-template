@@ -5,9 +5,9 @@
 Implements `docs/history/cleanup_v8/cleanup-v8-tasks.md` in phase order with TDD discipline. V8 is the follow-up to V7.2, addressing structural/organizational debt rather than internal architectural issues.
 
 **Branch**: `cleanup-v8` (off `main`, after `GOAP-AI` merged via PR #16).
-**Status**: Phases 1–4 complete. Phase 5 not started (deferred to last per sequencing plan). Phase 6 in progress — P6.1 next.
-**Next Task**: P6.1 — `RS_BTScoredNode` + Utility Selector Update (5 commits: RED scored-node test → GREEN scored-node impl → RED utility-selector scored-node tests → GREEN utility-selector update → GREEN style enforcement).
-**Prerequisite**: V7.2 complete (`e015aff2`). Phase 4 complete (`cbf0fd61` — P4.10 final assets reorganization). All 18 P3.5 extension recipes complete (including `scenes.md` + `resources.md`, shipped in `b0c5b1cd`).
+**Status**: Phases 1–4 complete. Phase 5 not started (deferred to last per sequencing plan). Phase 6 in progress — P6.1 complete, P6.2 next.
+**Next Task**: P6.2 — `U_BTBuilder` static factory class. Provides static factory methods for every BT node type. No AI-specific imports (lives in `scripts/core/utils/bt/`).
+**Prerequisite**: V7.2 complete (`e015aff2`). Phase 4 complete (`cbf0fd61`). All 18 P3.5 extension recipes complete (`b0c5b1cd`). P6.1 complete (`ec14181a`).
 
 ---
 
@@ -39,7 +39,7 @@ Six phases bundled for one goal: make the template LLM-friendly, modular, and sh
   - P4.10: `prototype_grids_png` → `assets/demo/textures/`; `editor_icons` → `assets/core/`; remaining core dirs → `assets/core/` (`bfc64316`–`58e4263e`).
   - Style suite: **89/89** after P4.10.
 - **Phase 5**: NOT STARTED. Deferred to last.
-- **Phase 6**: NOT STARTED (P6.1 is first task).
+- **Phase 6**: IN PROGRESS. P6.1 complete (`10310f00`–`ec14181a`). Style suite 90/90. Full suite 4601/4601 passing.
 
 ---
 
@@ -62,19 +62,27 @@ Six phases bundled for one goal: make the template LLM-friendly, modular, and sh
 
 ---
 
-## P6.1 Detail — RS_BTScoredNode + Utility Selector Update
+## P6.1 — RS_BTScoredNode + Utility Selector Update — COMPLETE
+
+**Commits**: `10310f00`–`ec14181a` (5 commits + docs).
+
+**Key implementation note**: `_score_child()` in `RS_BTUtilitySelector` uses duck-typing (`"scorer" in child`) instead of `child is RS_BTScoredNode`. This avoids a headless-mode parse error for newly created .gd files that lack UID registration. Duck-typing is equally correct and more idiomatic GDScript.
+
+**Result**: style suite 90/90; full suite 4601/4601 passing; 7 new scored-node tests + 4 new utility-selector scored-node tests all green.
+
+---
+
+## P6.2 Detail — BT Structural Builder (`U_BTBuilder`)
+
+**Goal**: Static factory class that creates every BT node type. No AI-specific imports. Lives in `scripts/core/utils/bt/u_bt_builder.gd`.
 
 **Commit sequence:**
 
-1. **(RED)** `tests/unit/ai/bt/test_rs_bt_scored_node.gd` — 7 test cases: script loads, extends RS_BTDecorator, has `scorer` export (defaults null), without child → FAILURE, delegates tick to child (SUCCESS/RUNNING), scorer not called during tick.
-2. **(GREEN)** `scripts/core/resources/bt/rs_bt_scored_node.gd` — extends RS_BTDecorator, `@export var scorer: Resource = null`, tick() delegates to `_child` or returns FAILURE. Target ≤ 15 lines.
-3. **(RED)** Add 4 tests to `test_rs_bt_utility_selector.gd`: scored-node scorer used; fallback to child_scorers for plain nodes; scored node overrides child_scorers at same index; running scored-node child is pinned.
-4. **(GREEN)** Update `scripts/core/resources/bt/rs_bt_utility_selector.gd` — `_score_child()` checks `child is RS_BTScoredNode` first; add `_score_child_via_scored_node()` helper. No other changes; pinning logic unchanged.
-5. **(GREEN)** Style enforcement — add `RS_BT_SCORED_NODE_MAX_LINES := 50` constant and `test_rs_bt_scored_node_stays_under_fifty_lines()` to `test_style_enforcement.gd`.
+1. **(RED)** `tests/unit/ai/bt/test_u_bt_builder.gd` — factory method tests for: `sequence([...])`, `selector([...])`, `utility_selector([...])` with `RS_BTScoredNode` children, `scored(child, scorer)`, `cooldown(child, duration)`, `once(child)`, `rising_edge(child, gate)`, `inverter(child)`, `action(action_resource)`, `condition(condition_resource)`, `planner(goal, pool, ...)`, `score_const(value)`, `score_condition(condition, if_true, if_false)`, `score_context_field(path, multiplier)`. Built trees pass through `U_BTRunner.tick()` correctly.
+2. **(GREEN)** `scripts/core/utils/bt/u_bt_builder.gd` — `class_name U_BTBuilder`, `extends RefCounted`. All methods `static`. Each factory creates the target resource, sets its typed properties, and returns it. No AI-specific imports (action/condition factory methods accept the abstract types `I_AIAction`/`I_Condition` but don't import concrete implementations).
+3. **(GREEN)** Style enforcement — add `U_BTBuilder` to the `BT_UTILS_DIR` line-count check; confirm it passes `test_bt_general_utils_do_not_reference_ai_specific_types`.
 
-**Boundary**: `RS_BTScoredNode` lives in `scripts/core/resources/bt/` (general BT dir) with no AI-specific imports — passes `test_bt_general_resources_do_not_reference_ai_specific_types`. `RS_BTUtilitySelector` can reference `RS_BTScoredNode` (same dir, not in forbidden tokens list).
-
-**After P6.1**: style suite 90/90; all existing BT tests green; 4 new utility-selector tests + 7 new scored-node tests green.
+**Boundary**: lives in `scripts/core/utils/bt/` alongside `u_bt_runner.gd`. May reference `RS_BT*` node types (general BT dir). Must NOT reference `U_AI*`, `I_AIAction`, `I_Condition`, `RS_WorldStateEffect`, `RS_BTPlanner*` (enforced by existing style test).
 
 ---
 
@@ -118,10 +126,8 @@ Test command: `tools/run_gut_suite.sh` (or `-gtest=<path>` for targeted runs).
 
 ## Next Steps
 
-1. **P6.1 Commit 1 (RED)** — Write `tests/unit/ai/bt/test_rs_bt_scored_node.gd`, verify it fails for expected missing-script reason.
-2. **P6.1 Commit 2 (GREEN)** — Implement `scripts/core/resources/bt/rs_bt_scored_node.gd`.
-3. **P6.1 Commit 3 (RED)** — Add 4 scored-node tests to `test_rs_bt_utility_selector.gd`.
-4. **P6.1 Commit 4 (GREEN)** — Update `rs_bt_utility_selector.gd` with scored-node scoring path.
-5. **P6.1 Commit 5 (GREEN)** — Add 50-line style guard for `rs_bt_scored_node.gd` in style enforcement.
-6. After P6.1: proceed to P6.2 — `U_BTBuilder` static factory class.
-7. Keep docs/history references archived; new evergreen guidance belongs under `docs/guides/` or `docs/systems/`.
+1. **P6.2 Commit 1 (RED)** — Write `tests/unit/ai/bt/test_u_bt_builder.gd` covering all factory methods; verify RED for expected missing-script reason.
+2. **P6.2 Commit 2 (GREEN)** — Implement `scripts/core/utils/bt/u_bt_builder.gd` with all static factory methods.
+3. **P6.2 Commit 3 (GREEN)** — Style enforcement: verify `U_BTBuilder` passes `test_bt_general_utils_do_not_reference_ai_specific_types`; add LOC cap if needed.
+4. After P6.2: proceed to P6.3 — `U_AIBTFactory` (AI-specific convenience factories for creatures/scorers/conditions).
+5. Keep docs/history references archived; new evergreen guidance belongs under `docs/guides/` or `docs/systems/`.
