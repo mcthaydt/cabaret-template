@@ -3,7 +3,7 @@
 **Branch**: `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch. Subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred. Matches continuation prompt.
 **Status**: Phase 1 complete — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 complete (`26289494`, `fffa2e55`, `7de2a6cf`, `c1d7b0fb`, `a2766455`, `2aacb999` + remediation `91c094c0`..`e416469c`); P1.9b complete (`348802ca`, `b2c67185`, `7a96c4b0`, `d2644cf3`, `0bb07870`, `085c428d`, `73a66510`, `cd2afbcf`, `94d4b7c6` + 2026-04-22 verification follow-through); P1.10 BT-only legacy cleanup complete (`43035ad6`, `6a30f13c` + 2026-04-23 docs hygiene follow-through). Phase 2 complete through P2.4 (`28702b95`) with style recheck passing (`83/83`). Phase 3 complete as of 2026-04-23: P3.0–P3.4 + P3.6 landed, and the P3.5 framework deliverable (dir + `README.md` + `TEMPLATE.md` + `test_extension_recipe_structure`) shipped; the 18 individual extension recipes still ship at the tail of their owning phase (Phases 1/4/5), so overall P3 Verification closes only once those recipe commits land. Style recheck now `86/86` after `test_adr_structure` + `test_extension_recipe_structure` were added. Phase 4: P4.1–P4.2 complete; P4.3 complete (`0dba3719`..`ed8e5de0` — all scripts moved to scripts/core/ or scripts/demo/, core→demo import violations eliminated, stale dirs removed, full suite 4587/4595 green); P4.4 enforcement test already in style suite (`test_core_scripts_never_import_from_demo` 87/87). P4 Scripts Verification complete (2026-04-24). P4.5 complete (`72272902` audit); P4.6 complete (`2f753915`..`7c33705b` — all core resources → resources/core/); P4.7 complete (`f66a7ce7`..`ef5d8e07` — core scenes → scenes/core/, demo scenes → scenes/demo/); P4.8 complete (`fece8d8c` — demo audio/models/textures → assets/demo/); P4.9 complete (`a85d963b` — core-never-references-demo enforcement tests, 6 violations fixed); P4.10 complete (`bfc64316`..`58e4263e` — prototype_grids → assets/demo/textures/, editor_icons → assets/core/, remaining core dirs → assets/core/). Style suite 89/89. Phase 6: P6.1 complete (`10310f00`..`ec14181a` — RS_BTScoredNode decorator + utility selector scored-node detection, duck-typing, style cap 50 lines). Style suite 90/90. Full suite 4601/4601 passing. P6.2 complete (`a4c41434`..`a23270b1`). P6.3 complete (`d0c1224a`..`0cd59475`). P6.4 complete (`4a1218f1`..`c6608c79` — RS_AIBrainScriptSettings, get_root() virtual, caller updates). Style suite 92/92. Full suite 4651/4659 (8 pre-existing pending).
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred.
-**Scope**: Six phases. Phase 1 is the largest (AI rewrite) and must complete before Phases 2–5, because Phases 4–5 depend on a stable AI architecture to decide what is "core template" vs "demo content." Phase 6 (fluent builders) can proceed after Phase 4 completes.
+**Scope**: Seven phases. Phase 1 is the largest (AI rewrite) and must complete before Phases 2–5, because Phases 4–5 depend on a stable AI architecture to decide what is "core template" vs "demo content." Phase 6 (fluent builders) can proceed after Phase 4 completes. Phase 7 (EditorScript + PackedScene builders) proceeds after Phase 6 completes.
 
 **Relationship to cleanup-v7.2**: This is a successor plan, not a replacement. V7.2 addressed architectural weaknesses inside existing systems. V8 addresses structural/organizational debt surfaced while working on the AI forest: the planner stack is overbuilt, debug/perf code is scattered across managers, `AGENTS.md` is sprawling, template-vs-demo content is entangled, and temp scenes are piling up.
 
@@ -1835,3 +1835,180 @@ Phase 1 (AI BT rewrite)
 - **Phase 5 is last**: easier once code is organized.
 - **Phase 6 migration is destructive**: each `.tres` deletion commit is atomic and revertable. Run full suite + visual parity check before deleting.
 - **Update `DEV_PITFALLS.md` / `AGENTS.md` after each phase** if entries reference deleted or moved files.
+- **Phase 7 builder classes are RefCounted**: `U_EditorPrefabBuilder` and `U_EditorBlockoutBuilder` extend `RefCounted` (not `EditorScript`) for headless GUT testability. EditorScript wrappers in `scripts/demo/editors/` are thin adapters.
+- **Phase 7 core/demo boundary**: Builder infrastructure in `scripts/core/utils/editors/`. Demo recipes in `scripts/demo/editors/`. Tests in `tests/unit/editors/`.
+- **Phase 7 migration is destructive**: each `.tscn` deletion commit is atomic and revertable. Run full suite + visual parity check before deleting.
+
+---
+
+# Phase 7 — EditorScript + PackedScene Builders
+
+**Reference plan**: `~/.claude/plans/lets-add-a-new-humming-kay.md`.
+
+**Goal**: Replace hand-authored `.tscn` creation with programmatic GDScript builder APIs. Two `RefCounted` builders (`U_EditorPrefabBuilder`, `U_EditorBlockoutBuilder`) provide fluent APIs. Thin `@tool extends EditorScript` wrappers invoke them and call `save()`. All 12 demo prefabs migrate from `.tscn` to builder scripts.
+
+**Depends on**: Phase 6 complete.
+
+---
+
+## Milestone P7.1: U_EditorPrefabBuilder — Root Creation & Fluent API
+
+**Goal**: Core `create_root()`, `inherit_from()`, entity metadata, `build()`.
+
+- [ ] **Commit 1 (RED)** — `tests/unit/editors/test_u_editor_prefab_builder.gd`:
+  - `create_root("Node3D", "TestRoot")` produces Node3D named "TestRoot"
+  - `create_root("StaticBody3D", "TestStatic")` produces StaticBody3D
+  - `inherit_from(tmpl_character_path)` produces instanced scene with inherited children
+  - `set_entity_id(&"wolf")` and `set_tags([&"predator"])` set metadata on root
+  - Fluent API: each method returns `self`
+  - `build()` returns root node
+  - Error: `build()` before `create_root()` or `inherit_from()` returns null
+
+- [ ] **Commit 2 (GREEN)** — Create `scripts/core/utils/editors/u_editor_prefab_builder.gd`:
+  - `U_EditorPrefabBuilder` extends RefCounted
+  - `create_root(node_type, name)` — creates node by class name
+  - `inherit_from(scene_path)` — loads PackedScene, instantiates with `GEN_EDIT_STATE_MAIN`
+  - `set_entity_id(id)`, `set_tags(tags)` — sets metadata on root
+  - `build() -> Node` — returns root
+  - `_ensure_components_container()` — finds or creates "Components" node
+
+**P7.1 Verification**:
+- [ ] All new tests green.
+- [ ] Existing test suite green (no regressions).
+- [ ] Style enforcement green.
+
+---
+
+## Milestone P7.2: U_EditorPrefabBuilder — ECS Component Wiring
+
+**Goal**: `add_ecs_component()` and `add_ecs_component_by_path()`.
+
+- [ ] **Commit 3 (RED)** — Add tests for:
+  - `add_ecs_component(script, null, {})` adds Node under Components with script attached
+  - `add_ecs_component(script, settings_resource, {})` assigns settings export
+  - `add_ecs_component(script, null, {"detection_radius": 14.0, "target_tag": &"prey"})` sets inline properties
+  - `add_ecs_component_by_path(script_path, settings_path, {})` loads and wires both
+  - Multiple components added sequentially are all present
+
+- [ ] **Commit 4 (GREEN)** — Implement `add_ecs_component()` and `add_ecs_component_by_path()`.
+
+**P7.2 Verification**:
+- [ ] All new tests green.
+- [ ] Existing test suite green.
+- [ ] Style enforcement green.
+
+---
+
+## Milestone P7.3: U_EditorPrefabBuilder — Visuals, Collision & Children
+
+**Goal**: Visual mesh, CSG, collision shapes, markers, child scenes, property overrides.
+
+- [ ] **Commit 5 (RED)** — Add tests for visual, collision, marker, child-scene methods.
+
+- [ ] **Commit 6 (GREEN)** — Implement `add_visual_csg()`, `add_visual_mesh()`, `add_collision_capsule()`, `add_collision_box()`, `add_child_scene()`, `add_marker()`, `override_property()`, `_ensure_body_container()`, `_create_material()`.
+
+**P7.3 Verification**:
+- [ ] All new tests green.
+- [ ] Existing test suite green.
+- [ ] Style enforcement green.
+
+---
+
+## Milestone P7.4: U_EditorPrefabBuilder — Save & EditorScript Adapter
+
+**Goal**: `save()` method and a working wolf prefab EditorScript.
+
+- [ ] **Commit 7 (RED)** — Add test for `build()` producing a tree that `PackedScene.pack()` accepts.
+
+- [ ] **Commit 8 (GREEN)** — Implement `save()`, owner propagation. Create `scripts/demo/editors/editor_build_wolf_prefab.gd`.
+
+**P7.4 Verification**:
+- [ ] All new tests green.
+- [ ] Existing test suite green.
+- [ ] Wolf prefab generated in editor matches original visually.
+
+---
+
+## Milestone P7.5: U_EditorBlockoutBuilder — Core CSG API
+
+**Goal**: Blockout builder with CSG primitives, spawn points, markers.
+
+- [ ] **Commit 9 (RED)** — `tests/unit/editors/test_u_editor_blockout_builder.gd`:
+  - `create_root()` produces Node3D
+  - `add_csg_box()`, `add_csg_cylinder()`, `add_csg_sphere()` create correct CSG nodes
+  - `add_player_spawn()`, `add_marker()` create Node3D markers
+  - `execute_custom()` invokes callback
+  - Fluent chaining returns self
+
+- [ ] **Commit 10 (GREEN)** — Create `scripts/core/utils/editors/u_editor_blockout_builder.gd`.
+
+**P7.5 Verification**:
+- [ ] All new tests green.
+- [ ] Existing test suite green.
+- [ ] Style enforcement green.
+
+---
+
+## Milestone P7.6: U_EditorBlockoutBuilder — Materials, Environment & Save
+
+**Goal**: Material helpers, environment nodes, save, demo blockout.
+
+- [ ] **Commit 11 (RED)** — Add tests for materials, lights, environment, collision flags, save.
+
+- [ ] **Commit 12 (GREEN)** — Implement material helper, `add_directional_light()`, `add_world_environment()`, `use_collision`. Create `scripts/demo/editors/editor_build_arena_blockout.gd`.
+
+**P7.6 Verification**:
+- [ ] All new tests green.
+- [ ] Existing test suite green.
+- [ ] Arena blockout generated in editor looks correct.
+
+---
+
+## Milestone P7.7: Prefab Migration — Demo Prefabs → Builder Scripts
+
+**Goal**: All 12 demo prefabs migrated to builder scripts.
+
+- [ ] **Commits 13–15 (GREEN)** — For each prefab:
+  1. Create builder script in `scripts/demo/editors/`
+  2. Run in editor, verify parity with original `.tscn`
+  3. Update any scene references pointing to old `.tscn`
+  4. Delete original `.tscn` file
+  5. Run full test suite
+
+Character prefabs (inherit from `tmpl_character.tscn`):
+- [ ] `prefab_woods_wolf.tscn` → `editor_build_wolf_prefab.gd`
+- [ ] `prefab_woods_rabbit.tscn` → `editor_build_rabbit_prefab.gd`
+- [ ] `prefab_woods_builder.tscn` → `editor_build_builder_prefab.gd`
+- [ ] `prefab_demo_npc.tscn` → `editor_build_demo_npc_prefab.gd`
+
+Static object prefabs (fresh root):
+- [ ] `prefab_woods_tree.tscn` → `editor_build_tree_prefab.gd`
+- [ ] `prefab_woods_water.tscn` → `editor_build_water_prefab.gd`
+- [ ] `prefab_woods_stone.tscn` → `editor_build_stone_prefab.gd`
+- [ ] `prefab_woods_stockpile.tscn` → `editor_build_stockpile_prefab.gd`
+- [ ] `prefab_woods_construction_site.tscn` → `editor_build_construction_site_prefab.gd`
+
+Scene prefabs:
+- [ ] `prefab_alleyway.tscn`
+- [ ] `prefab_bar.tscn`
+
+**P7.7 Verification**:
+- [ ] All generated scenes visually match originals.
+- [ ] Full test suite green after each deletion.
+
+---
+
+## Milestone P7.8: Style Compliance, ADR & Cleanup
+
+- [ ] **Commit 16 (GREEN)** — Add style enforcement:
+  - Files under `scripts/core/utils/editors/` under 200 lines
+  - Files under `scripts/demo/editors/` under 150 lines
+  - `scripts/core/` must not import from `scripts/demo/`
+  - Naming convention: `U_Editor*Builder`, `editor_build_*.gd`
+
+- [ ] **Commit 17 (DOCS)** — ADR-0010, continuation prompt update, task checklist update.
+
+**P7.8 Verification**:
+- [ ] Style suite passes with new rules.
+- [ ] Full suite green.
+- [ ] ADR-0010 documents architecture decisions.

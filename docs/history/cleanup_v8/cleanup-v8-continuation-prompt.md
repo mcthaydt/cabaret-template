@@ -5,15 +5,15 @@
 Implements `docs/history/cleanup_v8/cleanup-v8-tasks.md` in phase order with TDD discipline. V8 is the follow-up to V7.2, addressing structural/organizational debt rather than internal architectural issues.
 
 **Branch**: `cleanup-v8` (off `main`, after `GOAP-AI` merged via PR #16).
-**Status**: Phases 1–4 complete. Phase 5 not started (deferred to last per sequencing plan). Phase 6 in progress — P6.1 complete, P6.2 complete, P6.3 complete, P6.4 complete, P6.5 next.
-**Next Task**: P6.5 — BT Migration (`.tres` → builder scripts).
+**Status**: Phases 1–4 complete. Phase 5 not started (deferred to last per sequencing plan). Phase 6 in progress — P6.1 complete, P6.2 complete, P6.3 complete, P6.4 complete, P6.5 next. Phase 7 not started.
+**Next Task**: P6.5 — BT Migration (`.tres` → builder scripts). Phase 7 queued after P6.12.
 **Prerequisite**: V7.2 complete (`e015aff2`). Phase 4 complete (`cbf0fd61`). All 18 P3.5 extension recipes complete (`b0c5b1cd`). P6.1 complete (`ec14181a`). P6.2 complete (`a23270b1`). P6.3 complete (`0cd59475`). P6.4 complete (`c6608c79`).
 
 ---
 
 ## Scope Summary
 
-Six phases bundled for one goal: make the template LLM-friendly, modular, and ship-ready as a reusable base.
+Seven phases bundled for one goal: make the template LLM-friendly, modular, and ship-ready as a reusable base.
 
 1. **Phase 1 — AI Rewrite (utility-scored BTs).** COMPLETE. Replace GOAP + HTN with behavior trees. Net ~300 LOC reduction.
 2. **Phase 2 — Debug/Perf Extraction.** COMPLETE through P2.4. No bare `print()` in managers/systems enforced.
@@ -21,6 +21,7 @@ Six phases bundled for one goal: make the template LLM-friendly, modular, and sh
 4. **Phase 4 — Template vs Demo Split.** COMPLETE (P4.1–P4.10). Scripts, resources, scenes, and assets all split into `core/` and `demo/`. Style suite 89/89.
 5. **Phase 5 — Base Scene.** NOT STARTED. Deferred to last (easiest once code is organized).
 6. **Phase 6 — LLM-First Fluent Builders.** IN PROGRESS. Replace `.tres` resource authoring with GDScript builder APIs across BT trees, scene registry, input profiles, and QB rules. Reference plan: `~/.claude/plans/stateless-tickling-meerkat.md`.
+7. **Phase 7 — EditorScript + PackedScene Builders.** NOT STARTED. Replace hand-authored `.tscn` creation with programmatic GDScript builder APIs (`U_EditorPrefabBuilder`, `U_EditorBlockoutBuilder`). Migrate all demo prefabs to builder scripts. Reference plan: `~/.claude/plans/lets-add-a-new-humming-kay.md`.
 
 ---
 
@@ -40,6 +41,7 @@ Six phases bundled for one goal: make the template LLM-friendly, modular, and sh
   - Style suite: **89/89** after P4.10.
 - **Phase 5**: NOT STARTED. Deferred to last.
 - **Phase 6**: IN PROGRESS. P6.1 complete (`10310f00`–`ec14181a`). P6.2 complete (`a4c41434`–`a23270b1`). P6.3 complete (`d0c1224a`–`0cd59475`). P6.4 complete (`4a1218f1`–`c6608c79`). Style suite 92/92. Full suite 4651/4659 (8 pre-existing pending).
+- **Phase 7**: NOT STARTED. Planned after P6.12. Reference plan: `~/.claude/plans/lets-add-a-new-humming-kay.md`.
 
 ---
 
@@ -124,7 +126,23 @@ Phase 1 ──┬── Phase 2 (independent, complete)
           ├── Phase 3 (independent, docs-only, complete)
           └── Phase 4 ── Phase 5 (not started, deferred to last)
                      └── Phase 6 (in progress: P6.1 → P6.2 → ... → P6.12)
+                        └── Phase 7 (not started: P7.1 → ... → P7.8)
 ```
+
+---
+
+## Phase 7 Milestone Summary
+
+| # | Milestone | Content |
+|---|---|---|
+| P7.1 | U_EditorPrefabBuilder: Root Creation & Fluent API | `create_root`, `inherit_from`, `set_entity_id`, `set_tags`, `build` |
+| P7.2 | U_EditorPrefabBuilder: ECS Component Wiring | `add_ecs_component`, `add_ecs_component_by_path`, settings + inline properties |
+| P7.3 | U_EditorPrefabBuilder: Visuals, Collision & Children | CSG/mesh visuals, collision shapes, markers, child scenes, property overrides |
+| P7.4 | U_EditorPrefabBuilder: Save & EditorScript Adapter | `save()`, owner propagation, wolf prefab EditorScript demo |
+| P7.5 | U_EditorBlockoutBuilder: Core CSG API | `create_root`, CSG primitives, spawn points, markers, `execute_custom` |
+| P7.6 | U_EditorBlockoutBuilder: Materials, Environment & Save | Material helpers, directional light, world env, `save()`, arena blockout demo |
+| P7.7 | Prefab Migration | All 12 demo prefabs migrated to builder scripts; original .tscn deleted |
+| P7.8 | Style Compliance, ADR & Cleanup | Style enforcement tests, ADR-0010, docs update |
 
 ---
 
@@ -152,6 +170,9 @@ Test command: `tools/run_gut_suite.sh` (or `-gtest=<path>` for targeted runs).
 - **Phase 5 is last**: Base scene cleanup is easiest once all code is organized. Do not start until Phase 6 is complete or user explicitly requests it.
 - **Phase 6 migration is destructive**: Each `.tres` deletion commit is atomic and revertable. Run full suite + visual parity check before deleting.
 - **Core/demo boundary in Phase 6**: BT structural builder (`U_BTBuilder`) lives in `scripts/core/utils/bt/` (no AI imports). AI-specific factories (`U_AIBTFactory`) live in `scripts/core/utils/ai/`.
+- **Phase 7 builder classes are RefCounted**: `U_EditorPrefabBuilder` and `U_EditorBlockoutBuilder` extend `RefCounted` (not `EditorScript`) for headless GUT testability. EditorScript wrappers in `scripts/demo/editors/` are thin adapters.
+- **Phase 7 core/demo boundary**: Builder infrastructure lives in `scripts/core/utils/editors/`. Demo EditorScript recipes live in `scripts/demo/editors/`. Tests live in `tests/unit/editors/`.
+- **Phase 7 migration is destructive**: Each `.tscn` deletion commit is atomic and revertable. Run full suite + visual parity check before deleting.
 
 ---
 
@@ -164,3 +185,122 @@ Test command: `tools/run_gut_suite.sh` (or `-gtest=<path>` for targeted runs).
 5. **P6.5 Commit 5 (GREEN)** — Delete the original creature BT `.tres` files after visual parity confirmed.
 6. After P6.5: proceed to P6.6 — Scene Registry Builder.
 7. Keep docs/history references archived; new evergreen guidance belongs under `docs/guides/` or `docs/systems/`.
+
+---
+
+## Phase 7 — EditorScript + PackedScene Builders — NOT STARTED
+
+**Reference plan**: `~/.claude/plans/lets-add-a-new-humming-kay.md`.
+
+**Goal**: Replace hand-authored `.tscn` creation with programmatic GDScript builder APIs. Two new RefCounted builders (`U_EditorPrefabBuilder`, `U_EditorBlockoutBuilder`) provide fluent APIs for constructing scene trees. Thin `@tool extends EditorScript` wrappers in `scripts/demo/editors/` invoke them and call `save()`. All 12 demo prefabs migrate from `.tscn` to builder scripts.
+
+**Key design decisions**:
+- Builders extend `RefCounted` (not `EditorScript`) for headless GUT testability.
+- `U_EditorPrefabBuilder` handles both character prefabs (inheriting from `tmpl_character.tscn`) and static objects (fresh `StaticBody3D` roots).
+- `U_EditorBlockoutBuilder` handles CSG level blockouts with spawn points, lights, and environment.
+- EditorScript wrappers are 5-line thin adapters: instantiate builder, call fluent API, call `save()`.
+- Migration mirrors P6.5 approach: create builder → verify parity → delete original `.tscn`.
+
+**Directory structure**:
+- `scripts/core/utils/editors/` — Builder infrastructure (template-reusable)
+- `scripts/demo/editors/` — EditorScript recipes (demo-specific)
+- `tests/unit/editors/` — GUT tests
+
+---
+
+## P7.1 — U_EditorPrefabBuilder: Root Creation & Fluent API — NOT STARTED
+
+**Files**:
+- NEW `scripts/core/utils/editors/u_editor_prefab_builder.gd`
+- NEW `tests/unit/editors/test_u_editor_prefab_builder.gd`
+
+**Commit 1 (RED)** — Write tests for:
+- `create_root("Node3D", "TestRoot")` produces Node3D named "TestRoot"
+- `create_root("StaticBody3D", "TestStatic")` produces StaticBody3D
+- `inherit_from(tmpl_character_path)` produces instanced scene with inherited children
+- `set_entity_id(&"wolf")` and `set_tags([&"predator"])` set metadata on root
+- Fluent API: each method returns `self`
+- `build()` returns root node
+- Error: calling `build()` before `create_root()` or `inherit_from()` returns null/pushes error
+
+**Commit 2 (GREEN)** — Implement:
+- `U_EditorPrefabBuilder` extends RefCounted
+- `_root: Node` internal state
+- `create_root(node_type: String, name: String)` — creates node by class name
+- `inherit_from(scene_path: String)` — loads PackedScene, instantiates with `GEN_EDIT_STATE_MAIN`
+- `set_entity_id(id: StringName)` — sets entity_id on root
+- `set_tags(tags: Array[StringName])` — sets tags on root
+- `build() -> Node` — returns root
+- Private `_ensure_components_container()` — finds or creates "Components" node
+
+---
+
+## P7.2 — U_EditorPrefabBuilder: ECS Component Wiring — NOT STARTED
+
+**Files**: MODIFY `u_editor_prefab_builder.gd`, MODIFY tests.
+
+**Commit 3 (RED)** — Write tests for:
+- `add_ecs_component(script, null, {})` adds Node under Components with script attached
+- `add_ecs_component(script, settings_resource, {})` assigns settings export
+- `add_ecs_component(script, null, {"detection_radius": 14.0})` sets inline properties
+- `add_ecs_component_by_path(script_path, settings_path, {})` loads and wires both
+- Multiple components added sequentially are all present
+
+**Commit 4 (GREEN)** — Implement:
+- `add_ecs_component(script: Script, settings: Resource = null, properties: Dictionary = {}) -> U_EditorPrefabBuilder`
+- `add_ecs_component_by_path(script_path: String, settings_path: String = "", properties: Dictionary = {}) -> U_EditorPrefabBuilder`
+
+---
+
+## P7.3 — U_EditorPrefabBuilder: Visuals, Collision & Children — NOT STARTED
+
+**Files**: MODIFY `u_editor_prefab_builder.gd`, MODIFY tests.
+
+**Commit 5 (RED)** — Write tests for visual, collision, marker, and child-scene methods.
+
+**Commit 6 (GREEN)** — Implement:
+- `add_visual_csg()`, `add_visual_mesh()`, `add_collision_capsule()`, `add_collision_box()`, `add_child_scene()`, `add_marker()`, `override_property()`
+
+---
+
+## P7.4 — U_EditorPrefabBuilder: Save & EditorScript Adapter — NOT STARTED
+
+**Files**: MODIFY `u_editor_prefab_builder.gd`, MODIFY tests, NEW `scripts/demo/editors/editor_build_wolf_prefab.gd`.
+
+**Commit 7 (RED)** — Write test for `build()` producing a tree that `PackedScene.pack()` accepts.
+
+**Commit 8 (GREEN)** — Implement `save()`, owner propagation, create wolf prefab EditorScript demo.
+
+---
+
+## P7.5 — U_EditorBlockoutBuilder: Core CSG API — NOT STARTED
+
+**Files**: NEW `scripts/core/utils/editors/u_editor_blockout_builder.gd`, NEW `tests/unit/editors/test_u_editor_blockout_builder.gd`.
+
+**Commit 9 (RED)** — Write tests for CSG primitives, spawn points, markers, `execute_custom`.
+
+**Commit 10 (GREEN)** — Implement `U_EditorBlockoutBuilder` with all CSG methods, `build()`, `save()`.
+
+---
+
+## P7.6 — U_EditorBlockoutBuilder: Materials, Environment & Save — NOT STARTED
+
+**Files**: MODIFY `u_editor_blockout_builder.gd`, MODIFY tests, NEW `scripts/demo/editors/editor_build_arena_blockout.gd`.
+
+**Commit 11 (RED)** — Write tests for materials, lights, environment, collision flags.
+
+**Commit 12 (GREEN)** — Implement material helper, `add_directional_light()`, `add_world_environment()`, arena blockout demo.
+
+---
+
+## P7.7 — Prefab Migration — NOT STARTED
+
+Migrate all 12 demo prefabs from `.tscn` to builder scripts. Character prefabs (wolf, rabbit, builder, demo_npc) inherit from tmpl_character. Static prefabs (tree, water, stone, stockpile, construction_site) use fresh roots. Scene prefabs (alleyway, bar) as applicable. Each migration: create builder → verify parity → delete original.
+
+---
+
+## P7.8 — Style Compliance, ADR & Cleanup — NOT STARTED
+
+**Commit 16 (GREEN)** — Add style enforcement: line caps, naming, import boundaries.
+
+**Commit 17 (DOCS)** — ADR-0010, continuation prompt update, task checklist update.
