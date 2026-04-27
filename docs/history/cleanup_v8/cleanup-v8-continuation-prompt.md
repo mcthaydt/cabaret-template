@@ -5,8 +5,8 @@
 Implements `docs/history/cleanup_v8/cleanup-v8-tasks.md` in phase order with TDD discipline. V8 is the follow-up to V7.2, addressing structural/organizational debt rather than internal architectural issues.
 
 **Branch**: `cleanup-v8` (off `main`, after `GOAP-AI` merged via PR #16).
-**Status**: Phases 1–4 complete. Phase 5 not started (deferred to last per sequencing plan). Phase 6 in progress — P6.1 complete, P6.2 complete, P6.3 complete, P6.4 complete, P6.5 complete, P6.6 complete, P6.7 complete, P6.8 complete, P6.9 complete. Phase 7 not started.
-**Next Task**: P6.10 — QB Rule Builder (`U_QBRuleBuilder`). Phase 7 queued after P6.12.
+**Status**: Phases 1–4 complete. Phase 5 not started (deferred to last per sequencing plan). Phase 6 in progress — P6.1 complete, P6.2 complete, P6.3 complete, P6.4 complete, P6.5 complete, P6.6 complete, P6.7 complete, P6.8 complete, P6.9 complete, P6.10 complete. Phase 7 not started.
+**Next Task**: P6.11 — QB Rule Migration (.tres → builder scripts). Phase 7 queued after P6.12.
 **Prerequisite**: V7.2 complete (`e015aff2`). Phase 4 complete (`cbf0fd61`). All 18 P3.5 extension recipes complete (`b0c5b1cd`). P6.1 complete (`ec14181a`). P6.2 complete (`a23270b1`). P6.3 complete (`0cd59475`). P6.4 complete (`c6608c79`). P6.5 complete (`e28d0c30`, gap patch `5a176f9a`–`b29e3618`). P6.6 complete (`fb576449`). P6.7 complete (`a33d1153`–`0b69200f`). P6.8 complete (`4d680390`–`deac3004`). P6.9 complete (`df1deff5`–`cfdd907a`, loader tests `a16b0783`).
 
 ---
@@ -40,7 +40,7 @@ Seven phases bundled for one goal: make the template LLM-friendly, modular, and 
   - P4.10: `prototype_grids_png` → `assets/demo/textures/`; `editor_icons` → `assets/core/`; remaining core dirs → `assets/core/` (`bfc64316`–`58e4263e`).
   - Style suite: **89/89** after P4.10.
 - **Phase 5**: NOT STARTED. Deferred to last.
-- **Phase 6**: IN PROGRESS. P6.1 complete (`10310f00`–`ec14181a`). P6.2 complete (`a4c41434`–`a23270b1`). P6.3 complete (`d0c1224a`–`0cd59475`). P6.4 complete (`4a1218f1`–`c6608c79`). P6.5 complete (`6e9e7b6a`–`e28d0c30`, gap-patched `5a176f9a`–`b29e3618` — guide_showcase_behavior builder + cfg_guide_showcase_brain_script.tres). P6.6 complete (`f3806172`–`fb576449`). P6.7 complete (`a33d1153`–`0b69200f`; note: manifest is at `scripts/core/scene_management/u_scene_manifest.gd`, not `scripts/demo/` — intentional, it is the core loader's manifest). P6.8 complete (`4d680390`–`deac3004`). P6.9 complete (`df1deff5`–`cfdd907a`, loader tests `a16b0783`). Style suite 92/92. Full suite 4725/4733 (8 pre-existing pending, 0 failures).
+- **Phase 6**: IN PROGRESS. P6.1 complete (`10310f00`–`ec14181a`). P6.2 complete (`a4c41434`–`a23270b1`). P6.3 complete (`d0c1224a`–`0cd59475`). P6.4 complete (`4a1218f1`–`c6608c79`). P6.5 complete (`6e9e7b6a`–`e28d0c30`, gap-patched `5a176f9a`–`b29e3618` — guide_showcase_behavior builder + cfg_guide_showcase_brain_script.tres). P6.6 complete (`f3806172`–`fb576449`). P6.7 complete (`a33d1153`–`0b69200f`; note: manifest is at `scripts/core/scene_management/u_scene_manifest.gd`, not `scripts/demo/` — intentional, it is the core loader's manifest). P6.8 complete (`4d680390`–`deac3004`). P6.9 complete (`df1deff5`–`cfdd907a`, loader tests `a16b0783`). P6.10 complete (static-factory `U_QBRuleBuilder` at `scripts/core/utils/qb/u_qb_rule_builder.gd`, 30 tests green). Style suite 92/92 through P6.9; full suite 4755/4763 (8 pre-existing pending, 0 failures) after P6.10.
 - **Phase 7**: NOT STARTED. Planned after P6.12. Reference plan: `~/.claude/plans/lets-add-a-new-humming-kay.md`.
 
 ---
@@ -58,7 +58,7 @@ Seven phases bundled for one goal: make the template LLM-friendly, modular, and 
 | P6.7 | Scene Registry Migration | Replace scene registry `.tres` with builder script | COMPLETE (`a33d1153`–`0b69200f`). Manifest `u_scene_manifest.gd` with all 24 entries. Loader wired. All `.tres` removed. |
 | P6.8 | Input Profile Builder (`U_InputProfileBuilder`) | Fluent builder for input profiles |
 | P6.9 | Input Profile Migration | Replace input profile `.tres` files with builder scripts |
-| P6.10 | QB Rule Builder (`U_QBRuleBuilder`) | Fluent builder for QB rules and conditions |
+| P6.10 | QB Rule Builder (`U_QBRuleBuilder`) | Fluent builder for QB rules and conditions | COMPLETE. Static factory; 9 condition factories, 4 effect factories, rule builder; type-detected values; headless-safe array bypass; 30/30 tests green.
 | P6.11 | QB Rule Migration | Replace QB rule `.tres` files with builder scripts |
 | P6.12 | ADR + Extension Recipes | ADR for builder pattern; P6 extension recipe |
 
@@ -148,6 +148,25 @@ Seven phases bundled for one goal: make the template LLM-friendly, modular, and 
 - 34 lines total; 10 new tests all green.
 
 **Result**: style suite 92/92; 10/10 builder tests green.
+
+---
+
+## P6.10 — QB Rule Builder (`U_QBRuleBuilder`) — COMPLETE
+
+**Commits**: Commit 1 (RED) `test_u_qb_rule_builder.gd`, Commit 2 (GREEN) `u_qb_rule_builder.gd`.
+
+**Key implementation notes**:
+- `U_QBRuleBuilder` extends `RefCounted` with `class_name`, all `static func` — matches `U_BTBuilder` and `U_AIBTFactory` pattern.
+- Condition factories: `event_name`, `event_payload`, `component_field`, `redux_field`, `entity_tag`, `context_field`, `constant`, `composite_all`, `composite_any`.
+- Effect factories: `publish_event`, `set_field`, `set_context`, `dispatch_action`.
+- `rule(rule_id, conditions, effects, config)` creates `RS_Rule`, applies `config` dict for `trigger_mode`, `score_threshold`, `decision_group`, `priority`, `cooldown`, `one_shot`, `requires_rising_edge`, `description`.
+- Headless-safe typed-array bypass: `rule()` calls `_coerce_conditions()` / `_coerce_effects()` via `call()` then `.set("_conditions", ...)` / `.set("_effects", ...)` — same pitfall bypass as U_BTBuilder/U_AIBTFactory.
+- Composite factories use `_coerce_children` + `.set("_children", ...)` bypass — same as U_AIBTFactory.`composite_all`/`composite_any`.
+- `set_field` and `set_context` value type detection: `bool` before `int` (bool is subtype of int in GDScript 4.x), then `float`, `StringName`, `String`, `Vector2`, `Vector3`.
+- `set_field` config supports: `operation`, `use_context_value`, `context_value_path`, `scale_by_rule_score`, `rule_score_context_path`, `use_clamp`, `clamp_min`, `clamp_max`.
+- 9 condition + 4 effect + 1 rule factory + 2 value-helpers = ~141 lines; under 200-line LOC cap.
+
+**Result**: 30/30 tests passing, 218 asserts; full suite 4755/4763 (8 pre-existing pending, 0 failures).
 
 ---
 
