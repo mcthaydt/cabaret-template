@@ -11,7 +11,7 @@ const VIRTUAL_BUTTON_SCENE := preload("res://scenes/core/ui/widgets/ui_virtual_b
 @export_range(0.0, 1.0, 0.05) var idle_opacity: float = 0.3
 @export_range(0.0, 1.0, 0.05) var active_opacity: float = 1.0
 
-const DEFAULT_TOUCHSCREEN_PROFILE_PATH := "res://resources/core/input/profiles/cfg_default_touchscreen.tres"
+const DEFAULT_TOUCHSCREEN_PROFILE_PATH := "res://scripts/core/resources/input/profiles/rs_default_touchscreen_profile.gd"
 const SHELL_GAMEPLAY := StringName("gameplay")
 const EDIT_OVERLAY_ID := StringName("edit_touch_controls")
 const SIGNPOST_MESSAGE_EVENT := StringName("signpost_message")
@@ -259,9 +259,13 @@ func _reset_look_touch_state(clear_pending_delta: bool) -> void:
 		_pending_look_delta = Vector2.ZERO
 
 func _load_touchscreen_profile() -> RS_InputProfile:
-	var resource := ResourceLoader.load(DEFAULT_TOUCHSCREEN_PROFILE_PATH)
-	if resource is RS_InputProfile:
-		return resource as RS_InputProfile
+	var script: GDScript = load(DEFAULT_TOUCHSCREEN_PROFILE_PATH)
+	if script != null:
+		var instance: RefCounted = script.new()
+		if instance.has_method("build"):
+			var result: Variant = instance.build()
+			if result is RS_InputProfile:
+				return result as RS_InputProfile
 	push_error("MobileControls: Failed to load default touchscreen profile")
 	return null
 

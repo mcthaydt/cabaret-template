@@ -158,7 +158,9 @@ func test_profile_events_used_over_inputmap_for_look() -> void:
 
 func test_default_gamepad_profile_has_stick_events() -> void:
 	# Verify the actual default gamepad profile has the correct stick mappings.
-	var profile: RS_InputProfile = load("res://resources/core/input/profiles/cfg_default_gamepad.tres")
+	var script := preload("res://scripts/core/resources/input/profiles/rs_default_gamepad_profile.gd")
+	var instance := script.new()
+	var profile: RS_InputProfile = instance.build()
 	assert_not_null(profile, "Default gamepad profile should exist")
 
 	# Movement should use left stick

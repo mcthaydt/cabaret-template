@@ -2,6 +2,13 @@ extends GutTest
 
 const RS_InputProfile = preload("res://scripts/core/resources/input/rs_input_profile.gd")
 
+const DefaultKeyboardProfile = preload("res://scripts/core/resources/input/profiles/rs_default_keyboard_profile.gd")
+const AlternateKeyboardProfile = preload("res://scripts/core/resources/input/profiles/rs_alternate_keyboard_profile.gd")
+const AccessibilityKeyboardProfile = preload("res://scripts/core/resources/input/profiles/rs_accessibility_keyboard_profile.gd")
+const DefaultGamepadProfile = preload("res://scripts/core/resources/input/profiles/rs_default_gamepad_profile.gd")
+const AccessibilityGamepadProfile = preload("res://scripts/core/resources/input/profiles/rs_accessibility_gamepad_profile.gd")
+const DefaultTouchscreenProfile = preload("res://scripts/core/resources/input/profiles/rs_default_touchscreen_profile.gd")
+
 func test_defaults_and_setters() -> void:
 	var p := RS_InputProfile.new()
 	assert_eq(p.profile_name, "Default", "Default profile name")
@@ -91,8 +98,9 @@ func test_touchscreen_fields_serialize_roundtrip() -> void:
 	assert_eq(p2.virtual_buttons[1]["position"], Vector2(800, 350), "Button 1 position restored")
 
 func test_touchscreen_profile_loads_with_virtual_buttons() -> void:
-	var profile: RS_InputProfile = load("res://resources/core/input/profiles/cfg_default_touchscreen.tres")
-	assert_not_null(profile, "Touchscreen profile should load")
+	var script := DefaultTouchscreenProfile.new()
+	var profile: RS_InputProfile = script.build()
+	assert_not_null(profile, "Touchscreen profile should build")
 	assert_eq(profile.device_type, 2, "Device type should be touchscreen")
 	assert_eq(profile.virtual_buttons.size(), 4, "Should have 4 virtual buttons")
 	# Test button structure
@@ -101,21 +109,23 @@ func test_touchscreen_profile_loads_with_virtual_buttons() -> void:
 		assert_true(button.has("position"), "Button should have position")
 
 func test_touchscreen_profile_has_joystick_position() -> void:
-	var profile: RS_InputProfile = load("res://resources/core/input/profiles/cfg_default_touchscreen.tres")
+	var script := DefaultTouchscreenProfile.new()
+	var profile: RS_InputProfile = script.build()
 	assert_ne(profile.virtual_joystick_position, Vector2(-1, -1), "Should have joystick position")
 
 ## Test that default keyboard profiles use physical_keycode (not keycode)
-## This ensures keyboard input works correctly with Godot's input system
+## This ensures keyboard input works correctly with God's input system
 func test_default_keyboard_profiles_use_physical_keycode() -> void:
 	var profiles := [
-		"res://resources/core/input/profiles/cfg_default_keyboard.tres",
-		"res://resources/core/input/profiles/cfg_alternate_keyboard.tres",
-		"res://resources/core/input/profiles/cfg_accessibility_keyboard.tres"
+		DefaultKeyboardProfile,
+		AlternateKeyboardProfile,
+		AccessibilityKeyboardProfile
 	]
 
-	for profile_path in profiles:
-		var profile: RS_InputProfile = load(profile_path)
-		assert_not_null(profile, "Profile loaded: %s" % profile_path)
+	for profile_script in profiles:
+		var instance := profile_script.new()
+		var profile: RS_InputProfile = instance.build()
+		assert_not_null(profile, "Profile built from script")
 
 		# Check all action mappings
 		for action_name in profile.action_mappings.keys():
@@ -124,46 +134,48 @@ func test_default_keyboard_profiles_use_physical_keycode() -> void:
 				if event is InputEventKey:
 					var key_event := event as InputEventKey
 					assert_ne(key_event.physical_keycode, 0,
-						"Profile %s action '%s' uses physical_keycode (not keycode)" % [profile_path, action_name])
+						"Profile %s action '%s' uses physical_keycode (not keycode)" % [profile_script.resource_path, action_name])
 					# If keycode is set but physical_keycode is 0, that's the bug we fixed
 					if key_event.keycode != 0 and key_event.physical_keycode == 0:
 						fail_test("Profile %s action '%s' has keycode=%d but physical_keycode=0 (should use physical_keycode)" %
-							[profile_path, action_name, key_event.keycode])
+							[profile_script.resource_path, action_name, key_event.keycode])
 
 func test_default_gamepad_profiles_bind_camera_center_to_right_stick() -> void:
 	var profiles := [
-		"res://resources/core/input/profiles/cfg_default_gamepad.tres",
-		"res://resources/core/input/profiles/cfg_accessibility_gamepad.tres"
+		DefaultGamepadProfile,
+		AccessibilityGamepadProfile
 	]
-	for profile_path in profiles:
-		var profile: RS_InputProfile = load(profile_path)
-		assert_not_null(profile, "Profile loaded: %s" % profile_path)
+	for profile_script in profiles:
+		var instance := profile_script.new()
+		var profile: RS_InputProfile = instance.build()
+		assert_not_null(profile, "Profile built from script")
 		var events := profile.get_events_for_action(StringName("camera_center"))
 		var has_r3 := false
 		for event in events:
 			if event is InputEventJoypadButton and (event as InputEventJoypadButton).button_index == JOY_BUTTON_RIGHT_STICK:
 				has_r3 = true
-		assert_true(has_r3, "Profile %s should bind camera_center to R3 by default" % profile_path)
+		assert_true(has_r3, "Profile %s should bind camera_center to R3 by default" % profile_script.resource_path)
 
 func test_default_gamepad_profiles_keep_sprint_on_left_stick() -> void:
 	var profiles := [
-		"res://resources/core/input/profiles/cfg_default_gamepad.tres",
-		"res://resources/core/input/profiles/cfg_accessibility_gamepad.tres"
+		DefaultGamepadProfile,
+		AccessibilityGamepadProfile
 	]
-	for profile_path in profiles:
-		var profile: RS_InputProfile = load(profile_path)
-		assert_not_null(profile, "Profile loaded: %s" % profile_path)
+	for profile_script in profiles:
+		var instance := profile_script.new()
+		var profile: RS_InputProfile = instance.build()
+		assert_not_null(profile, "Profile built from script")
 		var events := profile.get_events_for_action(StringName("sprint"))
 		var has_l3 := false
 		for event in events:
 			if event is InputEventJoypadButton and (event as InputEventJoypadButton).button_index == JOY_BUTTON_LEFT_STICK:
 				has_l3 = true
-		assert_true(has_l3, "Profile %s should keep sprint on L3 by default" % profile_path)
+		assert_true(has_l3, "Profile %s should keep sprint on L3 by default" % profile_script.resource_path)
 
 func test_default_gamepad_profiles_bind_look_actions_to_right_stick_axes() -> void:
 	var profiles := [
-		"res://resources/core/input/profiles/cfg_default_gamepad.tres",
-		"res://resources/core/input/profiles/cfg_accessibility_gamepad.tres"
+		DefaultGamepadProfile,
+		AccessibilityGamepadProfile
 	]
 	var expected := {
 		StringName("look_left"): {"axis": JOY_AXIS_RIGHT_X, "axis_value": -1.0},
@@ -172,9 +184,10 @@ func test_default_gamepad_profiles_bind_look_actions_to_right_stick_axes() -> vo
 		StringName("look_down"): {"axis": JOY_AXIS_RIGHT_Y, "axis_value": 1.0},
 	}
 
-	for profile_path in profiles:
-		var profile: RS_InputProfile = load(profile_path)
-		assert_not_null(profile, "Profile loaded: %s" % profile_path)
+	for profile_script in profiles:
+		var instance := profile_script.new()
+		var profile: RS_InputProfile = instance.build()
+		assert_not_null(profile, "Profile built from script")
 		for action_name in expected.keys():
 			var events := profile.get_events_for_action(action_name)
 			var action_expectation: Dictionary = expected[action_name]
@@ -190,7 +203,7 @@ func test_default_gamepad_profiles_bind_look_actions_to_right_stick_axes() -> vo
 			assert_true(
 				has_expected_axis,
 				"Profile %s action %s should use right-stick axis %d @ %.1f" % [
-					profile_path,
+					profile_script.resource_path,
 					String(action_name),
 					expected_axis,
 					expected_axis_value

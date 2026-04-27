@@ -1,10 +1,13 @@
 extends GutTest
 
 const MobileControlsScene := preload("res://scenes/core/ui/hud/ui_mobile_controls.tscn")
-const DefaultTouchscreenProfile := preload("res://resources/core/input/profiles/cfg_default_touchscreen.tres")
+const DefaultTouchscreenProfileScript = preload("res://scripts/core/resources/input/profiles/rs_default_touchscreen_profile.gd")
+var DefaultTouchscreenProfile: RS_InputProfile
 
 func before_each() -> void:
 	U_StateHandoff.clear_all()
+	var script_instance := DefaultTouchscreenProfileScript.new()
+	DefaultTouchscreenProfile = script_instance.build() as RS_InputProfile
 
 func after_each() -> void:
 	U_StateHandoff.clear_all()

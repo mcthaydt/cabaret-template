@@ -1,32 +1,15 @@
 extends RefCounted
 class_name U_InputProfileLoader
 
+const ProfileManifest := preload("res://scripts/core/resources/input/profiles/rs_manifest.gd")
+
 func load_available_profiles() -> Dictionary:
 	var profiles: Dictionary = {}
 
-	var default_res := load("res://resources/core/input/profiles/cfg_default_keyboard.tres")
-	if default_res is RS_InputProfile:
-		profiles["default"] = default_res
-
-	var alternate_res := load("res://resources/core/input/profiles/cfg_alternate_keyboard.tres")
-	if alternate_res is RS_InputProfile:
-		profiles["alternate"] = alternate_res
-
-	var accessibility_res := load("res://resources/core/input/profiles/cfg_accessibility_keyboard.tres")
-	if accessibility_res is RS_InputProfile:
-		profiles["accessibility"] = accessibility_res
-
-	var default_gamepad_res := load("res://resources/core/input/profiles/cfg_default_gamepad.tres")
-	if default_gamepad_res is RS_InputProfile:
-		profiles["default_gamepad"] = default_gamepad_res
-
-	var accessibility_gamepad_res := load("res://resources/core/input/profiles/cfg_accessibility_gamepad.tres")
-	if accessibility_gamepad_res is RS_InputProfile:
-		profiles["accessibility_gamepad"] = accessibility_gamepad_res
-
-	var default_touchscreen_res := load("res://resources/core/input/profiles/cfg_default_touchscreen.tres")
-	if default_touchscreen_res is RS_InputProfile:
-		profiles["default_touchscreen"] = default_touchscreen_res
+	var manifest := ProfileManifest.new()
+	var all_profiles := manifest.build()
+	for key in all_profiles:
+		profiles[key] = all_profiles[key]
 
 	return profiles
 
