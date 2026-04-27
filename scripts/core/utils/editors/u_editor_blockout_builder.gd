@@ -46,6 +46,41 @@ func execute_custom(callback: Callable) -> U_EditorBlockoutBuilder:
 	callback.call(_root)
 	return self
 
+func set_material(node_name: String, color: Color) -> U_EditorBlockoutBuilder:
+	if _root == null:
+		push_error("U_EditorBlockoutBuilder: set_material called before create_root")
+		return self
+	var target: Node = _root.get_node_or_null(node_name)
+	if target == null:
+		push_error("U_EditorBlockoutBuilder: set_material target '%s' not found" % node_name)
+		return self
+	var mat: StandardMaterial3D = StandardMaterial3D.new()
+	mat.albedo_color = color
+	target.set("material", mat)
+	return self
+
+func add_directional_light(node_name: String, position: Vector3, color: Color, energy: float) -> U_EditorBlockoutBuilder:
+	if _root == null:
+		push_error("U_EditorBlockoutBuilder: add_directional_light called before create_root")
+		return self
+	var light: DirectionalLight3D = DirectionalLight3D.new()
+	light.name = node_name
+	light.position = position
+	light.light_color = color
+	light.light_energy = energy
+	_root.add_child(light)
+	return self
+
+func add_world_environment(node_name: String) -> U_EditorBlockoutBuilder:
+	if _root == null:
+		push_error("U_EditorBlockoutBuilder: add_world_environment called before create_root")
+		return self
+	var world_env: WorldEnvironment = WorldEnvironment.new()
+	world_env.name = node_name
+	world_env.environment = Environment.new()
+	_root.add_child(world_env)
+	return self
+
 func save(save_path: String) -> bool:
 	if _root == null:
 		push_error("U_EditorBlockoutBuilder: save() called before create_root()")

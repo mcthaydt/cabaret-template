@@ -91,6 +91,57 @@ func test_execute_custom_runs_callable() -> void:
 	if root is Node:
 		(root as Node).queue_free()
 
+func test_set_material_changes_color() -> void:
+	var builder: Object = _new_builder()
+	if builder == null:
+		return
+	builder.call("create_root", "TestBlockout")
+	builder.call("add_csg_box", "Floor", Vector3(5, 1, 5))
+	builder.call("set_material", "Floor", Color.RED)
+	var root: Variant = builder.call("build")
+	assert_not_null(root, "build must return root")
+	var box: Node = (root as Node).get_node_or_null("Floor")
+	assert_not_null(box, "Floor must exist")
+	assert_true(box is CSGBox3D, "Floor must be CSGBox3D")
+	var mat: Material = (box as CSGBox3D).material
+	assert_not_null(mat, "set_material must assign a material")
+	assert_true(mat is StandardMaterial3D, "Material must be StandardMaterial3D")
+	assert_eq((mat as StandardMaterial3D).albedo_color, Color.RED, "Material color must match")
+	if root is Node:
+		(root as Node).queue_free()
+
+func test_add_directional_light_adds_light3d() -> void:
+	var builder: Object = _new_builder()
+	if builder == null:
+		return
+	builder.call("create_root", "TestBlockout")
+	builder.call("add_directional_light", "Sun", Vector3(-1, -1, -1), Color.YELLOW, 2.0)
+	var root: Variant = builder.call("build")
+	assert_not_null(root, "build must return root")
+	var light: Node = (root as Node).get_node_or_null("Sun")
+	assert_not_null(light, "add_directional_light must add child named Sun")
+	assert_true(light is DirectionalLight3D, "Added light must be DirectionalLight3D")
+	assert_eq((light as DirectionalLight3D).position, Vector3(-1, -1, -1), "Light position must match")
+	assert_eq((light as DirectionalLight3D).light_color, Color.YELLOW, "Light color must match")
+	assert_eq((light as DirectionalLight3D).light_energy, 2.0, "Light energy must match")
+	if root is Node:
+		(root as Node).queue_free()
+
+func test_add_world_environment_adds_environment() -> void:
+	var builder: Object = _new_builder()
+	if builder == null:
+		return
+	builder.call("create_root", "TestBlockout")
+	builder.call("add_world_environment", "WorldEnv")
+	var root: Variant = builder.call("build")
+	assert_not_null(root, "build must return root")
+	var env_node: Node = (root as Node).get_node_or_null("WorldEnv")
+	assert_not_null(env_node, "add_world_environment must add child named WorldEnv")
+	assert_true(env_node is WorldEnvironment, "Added node must be WorldEnvironment")
+	assert_not_null((env_node as WorldEnvironment).environment, "Environment resource must be set")
+	if root is Node:
+		(root as Node).queue_free()
+
 func test_save_writes_tscn() -> void:
 	var builder: Object = _new_builder()
 	if builder == null:
