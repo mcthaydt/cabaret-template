@@ -7,7 +7,7 @@ Implements `docs/history/cleanup_v8/cleanup-v8-tasks.md` in phase order with TDD
 **Branch**: `cleanup-v8` (off `main`, after `GOAP-AI` merged via PR #16).
 **Status**: Phases 1–4 complete. Phase 5 not started (deferred to last per sequencing plan). Phase 6 in progress — P6.1 complete, P6.2 complete, P6.3 complete, P6.4 complete, P6.5 complete, P6.6 complete, P6.7 complete, P6.8 complete, P6.9 complete. Phase 7 not started.
 **Next Task**: P6.10 — QB Rule Builder (`U_QBRuleBuilder`). Phase 7 queued after P6.12.
-**Prerequisite**: V7.2 complete (`e015aff2`). Phase 4 complete (`cbf0fd61`). All 18 P3.5 extension recipes complete (`b0c5b1cd`). P6.1 complete (`ec14181a`). P6.2 complete (`a23270b1`). P6.3 complete (`0cd59475`). P6.4 complete (`c6608c79`). P6.5 complete (`e28d0c30`). P6.6 complete (`fb576449`). P6.7 complete (`a33d1153`–`0b69200f`). P6.8 complete (`4d680390`–`deac3004`). P6.9 complete (`df1deff5`–`cfdd907a`).
+**Prerequisite**: V7.2 complete (`e015aff2`). Phase 4 complete (`cbf0fd61`). All 18 P3.5 extension recipes complete (`b0c5b1cd`). P6.1 complete (`ec14181a`). P6.2 complete (`a23270b1`). P6.3 complete (`0cd59475`). P6.4 complete (`c6608c79`). P6.5 complete (`e28d0c30`, gap patch `5a176f9a`–`b29e3618`). P6.6 complete (`fb576449`). P6.7 complete (`a33d1153`–`0b69200f`). P6.8 complete (`4d680390`–`deac3004`). P6.9 complete (`df1deff5`–`cfdd907a`, loader tests `a16b0783`).
 
 ---
 
@@ -40,7 +40,7 @@ Seven phases bundled for one goal: make the template LLM-friendly, modular, and 
   - P4.10: `prototype_grids_png` → `assets/demo/textures/`; `editor_icons` → `assets/core/`; remaining core dirs → `assets/core/` (`bfc64316`–`58e4263e`).
   - Style suite: **89/89** after P4.10.
 - **Phase 5**: NOT STARTED. Deferred to last.
-- **Phase 6**: IN PROGRESS. P6.1 complete (`10310f00`–`ec14181a`). P6.2 complete (`a4c41434`–`a23270b1`). P6.3 complete (`d0c1224a`–`0cd59475`). P6.4 complete (`4a1218f1`–`c6608c79`). P6.5 complete (`6e9e7b6a`–`e28d0c30`). P6.6 complete (`f3806172`–`fb576449`). P6.7 complete (`a33d1153`–`0b69200f`). P6.8 complete (`4d680390`–`deac3004`). P6.9 complete (`df1deff5`–`cfdd907a`). Style suite 92/92. Full suite 4687/4687 (all passing).
+- **Phase 6**: IN PROGRESS. P6.1 complete (`10310f00`–`ec14181a`). P6.2 complete (`a4c41434`–`a23270b1`). P6.3 complete (`d0c1224a`–`0cd59475`). P6.4 complete (`4a1218f1`–`c6608c79`). P6.5 complete (`6e9e7b6a`–`e28d0c30`, gap-patched `5a176f9a`–`b29e3618` — guide_showcase_behavior builder + cfg_guide_showcase_brain_script.tres). P6.6 complete (`f3806172`–`fb576449`). P6.7 complete (`a33d1153`–`0b69200f`; note: manifest is at `scripts/core/scene_management/u_scene_manifest.gd`, not `scripts/demo/` — intentional, it is the core loader's manifest). P6.8 complete (`4d680390`–`deac3004`). P6.9 complete (`df1deff5`–`cfdd907a`, loader tests `a16b0783`). Style suite 92/92. Full suite 4725/4733 (8 pre-existing pending, 0 failures).
 - **Phase 7**: NOT STARTED. Planned after P6.12. Reference plan: `~/.claude/plans/lets-add-a-new-humming-kay.md`.
 
 ---
