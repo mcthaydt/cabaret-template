@@ -212,3 +212,73 @@ func test_multiple_components_added_sequentially_are_all_present() -> void:
 	assert_true("C_CharacterStateComponent" in names, "Second component must exist")
 	if root is Node:
 		(root as Node).queue_free()
+
+# ── P7.3: Visuals, Collision & Children ─────────────────────────────────────
+
+func test_add_visual_mesh_adds_mesh_instance() -> void:
+	var builder: Object = _new_builder()
+	if builder == null:
+		return
+	builder.call("create_root", "Node3D", "TestRoot")
+	builder.call("add_visual_mesh", "TestMesh", null, Vector3(0.5, 1.0, 0.5))
+	var root: Variant = builder.call("build")
+	assert_not_null(root, "build must return root")
+	var mesh: Node = (root as Node).get_node_or_null("TestMesh")
+	assert_not_null(mesh, "add_visual_mesh must add MeshInstance3D")
+	assert_true(mesh is MeshInstance3D, "Added visual must be MeshInstance3D")
+	if root is Node:
+		(root as Node).queue_free()
+
+func test_add_collision_capsule_adds_shape() -> void:
+	var builder: Object = _new_builder()
+	if builder == null:
+		return
+	builder.call("create_root", "StaticBody3D", "TestBody")
+	builder.call("add_collision_capsule", 1.5, 3.0)
+	var root: Variant = builder.call("build")
+	assert_not_null(root, "build must return root")
+	var shape: Node = (root as Node).get_node_or_null("CollisionShape3D")
+	assert_not_null(shape, "add_collision_capsule must add CollisionShape3D")
+	assert_true(shape is CollisionShape3D, "Added collision must be CollisionShape3D")
+	if root is Node:
+		(root as Node).queue_free()
+
+func test_add_marker_adds_marker_3d() -> void:
+	var builder: Object = _new_builder()
+	if builder == null:
+		return
+	builder.call("create_root", "Node3D", "TestRoot")
+	builder.call("add_marker", "SpawnPoint")
+	var root: Variant = builder.call("build")
+	assert_not_null(root, "build must return root")
+	var marker: Node = (root as Node).get_node_or_null("SpawnPoint")
+	assert_not_null(marker, "add_marker must add Marker3D")
+	assert_true(marker is Marker3D, "Added marker must be Marker3D")
+	if root is Node:
+		(root as Node).queue_free()
+
+func test_override_property_sets_value() -> void:
+	var builder: Object = _new_builder()
+	if builder == null:
+		return
+	builder.call("create_root", "Node3D", "TestRoot")
+	builder.call("override_property", ".", "process_mode", PROCESS_MODE_DISABLED)
+	var root: Variant = builder.call("build")
+	assert_not_null(root, "build must return root")
+	assert_eq((root as Node).process_mode, PROCESS_MODE_DISABLED, "override_property must set root process_mode")
+	if root is Node:
+		(root as Node).queue_free()
+
+func test_add_child_scene_instantiates_scene() -> void:
+	var builder: Object = _new_builder()
+	if builder == null:
+		return
+	builder.call("create_root", "Node3D", "TestRoot")
+	builder.call("add_child_scene", TMPL_CHARACTER_PATH, "Body")
+	var root: Variant = builder.call("build")
+	assert_not_null(root, "build must return root")
+	var child: Node = (root as Node).get_node_or_null("Body")
+	assert_not_null(child, "add_child_scene must instantiate child scene")
+	assert_true(child is Node, "Instantiated child must be a Node")
+	if root is Node:
+		(root as Node).queue_free()

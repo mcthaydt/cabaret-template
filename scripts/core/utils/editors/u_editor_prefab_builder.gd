@@ -68,6 +68,69 @@ func add_ecs_component_by_path(script_path: String, settings_path: String = "", 
 		settings = load(settings_path) as Resource
 	return add_ecs_component(script, settings, properties)
 
+func add_visual_mesh(node_name: String, material: Material = null, scale: Vector3 = Vector3.ONE) -> U_EditorPrefabBuilder:
+	if _root == null:
+		push_error("U_EditorPrefabBuilder: add_visual_mesh called before root creation")
+		return self
+	var mesh_instance: MeshInstance3D = MeshInstance3D.new()
+	mesh_instance.name = node_name
+	var box_mesh: BoxMesh = BoxMesh.new()
+	box_mesh.size = scale
+	mesh_instance.mesh = box_mesh
+	if material != null:
+		mesh_instance.material_override = material
+	_root.add_child(mesh_instance)
+	return self
+
+func add_collision_capsule(radius: float, height: float, shape_name: String = "CollisionShape3D") -> U_EditorPrefabBuilder:
+	if _root == null:
+		push_error("U_EditorPrefabBuilder: add_collision_capsule called before root creation")
+		return self
+	var shape: CollisionShape3D = CollisionShape3D.new()
+	shape.name = shape_name
+	var capsule: CapsuleShape3D = CapsuleShape3D.new()
+	capsule.radius = radius
+	capsule.height = height
+	shape.shape = capsule
+	_root.add_child(shape)
+	return self
+
+func add_marker(marker_name: String) -> U_EditorPrefabBuilder:
+	if _root == null:
+		push_error("U_EditorPrefabBuilder: add_marker called before root creation")
+		return self
+	var marker: Marker3D = Marker3D.new()
+	marker.name = marker_name
+	_root.add_child(marker)
+	return self
+
+func override_property(node_path: String, property: StringName, value: Variant) -> U_EditorPrefabBuilder:
+	if _root == null:
+		push_error("U_EditorPrefabBuilder: override_property called before root creation")
+		return self
+	var target: Node = _root.get_node(node_path) if node_path != "." else _root
+	if target == null:
+		push_error("U_EditorPrefabBuilder: override_property target not found at '%s'" % node_path)
+		return self
+	target.set(property, value)
+	return self
+
+func add_child_scene(scene_path: String, child_name: String) -> U_EditorPrefabBuilder:
+	if _root == null:
+		push_error("U_EditorPrefabBuilder: add_child_scene called before root creation")
+		return self
+	var packed: PackedScene = load(scene_path) as PackedScene
+	if packed == null:
+		push_error("U_EditorPrefabBuilder: failed to load child scene at '%s'" % scene_path)
+		return self
+	var instance: Node = packed.instantiate(PackedScene.GEN_EDIT_STATE_MAIN) as Node
+	if instance == null:
+		push_error("U_EditorPrefabBuilder: failed to instantiate child scene from '%s'" % scene_path)
+		return self
+	instance.name = child_name
+	_root.add_child(instance)
+	return self
+
 func build() -> Node:
 	if _root == null:
 		push_error("U_EditorPrefabBuilder: build() called before create_root() or inherit_from()")
