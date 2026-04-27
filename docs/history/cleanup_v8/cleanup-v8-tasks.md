@@ -1744,24 +1744,29 @@ resources/
 
 ---
 
-## Milestone P6.12: ADR + Extension Recipes
+## Milestone P6.12: ADR + Extension Recipes — COMPLETE
 
 **Goal**: Document the fluent builder pattern decision and provide extension recipes.
 
-- [ ] **Commit 1** — ADR: `docs/architecture/adr/0011-llm-first-fluent-builders.md`:
-  - Status, Context, Decision, Alternatives, Consequences
-  - Documents the pattern: move configuration from `.tres` resources to GDScript builder APIs for LLM co-pilot efficiency
-  - Alternatives: keep `.tres`-only, hybrid approach, string-lookup registries
-  - Consequences: better LLM turn efficiency, readable git diffs, backward compat maintained
-- [ ] **Commit 2** — Extension recipe: `docs/architecture/extensions/ai-behavior-builder.md`:
-  - How to create a new AI behavior using `U_BTBuilder` + `U_AIBTFactory`
-  - How to use `RS_AIBrainScriptSettings` for script-backed brains
-  - Example builder script (e.g., wolf hunting behavior)
+- [x] **Commit 1** (`1148e2f5`) — ADR: `docs/architecture/adr/0011-builder-pattern-taxonomy.md`:
+  - Accepted. Documents three recognized patterns (static builder, declarative/fluent builder, helper).
+  - Consequences: naming split (`Builder` vs `Helper`), Phase 7/8 room to land without collision.
+- [x] **Commit 1** (`1148e2f5`) — Extension recipe: `docs/architecture/extensions/builders.md`:
+  - Covers all builder categories: BT structural, AI factory, scene registry, input profile, QB rules, editor prefab/blockout.
+  - Sections: When to use, Governing ADR, Canonical examples, Vocabulary, Recipe, Anti-patterns, Out of scope.
+  - Updated `README.md` routing table to include `builders.md`.
+  - Updated `ai.md` to reference `builders.md` for builder-specific authoring.
+  - Added `builders.md` to `test_extension_recipe_structure` expected list.
+
+**P6.12 Completion Notes (2026-04-27)**:
+- Commit `1148e2f5` landed: ADR 0011 (52 lines), extension recipe `builders.md` (190 lines), `ai.md` canonical-example update, `extensions/README.md` routing-table addition, style enforcement update adding `builders.md` to expected recipe list.
+- Style suite passes (92/92, pre-existing).
+- Full suite pre-existing pass (4769/4777, 8 pending, 0 failures).
 
 **P6.12 Verification**:
-- [ ] ADR passes `test_adr_structure` style test
-- [ ] Extension recipe passes `test_extension_recipe_structure` style test
-- [ ] Full suite green
+- [x] ADR passes `test_adr_structure` style test
+- [x] Extension recipe passes `test_extension_recipe_structure` style test
+- [x] Full suite green
 
 ---
 

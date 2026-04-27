@@ -5,8 +5,8 @@
 Implements `docs/history/cleanup_v8/cleanup-v8-tasks.md` in phase order with TDD discipline. V8 is the follow-up to V7.2, addressing structural/organizational debt rather than internal architectural issues.
 
 **Branch**: `cleanup-v8` (off `main`, after `GOAP-AI` merged via PR #16).
-**Status**: Phases 1–4 complete. Phase 5 not started (deferred to last per sequencing plan). Phase 6 in progress — P6.1 complete, P6.2 complete, P6.3 complete, P6.4 complete, P6.5 complete, P6.6 complete, P6.7 complete, P6.8 complete, P6.9 complete, P6.10 complete, P6.11 complete. Phase 7 not started.
-**Next Task**: P6.12 — ADR + Extension Recipes. Phase 7 queued after P6.12.
+**Status**: Phases 1–4 complete. Phase 5 not started (deferred to last per sequencing plan). Phase 6 **COMPLETE** — P6.1 complete, P6.2 complete, P6.3 complete, P6.4 complete, P6.5 complete, P6.6 complete, P6.7 complete, P6.8 complete, P6.9 complete, P6.10 complete, P6.11 complete, P6.12 complete (`1148e2f5`). Phase 7 **NOT STARTED**.
+**Next Task**: Phase 7.1 — `U_EditorPrefabBuilder` Root Creation & Fluent API.
 **Prerequisite**: V7.2 complete (`e015aff2`). Phase 4 complete (`cbf0fd61`). All 18 P3.5 extension recipes complete (`b0c5b1cd`). P6.1 complete (`ec14181a`). P6.2 complete (`a23270b1`). P6.3 complete (`0cd59475`). P6.4 complete (`c6608c79`). P6.5 complete (`e28d0c30`, gap patch `5a176f9a`–`b29e3618`). P6.6 complete (`fb576449`). P6.7 complete (`a33d1153`–`0b69200f`). P6.8 complete (`4d680390`–`deac3004`). P6.9 complete (`df1deff5`–`cfdd907a`, loader tests `a16b0783`). P6.10 complete (`eb7f37c0`–`20e28d54`). P6.11 complete (`7dc8a7aa`–`8a21f645`).
 
 ---
@@ -20,7 +20,7 @@ Seven phases bundled for one goal: make the template LLM-friendly, modular, and 
 3. **Phase 3 — Docs Split.** COMPLETE. `AGENTS.md` is a 58-line routing index. All 18 extension recipes shipped. ADR structure in place.
 4. **Phase 4 — Template vs Demo Split.** COMPLETE (P4.1–P4.10). Scripts, resources, scenes, and assets all split into `core/` and `demo/`. Style suite 89/89.
 5. **Phase 5 — Base Scene.** NOT STARTED. Deferred to last (easiest once code is organized).
-6. **Phase 6 — LLM-First Fluent Builders.** IN PROGRESS. Replace `.tres` resource authoring with GDScript builder APIs across BT trees, scene registry, input profiles, and QB rules. Reference plan: `~/.claude/plans/stateless-tickling-meerkat.md`.
+6. **Phase 6 — LLM-First Fluent Builders.** COMPLETE. Replace `.tres` resource authoring with GDScript builder APIs across BT trees, scene registry, input profiles, and QB rules. Reference plan: `~/.claude/plans/stateless-tickling-meerkat.md`.
 7. **Phase 7 — EditorScript + PackedScene Builders.** NOT STARTED. Replace hand-authored `.tscn` creation with programmatic GDScript builder APIs (`U_EditorPrefabBuilder`, `U_EditorBlockoutBuilder`). Migrate all demo prefabs to builder scripts. Reference plan: `~/.claude/plans/lets-add-a-new-humming-kay.md`.
 
 ---
@@ -40,8 +40,8 @@ Seven phases bundled for one goal: make the template LLM-friendly, modular, and 
   - P4.10: `prototype_grids_png` → `assets/demo/textures/`; `editor_icons` → `assets/core/`; remaining core dirs → `assets/core/` (`bfc64316`–`58e4263e`).
   - Style suite: **89/89** after P4.10.
 - **Phase 5**: NOT STARTED. Deferred to last.
-- **Phase 6**: IN PROGRESS. P6.1 complete (`10310f00`–`ec14181a`). P6.2 complete (`a4c41434`–`a23270b1`). P6.3 complete (`d0c1224a`–`0cd59475`). P6.4 complete (`4a1218f1`–`c6608c79`). P6.5 complete (`6e9e7b6a`–`e28d0c30`, gap-patched `5a176f9a`–`b29e3618`). P6.6 complete (`f3806172`–`fb576449`). P6.7 complete (`a33d1153`–`0b69200f`). P6.8 complete (`4d680390`–`deac3004`). P6.9 complete (`df1deff5`–`cfdd907a`, loader tests `a16b0783`). P6.10 complete (`eb7f37c0`–`20e28d54`). P6.11 complete (`7dc8a7aa`–`8a21f645`): all 12 QB rule `.tres` files migrated to `br_*` builder scripts under `scripts/core/qb/rules/`; ECS systems updated to `_build_rules_from_scripts` pattern; all `.tres` deleted; style suite 92/92; full suite 4769/4777 (8 pre-existing pending, 0 failures). Introduced `br_` prefix for builder scripts (rule builder category); added `br_` to `SCRIPT_PREFIX_RULES` in `test_style_enforcement.gd`.
-- **Phase 7**: NOT STARTED. Planned after P6.12. Reference plan: `~/.claude/plans/lets-add-a-new-humming-kay.md`.
+- **Phase 6**: COMPLETE. P6.1 complete (`10310f00`–`ec14181a`). P6.2 complete (`a4c41434`–`a23270b1`). P6.3 complete (`d0c1224a`–`0cd59475`). P6.4 complete (`4a1218f1`–`c6608c79`). P6.5 complete (`6e9e7b6a`–`e28d0c30`, gap-patched `5a176f9a`–`b29e3618`). P6.6 complete (`f3806172`–`fb576449`). P6.7 complete (`a33d1153`–`0b69200f`). P6.8 complete (`4d680390`–`deac3004`). P6.9 complete (`df1deff5`–`cfdd907a`, loader tests `a16b0783`). P6.10 complete (`eb7f37c0`–`20e28d54`). P6.11 complete (`7dc8a7aa`–`8a21f645`). P6.12 complete (`1148e2f5`): ADR 0011 Builder Pattern Taxonomy + builders.md extension recipe + style enforcement update.
+- **Phase 7**: NOT STARTED. Reference plan: `~/.claude/plans/lets-add-a-new-humming-kay.md`.
 
 ---
 
@@ -176,7 +176,7 @@ Seven phases bundled for one goal: make the template LLM-friendly, modular, and 
 Phase 1 ──┬── Phase 2 (independent, complete)
           ├── Phase 3 (independent, docs-only, complete)
           └── Phase 4 ── Phase 5 (not started, deferred to last)
-                     └── Phase 6 (in progress: P6.1 → P6.2 → ... → P6.12)
+                     └── Phase 6 (complete, now ready for Phase 7)
                         └── Phase 7 (not started: P7.1 → ... → P7.8)
 ```
 
