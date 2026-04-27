@@ -21,12 +21,15 @@ const TRIGGER_MODE_TICK := "tick"
 const TRIGGER_MODE_EVENT := "event"
 const TRIGGER_MODE_BOTH := "both"
 
-const DEFAULT_RULE_DEFINITIONS := [
-	preload("res://resources/core/qb/camera/cfg_camera_shake_rule.tres"),
-	preload("res://resources/core/qb/camera/cfg_camera_zone_fov_rule.tres"),
-	preload("res://resources/core/qb/camera/cfg_camera_speed_fov_rule.tres"),
-	preload("res://resources/core/qb/camera/cfg_camera_landing_impact_rule.tres"),
+const RULE_BUILDERS := [
+	preload("res://scripts/core/qb/rules/br_camera_shake_rule.gd"),
+	preload("res://scripts/core/qb/rules/br_camera_zone_fov_rule.gd"),
+	preload("res://scripts/core/qb/rules/br_camera_speed_fov_rule.gd"),
+	preload("res://scripts/core/qb/rules/br_camera_landing_impact_rule.gd"),
 ]
+
+var _default_rules: Array[RS_Rule] = []
+
 
 @export var camera_manager: I_CAMERA_MANAGER = null
 @export var state_store: I_StateStore = null
@@ -98,7 +101,22 @@ func get_rule_validation_report() -> Dictionary:
 	return _rule_evaluator.get_rule_validation_report()
 
 func _refresh_rule_evaluator() -> void:
-	_rule_evaluator.refresh(DEFAULT_RULE_DEFINITIONS, rules)
+	if _default_rules.is_empty():
+		_default_rules = _build_rules_from_scripts(RULE_BUILDERS)
+	_rule_evaluator.refresh(_default_rules, rules)
+
+func _build_rules_from_scripts(scripts: Array) -> Array[RS_Rule]:
+	var built: Array[RS_Rule] = []
+	for s in scripts:
+		if s == null or not (s is Script):
+			continue
+		var builder: Variant = s.new()
+		if builder == null or not (builder is Object) or not builder.has_method("build"):
+			continue
+		var rule: Variant = builder.call("build")
+		if rule != null and rule is RS_Rule:
+			built.append(rule as RS_Rule)
+	return built
 
 func _subscribe_rule_events() -> void:
 	_rule_evaluator.subscribe(

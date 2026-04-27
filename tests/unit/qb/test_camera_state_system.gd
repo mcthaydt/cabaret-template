@@ -13,7 +13,7 @@ const RULE_RESOURCE := preload("res://scripts/core/resources/qb/rs_rule.gd")
 const CONDITION_CONSTANT := preload("res://scripts/core/resources/qb/conditions/rs_condition_constant.gd")
 const CONDITION_ENTITY_TAG := preload("res://scripts/core/resources/qb/conditions/rs_condition_entity_tag.gd")
 const EFFECT_SET_FIELD := preload("res://scripts/core/resources/qb/effects/rs_effect_set_field.gd")
-const SPEED_FOV_RULE := preload("res://resources/core/qb/camera/cfg_camera_speed_fov_rule.tres")
+const SPEED_FOV_RULE_BUILDER := preload("res://scripts/core/qb/rules/br_camera_speed_fov_rule.gd")
 
 const I_CONDITION := preload("res://scripts/core/interfaces/i_condition.gd")
 const I_EFFECT := preload("res://scripts/core/interfaces/i_effect.gd")
@@ -571,7 +571,13 @@ func _register_camera_entity(ecs_manager: MockECSManager, spec: Dictionary) -> D
 	}
 
 func _compute_speed_fov_rule_bonus(speed_magnitude: float) -> float:
-	var rule_resource: Resource = SPEED_FOV_RULE
+	var builder_script: Script = SPEED_FOV_RULE_BUILDER
+	if builder_script == null:
+		return 0.0
+	var builder: Variant = builder_script.new()
+	if builder == null or not (builder is Object) or not builder.has_method("build"):
+		return 0.0
+	var rule_resource: Resource = builder.call("build") as Resource
 	if rule_resource == null:
 		return 0.0
 
