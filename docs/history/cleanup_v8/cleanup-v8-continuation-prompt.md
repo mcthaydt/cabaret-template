@@ -5,9 +5,9 @@
 Implements `docs/history/cleanup_v8/cleanup-v8-tasks.md` in phase order with TDD discipline. V8 is the follow-up to V7.2, addressing structural/organizational debt rather than internal architectural issues.
 
 **Branch**: `cleanup-v8` (off `main`, after `GOAP-AI` merged via PR #16).
-**Status**: Phases 1–4 complete. Phase 5 not started (deferred to last per sequencing plan). Phase 6 in progress — P6.1 complete, P6.2 complete, P6.3 complete, P6.4 complete, P6.5 complete. Phase 7 not started.
-**Next Task**: P6.6 — Scene Registry Builder (`U_SceneRegistryBuilder`). Phase 7 queued after P6.12.
-**Prerequisite**: V7.2 complete (`e015aff2`). Phase 4 complete (`cbf0fd61`). All 18 P3.5 extension recipes complete (`b0c5b1cd`). P6.1 complete (`ec14181a`). P6.2 complete (`a23270b1`). P6.3 complete (`0cd59475`). P6.4 complete (`c6608c79`). P6.5 complete (`e28d0c30`).
+**Status**: Phases 1–4 complete. Phase 5 not started (deferred to last per sequencing plan). Phase 6 in progress — P6.1 complete, P6.2 complete, P6.3 complete, P6.4 complete, P6.5 complete, P6.6 complete. Phase 7 not started.
+**Next Task**: P6.7 — Scene Registry Migration. Phase 7 queued after P6.12.
+**Prerequisite**: V7.2 complete (`e015aff2`). Phase 4 complete (`cbf0fd61`). All 18 P3.5 extension recipes complete (`b0c5b1cd`). P6.1 complete (`ec14181a`). P6.2 complete (`a23270b1`). P6.3 complete (`0cd59475`). P6.4 complete (`c6608c79`). P6.5 complete (`e28d0c30`). P6.6 complete (`fb576449`).
 
 ---
 
@@ -40,7 +40,7 @@ Seven phases bundled for one goal: make the template LLM-friendly, modular, and 
   - P4.10: `prototype_grids_png` → `assets/demo/textures/`; `editor_icons` → `assets/core/`; remaining core dirs → `assets/core/` (`bfc64316`–`58e4263e`).
   - Style suite: **89/89** after P4.10.
 - **Phase 5**: NOT STARTED. Deferred to last.
-- **Phase 6**: IN PROGRESS. P6.1 complete (`10310f00`–`ec14181a`). P6.2 complete (`a4c41434`–`a23270b1`). P6.3 complete (`d0c1224a`–`0cd59475`). P6.4 complete (`4a1218f1`–`c6608c79`). Style suite 92/92. Full suite 4651/4659 (8 pre-existing pending).
+- **Phase 6**: IN PROGRESS. P6.1 complete (`10310f00`–`ec14181a`). P6.2 complete (`a4c41434`–`a23270b1`). P6.3 complete (`d0c1224a`–`0cd59475`). P6.4 complete (`4a1218f1`–`c6608c79`). P6.5 complete (`6e9e7b6a`–`e28d0c30`). P6.6 complete (`f3806172`–`fb576449`). Style suite 92/92. Full suite 4679/4687 (8 pre-existing pending).
 - **Phase 7**: NOT STARTED. Planned after P6.12. Reference plan: `~/.claude/plans/lets-add-a-new-humming-kay.md`.
 
 ---
@@ -134,6 +134,23 @@ Seven phases bundled for one goal: make the template LLM-friendly, modular, and 
 
 ---
 
+## P6.6 — Scene Registry Builder (`U_SceneRegistryBuilder`) — COMPLETE
+
+**Commits**: `f3806172` (RED), `fb576449` (GREEN).
+
+**Key implementation notes**:
+- `U_SceneRegistryBuilder` lives in `scripts/core/utils/scene/u_scene_registry_builder.gd` (new `scene` subdirectory under `utils/`).
+- Instance-based RefCounted class (not static) — maintains `_entries: Dictionary` and `_last_id: StringName` internal state.
+- `register(scene_id, path)` creates a new entry with defaults: GAMEPLAY type (1), "fade" transition, priority 0; sets `_last_id`.
+- `with_type/with_transition/with_preload` guard with `_entries.has(_last_id)` before mutating.
+- `build()` returns `_entries.duplicate(true)` — same-shape entries as `U_SceneRegistry._scenes`.
+- All methods return `self` for fluent chaining.
+- 34 lines total; 10 new tests all green.
+
+**Result**: style suite 92/92; 10/10 builder tests green.
+
+---
+
 ## Sequencing
 
 ```
@@ -193,16 +210,19 @@ Test command: `tools/run_gut_suite.sh` (or `-gtest=<path>` for targeted runs).
 
 ## Next Steps
 
-1. **P6.6 Commit 1 (RED)** — Write tests in `tests/unit/scene_management/test_u_scene_registry_builder.gd`:
-   - `register(scene_id, path)` adds entry with defaults (GAMEPLAY type, "fade" transition, priority 0).
-   - `.with_type(scene_type)` sets scene type on last entry.
-   - `.with_transition(transition)` sets transition on last entry.
-   - `.with_preload(priority)` sets preload priority on last entry.
-   - Chaining: all methods return `self`.
-   - `build()` returns a `Dictionary` mapping `StringName → Dictionary` (same shape as `U_SceneRegistry` entries).
-2. **P6.6 Commit 2 (GREEN)** — Implement `U_SceneRegistryBuilder` in `scripts/core/utils/scene/u_scene_registry_builder.gd`. Static class with fluent API. `register()` starts a new entry; `with_*()` methods mutate the last entry.
-3. **P6.7** — Replace scene registry `.tres` with builder script.
-4. Keep docs/history references archived; new evergreen guidance belongs under `docs/guides/` or `docs/systems/`.
+1. **P6.7 Commit 1 (RED)** — Integration test in `tests/unit/scene_management/test_u_scene_registry_migration.gd`:
+   - Loads the builder manifest script (`scripts/demo/scene_management/scene_manifest.gd`) and calls `build()`.
+   - Verifies the produced Dictionary contains entries for all current non-critical demo scenes (alleyway, bar, interior_house, game_over, victory, credits, gameplay_base).
+   - Each entry has correct scene_id, path, scene_type, default_transition, preload_priority matching the existing `.tres` files.
+2. **P6.7 Commit 2 (GREEN)** — Create `scripts/demo/scene_management/scene_manifest.gd`:
+   - Extends `RefCounted`, has `build() -> Dictionary`.
+   - Uses `U_SceneRegistryBuilder` to register all demo scenes.
+   - Replace the `.tres` entries currently loaded by `U_SceneRegistryLoader._load_resource_entries()`.
+3. **P6.7 Commit 3 (GREEN)** — Wire `scene_manifest.gd` into `U_SceneRegistryLoader`:
+   - Instantiate manifest, call `build()`, iterate entries, call `_register_scene_from_dict()`.
+   - Keep mobile-compatible: no DirAccess scanning.
+4. **P6.7 Commit 4 (GREEN)** — Delete original `.tres` scene registry entries; remove `PRELOADED_SCENE_REGISTRY_ENTRIES` const preloads from loader.
+5. Keep docs/history references archived; new evergreen guidance belongs under `docs/guides/` or `docs/systems/`.
 
 ---
 

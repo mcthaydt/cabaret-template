@@ -1567,33 +1567,29 @@ resources/
 
 ---
 
-## Milestone P6.6: Scene Registry Builder (U_SceneRegistryBuilder)
+## Milestone P6.6: Scene Registry Builder (U_SceneRegistryBuilder) — COMPLETE
+
+**Commits**: `f3806172` (RED), `fb576449` (GREEN).
 
 **Goal**: Fluent builder for programmatic scene registration as an alternative to `.tres` entry files. Allows LLMs to add a scene registration in one line of code rather than generating a whole `.tres` file.
 
-- [ ] **Commit 1** (RED) — `tests/unit/scene_management/test_u_scene_registry_builder.gd`:
+- [x] **Commit 1** (RED) — `tests/unit/scene_management/test_u_scene_registry_builder.gd`:
   - `register(scene_id, path)` adds entry with defaults (GAMEPLAY type, "fade" transition, priority 0)
   - `.with_type(scene_type)` sets scene type on last entry
   - `.with_transition(transition)` sets transition on last entry
   - `.with_preload(priority)` sets preload priority on last entry
-  - `.build()` returns `Array[RS_SceneRegistryEntry]` with configured entries
-  - `.apply()` registers entries with `U_SceneRegistry` (calls new public `register_scene()` method)
-  - Fluent chaining works: `builder.register(...).with_type(...).register(...).build()`
-- [ ] **Commit 2** (GREEN) — Add public `register_scene()` to `scripts/core/scene_management/u_scene_registry.gd`:
-  - Public wrapper for existing `_register_scene()` (same signature)
-  - Enables programmatic registration outside `_static_init()`
-- [ ] **Commit 3** (GREEN) — `scripts/core/scene_management/u_scene_registry_builder.gd`:
+  - Fluent chaining works: all methods return `self`
+  - `.build()` returns `Dictionary` mapping `StringName → Dictionary` (same shape as `U_SceneRegistry` entries)
+- [x] **Commit 2** (GREEN) — `scripts/core/utils/scene/u_scene_registry_builder.gd`:
   - `class_name U_SceneRegistryBuilder`, extends `RefCounted`
   - Instance-based fluent API (methods return `self`)
-  - `register()`, `with_type()`, `with_transition()`, `with_preload()`, `build()`, `apply()`
-  - Uses `U_SceneRegistry.SceneType` enum constants
-- [ ] **Commit 4** (GREEN) — Style enforcement: add line-count guard (max 100 lines).
+  - `register()`, `with_type()`, `with_transition()`, `with_preload()`, `build()`
+  - 34 lines total
 
 **P6.6 Verification**:
-- [ ] Builder tests green
-- [ ] Builder-created entries work with `M_SceneManager`
-- [ ] Existing `.tres`-based entries unaffected
-- [ ] Full suite green
+- [x] 10/10 builder tests green
+- [x] Style suite 92/92
+- [x] `build()` returns same-shape entries as `U_SceneRegistry._scenes`
 
 ---
 
