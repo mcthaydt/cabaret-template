@@ -306,3 +306,130 @@ func test_add_child_scene_instantiates_scene() -> void:
 	assert_true(child is Node, "Instantiated child must be a Node")
 	if root is Node:
 		(root as Node).queue_free()
+
+func test_add_csg_box_adds_csg_box3d_with_material() -> void:
+	var builder: Object = _new_builder()
+	if builder == null:
+		return
+	builder.call("create_root", "Node3D", "TestRoot")
+	builder.call("add_csg_box", "Box", Vector3(1.5, 1, 1.5), Color.GRAY)
+	var root: Variant = builder.call("build")
+	assert_not_null(root, "build must return root")
+	var box: Node = (root as Node).get_node_or_null("Box")
+	assert_not_null(box, "add_csg_box must add child named Box")
+	assert_true(box is CSGBox3D, "Added child must be CSGBox3D")
+	assert_eq((box as CSGBox3D).size, Vector3(1.5, 1, 1.5), "add_csg_box must set size")
+	assert_not_null((box as CSGBox3D).material, "add_csg_box must assign material")
+	assert_eq(((box as CSGBox3D).material as StandardMaterial3D).albedo_color, Color.GRAY, "Material color must match")
+	if root is Node:
+		(root as Node).queue_free()
+
+func test_add_csg_sphere_adds_csg_sphere3d_with_material() -> void:
+	var builder: Object = _new_builder()
+	if builder == null:
+		return
+	builder.call("create_root", "Node3D", "TestRoot")
+	builder.call("add_csg_sphere", "Orb", 0.6, Color.GRAY)
+	var root: Variant = builder.call("build")
+	assert_not_null(root, "build must return root")
+	var sphere: Node = (root as Node).get_node_or_null("Orb")
+	assert_not_null(sphere, "add_csg_sphere must add child named Orb")
+	assert_true(sphere is CSGSphere3D, "Added child must be CSGSphere3D")
+	assert_not_null((sphere as CSGSphere3D).material, "add_csg_sphere must assign material")
+	if root is Node:
+		(root as Node).queue_free()
+
+func test_add_csg_cylinder_adds_csg_cylinder3d_with_material() -> void:
+	var builder: Object = _new_builder()
+	if builder == null:
+		return
+	builder.call("create_root", "Node3D", "TestRoot")
+	builder.call("add_csg_cylinder", "Trunk", 0.3, 3.0, Color.BROWN)
+	var root: Variant = builder.call("build")
+	assert_not_null(root, "build must return root")
+	var cyl: Node = (root as Node).get_node_or_null("Trunk")
+	assert_not_null(cyl, "add_csg_cylinder must add child named Trunk")
+	assert_true(cyl is CSGCylinder3D, "Added child must be CSGCylinder3D")
+	assert_not_null((cyl as CSGCylinder3D).material, "add_csg_cylinder must assign material")
+	if root is Node:
+		(root as Node).queue_free()
+
+func test_add_collision_box_adds_box_shape() -> void:
+	var builder: Object = _new_builder()
+	if builder == null:
+		return
+	builder.call("create_root", "StaticBody3D", "TestBody")
+	builder.call("add_collision_box", "CollisionShape3D", Vector3(1.5, 1, 1.5))
+	var root: Variant = builder.call("build")
+	assert_not_null(root, "build must return root")
+	var shape: Node = (root as Node).get_node_or_null("CollisionShape3D")
+	assert_not_null(shape, "add_collision_box must add CollisionShape3D")
+	assert_true(shape is CollisionShape3D, "Added collision must be CollisionShape3D")
+	var box_shape: BoxShape3D = (shape as CollisionShape3D).shape as BoxShape3D
+	assert_not_null(box_shape, "Shape must be BoxShape3D")
+	assert_eq(box_shape.size, Vector3(1.5, 1, 1.5), "add_collision_box must set size")
+	if root is Node:
+		(root as Node).queue_free()
+
+func test_migrate_stone_prefab_matches_gold() -> void:
+	var builder: Object = _new_builder()
+	if builder == null:
+		return
+	builder.call("create_root", "StaticBody3D", "E_WoodsStone")
+	builder.call("add_csg_sphere", "Mesh", 0.6, Color(0.55, 0.55, 0.55))
+	builder.call("add_collision_box", "CollisionShape3D", Vector3(1.5, 1, 1.5))
+	builder.call("add_ecs_component_by_path",
+		"res://scripts/demo/ecs/components/c_resource_node_component.gd",
+		"res://resources/demo/base_settings/ai_woods/ai_woods/cfg_resource_node_stone.tres",
+		{})
+	var result: Variant = builder.call("save", "res://tests/unit/editors/_prefab_stone_migrated.tscn")
+	assert_true(result, "save must succeed")
+	var packed: PackedScene = load("res://tests/unit/editors/_prefab_stone_migrated.tscn") as PackedScene
+	assert_not_null(packed, "Migrated prefab must load as PackedScene")
+	if FileAccess.file_exists("res://tests/unit/editors/_prefab_stone_migrated.tscn"):
+		DirAccess.remove_absolute("res://tests/unit/editors/_prefab_stone_migrated.tscn")
+	var root: Variant = builder.call("build")
+	if root is Node:
+		(root as Node).queue_free()
+
+func test_migrate_water_prefab_matches_gold() -> void:
+	var builder: Object = _new_builder()
+	if builder == null:
+		return
+	builder.call("create_root", "StaticBody3D", "E_WoodsWater")
+	builder.call("add_csg_box", "Mesh", Vector3(2, 0.15, 2), Color(0.2, 0.4, 0.8, 0.7))
+	builder.call("add_collision_box", "CollisionShape3D", Vector3(3, 0.3, 3))
+	builder.call("add_ecs_component_by_path",
+		"res://scripts/demo/ecs/components/c_resource_node_component.gd",
+		"res://resources/demo/base_settings/ai_woods/ai_woods/cfg_resource_node_water.tres",
+		{})
+	var result: Variant = builder.call("save", "res://tests/unit/editors/_prefab_water_migrated.tscn")
+	assert_true(result, "save must succeed")
+	var packed: PackedScene = load("res://tests/unit/editors/_prefab_water_migrated.tscn") as PackedScene
+	assert_not_null(packed, "Migrated prefab must load as PackedScene")
+	if FileAccess.file_exists("res://tests/unit/editors/_prefab_water_migrated.tscn"):
+		DirAccess.remove_absolute("res://tests/unit/editors/_prefab_water_migrated.tscn")
+	var root: Variant = builder.call("build")
+	if root is Node:
+		(root as Node).queue_free()
+
+func test_migrate_stockpile_prefab_matches_gold() -> void:
+	var builder: Object = _new_builder()
+	if builder == null:
+		return
+	builder.call("create_root", "StaticBody3D", "E_WoodsStockpile")
+	builder.call("add_csg_box", "Mesh", Vector3(1.5, 0.5, 1.5), Color(0.6, 0.45, 0.25))
+	builder.call("add_collision_box", "CollisionShape3D", Vector3(2, 1, 2))
+	builder.call("add_ecs_component_by_path",
+		"res://scripts/demo/ecs/components/c_inventory_component.gd",
+		"res://resources/demo/base_settings/ai_woods/ai_woods/cfg_inventory_stockpile.tres",
+		{})
+	var result: Variant = builder.call("save", "res://tests/unit/editors/_prefab_stockpile_migrated.tscn")
+	assert_true(result, "save must succeed")
+	var packed: PackedScene = load("res://tests/unit/editors/_prefab_stockpile_migrated.tscn") as PackedScene
+	assert_not_null(packed, "Migrated prefab must load as PackedScene")
+	if FileAccess.file_exists("res://tests/unit/editors/_prefab_stockpile_migrated.tscn"):
+		DirAccess.remove_absolute("res://tests/unit/editors/_prefab_stockpile_migrated.tscn")
+	var root: Variant = builder.call("build")
+	if root is Node:
+		(root as Node).queue_free()

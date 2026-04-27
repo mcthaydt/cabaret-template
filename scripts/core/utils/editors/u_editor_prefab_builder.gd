@@ -131,6 +131,58 @@ func add_child_scene(scene_path: String, child_name: String) -> U_EditorPrefabBu
 	_root.add_child(instance)
 	return self
 
+func add_csg_box(name: String, size: Vector3, color: Color) -> U_EditorPrefabBuilder:
+	if _root == null:
+		push_error("U_EditorPrefabBuilder: add_csg_box called before root creation")
+		return self
+	var box: CSGBox3D = CSGBox3D.new()
+	box.name = name
+	box.size = size
+	var mat: StandardMaterial3D = StandardMaterial3D.new()
+	mat.albedo_color = color
+	box.material = mat
+	_root.add_child(box)
+	return self
+
+func add_csg_sphere(name: String, radius: float, color: Color) -> U_EditorPrefabBuilder:
+	if _root == null:
+		push_error("U_EditorPrefabBuilder: add_csg_sphere called before root creation")
+		return self
+	var sphere: CSGSphere3D = CSGSphere3D.new()
+	sphere.name = name
+	sphere.radius = radius
+	var mat: StandardMaterial3D = StandardMaterial3D.new()
+	mat.albedo_color = color
+	sphere.material = mat
+	_root.add_child(sphere)
+	return self
+
+func add_csg_cylinder(name: String, radius: float, height: float, color: Color) -> U_EditorPrefabBuilder:
+	if _root == null:
+		push_error("U_EditorPrefabBuilder: add_csg_cylinder called before root creation")
+		return self
+	var cylinder: CSGCylinder3D = CSGCylinder3D.new()
+	cylinder.name = name
+	cylinder.radius = radius
+	cylinder.height = height
+	var mat: StandardMaterial3D = StandardMaterial3D.new()
+	mat.albedo_color = color
+	cylinder.material = mat
+	_root.add_child(cylinder)
+	return self
+
+func add_collision_box(shape_name: String, size: Vector3) -> U_EditorPrefabBuilder:
+	if _root == null:
+		push_error("U_EditorPrefabBuilder: add_collision_box called before root creation")
+		return self
+	var shape: CollisionShape3D = CollisionShape3D.new()
+	shape.name = shape_name
+	var box: BoxShape3D = BoxShape3D.new()
+	box.size = size
+	shape.shape = box
+	_root.add_child(shape)
+	return self
+
 func save(save_path: String) -> bool:
 	if _root == null:
 		push_error("U_EditorPrefabBuilder: save() called before create_root() or inherit_from()")
