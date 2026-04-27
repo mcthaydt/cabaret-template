@@ -1713,33 +1713,34 @@ resources/
 
 **Goal**: Convert existing QB rule `.tres` files to builder scripts, validating the QB rule builder pipeline end-to-end.
 
-- [ ] **Commit 1** (RED) — Integration test: builder scripts produce rules equivalent to existing `.tres` rules.
+- [x] **Commit 1** (RED) — Integration test: builder scripts produce rules equivalent to existing `.tres` rules.
   - Test loads each builder script and compares produced rule against the corresponding `.tres` resource
   - Conditions, effects, trigger mode, cooldown, one-shot, decision group all match
-- [ ] **Commit 2** (GREEN) — Create builder scripts under `scripts/demo/qb/rules/`:
-  - `death_sync_rule.gd` — replaces `cfg_death_sync_rule.tres`
-  - `spawn_freeze_rule.gd` — replaces `cfg_spawn_freeze_rule.tres`
-  - `pause_gate_shell.gd` — replaces `cfg_pause_gate_shell.tres`
-  - `pause_gate_paused.gd` — replaces `cfg_pause_gate_paused.tres`
-  - `pause_gate_transitioning.gd` — replaces `cfg_pause_gate_transitioning.tres`
-  - `camera_zone_fov_rule.gd` — replaces `cfg_camera_zone_fov_rule.tres`
-  - `camera_speed_fov_rule.gd` — replaces `cfg_camera_speed_fov_rule.tres`
-  - `camera_landing_impact_rule.gd` — replaces `cfg_camera_landing_impact_rule.tres`
-  - `camera_shake_rule.gd` — replaces `cfg_camera_shake_rule.tres`
-  - `checkpoint_rule.gd` — replaces `cfg_checkpoint_rule.tres`
-  - `victory_rule.gd` — replaces `cfg_victory_rule.tres`
+- [x] **Commit 2** (GREEN) — Create builder scripts under `scripts/core/qb/rules/` (note: `br_` prefix — builder rule category):
+  - `br_death_sync_rule.gd` — replaces `cfg_death_sync_rule.tres`
+  - `br_spawn_freeze_rule.gd` — replaces `cfg_spawn_freeze_rule.tres`
+  - `br_pause_gate_shell_rule.gd` — replaces `cfg_pause_gate_shell.tres`
+  - `br_pause_gate_paused_rule.gd` — replaces `cfg_pause_gate_paused.tres`
+  - `br_pause_gate_transitioning_rule.gd` — replaces `cfg_pause_gate_transitioning.tres`
+  - `br_camera_zone_fov_rule.gd` — replaces `cfg_camera_zone_fov_rule.tres`
+  - `br_camera_speed_fov_rule.gd` — replaces `cfg_camera_speed_fov_rule.tres`
+  - `br_camera_landing_impact_rule.gd` — replaces `cfg_camera_landing_impact_rule.tres`
+  - `br_camera_shake_rule.gd` — replaces `cfg_camera_shake_rule.tres`
+  - `br_checkpoint_forward_rule.gd` — replaces `cfg_checkpoint_rule.tres`
+  - `br_victory_forward_rule.gd` — replaces `cfg_victory_rule.tres`
   - Each script extends `RefCounted`, has `build() -> RS_Rule` using `U_QBRuleBuilder`
-- [ ] **Commit 3** — Update ECS systems that preload rule `.tres` files to load from builder scripts instead:
-  - `S_DeathHandlerSystem`, `S_CheckpointHandlerSystem`, `S_VictoryHandlerSystem`, `S_CameraStateSystem`, `S_CharacterStateSystem`, etc.
-  - Replace `preload("res://resources/qb/.../cfg_*.tres")` with builder script instantiation
-- [ ] **Commit 4** — Delete original `.tres` rule files once builder scripts are verified
+- [x] **Commit 3** — Update ECS systems that preload rule `.tres` files to load from builder scripts instead:
+  - `S_CharacterStateSystem`, `S_CameraStateSystem`, `S_GameEventSystem`
+  - Replace `preload("res://resources/qb/.../cfg_*.tres")` with builder script instantiation + `_build_rules_from_scripts()` pattern
+- [x] **Commit 4** — Delete original `.tres` rule files once builder scripts are verified
   - One commit so the removal is atomic and revertable
 
 **P6.11 Verification**:
-- [ ] All QB rules function identically to pre-migration
-- [ ] Builder script tests green
-- [ ] Full suite green
-- [ ] No orphaned `.tres` references
+- [x] All QB rules function identically to pre-migration
+- [x] Builder script tests green (14/14)
+- [x] Full suite green (4769/4777, 8 pre-existing pending, 0 failures)
+- [x] No orphaned `.tres` references
+- [x] Style suite passes (92/92, `br_` prefix added to SCRIPT_PREFIX_RULES)
 
 ---
 
