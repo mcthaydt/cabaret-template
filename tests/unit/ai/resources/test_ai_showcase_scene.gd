@@ -1,8 +1,6 @@
 extends BaseTest
 
 const AI_SHOWCASE_SCENE_PATH := "res://scenes/demo/gameplay/gameplay_ai_showcase.tscn"
-const PATROL_BRAIN_PATH := "res://resources/demo/ai/patrol_drone/cfg_patrol_drone_brain.tres"
-const SENTRY_BRAIN_PATH := "res://resources/demo/ai/sentry/cfg_sentry_brain.tres"
 const PATROL_BRAIN_SCRIPT_PATH := "res://resources/demo/ai/patrol_drone/cfg_patrol_drone_brain_script.tres"
 const SENTRY_BRAIN_SCRIPT_PATH := "res://resources/demo/ai/sentry/cfg_sentry_brain_script.tres"
 const GUIDE_SHOWCASE_BRAIN_PATH := "res://resources/demo/ai/guide_prism/cfg_guide_showcase_brain.tres"
@@ -252,14 +250,14 @@ func test_showcase_detection_components_have_expected_flags() -> void:
 		)
 
 func test_sentry_investigate_goal_publishes_alarm_event() -> void:
-	var brain_variant: Variant = load(SENTRY_BRAIN_PATH)
+	var brain_variant: Variant = load(SENTRY_BRAIN_SCRIPT_PATH)
 	assert_true(brain_variant is Resource)
 	if not (brain_variant is Resource):
 		return
 	var brain: Resource = brain_variant as Resource
-	var root_task_variant: Variant = brain.get("root")
-	assert_true(root_task_variant is Resource)
-	if not (root_task_variant is Resource):
+	var root_task_variant: Variant = brain.call("get_root")
+	assert_not_null(root_task_variant, "Sentry brain get_root() should return a BT root")
+	if root_task_variant == null or not (root_task_variant is Resource):
 		return
 	var root_task: Resource = root_task_variant as Resource
 	assert_true(

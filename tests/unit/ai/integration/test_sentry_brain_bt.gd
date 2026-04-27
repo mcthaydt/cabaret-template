@@ -1,7 +1,7 @@
 extends BaseTest
 
 const S_AI_BEHAVIOR_SYSTEM_PATH := "res://scripts/demo/ecs/systems/s_ai_behavior_system.gd"
-const SENTRY_BT_BRAIN_PATH := "res://resources/demo/ai/sentry/cfg_sentry_brain.tres"
+const SENTRY_BT_BRAIN_PATH := "res://resources/demo/ai/sentry/cfg_sentry_brain_script.tres"
 
 const BASE_ECS_SYSTEM := preload("res://scripts/core/ecs/base_ecs_system.gd")
 const BASE_ECS_ENTITY := preload("res://scripts/core/ecs/base_ecs_entity.gd")
@@ -38,7 +38,7 @@ func _load_required_brain_settings(path: String) -> RS_AIBrainSettings:
 	if brain_variant == null or not (brain_variant is RS_AIBrainSettings):
 		return null
 	var brain_settings: RS_AIBrainSettings = brain_variant as RS_AIBrainSettings
-	assert_not_null(brain_settings.root, "Expected BT brain to define a root node.")
+	assert_not_null(brain_settings.get_root(), "Expected BT brain to define a root node.")
 	return brain_settings
 
 func _set_demo_flags(store: MockStateStore, flags: Dictionary) -> void:

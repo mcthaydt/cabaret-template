@@ -1,6 +1,6 @@
 extends BaseTest
 
-const BUILDER_BT_BRAIN_PATH := "res://resources/demo/ai/woods/builder/cfg_builder_brain.tres"
+const BUILDER_BT_BRAIN_PATH := "res://resources/demo/ai/woods/builder/cfg_builder_brain_script.tres"
 const WOODS_BUILD_SITE_SETTINGS_PATH := "res://resources/demo/base_settings/ai_woods/ai_woods/cfg_build_site_house.tres"
 
 const RS_BT_UTILITY_SELECTOR := preload("res://scripts/core/resources/bt/rs_bt_utility_selector.gd")
@@ -30,7 +30,7 @@ func _load_brain_settings() -> RS_AIBrainSettings:
 	if brain_variant == null or not (brain_variant is RS_AIBrainSettings):
 		return null
 	var settings: RS_AIBrainSettings = brain_variant as RS_AIBrainSettings
-	assert_not_null(settings.root, "Builder brain should have a root node")
+	assert_not_null(settings.get_root(), "Builder brain should have a root node")
 	return settings
 
 func _find_highest_scoring_branch(brain_settings: RS_AIBrainSettings, context: Dictionary) -> int:

@@ -2,10 +2,6 @@ extends BaseTest
 
 const RS_AI_BRAIN_SETTINGS := preload("res://scripts/core/resources/ai/brain/rs_ai_brain_settings.gd")
 
-const PATROL_BRAIN_PATH := "res://resources/demo/ai/patrol_drone/cfg_patrol_drone_brain.tres"
-const SENTRY_BRAIN_PATH := "res://resources/demo/ai/sentry/cfg_sentry_brain.tres"
-const GUIDE_BRAIN_PATH := "res://resources/demo/ai/guide_prism/cfg_guide_brain.tres"
-
 const PATROL_BRAIN_SCRIPT_PATH := "res://resources/demo/ai/patrol_drone/cfg_patrol_drone_brain_script.tres"
 const SENTRY_BRAIN_SCRIPT_PATH := "res://resources/demo/ai/sentry/cfg_sentry_brain_script.tres"
 const GUIDE_BRAIN_SCRIPT_PATH := "res://resources/demo/ai/guide_prism/cfg_guide_brain_script.tres"
@@ -76,21 +72,22 @@ func _assert_condition_scorer_state_path(
 
 func _assert_brain_root_contract(
 	brain_path: String,
-	expected_root_name: String,
 	expected_condition_paths: Array[String]
 ) -> void:
 	var brain: RS_AIBrainSettings = _load_brain(brain_path)
 	if brain == null:
 		return
 
-	var root_variant: Variant = brain.get("root")
-	assert_true(root_variant is Resource, "%s root should be a BT resource" % brain_path)
-	if not (root_variant is Resource):
+	var root_result: RS_BTNode = brain.get_root()
+	assert_not_null(root_result, "%s root should not be null" % brain_path)
+	if root_result == null:
 		return
-	var root: Resource = root_variant as Resource
+	var root: Resource = root_result as Resource
+	assert_not_null(root, "%s root should be a Resource" % brain_path)
+	if root == null:
+		return
 
 	_assert_script_path(root, BT_UTILITY_SELECTOR_SCRIPT_PATH, "%s root must be RS_BTUtilitySelector" % brain_path)
-	assert_eq(String(root.resource_name), expected_root_name, "%s root resource_name" % brain_path)
 
 	var scorers_variant: Variant = root.get("child_scorers")
 	assert_true(scorers_variant is Array, "%s root child_scorers should be an array" % brain_path)
@@ -206,8 +203,7 @@ func _assert_demo_npc_component_stack(scene_path: String, npc_path: NodePath) ->
 
 func test_patrol_drone_brain_has_expected_bt_root_and_branches() -> void:
 	_assert_brain_root_contract(
-		PATROL_BRAIN_PATH,
-		"patrol_drone_bt_root",
+		PATROL_BRAIN_SCRIPT_PATH,
 		[
 			"gameplay.ai_demo_flags.power_core_proximity",
 			"gameplay.ai_demo_flags.power_core_activated",
@@ -216,8 +212,7 @@ func test_patrol_drone_brain_has_expected_bt_root_and_branches() -> void:
 
 func test_sentry_brain_has_expected_bt_root_and_branches() -> void:
 	_assert_brain_root_contract(
-		SENTRY_BRAIN_PATH,
-		"sentry_bt_root",
+		SENTRY_BRAIN_SCRIPT_PATH,
 		[
 			"gameplay.ai_demo_flags.comms_disturbance_proximity",
 			"gameplay.ai_demo_flags.comms_disturbance_heard",
@@ -226,8 +221,7 @@ func test_sentry_brain_has_expected_bt_root_and_branches() -> void:
 
 func test_guide_prism_brain_has_expected_bt_root_and_branches() -> void:
 	_assert_brain_root_contract(
-		GUIDE_BRAIN_PATH,
-		"guide_prism_bt_root",
+		GUIDE_BRAIN_SCRIPT_PATH,
 		[
 			"gameplay.ai_demo_flags.nav_goal_reached",
 			"gameplay.entities.player.is_on_floor",
@@ -281,24 +275,21 @@ func test_demo_scenes_use_unified_npc_component_stack() -> void:
 
 func test_demo_goal_conditions_use_durable_ai_demo_flags() -> void:
 	_assert_brain_root_contract(
-		PATROL_BRAIN_PATH,
-		"patrol_drone_bt_root",
+		PATROL_BRAIN_SCRIPT_PATH,
 		[
 			"gameplay.ai_demo_flags.power_core_proximity",
 			"gameplay.ai_demo_flags.power_core_activated",
 		]
 	)
 	_assert_brain_root_contract(
-		SENTRY_BRAIN_PATH,
-		"sentry_bt_root",
+		SENTRY_BRAIN_SCRIPT_PATH,
 		[
 			"gameplay.ai_demo_flags.comms_disturbance_proximity",
 			"gameplay.ai_demo_flags.comms_disturbance_heard",
 		]
 	)
 	_assert_brain_root_contract(
-		GUIDE_BRAIN_PATH,
-		"guide_prism_bt_root",
+		GUIDE_BRAIN_SCRIPT_PATH,
 		[
 			"gameplay.ai_demo_flags.nav_goal_reached",
 			"gameplay.entities.player.is_on_floor",

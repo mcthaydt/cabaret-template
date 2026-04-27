@@ -46,6 +46,7 @@ func build() -> RS_BTNode:
 
 	var root := U_BTBuilder.utility_selector([proximity_branch, investigate_branch, patrol_seq])
 	root.child_scorers = [scorer_proximity, scorer_investigate, scorer_patrol]
+	root.resource_name = "patrol_drone_bt_root"
 	return root
 
 func _build_patrol_sequence() -> RS_BTSequence:
