@@ -24,7 +24,7 @@ static func build_graph(objectives: Array[Resource]) -> Dictionary:
 			continue
 
 		var node: Dictionary = graph.get(objective_id, {}) as Dictionary
-		var dependencies: Array[StringName] = _coerce_dependency_ids(
+		var dependencies: Array[StringName] = _sanitize_dependency_ids(
 			_resource_get(objective_resource, "dependencies", [])
 		)
 		node["dependencies"] = dependencies.duplicate()
@@ -34,7 +34,7 @@ static func build_graph(objectives: Array[Resource]) -> Dictionary:
 			if not graph.has(dependency_id):
 				continue
 			var dependency_node: Dictionary = graph.get(dependency_id, {}) as Dictionary
-			var dependents: Array[StringName] = _coerce_string_name_array(dependency_node.get("dependents", []))
+			var dependents: Array[StringName] = _sanitize_string_name_array(dependency_node.get("dependents", []))
 			if not dependents.has(objective_id):
 				dependents.append(objective_id)
 				dependents.sort()
@@ -195,18 +195,18 @@ static func _get_dependencies(graph: Dictionary, node_id: StringName) -> Array[S
 	if not graph.has(node_id):
 		return []
 	var node: Dictionary = graph.get(node_id, {}) as Dictionary
-	return _coerce_dependency_ids(node.get("dependencies", []))
+	return _sanitize_dependency_ids(node.get("dependencies", []))
 
 static func _get_dependents(graph: Dictionary, node_id: StringName) -> Array[StringName]:
 	if not graph.has(node_id):
 		return []
 	var node: Dictionary = graph.get(node_id, {}) as Dictionary
-	var dependents: Array[StringName] = _coerce_dependency_ids(node.get("dependents", []))
+	var dependents: Array[StringName] = _sanitize_dependency_ids(node.get("dependents", []))
 	dependents.sort()
 	return dependents
 
-static func _coerce_dependency_ids(value: Variant) -> Array[StringName]:
-	var ids: Array[StringName] = _coerce_string_name_array(value)
+static func _sanitize_dependency_ids(value: Variant) -> Array[StringName]:
+	var ids: Array[StringName] = _sanitize_string_name_array(value)
 	var unique: Array[StringName] = []
 	for id_value in ids:
 		if id_value == StringName(""):
@@ -216,7 +216,7 @@ static func _coerce_dependency_ids(value: Variant) -> Array[StringName]:
 	unique.sort()
 	return unique
 
-static func _coerce_string_name_array(value: Variant) -> Array[StringName]:
+static func _sanitize_string_name_array(value: Variant) -> Array[StringName]:
 	var result: Array[StringName] = []
 	if value is Array:
 		for entry in value:

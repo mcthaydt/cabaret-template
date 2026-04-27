@@ -270,6 +270,6 @@ func _is_ignorable_validation_error(error_text: String) -> bool:
 		return true
 	# Type-mismatch errors ("must be RS_BaseCondition" / "must be RS_BaseEffect")
 	# are now impossible — RS_Rule.conditions and RS_Rule.effects use typed
-	# Array[I_Condition] and Array[I_Effect] with coerce setters that filter
+	# Array[I_Condition] and Array[I_Effect] with sanitize setters that filter
 	# wrong-type entries before they reach the validator.
 	return false

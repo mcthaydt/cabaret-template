@@ -20,8 +20,8 @@ func build() -> RS_BTNode:
 
 	var cond_hunt_gate := RS_CONDITION_COMPOSITE.new()
 	cond_hunt_gate.set("mode", 0)
-	var hunt_coerced: Variant = cond_hunt_gate.call("_coerce_children", [cond_prey_detected, cond_hunger_low])
-	cond_hunt_gate.set("_children", hunt_coerced)
+	var hunt_sanitized: Variant = cond_hunt_gate.call("_sanitize_children", [cond_prey_detected, cond_hunger_low])
+	cond_hunt_gate.set("_children", hunt_sanitized)
 
 	var scorer_hunt := U_BTBuilder.score_condition(cond_hunt_gate, 10.0)
 	var scorer_search := U_BTBuilder.score_condition(cond_hunger_low, 6.0)

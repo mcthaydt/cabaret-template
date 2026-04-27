@@ -9,7 +9,7 @@ var _child_scorers: Array[Resource] = []
 	get:
 		return _child_scorers
 	set(value):
-		_child_scorers = _coerce_child_scorers(value)
+		_child_scorers = _sanitize_child_scorers(value)
 
 func tick(context: Dictionary, state_bag: Dictionary) -> Status:
 	if children.is_empty():
@@ -151,14 +151,14 @@ func _get_local_state(state_bag: Dictionary) -> Dictionary:
 		return state_variant as Dictionary
 	return {}
 
-func _coerce_child_scorers(value: Variant) -> Array[Resource]:
-	var coerced: Array[Resource] = []
+func _sanitize_child_scorers(value: Variant) -> Array[Resource]:
+	var sanitized: Array[Resource] = []
 	if not (value is Array):
-		return coerced
+		return sanitized
 	for scorer_variant in value as Array:
 		if scorer_variant is Resource:
-			coerced.append(scorer_variant as Resource)
-	return coerced
+			sanitized.append(scorer_variant as Resource)
+	return sanitized
 
 func _should_trace_selection(context: Dictionary) -> bool:
 	return _resolve_entity_id(context) != StringName("")

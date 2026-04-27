@@ -1,10 +1,10 @@
 extends RefCounted
 class_name U_BTPlannerRuntime
 
-func coerce_action_pool(value: Variant) -> Array[Object]:
-	var coerced: Array[Object] = []
+func sanitize_action_pool(value: Variant) -> Array[Object]:
+	var sanitized: Array[Object] = []
 	if not (value is Array):
-		return coerced
+		return sanitized
 	for action_variant in value as Array:
 		if not (action_variant is Object):
 			continue
@@ -12,8 +12,8 @@ func coerce_action_pool(value: Variant) -> Array[Object]:
 		if action == null:
 			continue
 		if action.has_method("tick") and action.has_method("is_applicable"):
-			coerced.append(action)
-	return coerced
+			sanitized.append(action)
+	return sanitized
 
 func build_world_state(world_state_builder: Object, context: Dictionary, entity_query_key: StringName) -> Dictionary:
 	if world_state_builder == null:

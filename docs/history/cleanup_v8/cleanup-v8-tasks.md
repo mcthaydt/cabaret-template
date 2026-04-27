@@ -63,7 +63,7 @@ Phases 2–5 are independent of each other and can be reordered, but all depend 
   - `node_id` is stable per instance (used as state-bag key).
 - [x] **Commit 2** (GREEN) — Create (general framework under `scripts/resources/bt/` — these base classes have no AI dependencies):
   - `scripts/resources/bt/rs_bt_node.gd` — `class_name RS_BTNode`, `extends Resource`. `enum Status { RUNNING, SUCCESS, FAILURE }`. Virtual `tick(context: Dictionary, state_bag: Dictionary) -> Status`.
-  - `scripts/resources/bt/rs_bt_composite.gd` — `class_name RS_BTComposite`, `extends RS_BTNode`. Typed `children: Array[RS_BTNode]` with `_coerce_children()` setter matching F7 pattern.
+  - `scripts/resources/bt/rs_bt_composite.gd` — `class_name RS_BTComposite`, `extends RS_BTNode`. Typed `children: Array[RS_BTNode]` with `_sanitize_children()` setter matching F7 pattern.
   - `scripts/resources/bt/rs_bt_decorator.gd` — `class_name RS_BTDecorator`, `extends RS_BTNode`. Typed `child: RS_BTNode`.
 - [x] **Commit 3** (GREEN) — Style enforcement:
   - Add to `tests/unit/style/test_style_enforcement.gd`: every file under `scripts/resources/bt/` AND `scripts/resources/ai/bt/` under 200 lines.
@@ -292,8 +292,8 @@ Opt-in planning scoped to a single BT composite node. Adds A* search over an act
 - [x] **Commit 4** (GREEN) — `scripts/utils/ai/u_ai_world_state_builder.gd`.
 
 - [x] **Commit 5** (RED) — `test_rs_bt_planner_action.gd`:
-  - Typed `preconditions: Array[I_Condition]` with coerce setter (F7 pattern).
-  - Typed `effects: Array[RS_WorldStateEffect]` with coerce setter.
+  - Typed `preconditions: Array[I_Condition]` with sanitize setter (F7 pattern).
+  - Typed `effects: Array[RS_WorldStateEffect]` with sanitize setter.
   - `cost: float = 1.0` (must be > 0; `push_error` if ≤ 0).
   - `child: RS_BTNode` (the behavior to run when planner selects this action).
   - `is_applicable(state: Dictionary) -> bool` — all preconditions satisfied.
@@ -355,7 +355,7 @@ Opt-in planning scoped to a single BT composite node. Adds A* search over an act
 - Commit 5 (RED) `0128edd0`: added `tests/unit/ai/bt/test_rs_bt_planner_action.gd`.
 - RED verification: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_rs_bt_planner_action.gd` failed for expected reason (`res://scripts/core/resources/ai/bt/rs_bt_planner_action.gd` missing).
 - Style verification after test-file creation: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passed (`60/60`).
-- Commit 6 (GREEN) `78d73d09`: implemented `scripts/resources/ai/bt/rs_bt_planner_action.gd` with typed/coerced `preconditions` and `effects`, positive-cost applicability guard, and `child` tick delegation.
+- Commit 6 (GREEN) `78d73d09`: implemented `scripts/resources/ai/bt/rs_bt_planner_action.gd` with typed/sanitized `preconditions` and `effects`, positive-cost applicability guard, and `child` tick delegation.
 - GREEN verification: `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/bt/test_rs_bt_planner_action.gd` passed (`6/6`).
 - Style verification after script creation: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` passed (`60/60`).
 - Regression verification: `tools/run_gut_suite.sh` passed (`4531` passing, `8` pending, `0` failing).
@@ -1077,7 +1077,7 @@ The recipes below each own one subsystem. Written after that subsystem stabilize
   - Governing ADRs: V7.2 F7 (typed schema erasure), condition/rule validator pattern.
   - Canonical example: an existing `RS_Rule` `.tres` with `conditions: Array[I_Condition]` + `effects: Array[I_Effect]`.
   - Recipe:
-    - "To add a new condition" → implement `I_Condition`; F7 typed arrays + `_coerce_children()` pattern applies to composites.
+    - "To add a new condition" → implement `I_Condition`; F7 typed arrays + `_sanitize_children()` pattern applies to composites.
     - "To add a new effect" → implement `I_Effect`; similar pattern.
     - "To add a rule" → author `RS_Rule` `.tres`; `U_RuleValidator` double-checks at load.
   - Anti-patterns: `Array[Resource]` fallback on new typed arrays (F7 eliminated this), stale "headless parser stability" comments (F7 deleted).
@@ -1127,7 +1127,7 @@ The recipes below each own one subsystem. Written after that subsystem stabilize
   - Governing ADRs: V7.2 F7 (typed-schema erasure), F15 (load-time schema validation).
   - Canonical examples: `RS_GameConfig`, `RS_InputProfile`, `RS_SceneRegistryEntry` post-F15.
   - Recipe:
-    - "To add a validated resource" → property setters with `push_error` fail loud at load (F15 pattern); backing-field pattern consistent with F7 `_coerce_*` setters; include `resource_path` in error messages.
+    - "To add a validated resource" → property setters with `push_error` fail loud at load (F15 pattern); backing-field pattern consistent with F7 `_sanitize_*` setters; include `resource_path` in error messages.
     - "To add cross-reference validation" → boot-time check in `M_RunCoordinatorManager` (F15 pattern). `_init()` runs before autoloads — use property setters for local validation, boot pass for cross-registry.
   - Anti-patterns: `_init()` for per-field validation (runs before `.tres` property assignment — silently useless), `Array[Resource]` fallback (F7 eliminated).
   - References: V7.2 F7, F15.
@@ -1503,7 +1503,7 @@ resources/
 **Notes**:
 - `planner()` omitted from `U_BTBuilder` — `RS_BTPlanner*` is a forbidden token in `BT_UTILS_DIR`; planner factory belongs in `U_AIBTFactory` (P6.3)
 - `scored()` return type is `RS_BTDecorator` (not `RS_BTScoredNode`) — `rs_bt_scored_node.gd` lacks a UID file so the class name can't be resolved as a type annotation in headless mode
-- Composite children use `_coerce_children` + `_children` bypass — direct typed-Array property assignment silently coerces to empty in headless runs
+- Composite children use `_sanitize_children` + `_children` bypass — direct typed-Array property assignment silently coerces to empty in headless runs
 
 **P6.2 Verification**:
 - [x] All 16 builder tests green
@@ -1695,8 +1695,8 @@ resources/
   - `class_name U_QBRuleBuilder`, extends `RefCounted`, all static methods
   - Static factory API matching `U_BTBuilder` / `U_AIBTFactory` conventions
   - Preload consts for all condition/effect/resource scripts (headless-safe)
-  - `_coerce_conditions` / `_coerce_effects` bypass for typed `Array[I_Condition]` / `Array[I_Effect]` headless pitfall (same pattern as `U_BTBuilder`)
-  - `_coerce_children` bypass for `RS_ConditionComposite` (same pattern as `composite_all`/`composite_any` in `U_AIBTFactory`)
+  - `_sanitize_conditions` / `_sanitize_effects` bypass for typed `Array[I_Condition]` / `Array[I_Effect]` headless pitfall (same pattern as `U_BTBuilder`)
+  - `_sanitize_children` bypass for `RS_ConditionComposite` (same pattern as `composite_all`/`composite_any` in `U_AIBTFactory`)
   - `_set_effect_value` and `_set_context_effect_value` private helpers mirror `U_AIBTFactory.set_field()` type detection
   - Effect config keys: `operation`, `use_context_value`, `context_value_path`, `scale_by_rule_score`, `rule_score_context_path`, `use_clamp`, `clamp_min`, `clamp_max`
   - Rule config keys: `trigger_mode`, `score_threshold`, `decision_group`, `priority`, `cooldown`, `one_shot`, `requires_rising_edge`, `description`

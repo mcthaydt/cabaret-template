@@ -4,7 +4,7 @@ extends BaseTest
 ##
 ## These tests verify that RS_Rule.conditions, RS_Rule.effects, and
 ## RS_ConditionComposite.children use typed arrays (Array[I_Condition],
-## Array[I_Effect]) with coerce setters that filter wrong-type entries,
+## Array[I_Effect]) with sanitize setters that filter wrong-type entries,
 ## matching the established pattern in RS_AIGoal and RS_AICompoundTask.
 
 const RS_RULE := preload("res://scripts/core/resources/qb/rs_rule.gd")
@@ -78,98 +78,98 @@ func test_composite_children_has_typed_array_annotation() -> void:
 			break
 	assert_true(found, "children property should exist in property list")
 
-# --- Coerce method tests ---
-# Test _coerce_conditions/_coerce_effects/_coerce_children directly,
+# --- Sanitize method tests ---
+# Test _sanitize_conditions/_sanitize_effects/_sanitize_children directly,
 # since GDScript rejects assigning plain Array to Array[I_Condition] properties.
 
-func test_coerce_conditions_filters_wrong_type() -> void:
+func test_sanitize_conditions_filters_wrong_type() -> void:
 	var rule: Variant = RS_RULE.new()
 	var condition := _make_redux_condition()
 	var wrong_type := Resource.new()
 	var mixed: Array = [condition, wrong_type]
-	var result: Array[I_Condition] = rule._coerce_conditions(mixed)
+	var result: Array[I_Condition] = rule._sanitize_conditions(mixed)
 	assert_eq(result.size(), 1, \
-		"coerce should filter out non-I_Condition entries")
+		"sanitize should filter out non-I_Condition entries")
 	assert_eq(result[0], condition, \
 		"only the I_Condition entry should survive")
 
-func test_coerce_conditions_filters_all_wrong_types() -> void:
+func test_sanitize_conditions_filters_all_wrong_types() -> void:
 	var rule: Variant = RS_RULE.new()
 	var wrong_type_a := Resource.new()
 	var wrong_type_b := Resource.new()
 	var all_wrong: Array = [wrong_type_a, wrong_type_b]
-	var result: Array[I_Condition] = rule._coerce_conditions(all_wrong)
+	var result: Array[I_Condition] = rule._sanitize_conditions(all_wrong)
 	assert_eq(result.size(), 0, \
-		"coerce should filter all non-I_Condition entries")
+		"sanitize should filter all non-I_Condition entries")
 
-func test_coerce_conditions_filters_null() -> void:
+func test_sanitize_conditions_filters_null() -> void:
 	var rule: Variant = RS_RULE.new()
 	var condition := _make_redux_condition()
 	var mixed: Array = [null, condition, null]
-	var result: Array[I_Condition] = rule._coerce_conditions(mixed)
+	var result: Array[I_Condition] = rule._sanitize_conditions(mixed)
 	assert_eq(result.size(), 1, \
-		"coerce should filter null entries")
+		"sanitize should filter null entries")
 	assert_eq(result[0], condition, \
 		"only the valid I_Condition entry should survive")
 
-func test_coerce_conditions_preserves_all_valid() -> void:
+func test_sanitize_conditions_preserves_all_valid() -> void:
 	var rule: Variant = RS_RULE.new()
 	var cond_a := _make_redux_condition()
 	var cond_b := _make_event_condition()
 	var valid: Array = [cond_a, cond_b]
-	var result: Array[I_Condition] = rule._coerce_conditions(valid)
+	var result: Array[I_Condition] = rule._sanitize_conditions(valid)
 	assert_eq(result.size(), 2, \
-		"coerce should preserve all I_Condition entries")
+		"sanitize should preserve all I_Condition entries")
 
-func test_coerce_effects_filters_wrong_type() -> void:
+func test_sanitize_effects_filters_wrong_type() -> void:
 	var rule: Variant = RS_RULE.new()
 	var effect := _make_set_field_effect()
 	var wrong_type := Resource.new()
 	var mixed: Array = [effect, wrong_type]
-	var result: Array[I_Effect] = rule._coerce_effects(mixed)
+	var result: Array[I_Effect] = rule._sanitize_effects(mixed)
 	assert_eq(result.size(), 1, \
-		"coerce should filter out non-I_Effect entries")
+		"sanitize should filter out non-I_Effect entries")
 	assert_eq(result[0], effect, \
 		"only the I_Effect entry should survive")
 
-func test_coerce_effects_preserves_all_valid() -> void:
+func test_sanitize_effects_preserves_all_valid() -> void:
 	var rule: Variant = RS_RULE.new()
 	var effect_a := _make_set_field_effect()
 	var effect_b := _make_set_context_value_effect()
 	var valid: Array = [effect_a, effect_b]
-	var result: Array[I_Effect] = rule._coerce_effects(valid)
+	var result: Array[I_Effect] = rule._sanitize_effects(valid)
 	assert_eq(result.size(), 2, \
-		"coerce should preserve all I_Effect entries")
+		"sanitize should preserve all I_Effect entries")
 
-func test_coerce_children_filters_wrong_type() -> void:
+func test_sanitize_children_filters_wrong_type() -> void:
 	var composite: Variant = CONDITION_COMPOSITE.new()
 	var condition := _make_redux_condition()
 	var wrong_type := Resource.new()
 	var mixed: Array = [condition, wrong_type]
-	var result: Array[I_Condition] = composite._coerce_children(mixed)
+	var result: Array[I_Condition] = composite._sanitize_children(mixed)
 	assert_eq(result.size(), 1, \
-		"coerce should filter out non-I_Condition entries from children")
+		"sanitize should filter out non-I_Condition entries from children")
 
-func test_coerce_children_filters_null() -> void:
+func test_sanitize_children_filters_null() -> void:
 	var composite: Variant = CONDITION_COMPOSITE.new()
 	var condition := _make_redux_condition()
 	var mixed: Array = [null, condition]
-	var result: Array[I_Condition] = composite._coerce_children(mixed)
+	var result: Array[I_Condition] = composite._sanitize_children(mixed)
 	assert_eq(result.size(), 1, \
-		"coerce should filter null entries from children")
+		"sanitize should filter null entries from children")
 
-func test_coerce_children_preserves_all_valid() -> void:
+func test_sanitize_children_preserves_all_valid() -> void:
 	var composite: Variant = CONDITION_COMPOSITE.new()
 	var cond_a := _make_redux_condition()
 	var cond_b := _make_event_condition()
 	var valid: Array = [cond_a, cond_b]
-	var result: Array[I_Condition] = composite._coerce_children(valid)
+	var result: Array[I_Condition] = composite._sanitize_children(valid)
 	assert_eq(result.size(), 2, \
-		"coerce should preserve all I_Condition entries in children")
+		"sanitize should preserve all I_Condition entries in children")
 
-# --- Append still works after coerce ---
+# --- Append still works after sanitize ---
 
-func test_rule_conditions_append_after_coerce() -> void:
+func test_rule_conditions_append_after_sanitize() -> void:
 	var rule: Variant = RS_RULE.new()
 	var cond_a := _make_redux_condition()
 	rule.conditions.clear()

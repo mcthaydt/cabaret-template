@@ -79,8 +79,8 @@ func _new_sequence(children: Array) -> Resource:
 	if sequence_variant == null:
 		return null
 	var sequence: Resource = sequence_variant as Resource
-	var coerced_children: Variant = sequence.call("_coerce_children", children)
-	sequence.set("_children", coerced_children)
+	var sanitized_children: Variant = sequence.call("_sanitize_children", children)
+	sequence.set("_children", sanitized_children)
 	return sequence
 
 func test_runner_script_exists_and_loads() -> void:

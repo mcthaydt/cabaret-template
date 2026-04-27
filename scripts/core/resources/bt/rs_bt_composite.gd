@@ -10,16 +10,16 @@ var _children: Array[RS_BTNode] = []
 	get:
 		return _children
 	set(value):
-		_children = _coerce_children(value)
+		_children = _sanitize_children(value)
 
-func _coerce_children(value: Variant) -> Array[RS_BTNode]:
-	var coerced: Array[RS_BTNode] = []
+func _sanitize_children(value: Variant) -> Array[RS_BTNode]:
+	var sanitized: Array[RS_BTNode] = []
 	if not (value is Array):
-		return coerced
+		return sanitized
 	for child_variant in value as Array:
 		if child_variant is RS_BTNode or _is_bt_node_script_instance(child_variant):
-			coerced.append(child_variant)
-	return coerced
+			sanitized.append(child_variant)
+	return sanitized
 
 func _is_bt_node_script_instance(value: Variant) -> bool:
 	if not (value is Object):

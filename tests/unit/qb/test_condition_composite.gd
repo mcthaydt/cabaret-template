@@ -60,7 +60,7 @@ func test_any_mode_picks_max_score() -> void:
 	assert_almost_eq(condition.evaluate({}), 0.6, 0.0001)
 
 func test_any_mode_picks_max_from_valid_children() -> void:
-	# With typed arrays, null entries are filtered by the coerce setter.
+	# With typed arrays, null entries are filtered by the sanitize setter.
 	# This test verifies ANY mode picks the max score from valid children.
 	var condition: Variant = _make_composite(
 		CONDITION_COMPOSITE.CompositeMode.ANY,

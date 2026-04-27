@@ -17,12 +17,12 @@ var _effects: Array[I_Effect] = []
 	get:
 		return _conditions
 	set(value):
-		_conditions = _coerce_conditions(value)
+		_conditions = _sanitize_conditions(value)
 @export var effects: Array[I_Effect] = []:
 	get:
 		return _effects
 	set(value):
-		_effects = _coerce_effects(value)
+		_effects = _sanitize_effects(value)
 @export var score_threshold: float = 0.0
 
 @export_group("Selection")
@@ -35,21 +35,21 @@ var _effects: Array[I_Effect] = []
 @export var requires_rising_edge: bool = false
 
 
-func _coerce_conditions(value: Variant) -> Array[I_Condition]:
-	var coerced: Array[I_Condition] = []
+func _sanitize_conditions(value: Variant) -> Array[I_Condition]:
+	var sanitized: Array[I_Condition] = []
 	if not (value is Array):
-		return coerced
+		return sanitized
 	for condition_variant in value as Array:
 		if condition_variant is I_Condition:
-			coerced.append(condition_variant as I_Condition)
-	return coerced
+			sanitized.append(condition_variant as I_Condition)
+	return sanitized
 
 
-func _coerce_effects(value: Variant) -> Array[I_Effect]:
-	var coerced: Array[I_Effect] = []
+func _sanitize_effects(value: Variant) -> Array[I_Effect]:
+	var sanitized: Array[I_Effect] = []
 	if not (value is Array):
-		return coerced
+		return sanitized
 	for effect_variant in value as Array:
 		if effect_variant is I_Effect:
-			coerced.append(effect_variant as I_Effect)
-	return coerced
+			sanitized.append(effect_variant as I_Effect)
+	return sanitized

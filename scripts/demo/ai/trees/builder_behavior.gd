@@ -74,8 +74,8 @@ func build() -> RS_BTNode:
 func _composite_all(conditions: Array) -> RS_ConditionComposite:
 	var c := RS_CONDITION_COMPOSITE.new()
 	c.set("mode", 0)
-	var coerced: Variant = c.call("_coerce_children", conditions)
-	c.set("_children", coerced)
+	var sanitized: Variant = c.call("_sanitize_children", conditions)
+	c.set("_children", sanitized)
 	return c
 
 func _move_to_water() -> RS_BTAction:

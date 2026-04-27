@@ -9,11 +9,11 @@ func tick(root: RS_BTNode, context: Dictionary, state_bag: Dictionary) -> int:
 		return RS_BT_NODE.Status.FAILURE
 
 	var status_variant: Variant = root.tick(context, state_bag)
-	var status: int = _coerce_status(status_variant)
+	var status: int = _sanitize_status(status_variant)
 	_sanitize_state_bag_keys(state_bag)
 	return status
 
-func _coerce_status(status_variant: Variant) -> int:
+func _sanitize_status(status_variant: Variant) -> int:
 	if status_variant is int:
 		var status: int = int(status_variant)
 		if status == RS_BT_NODE.Status.RUNNING:

@@ -46,12 +46,12 @@ func get_debug_snapshot() -> Dictionary:
 	var task_id_variant: Variant = _debug_snapshot.get(SNAPSHOT_KEY_TASK_ID, StringName())
 	if task_id_variant is StringName or task_id_variant is String:
 		snapshot[SNAPSHOT_KEY_TASK_ID] = task_id_variant
-	snapshot[SNAPSHOT_KEY_ACTIVE_PATH] = _coerce_active_path(_debug_snapshot.get(SNAPSHOT_KEY_ACTIVE_PATH, []))
+	snapshot[SNAPSHOT_KEY_ACTIVE_PATH] = _sanitize_active_path(_debug_snapshot.get(SNAPSHOT_KEY_ACTIVE_PATH, []))
 	snapshot[SNAPSHOT_KEY_BT_STATE_KEYS] = bt_state_bag.size()
 	_append_planner_debug(snapshot)
 	return snapshot
 
-func _coerce_active_path(value: Variant) -> Array[String]:
+func _sanitize_active_path(value: Variant) -> Array[String]:
 	var active_path: Array[String] = []
 	if not (value is Array):
 		return active_path

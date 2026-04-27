@@ -17,20 +17,20 @@ const RS_AI_SCORER_CONTEXT_FIELD := preload("res://scripts/core/resources/ai/bt/
 
 static func sequence(children: Array) -> RS_BTSequence:
 	var node: RS_BTSequence = RS_BT_SEQUENCE.new()
-	var coerced: Variant = node.call("_coerce_children", children)
-	node.set("_children", coerced)
+	var sanitized: Variant = node.call("_sanitize_children", children)
+	node.set("_children", sanitized)
 	return node
 
 static func selector(children: Array) -> RS_BTSelector:
 	var node: RS_BTSelector = RS_BT_SELECTOR.new()
-	var coerced: Variant = node.call("_coerce_children", children)
-	node.set("_children", coerced)
+	var sanitized: Variant = node.call("_sanitize_children", children)
+	node.set("_children", sanitized)
 	return node
 
 static func utility_selector(children: Array) -> RS_BTUtilitySelector:
 	var node: RS_BTUtilitySelector = RS_BT_UTILITY_SELECTOR.new()
-	var coerced: Variant = node.call("_coerce_children", children)
-	node.set("_children", coerced)
+	var sanitized: Variant = node.call("_sanitize_children", children)
+	node.set("_children", sanitized)
 	return node
 
 static func scored(child: RS_BTNode, scorer: Resource) -> RS_BTDecorator:

@@ -17,17 +17,17 @@ var _children: Array[I_Condition] = []
 	get:
 		return _children
 	set(value):
-		_children = _coerce_children(value)
+		_children = _sanitize_children(value)
 
 
-func _coerce_children(value: Variant) -> Array[I_Condition]:
-	var coerced: Array[I_Condition] = []
+func _sanitize_children(value: Variant) -> Array[I_Condition]:
+	var sanitized: Array[I_Condition] = []
 	if not (value is Array):
-		return coerced
+		return sanitized
 	for child_variant in value as Array:
 		if child_variant is I_Condition:
-			coerced.append(child_variant as I_Condition)
-	return coerced
+			sanitized.append(child_variant as I_Condition)
+	return sanitized
 
 func _evaluate_raw(context: Dictionary) -> float:
 	var current_depth: int = _read_depth(context)

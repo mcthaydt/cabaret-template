@@ -73,7 +73,7 @@ func reconcile_navigation_state(
 		current_scene_id
 	)
 
-	var desired_overlay_ids: Array[StringName] = _coerce_string_name_array(
+	var desired_overlay_ids: Array[StringName] = 	_sanitize_string_name_array(
 		nav_state.get("overlay_stack", [])
 	)
 	var current_stack: Array[StringName] = overlay_helper.get_overlay_scene_ids_from_ui(ui_overlay_stack)
@@ -164,7 +164,7 @@ func reconcile_pending_overlays(_manager: Node, overlay_helper: U_OVERLAY_STACK_
 		_pending_overlay_reconciliation = false
 		return
 
-	var desired_overlay_ids: Array[StringName] = _coerce_string_name_array(
+	var desired_overlay_ids: Array[StringName] = 	_sanitize_string_name_array(
 		_latest_navigation_state.get("overlay_stack", [])
 	)
 	var current_stack: Array[StringName] = overlay_helper.get_overlay_scene_ids_from_ui(ui_overlay_stack)
@@ -194,7 +194,7 @@ func reconcile_pending_overlays(_manager: Node, overlay_helper: U_OVERLAY_STACK_
 static func map_overlay_ids_to_scene_ids(overlay_ids: Array[StringName]) -> Array[StringName]:
 	return U_OVERLAY_STACK_MANAGER.map_overlay_ids_to_scene_ids(overlay_ids)
 
-## Coerce variant array to StringName array
+## Sanitize variant array to StringName array
 ##
 ## Safely converts mixed-type arrays to typed StringName arrays.
 ##
@@ -203,7 +203,7 @@ static func map_overlay_ids_to_scene_ids(overlay_ids: Array[StringName]) -> Arra
 ##
 ## Returns:
 ##   Typed Array[StringName]
-static func _coerce_string_name_array(value: Variant) -> Array[StringName]:
+static func _sanitize_string_name_array(value: Variant) -> Array[StringName]:
 	var result: Array[StringName] = []
 	if value is Array:
 		for entry in value:

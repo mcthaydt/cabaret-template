@@ -44,8 +44,8 @@ func _new_status_node(status: int) -> Resource:
 	return node_variant as Resource
 
 func _set_children_for_test(selector: Resource, child_nodes: Array) -> void:
-	var coerced_children: Variant = selector.call("_coerce_children", child_nodes)
-	selector.set("_children", coerced_children)
+	var sanitized_children: Variant = selector.call("_sanitize_children", child_nodes)
+	selector.set("_children", sanitized_children)
 
 func test_selector_script_exists_and_loads() -> void:
 	var selector_script: Script = _load_script(RS_BT_SELECTOR_PATH)

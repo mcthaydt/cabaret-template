@@ -125,15 +125,15 @@ static func redux_field(path: String) -> RS_BTCondition:
 static func composite_all(conditions: Array) -> RS_BTCondition:
 	var c: Resource = RS_CONDITION_COMPOSITE.new()
 	c.set("mode", 0)
-	var coerced: Variant = c.call("_coerce_children", conditions)
-	c.set("_children", coerced)
+	var sanitized: Variant = c.call("_sanitize_children", conditions)
+	c.set("_children", sanitized)
 	return U_BTBuilder.condition(c)
 
 static func composite_any(conditions: Array) -> RS_BTCondition:
 	var c: Resource = RS_CONDITION_COMPOSITE.new()
 	c.set("mode", 1)
-	var coerced: Variant = c.call("_coerce_children", conditions)
-	c.set("_children", coerced)
+	var sanitized: Variant = c.call("_sanitize_children", conditions)
+	c.set("_children", sanitized)
 	return U_BTBuilder.condition(c)
 
 static func planner(goal: Resource, action_pool: Array = [], max_depth: int = 6) -> RS_BTPlanner:

@@ -77,12 +77,12 @@ func _new_condition_constant(score: float) -> Resource:
 	return condition
 
 func _set_children_for_test(selector: Resource, child_nodes: Array) -> void:
-	var coerced_children: Variant = selector.call("_coerce_children", child_nodes)
-	selector.set("_children", coerced_children)
+	var sanitized_children: Variant = selector.call("_sanitize_children", child_nodes)
+	selector.set("_children", sanitized_children)
 
 func _set_child_scorers_for_test(selector: Resource, scorers: Array) -> void:
-	var coerced_scorers: Variant = selector.call("_coerce_child_scorers", scorers)
-	selector.set("_child_scorers", coerced_scorers)
+	var sanitized_scorers: Variant = selector.call("_sanitize_child_scorers", scorers)
+	selector.set("_child_scorers", sanitized_scorers)
 
 func _new_constant_scorer(value: float) -> Resource:
 	var scorer_script: Script = _load_script(RS_AI_SCORER_CONSTANT_PATH)

@@ -83,7 +83,7 @@ func test_planner_action_script_exists_and_loads() -> void:
 	var script: Script = _load_script(RS_BT_PLANNER_ACTION_PATH)
 	assert_not_null(script, "RS_BTPlannerAction script must exist and load")
 
-func test_preconditions_are_typed_and_coerce_invalid_entries() -> void:
+func test_preconditions_are_typed_and_sanitize_invalid_entries() -> void:
 	var planner_action: Resource = _new_planner_action()
 	if planner_action == null:
 		return
@@ -91,13 +91,13 @@ func test_preconditions_are_typed_and_coerce_invalid_entries() -> void:
 	if condition_true == null:
 		return
 
-	var coerced_variant: Variant = planner_action.call("_coerce_preconditions", [condition_true, "invalid", null, 3])
-	assert_true(coerced_variant is Array, "_coerce_preconditions should return an array")
-	if not (coerced_variant is Array):
+	var sanitized_variant: Variant = planner_action.call("_sanitize_preconditions", [condition_true, "invalid", null, 3])
+	assert_true(sanitized_variant is Array, "_sanitize_preconditions should return an array")
+	if not (sanitized_variant is Array):
 		return
-	var coerced: Array = coerced_variant as Array
-	assert_eq(coerced.size(), 1, "_coerce_preconditions should keep only I_Condition entries")
-	assert_eq(coerced[0], condition_true, "_coerce_preconditions should retain valid I_Condition resources")
+	var sanitized: Array = sanitized_variant as Array
+	assert_eq(sanitized.size(), 1, "_sanitize_preconditions should keep only I_Condition entries")
+	assert_eq(sanitized[0], condition_true, "_sanitize_preconditions should retain valid I_Condition resources")
 
 	var typed_preconditions: Array[I_Condition] = [condition_true as I_Condition]
 	planner_action.set("preconditions", typed_preconditions)
@@ -112,7 +112,7 @@ func test_preconditions_are_typed_and_coerce_invalid_entries() -> void:
 	var prop: Dictionary = _get_property_definition(planner_action, "preconditions")
 	_assert_typed_property_hint(prop, "I_Condition", true, "preconditions should be typed Array[I_Condition]")
 
-func test_effects_are_typed_and_coerce_invalid_entries() -> void:
+func test_effects_are_typed_and_sanitize_invalid_entries() -> void:
 	var planner_action: Resource = _new_planner_action()
 	if planner_action == null:
 		return
@@ -120,13 +120,13 @@ func test_effects_are_typed_and_coerce_invalid_entries() -> void:
 	if effect == null:
 		return
 
-	var coerced_variant: Variant = planner_action.call("_coerce_effects", [effect, "invalid", null, 2])
-	assert_true(coerced_variant is Array, "_coerce_effects should return an array")
-	if not (coerced_variant is Array):
+	var sanitized_variant: Variant = planner_action.call("_sanitize_effects", [effect, "invalid", null, 2])
+	assert_true(sanitized_variant is Array, "_sanitize_effects should return an array")
+	if not (sanitized_variant is Array):
 		return
-	var coerced: Array = coerced_variant as Array
-	assert_eq(coerced.size(), 1, "_coerce_effects should keep only RS_WorldStateEffect entries")
-	assert_eq(coerced[0], effect, "_coerce_effects should retain valid RS_WorldStateEffect resources")
+	var sanitized: Array = sanitized_variant as Array
+	assert_eq(sanitized.size(), 1, "_sanitize_effects should keep only RS_WorldStateEffect entries")
+	assert_eq(sanitized[0], effect, "_sanitize_effects should retain valid RS_WorldStateEffect resources")
 
 	var typed_effects: Array[RS_WorldStateEffect] = [effect as RS_WorldStateEffect]
 	planner_action.set("effects", typed_effects)

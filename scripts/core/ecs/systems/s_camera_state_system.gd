@@ -38,7 +38,7 @@ var _default_rules: Array[RS_Rule] = []
 	get:
 		return _rules
 	set(value):
-		_rules = _coerce_rules(value)
+		_rules = _sanitize_rules(value)
 
 var _rules: Array[RS_Rule] = []
 var _camera_manager: I_CAMERA_MANAGER = null
@@ -47,14 +47,14 @@ var _rule_evaluator: Variant = U_RULE_EVALUATOR.new()
 var _rule_applier = U_CAMERA_STATE_RULE_APPLIER.new()
 
 
-func _coerce_rules(value: Variant) -> Array[RS_Rule]:
-	var coerced: Array[RS_Rule] = []
+func _sanitize_rules(value: Variant) -> Array[RS_Rule]:
+	var sanitized: Array[RS_Rule] = []
 	if not (value is Array):
-		return coerced
+		return sanitized
 	for rule_variant in value as Array:
 		if rule_variant is RS_Rule:
-			coerced.append(rule_variant as RS_Rule)
-	return coerced
+			sanitized.append(rule_variant as RS_Rule)
+	return sanitized
 
 func on_configured() -> void:
 	_refresh_rule_evaluator()

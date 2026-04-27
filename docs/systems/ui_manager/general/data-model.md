@@ -447,7 +447,7 @@ func _reconcile_navigation_state(nav: Dictionary) -> void:
     var desired_scene := nav.get("base_scene_id", StringName(""))
     _reconcile_base_scene(desired_scene)
 
-    var desired_stack := _coerce_to_string_name_array(nav.get("overlay_stack", []))
+    var desired_stack := _sanitize_to_string_name_array(nav.get("overlay_stack", []))
     var current_stack := _get_overlay_scene_ids_from_ui()
     _reconcile_overlay_stack(desired_stack, current_stack)
 ```

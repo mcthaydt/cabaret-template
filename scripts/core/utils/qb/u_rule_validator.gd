@@ -4,7 +4,7 @@ class_name U_RuleValidator
 ## Semantic rule validator — a double-check layer on top of typed arrays.
 ##
 ## RS_Rule.conditions (Array[I_Condition]) and RS_Rule.effects (Array[I_Effect])
-## enforce type constraints at the GDScript level via coerce setters. This validator
+## enforce type constraints at the GDScript level via sanitize setters. This validator
 ## checks semantic correctness: required fields, valid state paths, numeric ranges,
 ## and cross-field constraints that typed arrays cannot enforce.
 

@@ -22,7 +22,7 @@ var _world_state_builder: Object = U_AI_WORLD_STATE_BUILDER.new()
 	get:
 		return _action_pool
 	set(value):
-		_action_pool = _runtime.call("coerce_action_pool", value)
+		_action_pool = _runtime.call("sanitize_action_pool", value)
 @export var planner_search: Variant = null:
 	get:
 		return _planner_search
@@ -49,7 +49,7 @@ func tick(context: Dictionary, state_bag: Dictionary) -> Status:
 		_clear_runtime_state(state_bag)
 		return Status.SUCCESS
 	var local_state: Dictionary = _get_local_state(state_bag)
-	var plan: Array[Object] = _runtime.call("coerce_action_pool", local_state.get(STATE_KEY_PLAN, []))
+	var plan: Array[Object] = _runtime.call("sanitize_action_pool", local_state.get(STATE_KEY_PLAN, []))
 	var plan_index: int = int(local_state.get(STATE_KEY_PLAN_INDEX, 0))
 	var replan_attempted: bool = bool(local_state.get(STATE_KEY_REPLAN_ATTEMPTED, false))
 	if plan.is_empty():
@@ -101,7 +101,7 @@ func _request_plan(world_state: Dictionary, state_bag: Dictionary, local_state: 
 	if not (plan_variant is Array):
 		push_error("RS_BTPlanner.tick: planner search returned non-array plan")
 		return []
-	var plan: Array[Object] = _runtime.call("coerce_action_pool", plan_variant)
+	var plan: Array[Object] = _runtime.call("sanitize_action_pool", plan_variant)
 	if plan.is_empty():
 		if emit_no_plan_error:
 			push_error("RS_BTPlanner.tick: no plan found")

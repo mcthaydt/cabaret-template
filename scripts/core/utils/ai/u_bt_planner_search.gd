@@ -11,7 +11,7 @@ func find_plan(initial_state: Dictionary, goal: I_Condition, pool: Array, max_de
 	var safe_depth: int = maxi(max_depth, 0)
 	if goal.evaluate(safe_state) > 0.0:
 		return []
-	var actions: Array[Object] = _coerce_pool(pool)
+	var actions: Array[Object] = _sanitize_pool(pool)
 	if actions.is_empty():
 		_push_no_plan_context(safe_state, goal, pool.size(), safe_depth)
 		return []
@@ -55,7 +55,7 @@ func find_plan(initial_state: Dictionary, goal: I_Condition, pool: Array, max_de
 func _node(state: Dictionary, plan: Array, cost: float, depth: int) -> Dictionary:
 	return {&"state": state.duplicate(true), &"plan": plan.duplicate(), &"cost": cost, &"depth": depth}
 
-func _coerce_pool(pool: Array) -> Array[Object]:
+func _sanitize_pool(pool: Array) -> Array[Object]:
 	var out: Array[Object] = []
 	for v in pool:
 		if not (v is Object):

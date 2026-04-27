@@ -43,7 +43,7 @@ Rule = Conditions[] + Effects[] + metadata
 
 - The rule engine is a stateless library: `U_RuleScorer.score_rules(...)` plus `U_RuleSelector.select_winners(...)`. Domain systems compose these utilities directly instead of inheriting a QB base class.
 - Rule consumers such as `S_CharacterStateSystem`, `S_GameEventSystem`, and `S_CameraStateSystem` own their own `U_RuleStateTracker` instances. Never share tracker state between systems.
-- Rule assets use `RS_Rule` plus typed condition/effect resources (`RS_Condition*`, `RS_Effect*`). `conditions` and `effects` use typed arrays (`Array[I_Condition]`, `Array[I_Effect]`) with coerce setters; `U_RuleValidator` validates semantic correctness.
+- Rule assets use `RS_Rule` plus typed condition/effect resources (`RS_Condition*`, `RS_Effect*`). `conditions` and `effects` use typed arrays (`Array[I_Condition]`, `Array[I_Effect]`) with sanitize setters; `U_RuleValidator` validates semantic correctness.
 - All rules declare at least one condition. Unconditional rules are invalid: validator reports an error and scorer returns `0.0`.
 - Consumers should operate only on `valid_rules` from the validation report and expose `{valid_rules, errors_by_index, errors_by_rule_id}` where tests/debugging need visibility.
 - Condition scores are `0.0..1.0`; optional response curves remap before optional invert, and the final rule score is the multiplicative product.
@@ -64,7 +64,7 @@ Rule = Conditions[] + Effects[] + metadata
 ## Pitfalls
 
 - `U_PathResolver` intentionally has no method-call fallback. Conditions/effects must resolve data through dictionary/object property paths only.
-- New rule-consumer systems should use typed arrays with coerce setters and rely on `U_RuleValidator` for semantic checks.
+- New rule-consumer systems should use typed arrays with sanitize setters and rely on `U_RuleValidator` for semantic checks.
 - Condition/effect subresources must be v2 subclasses. Validator failures should block runtime registration.
 - Context-driven effects such as `RS_EffectSetField.use_context_value` require explicit context contracts per consumer.
 - `U_RuleStateTracker` is per-system state. Sharing one tracker causes cross-domain cooldown and rising-edge bugs.
@@ -75,10 +75,10 @@ Rule = Conditions[] + Effects[] + metadata
 
 ### Layer 1 — Data (Resources, designer-authored)
 
-Resource hierarchy using `RS_BaseCondition`/`RS_BaseEffect` subclasses. `RS_Rule` uses typed arrays (`Array[I_Condition]`, `Array[I_Effect]`) with coerce setters; `U_RuleValidator` validates semantic correctness as a double-check layer.
+Resource hierarchy using `RS_BaseCondition`/`RS_BaseEffect` subclasses. `RS_Rule` uses typed arrays (`Array[I_Condition]`, `Array[I_Effect]`) with sanitize setters; `U_RuleValidator` validates semantic correctness as a double-check layer.
 
 ```
-RS_Rule                          ← rule definition with typed condition/effect arrays + coerce setters + validator
+RS_Rule                          ← rule definition with typed condition/effect arrays + sanitize setters + validator
 RS_BaseCondition                 ← abstract, virtual evaluate() → float
 ├── RS_ConditionComponentField   ← reads ECS component property
 ├── RS_ConditionReduxField       ← reads Redux state path
@@ -168,8 +168,8 @@ class_name RS_Rule extends Resource
 @export_enum("tick", "event", "both") var trigger_mode: String = "tick"
 
 @export_group("Evaluation")
-@export var conditions: Array[I_Condition] = []  ## typed; coerce setter filters wrong-type
-@export var effects: Array[I_Effect] = []     ## typed; coerce setter filters wrong-type
+@export var conditions: Array[I_Condition] = []  ## typed; sanitize setter filters wrong-type
+@export var effects: Array[I_Effect] = []     ## typed; sanitize setter filters wrong-type
 @export var score_threshold: float = 0.0
 
 @export_group("Selection")
@@ -183,7 +183,7 @@ class_name RS_Rule extends Resource
 ```
 
 **Key differences from v1 `RS_QBRuleDefinition`:**
-- `conditions/effects` use typed arrays (`Array[I_Condition]`, `Array[I_Effect]`) with coerce setters; `U_RuleValidator` validates semantic correctness as a double-check layer
+- `conditions/effects` use typed arrays (`Array[I_Condition]`, `Array[I_Effect]`) with sanitize setters; `U_RuleValidator` validates semantic correctness as a double-check layer
 - `requires_rising_edge` — clearer name (was `requires_salience`)
 - `score_threshold` — explicit minimum score to be a candidate (was implicit > 0.0)
 - Removed: `cooldown_key_fields`, `cooldown_from_context_field` — context-scoped cooldowns are handled by `RuleStateTracker` API, not baked into the resource
@@ -400,7 +400,7 @@ Adapted from v1's `U_QBRuleValidator`. Validates at configure time:
 - `rule_id` non-empty
 - `conditions` must contain at least one entry
 - event/both trigger modes require at least one `RS_ConditionEventName` condition
-- Conditions are valid `RS_BaseCondition` instances (enforced by typed `Array[I_Condition]` + coerce setter; `U_RuleValidator` validates semantics)
+- Conditions are valid `RS_BaseCondition` instances (enforced by typed `Array[I_Condition]` + sanitize setter; `U_RuleValidator` validates semantics)
 - Effects are valid `RS_BaseEffect` instances
 - `RS_ConditionComponentField`: `component_type` non-empty, `field_path` non-empty, `range_min < range_max` when both non-zero
 - `RS_ConditionReduxField`: `state_path` non-empty, contains `.` (slice.field format)

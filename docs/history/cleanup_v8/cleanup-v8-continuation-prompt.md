@@ -81,7 +81,7 @@ Seven phases bundled for one goal: make the template LLM-friendly, modular, and 
 **Key implementation notes**:
 - `planner()` omitted — `RS_BTPlanner*` is a forbidden token in `BT_UTILS_DIR`; planner factory goes in `U_AIBTFactory` (P6.3).
 - `scored()` returns `RS_BTDecorator` (not `RS_BTScoredNode`) — `rs_bt_scored_node.gd` has no UID, so its class name can't be resolved as a type annotation in headless.
-- `sequence/selector/utility_selector` use `_coerce_children` + `_children` bypass — `Object.set()` with typed `Array[RS_BTNode]` exports silently coerces to empty in headless runs (established GDScript 4.6 pitfall).
+- `sequence/selector/utility_selector` use `_sanitize_children` + `_children` bypass — `Object.set()` with typed `Array[RS_BTNode]` exports silently coerces to empty in headless runs (established GDScript 4.6 pitfall).
 
 **Result**: style suite 91/91; full suite 4617/4617 passing; 16 new builder tests all green.
 
@@ -95,7 +95,7 @@ Seven phases bundled for one goal: make the template LLM-friendly, modular, and 
 - `U_AIBTFactory` lives in `scripts/core/utils/ai/` (no BT_UTILS_DIR token restrictions).
 - Action factories create the inner `I_AIAction` resource, configure its exports, then delegate to `U_BTBuilder.action()`.
 - Condition factories create the inner `I_Condition` resource, configure its exports, then delegate to `U_BTBuilder.condition()`.
-- `composite_all/any` use `_coerce_children` + `_children` bypass — same typed Array[I_Condition] export pitfall as composites in U_BTBuilder.
+- `composite_all/any` use `_sanitize_children` + `_children` bypass — same typed Array[I_Condition] export pitfall as composites in U_BTBuilder.
 - `planner()` creates `RS_BTPlanner` directly — the one factory U_BTBuilder cannot host due to `RS_BTPlanner*` being a forbidden token in BT_UTILS_DIR.
 - `set_field(path, value)` detects value type via `is` checks; `bool` must be checked before `int` (bool is a subtype of int in GDScript 4.x).
 - All static methods; 144 lines total (well under 200-line LOC cap).
@@ -160,8 +160,8 @@ Seven phases bundled for one goal: make the template LLM-friendly, modular, and 
 - Condition factories: `event_name`, `event_payload`, `component_field`, `redux_field`, `entity_tag`, `context_field`, `constant`, `composite_all`, `composite_any`.
 - Effect factories: `publish_event`, `set_field`, `set_context`, `dispatch_action`.
 - `rule(rule_id, conditions, effects, config)` creates `RS_Rule`, applies `config` dict for `trigger_mode`, `score_threshold`, `decision_group`, `priority`, `cooldown`, `one_shot`, `requires_rising_edge`, `description`.
-- Headless-safe typed-array bypass: `rule()` calls `_coerce_conditions()` / `_coerce_effects()` via `call()` then `.set("_conditions", ...)` / `.set("_effects", ...)` — same pitfall bypass as U_BTBuilder/U_AIBTFactory.
-- Composite factories use `_coerce_children` + `.set("_children", ...)` bypass — same as U_AIBTFactory.`composite_all`/`composite_any`.
+- Headless-safe typed-array bypass: `rule()` calls `_sanitize_conditions()` / `_sanitize_effects()` via `call()` then `.set("_conditions", ...)` / `.set("_effects", ...)` — same pitfall bypass as U_BTBuilder/U_AIBTFactory.
+- Composite factories use `_sanitize_children` + `.set("_children", ...)` bypass — same as U_AIBTFactory.`composite_all`/`composite_any`.
 - `set_field` and `set_context` value type detection: `bool` before `int` (bool is subtype of int in GDScript 4.x), then `float`, `StringName`, `String`, `Vector2`, `Vector3`.
 - `set_field` config supports: `operation`, `use_context_value`, `context_value_path`, `scale_by_rule_score`, `rule_score_context_path`, `use_clamp`, `clamp_min`, `clamp_max`.
 - 9 condition + 4 effect + 1 rule factory + 2 value-helpers = ~141 lines; under 200-line LOC cap.

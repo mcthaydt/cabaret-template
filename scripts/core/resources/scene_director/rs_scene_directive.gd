@@ -14,30 +14,30 @@ var _beats: Array[RS_BeatDefinition] = []
 	get:
 		return _selection_conditions
 	set(value):
-		_selection_conditions = _coerce_conditions(value)
+		_selection_conditions = _sanitize_conditions(value)
 @export_range(-1000, 1000, 1) var priority: int = 0
 @export var beats: Array[RS_BeatDefinition] = []:
 	get:
 		return _beats
 	set(value):
-		_beats = _coerce_beats(value)
+		_beats = _sanitize_beats(value)
 
 
-func _coerce_conditions(value: Variant) -> Array[I_Condition]:
-	var coerced: Array[I_Condition] = []
+func _sanitize_conditions(value: Variant) -> Array[I_Condition]:
+	var sanitized: Array[I_Condition] = []
 	if not (value is Array):
-		return coerced
+		return sanitized
 	for condition_variant in value as Array:
 		if condition_variant is I_Condition:
-			coerced.append(condition_variant as I_Condition)
-	return coerced
+			sanitized.append(condition_variant as I_Condition)
+	return sanitized
 
 
-func _coerce_beats(value: Variant) -> Array[RS_BeatDefinition]:
-	var coerced: Array[RS_BeatDefinition] = []
+func _sanitize_beats(value: Variant) -> Array[RS_BeatDefinition]:
+	var sanitized: Array[RS_BeatDefinition] = []
 	if not (value is Array):
-		return coerced
+		return sanitized
 	for beat_variant in value as Array:
 		if beat_variant is RS_BeatDefinition:
-			coerced.append(beat_variant as RS_BeatDefinition)
-	return coerced
+			sanitized.append(beat_variant as RS_BeatDefinition)
+	return sanitized

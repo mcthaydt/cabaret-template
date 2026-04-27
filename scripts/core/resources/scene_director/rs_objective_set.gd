@@ -12,14 +12,14 @@ var _objectives: Array[RS_ObjectiveDefinition] = []
 	get:
 		return _objectives
 	set(value):
-		_objectives = _coerce_objectives(value)
+		_objectives = _sanitize_objectives(value)
 
 
-func _coerce_objectives(value: Variant) -> Array[RS_ObjectiveDefinition]:
-	var coerced: Array[RS_ObjectiveDefinition] = []
+func _sanitize_objectives(value: Variant) -> Array[RS_ObjectiveDefinition]:
+	var sanitized: Array[RS_ObjectiveDefinition] = []
 	if not (value is Array):
-		return coerced
+		return sanitized
 	for objective_variant in value as Array:
 		if objective_variant is RS_ObjectiveDefinition:
-			coerced.append(objective_variant as RS_ObjectiveDefinition)
-	return coerced
+			sanitized.append(objective_variant as RS_ObjectiveDefinition)
+	return sanitized

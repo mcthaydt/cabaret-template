@@ -29,10 +29,10 @@ static func rule(rule_id: StringName, conditions: Array, effects: Array = [], co
 	r.cooldown = config.get("cooldown", 0.0)
 	r.one_shot = config.get("one_shot", false)
 	r.requires_rising_edge = config.get("requires_rising_edge", false)
-	var coerced_conditions: Variant = r.call("_coerce_conditions", conditions)
-	r.set("_conditions", coerced_conditions)
-	var coerced_effects: Variant = r.call("_coerce_effects", effects)
-	r.set("_effects", coerced_effects)
+	var sanitized_conditions: Variant = r.call("_sanitize_conditions", conditions)
+	r.set("_conditions", sanitized_conditions)
+	var sanitized_effects: Variant = r.call("_sanitize_effects", effects)
+	r.set("_effects", sanitized_effects)
 	return r
 
 
@@ -97,16 +97,16 @@ static func constant(score: float = 1.0) -> RS_ConditionConstant:
 static func composite_all(children: Array) -> RS_ConditionComposite:
 	var c: RS_ConditionComposite = RS_CONDITION_COMPOSITE.new()
 	c.set("mode", 0)
-	var coerced: Variant = c.call("_coerce_children", children)
-	c.set("_children", coerced)
+	var sanitized: Variant = c.call("_sanitize_children", children)
+	c.set("_children", sanitized)
 	return c
 
 
 static func composite_any(children: Array) -> RS_ConditionComposite:
 	var c: RS_ConditionComposite = RS_CONDITION_COMPOSITE.new()
 	c.set("mode", 1)
-	var coerced: Variant = c.call("_coerce_children", children)
-	c.set("_children", coerced)
+	var sanitized: Variant = c.call("_sanitize_children", children)
+	c.set("_children", sanitized)
 	return c
 
 
