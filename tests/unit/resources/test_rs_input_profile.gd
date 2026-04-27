@@ -123,7 +123,7 @@ func test_default_keyboard_profiles_use_physical_keycode() -> void:
 	]
 
 	for profile_script in profiles:
-		var instance := profile_script.new()
+		var instance: Object = profile_script.new()
 		var profile: RS_InputProfile = instance.build()
 		assert_not_null(profile, "Profile built from script")
 
@@ -146,7 +146,7 @@ func test_default_gamepad_profiles_bind_camera_center_to_right_stick() -> void:
 		AccessibilityGamepadProfile
 	]
 	for profile_script in profiles:
-		var instance := profile_script.new()
+		var instance: Object = profile_script.new()
 		var profile: RS_InputProfile = instance.build()
 		assert_not_null(profile, "Profile built from script")
 		var events := profile.get_events_for_action(StringName("camera_center"))
@@ -162,7 +162,7 @@ func test_default_gamepad_profiles_keep_sprint_on_left_stick() -> void:
 		AccessibilityGamepadProfile
 	]
 	for profile_script in profiles:
-		var instance := profile_script.new()
+		var instance: Object = profile_script.new()
 		var profile: RS_InputProfile = instance.build()
 		assert_not_null(profile, "Profile built from script")
 		var events := profile.get_events_for_action(StringName("sprint"))
@@ -185,7 +185,7 @@ func test_default_gamepad_profiles_bind_look_actions_to_right_stick_axes() -> vo
 	}
 
 	for profile_script in profiles:
-		var instance := profile_script.new()
+		var instance: Object = profile_script.new()
 		var profile: RS_InputProfile = instance.build()
 		assert_not_null(profile, "Profile built from script")
 		for action_name in expected.keys():

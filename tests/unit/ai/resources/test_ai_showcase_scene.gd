@@ -3,7 +3,7 @@ extends BaseTest
 const AI_SHOWCASE_SCENE_PATH := "res://scenes/demo/gameplay/gameplay_ai_showcase.tscn"
 const PATROL_BRAIN_SCRIPT_PATH := "res://resources/demo/ai/patrol_drone/cfg_patrol_drone_brain_script.tres"
 const SENTRY_BRAIN_SCRIPT_PATH := "res://resources/demo/ai/sentry/cfg_sentry_brain_script.tres"
-const GUIDE_SHOWCASE_BRAIN_PATH := "res://resources/demo/ai/guide_prism/cfg_guide_showcase_brain.tres"
+const GUIDE_SHOWCASE_BRAIN_PATH := "res://resources/demo/ai/guide_prism/cfg_guide_showcase_brain_script.tres"
 const INTER_AI_DEMO_FLAG_ZONE_SCRIPT_PATH := "res://scripts/demo/gameplay/inter_ai_demo_flag_zone.gd"
 const INTER_AI_DEMO_GUARD_BARRIER_SCRIPT_PATH := "res://scripts/demo/gameplay/inter_ai_demo_guard_barrier.gd"
 

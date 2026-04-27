@@ -72,7 +72,7 @@
 [ext_resource type="Texture2D" uid="uid://cu6nemmc82bo4" path="res://assets/demo/textures/prototype_grids_png/Light/tex_texture_03.png" id="71_grid_light_03"]
 [ext_resource type="Resource" path="res://resources/demo/ai/sentry/cfg_sentry_brain_script.tres" id="71_sentry_brain"]
 [ext_resource type="Texture2D" uid="uid://dy0x7tmqlyw0y" path="res://assets/demo/textures/prototype_grids_png/Dark/tex_texture_01.png" id="72_grid_dark_01"]
-[ext_resource type="Resource" uid="uid://bmwo3kaddap2a" path="res://resources/demo/ai/guide_prism/cfg_guide_showcase_brain.tres" id="72_guide_showcase_brain"]
+[ext_resource type="Resource" path="res://resources/demo/ai/guide_prism/cfg_guide_showcase_brain_script.tres" id="72_guide_showcase_brain"]
 [ext_resource type="Texture2D" uid="uid://bln3t6p8asyk3" path="res://assets/demo/textures/prototype_grids_png/Purple/tex_texture_01.png" id="73_grid_purple_01"]
 [ext_resource type="Texture2D" uid="uid://bqnushigljekn" path="res://assets/demo/textures/prototype_grids_png/Red/tex_texture_03.png" id="74_grid_red_03"]
 [ext_resource type="Texture2D" uid="uid://brvkkkykk0wyi" path="res://assets/demo/textures/prototype_grids_png/Green/tex_texture_01.png" id="75_grid_green_01"]

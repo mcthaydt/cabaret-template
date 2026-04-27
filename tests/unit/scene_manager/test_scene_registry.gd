@@ -280,23 +280,23 @@ func test_ai_demo_scene_entries_registered() -> void:
 	assert_eq(ai_showcase.get("scene_type", -1), U_SceneRegistry.SceneType.GAMEPLAY)
 
 func test_mobile_preloaded_scene_registry_manifest_includes_ai_demo_scenes() -> void:
-	var preloaded_entries: Array = U_SceneRegistryLoader.PRELOADED_SCENE_REGISTRY_ENTRIES
-	var manifest_scene_ids: Array[StringName] = []
+	# Since P6.7, mobile-safe scene availability comes from the builder manifest,
+	# not PRELOADED_SCENE_REGISTRY_ENTRIES (which is intentionally empty).
+	var manifest_script: Script = load(U_SceneRegistryLoader.MANIFEST_SCRIPT_PATH)
+	assert_not_null(manifest_script, "Scene manifest script must load")
+	if manifest_script == null:
+		return
+	var manifest: Object = manifest_script.new()
+	var scenes: Dictionary = manifest.call("build") as Dictionary
 
-	for entry_variant in preloaded_entries:
-		var entry_resource := entry_variant as RS_SceneRegistryEntry
-		if entry_resource == null:
-			continue
-		manifest_scene_ids.append(entry_resource.scene_id)
-
-	assert_true(manifest_scene_ids.has(StringName("power_core")),
-		"Preloaded scene manifest should include power_core for mobile/web builds")
-	assert_true(manifest_scene_ids.has(StringName("comms_array")),
-		"Preloaded scene manifest should include comms_array for mobile/web builds")
-	assert_true(manifest_scene_ids.has(StringName("nav_nexus")),
-		"Preloaded scene manifest should include nav_nexus for mobile/web builds")
-	assert_true(manifest_scene_ids.has(StringName("ai_showcase")),
-		"Preloaded scene manifest should include ai_showcase for mobile/web builds")
+	assert_true(scenes.has(StringName("power_core")),
+		"Scene manifest should include power_core for mobile/web builds")
+	assert_true(scenes.has(StringName("comms_array")),
+		"Scene manifest should include comms_array for mobile/web builds")
+	assert_true(scenes.has(StringName("nav_nexus")),
+		"Scene manifest should include nav_nexus for mobile/web builds")
+	assert_true(scenes.has(StringName("ai_showcase")),
+		"Scene manifest should include ai_showcase for mobile/web builds")
 
 ## Test localization settings UI scene is backfilled when registry resources are missing
 func test_localization_settings_scene_backfilled_when_missing() -> void:
