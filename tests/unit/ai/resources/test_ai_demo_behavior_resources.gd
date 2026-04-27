@@ -6,6 +6,10 @@ const PATROL_BRAIN_PATH := "res://resources/demo/ai/patrol_drone/cfg_patrol_dron
 const SENTRY_BRAIN_PATH := "res://resources/demo/ai/sentry/cfg_sentry_brain.tres"
 const GUIDE_BRAIN_PATH := "res://resources/demo/ai/guide_prism/cfg_guide_brain.tres"
 
+const PATROL_BRAIN_SCRIPT_PATH := "res://resources/demo/ai/patrol_drone/cfg_patrol_drone_brain_script.tres"
+const SENTRY_BRAIN_SCRIPT_PATH := "res://resources/demo/ai/sentry/cfg_sentry_brain_script.tres"
+const GUIDE_BRAIN_SCRIPT_PATH := "res://resources/demo/ai/guide_prism/cfg_guide_brain_script.tres"
+
 const POWER_CORE_SCENE_PATH := "res://scenes/demo/gameplay/gameplay_power_core.tscn"
 const COMMS_ARRAY_SCENE_PATH := "res://scenes/demo/gameplay/gameplay_comms_array.tscn"
 const NAV_NEXUS_SCENE_PATH := "res://scenes/demo/gameplay/gameplay_nav_nexus.tscn"
@@ -234,17 +238,17 @@ func test_demo_scenes_wire_npcs_to_m10_brain_resources() -> void:
 	_assert_scene_brain_path(
 		POWER_CORE_SCENE_PATH,
 		NodePath("Entities/NPCs/E_PatrolDrone/Components/C_AIBrainComponent"),
-		PATROL_BRAIN_PATH
+		PATROL_BRAIN_SCRIPT_PATH
 	)
 	_assert_scene_brain_path(
 		COMMS_ARRAY_SCENE_PATH,
 		NodePath("Entities/NPCs/E_Sentry/Components/C_AIBrainComponent"),
-		SENTRY_BRAIN_PATH
+		SENTRY_BRAIN_SCRIPT_PATH
 	)
 	_assert_scene_brain_path(
 		NAV_NEXUS_SCENE_PATH,
 		NodePath("Entities/NPCs/E_GuidePrism/Components/C_AIBrainComponent"),
-		GUIDE_BRAIN_PATH
+		GUIDE_BRAIN_SCRIPT_PATH
 	)
 
 func test_demo_npc_visual_exists() -> void:

@@ -62,7 +62,7 @@
 [ext_resource type="Resource" uid="uid://bk120ybuvl5ly" path="res://resources/demo/interactions/hazards/cfg_hazard_nav_nexus_fall.tres" id="64_nav_fall_hazard_config"]
 [ext_resource type="Script" uid="uid://b2huwk7mlhlvv" path="res://scripts/core/ecs/systems/s_spawn_recovery_system.gd" id="67_ai_spawn_recovery_system"]
 [ext_resource type="PackedScene" uid="uid://cv15bmronxxil" path="res://scenes/demo/prefabs/prefab_demo_npc.tscn" id="69_prefab_npc"]
-[ext_resource type="Resource" uid="uid://b7kchpw62fnj1" path="res://resources/demo/ai/guide_prism/cfg_guide_brain.tres" id="70_guide_brain"]
+[ext_resource type="Resource" path="res://resources/demo/ai/guide_prism/cfg_guide_brain_script.tres" id="70_guide_brain"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 2

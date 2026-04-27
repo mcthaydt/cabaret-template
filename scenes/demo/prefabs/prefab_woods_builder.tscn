@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://cbrb8fjoucl46"]
 
 [ext_resource type="PackedScene" uid="uid://cyu3l6we2jq23" path="res://scenes/core/templates/tmpl_character.tscn" id="1_character"]
-[ext_resource type="Resource" uid="uid://c8xwp1m7qnkh2" path="res://resources/demo/ai/woods/builder/cfg_builder_brain.tres" id="2_builder_brain"]
+[ext_resource type="Resource" path="res://resources/demo/ai/woods/builder/cfg_builder_brain_script.tres" id="2_builder_brain"]
 [ext_resource type="Resource" uid="uid://b2a71bx1mpfp1" path="res://resources/demo/base_settings/ai_woods/ai_woods/cfg_needs_builder.tres" id="3_needs_builder"]
 [ext_resource type="Resource" uid="uid://dhgxtfxmud4u1" path="res://resources/demo/base_settings/ai_woods/ai_woods/cfg_movement_woods.tres" id="4_movement"]
 [ext_resource type="Resource" uid="uid://dli6x8t4vgf84" path="res://resources/demo/base_settings/ai_woods/ai_woods/cfg_inventory_builder.tres" id="5_inventory"]

@@ -3,6 +3,8 @@ extends BaseTest
 const AI_SHOWCASE_SCENE_PATH := "res://scenes/demo/gameplay/gameplay_ai_showcase.tscn"
 const PATROL_BRAIN_PATH := "res://resources/demo/ai/patrol_drone/cfg_patrol_drone_brain.tres"
 const SENTRY_BRAIN_PATH := "res://resources/demo/ai/sentry/cfg_sentry_brain.tres"
+const PATROL_BRAIN_SCRIPT_PATH := "res://resources/demo/ai/patrol_drone/cfg_patrol_drone_brain_script.tres"
+const SENTRY_BRAIN_SCRIPT_PATH := "res://resources/demo/ai/sentry/cfg_sentry_brain_script.tres"
 const GUIDE_SHOWCASE_BRAIN_PATH := "res://resources/demo/ai/guide_prism/cfg_guide_showcase_brain.tres"
 const INTER_AI_DEMO_FLAG_ZONE_SCRIPT_PATH := "res://scripts/demo/gameplay/inter_ai_demo_flag_zone.gd"
 const INTER_AI_DEMO_GUARD_BARRIER_SCRIPT_PATH := "res://scripts/demo/gameplay/inter_ai_demo_guard_barrier.gd"
@@ -129,14 +131,14 @@ func test_showcase_patrol_drones_use_patrol_brain() -> void:
 	var root: Node = _load_scene_root()
 	if root == null:
 		return
-	_assert_npc_brain(root, NodePath("Entities/NPCs/E_PatrolDroneA"), PATROL_BRAIN_PATH)
-	_assert_npc_brain(root, NodePath("Entities/NPCs/E_PatrolDroneB"), PATROL_BRAIN_PATH)
+	_assert_npc_brain(root, NodePath("Entities/NPCs/E_PatrolDroneA"), PATROL_BRAIN_SCRIPT_PATH)
+	_assert_npc_brain(root, NodePath("Entities/NPCs/E_PatrolDroneB"), PATROL_BRAIN_SCRIPT_PATH)
 
 func test_showcase_sentry_uses_sentry_brain() -> void:
 	var root: Node = _load_scene_root()
 	if root == null:
 		return
-	_assert_npc_brain(root, NodePath("Entities/NPCs/E_Sentry"), SENTRY_BRAIN_PATH)
+	_assert_npc_brain(root, NodePath("Entities/NPCs/E_Sentry"), SENTRY_BRAIN_SCRIPT_PATH)
 
 func test_showcase_guide_prism_uses_guide_brain() -> void:
 	var root: Node = _load_scene_root()
