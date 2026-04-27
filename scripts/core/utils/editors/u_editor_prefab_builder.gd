@@ -131,6 +131,28 @@ func add_child_scene(scene_path: String, child_name: String) -> U_EditorPrefabBu
 	_root.add_child(instance)
 	return self
 
+func save(save_path: String) -> bool:
+	if _root == null:
+		push_error("U_EditorPrefabBuilder: save() called before create_root() or inherit_from()")
+		return false
+	for child in _root.get_children():
+		_set_owner_recursive(child, _root)
+	var packed: PackedScene = PackedScene.new()
+	var pack_result: int = packed.pack(_root)
+	if pack_result != OK:
+		push_error("U_EditorPrefabBuilder: pack() failed with code %d" % pack_result)
+		return false
+	var save_result: int = ResourceSaver.save(packed, save_path)
+	if save_result != OK:
+		push_error("U_EditorPrefabBuilder: ResourceSaver.save() failed with code %d" % save_result)
+		return false
+	return true
+
+func _set_owner_recursive(node: Node, owner: Node) -> void:
+	node.set_owner(owner)
+	for child in node.get_children():
+		_set_owner_recursive(child, owner)
+
 func build() -> Node:
 	if _root == null:
 		push_error("U_EditorPrefabBuilder: build() called before create_root() or inherit_from()")

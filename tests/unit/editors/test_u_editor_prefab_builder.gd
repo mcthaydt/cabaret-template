@@ -213,6 +213,30 @@ func test_multiple_components_added_sequentially_are_all_present() -> void:
 	if root is Node:
 		(root as Node).queue_free()
 
+# ── P7.4: Save & EditorScript Adapter ─────────────────────────────────────
+
+func test_save_packs_and_writes_file() -> void:
+	var builder: Object = _new_builder()
+	if builder == null:
+		return
+	builder.call("create_root", "Node3D", "TestSave")
+	var save_path: String = "res://tests/unit/editors/_test_saved_prefab.tscn"
+	var result: Variant = builder.call("save", save_path)
+	assert_true(result, "save() must return true on success")
+	assert_true(FileAccess.file_exists(save_path), "save() must write .tscn file")
+	var packed: PackedScene = load(save_path) as PackedScene
+	assert_not_null(packed, "Saved file must load as PackedScene")
+	if FileAccess.file_exists(save_path):
+		DirAccess.remove_absolute(save_path)
+
+func test_save_without_root_returns_false() -> void:
+	var builder: Object = _new_builder()
+	if builder == null:
+		return
+	var result: Variant = builder.call("save", "res://tests/unit/editors/_test_fail.tscn")
+	assert_false(result, "save() without root must return false")
+	assert_push_error("save() called before")
+
 # ── P7.3: Visuals, Collision & Children ─────────────────────────────────────
 
 func test_add_visual_mesh_adds_mesh_instance() -> void:
