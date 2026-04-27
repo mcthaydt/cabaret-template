@@ -1623,7 +1623,7 @@ resources/
 
 **Goal**: Fluent builder for programmatic input profile construction.
 
-- [ ] **Commit 1** (RED) — `tests/unit/input/test_u_input_profile_builder.gd`:
+- [x] **Commit 1** (RED) — `tests/unit/input/test_u_input_profile_builder.gd`:
   - `create(name, device_type)` initializes builder with profile name and device type
   - `.bind_key(action, keycode)` adds `InputEventKey` to action
   - `.bind_mouse_button(action, button_index)` adds `InputEventMouseButton` to action
@@ -1633,17 +1633,17 @@ resources/
   - `.with_touchscreen(virtual_buttons, joystick_pos)` sets touchscreen fields
   - `.build()` returns configured `RS_InputProfile`
   - Built profile passes `RS_InputProfile` validation (non-empty name, non-empty action_mappings)
-- [ ] **Commit 2** (GREEN) — `scripts/core/managers/helpers/u_input_profile_builder.gd`:
+- [x] **Commit 2** (GREEN) — `scripts/core/managers/helpers/u_input_profile_builder.gd`:
   - `class_name U_InputProfileBuilder`, extends `RefCounted`
   - Instance-based fluent API
   - Creates `InputEvent` objects and configures `RS_InputProfile.action_mappings`
-- [ ] **Commit 3** (GREEN) — Style enforcement: add line-count guard (max 150 lines).
+- [x] **Commit 3** (GREEN) — Style enforcement: add line-count guard (max 150 lines).
 
 **P6.8 Verification**:
-- [ ] Builder tests green
-- [ ] Built profiles accepted by `M_InputProfileManager`
-- [ ] Existing `.tres` profiles unaffected
-- [ ] Full suite green
+- [x] Builder tests green
+- [x] Built profiles accepted by `M_InputProfileManager`
+- [x] Existing `.tres` profiles unaffected
+- [x] Full suite green
 
 ---
 
@@ -1651,10 +1651,10 @@ resources/
 
 **Goal**: Convert existing input profile `.tres` files to builder scripts, validating the input profile builder pipeline end-to-end.
 
-- [ ] **Commit 1** (RED) — Integration test: builder scripts produce profiles equivalent to existing `.tres` profiles.
+- [x] **Commit 1** (RED) — Integration test: builder scripts produce profiles equivalent to existing `.tres` profiles.
   - Test loads each builder script and compares produced profile against the corresponding `.tres` resource
   - Action mappings match: same actions, same key bindings, same device types
-- [ ] **Commit 2** (GREEN) — Create builder scripts under `scripts/demo/input/profiles/`:
+- [x] **Commit 2** (GREEN) — Create builder scripts under `scripts/demo/input/profiles/`:
   - `default_keyboard_profile.gd` — replaces `cfg_default_keyboard.tres`
   - `alternate_keyboard_profile.gd` — replaces `cfg_alternate_keyboard.tres`
   - `accessibility_keyboard_profile.gd` — replaces `cfg_accessibility_keyboard.tres`
@@ -1662,17 +1662,17 @@ resources/
   - `accessibility_gamepad_profile.gd` — replaces `cfg_accessibility_gamepad.tres`
   - `default_touchscreen_profile.gd` — replaces `cfg_default_touchscreen.tres`
   - Each script extends `RefCounted`, has `build() -> RS_InputProfile` using `U_InputProfileBuilder`
-- [ ] **Commit 3** — Update `U_InputProfileLoader.load_available_profiles()` to load from builder scripts:
+- [x] **Commit 3** — Update `U_InputProfileLoader.load_available_profiles()` to load from builder scripts:
   - Replace hardcoded `.tres` resource paths with builder script paths
   - Call `build()` on each script instance instead of `load()`
-- [ ] **Commit 4** — Delete original `.tres` input profile files once builder scripts are verified
+- [x] **Commit 4** — Delete original `.tres` input profile files once builder scripts are verified
   - One commit so the removal is atomic and revertable
 
 **P6.9 Verification**:
-- [ ] All input profiles load and function identically to pre-migration
-- [ ] Builder script tests green
-- [ ] Full suite green
-- [ ] No orphaned `.tres` references
+- [x] All input profiles load and function identically to pre-migration
+- [x] Builder script tests green
+- [x] Full suite green
+- [x] No orphaned `.tres` references
 
 ---
 
