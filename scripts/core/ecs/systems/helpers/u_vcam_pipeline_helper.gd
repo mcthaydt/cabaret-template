@@ -1,5 +1,5 @@
 extends RefCounted
-class_name U_VCamPipelineBuilder
+class_name U_VCamPipelineHelper
 ## Orchestrates vCam pipeline stages: prepare + evaluate via decomposed helpers.
 
 const U_VCAM_MODE_EVALUATOR := preload("res://scripts/core/managers/helpers/u_vcam_mode_evaluator.gd")

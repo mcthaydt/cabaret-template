@@ -2,7 +2,7 @@
 extends BaseECSSystem
 class_name S_VCamSystem
 
-const U_VCAM_PIPELINE_BUILDER := preload("res://scripts/core/ecs/systems/helpers/u_vcam_pipeline_builder.gd")
+const U_VCAM_PIPELINE_BUILDER := preload("res://scripts/core/ecs/systems/helpers/u_vcam_pipeline_helper.gd")
 const U_VCAM_LANDING_IMPACT := preload("res://scripts/core/ecs/systems/helpers/u_vcam_landing_impact.gd")
 const U_VCAM_LOOK_INPUT := preload("res://scripts/core/ecs/systems/helpers/u_vcam_look_input.gd")
 const U_VCAM_ORBIT_EFFECTS := preload("res://scripts/core/ecs/systems/helpers/u_vcam_orbit_effects.gd")

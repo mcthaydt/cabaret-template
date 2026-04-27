@@ -40,15 +40,15 @@ static func begin_capture(overlay: Node, action: StringName, mode: String) -> vo
 		var is_reserved: bool = overlay._is_reserved(key)
 		if add_button != null:
 			if is_reserved:
-				add_button.text = U_RebindActionListBuilder.get_reserved_button_text()
+				add_button.text = U_RebindActionListHelper.get_reserved_button_text()
 			else:
-				add_button.text = U_RebindActionListBuilder.get_add_button_text()
+				add_button.text = U_RebindActionListHelper.get_add_button_text()
 			add_button.disabled = true
 		if replace_button != null:
 			if is_reserved:
-				replace_button.text = U_RebindActionListBuilder.get_reserved_button_text()
+				replace_button.text = U_RebindActionListHelper.get_reserved_button_text()
 			else:
-				replace_button.text = U_RebindActionListBuilder.get_replace_button_text()
+				replace_button.text = U_RebindActionListHelper.get_replace_button_text()
 			replace_button.disabled = true
 
 	overlay._update_status(get_capture_prompt(action))
@@ -114,7 +114,7 @@ static func handle_captured_event(overlay: Node, event: InputEvent) -> void:
 		overlay._rebind_settings,
 		replace_existing,
 		overlay._get_active_profile(),
-		U_RebindActionListBuilder.EXCLUDED_ACTIONS
+		U_RebindActionListHelper.EXCLUDED_ACTIONS
 	)
 	if not validation.valid:
 		var error_text: String = _localize_validation_error(validation.error)
@@ -125,7 +125,7 @@ static func handle_captured_event(overlay: Node, event: InputEvent) -> void:
 	if validation.conflict_action != StringName():
 		overlay._pending_event = event_copy
 		overlay._pending_conflict = validation.conflict_action
-		var conflict_name: String = U_RebindActionListBuilder.get_action_display_name(validation.conflict_action)
+		var conflict_name: String = U_RebindActionListHelper.get_action_display_name(validation.conflict_action)
 		var binding_text: String = overlay._format_binding_text([event_copy])
 		overlay._conflict_dialog.dialog_text = get_conflict_dialog_text(
 			overlay._format_binding_label(binding_text),
@@ -193,9 +193,9 @@ static func build_final_target_events(existing: Array[InputEvent], event: InputE
 	var final_events: Array[InputEvent] = []
 	if replace_existing:
 		if event != null:
-			var new_device_type: String = U_RebindActionListBuilder.get_event_device_type(event)
+			var new_device_type: String = U_RebindActionListHelper.get_event_device_type(event)
 			for existing_event in existing:
-				var existing_device_type: String = U_RebindActionListBuilder.get_event_device_type(existing_event)
+				var existing_device_type: String = U_RebindActionListHelper.get_event_device_type(existing_event)
 				if existing_device_type != new_device_type:
 					append_unique_event(final_events, existing_event)
 			append_unique_event(final_events, event)
@@ -252,7 +252,7 @@ static func get_capture_prompt(action: StringName) -> String:
 		STATUS_CAPTURE_PROMPT_KEY,
 		"Press new input for {action} (Esc to cancel)."
 	).format({
-		"action": U_RebindActionListBuilder.get_action_display_name(action)
+		"action": U_RebindActionListHelper.get_action_display_name(action)
 	})
 
 static func get_rebind_cancelled_status() -> String:
@@ -266,7 +266,7 @@ static func get_rebind_success_status(action: StringName, binding: String) -> St
 		STATUS_REBIND_SUCCESS_KEY,
 		"{action} bound to {binding}."
 	).format({
-		"action": U_RebindActionListBuilder.get_action_display_name(action),
+		"action": U_RebindActionListHelper.get_action_display_name(action),
 		"binding": binding
 	})
 
@@ -299,7 +299,7 @@ static func _localize_validation_error(validation_error: String) -> String:
 		var action_token: String = validation_error.substr(conflict_prefix.length())
 		if action_token.ends_with("."):
 			action_token = action_token.substr(0, action_token.length() - 1)
-		var action_name := U_RebindActionListBuilder.get_action_display_name(StringName(action_token))
+		var action_name := U_RebindActionListHelper.get_action_display_name(StringName(action_token))
 		return _localize_with_fallback(
 			ERROR_INPUT_ALREADY_BOUND_KEY,
 			"Input already bound to {action}."

@@ -130,7 +130,7 @@ func _on_bindings_reset() -> void:
 	_update_status(_localize_with_fallback(STATUS_BINDINGS_RESET_KEY, "Bindings reset to defaults."))
 
 func _build_action_rows() -> void:
-	U_RebindActionListBuilder.build_action_rows(
+	U_RebindActionListHelper.build_action_rows(
 		self,
 		_action_list,
 		_action_rows,
@@ -147,7 +147,7 @@ func _get_active_profile() -> RS_InputProfile:
 	return null
 
 func _refresh_bindings() -> void:
-	U_RebindActionListBuilder.refresh_bindings(self, _action_rows)
+	U_RebindActionListHelper.refresh_bindings(self, _action_rows)
 
 func _begin_capture(action: StringName, mode: String) -> void:
 	U_RebindCaptureHandler.begin_capture(self, action, mode)
@@ -378,7 +378,7 @@ func _reset_single_action(action: StringName) -> void:
 		typed_manager.reset_action(action)
 		_refresh_bindings()
 		_update_status(_localize_with_fallback(STATUS_ACTION_RESET_KEY, "Action '{action}' reset to default.").format({
-			"action": U_RebindActionListBuilder.get_action_display_name(action)
+			"action": U_RebindActionListHelper.get_action_display_name(action)
 		}))
 	else:
 		_show_error(_localize_with_fallback(ERROR_RESET_ACTION_UNAVAILABLE_KEY, "Reset action unavailable."))
@@ -402,7 +402,7 @@ func _localize_static_labels() -> void:
 		_conflict_dialog.title = _localize_with_fallback(CONFLICT_TITLE_KEY, "Conflict Detected")
 		var conflict_ok := _conflict_dialog.get_ok_button()
 		if conflict_ok != null:
-			conflict_ok.text = U_RebindActionListBuilder.get_replace_button_text()
+			conflict_ok.text = U_RebindActionListHelper.get_replace_button_text()
 		var conflict_cancel := _conflict_dialog.get_cancel_button()
 		if conflict_cancel != null:
 			conflict_cancel.text = _localize_with_fallback(&"common.cancel", "Cancel")
@@ -495,10 +495,10 @@ func _localize_with_fallback(key: StringName, fallback: String) -> String:
 # Helper functions for UX improvements
 
 func _categorize_actions(actions: Array[StringName]) -> Dictionary:
-	return U_RebindActionListBuilder._categorize_actions(actions)
+	return U_RebindActionListHelper._categorize_actions(actions)
 
 func _matches_search_filter(action: StringName) -> bool:
-	return U_RebindActionListBuilder._matches_search_filter(action, _search_filter)
+	return U_RebindActionListHelper._matches_search_filter(action, _search_filter)
 
 func _on_search_changed(new_text: String) -> void:
 	_search_filter = new_text
@@ -617,7 +617,7 @@ func _is_rebind_action_or_bottom_focus(focused: Control) -> bool:
 	return false
 
 func _add_spacer(height: int) -> void:
-	U_RebindActionListBuilder._add_spacer(_action_list, height)
+	U_RebindActionListHelper._add_spacer(_action_list, height)
 
 func _is_binding_custom(action: StringName) -> bool:
 	_ensure_store_reference()
@@ -694,7 +694,7 @@ func _navigate_focus(direction: StringName) -> void:
 ## Returns device type category for an InputEvent.
 ## Returns: "keyboard", "mouse", "gamepad", or "unknown"
 func _get_event_device_type(event: InputEvent) -> String:
-	return U_RebindActionListBuilder.get_event_device_type(event)
+	return U_RebindActionListHelper.get_event_device_type(event)
 
 # Public interface methods (delegate to private implementations)
 # Phase 9: Duck Typing Cleanup - Added to implement I_RebindOverlay interface

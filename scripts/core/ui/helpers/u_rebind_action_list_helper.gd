@@ -1,5 +1,5 @@
 extends RefCounted
-class_name U_RebindActionListBuilder
+class_name U_RebindActionListHelper
 
 const I_REBIND_OVERLAY := preload("res://scripts/core/interfaces/i_rebind_overlay.gd")
 const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_localization_utils.gd")
@@ -93,7 +93,7 @@ static func build_action_rows(
 
 	var typed_overlay := overlay as I_REBIND_OVERLAY
 	if typed_overlay == null:
-		push_error("U_RebindActionListBuilder: overlay must be I_RebindOverlay")
+		push_error("U_RebindActionListHelper: overlay must be I_RebindOverlay")
 		return
 
 	for child in action_list.get_children():

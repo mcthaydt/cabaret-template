@@ -17,39 +17,39 @@ extends GutTest
 
 func test_look_up_is_excluded_from_rebind() -> void:
 	assert_true(
-		U_RebindActionListBuilder.EXCLUDED_ACTIONS.has("look_up"),
+		U_RebindActionListHelper.EXCLUDED_ACTIONS.has("look_up"),
 		"look_up should be in EXCLUDED_ACTIONS"
 	)
 
 func test_look_down_is_excluded_from_rebind() -> void:
 	assert_true(
-		U_RebindActionListBuilder.EXCLUDED_ACTIONS.has("look_down"),
+		U_RebindActionListHelper.EXCLUDED_ACTIONS.has("look_down"),
 		"look_down should be in EXCLUDED_ACTIONS"
 	)
 
 func test_look_up_not_in_camera_category() -> void:
-	var camera_actions: Array = U_RebindActionListBuilder.ACTION_CATEGORIES.get("camera", [])
+	var camera_actions: Array = U_RebindActionListHelper.ACTION_CATEGORIES.get("camera", [])
 	assert_false(
 		camera_actions.has("look_up"),
 		"look_up should not be in the camera category"
 	)
 
 func test_look_down_not_in_camera_category() -> void:
-	var camera_actions: Array = U_RebindActionListBuilder.ACTION_CATEGORIES.get("camera", [])
+	var camera_actions: Array = U_RebindActionListHelper.ACTION_CATEGORIES.get("camera", [])
 	assert_false(
 		camera_actions.has("look_down"),
 		"look_down should not be in the camera category"
 	)
 
 func test_look_left_still_in_camera_category() -> void:
-	var camera_actions: Array = U_RebindActionListBuilder.ACTION_CATEGORIES.get("camera", [])
+	var camera_actions: Array = U_RebindActionListHelper.ACTION_CATEGORIES.get("camera", [])
 	assert_true(
 		camera_actions.has("look_left"),
 		"look_left should remain in the camera category"
 	)
 
 func test_look_right_still_in_camera_category() -> void:
-	var camera_actions: Array = U_RebindActionListBuilder.ACTION_CATEGORIES.get("camera", [])
+	var camera_actions: Array = U_RebindActionListHelper.ACTION_CATEGORIES.get("camera", [])
 	assert_true(
 		camera_actions.has("look_right"),
 		"look_right should remain in the camera category"

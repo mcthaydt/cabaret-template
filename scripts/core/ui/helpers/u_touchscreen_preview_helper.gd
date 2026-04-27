@@ -1,5 +1,5 @@
 extends RefCounted
-class_name U_TouchscreenPreviewBuilder
+class_name U_TouchscreenPreviewHelper
 
 const PREVIEW_PADDING: float = 24.0
 const BUTTON_SPACING: float = 12.0
