@@ -15,4 +15,5 @@ ADRs explain why durable architectural choices were made. Runtime contracts live
 | [0009-template-vs-demo-separation.md](0009-template-vs-demo-separation.md) | Accepted | Template-owned code/content separates from demo examples through core/demo ownership. |
 | [0010-base-scene-and-demo-entry-split.md](0010-base-scene-and-demo-entry-split.md) | Accepted | `tmpl_base_scene.tscn` is the canonical base; demo entry content stays separate. |
 | [0011-builder-pattern-taxonomy.md](0011-builder-pattern-taxonomy.md) | Accepted | Three builder patterns: static (pure factory), declarative/fluent (optional-field accumulation + `.build()`), helper (procedural orchestrator, not a builder). |
+| [0012-editor-builder-pattern.md](0012-editor-builder-pattern.md) | Accepted | `U_EditorPrefabBuilder` and `U_EditorBlockoutBuilder` replace hand-authored `.tscn` with programmatic builder scripts. |
 

@@ -343,14 +343,26 @@ Test command: `tools/run_gut_suite.sh` (or `-gtest=<path>` for targeted runs).
 
 ---
 
-## P7.7 — Prefab Migration — NOT STARTED
+## P7.7 — Prefab Migration — IN PROGRESS (5 of 12 done)
 
-Migrate all 12 demo prefabs from `.tscn` to builder scripts. Character prefabs (wolf, rabbit, builder, demo_npc) inherit from tmpl_character. Static prefabs (tree, water, stone, stockpile, construction_site) use fresh roots. Scene prefabs (alleyway, bar) as applicable. Each migration: create builder → verify parity → delete original.
+Migrated (builder regenerated + `.tscn` overwritten):
+- `prefab_woods_stone` — builder script `build_prefab_woods_stone.gd`
+- `prefab_woods_water` — builder script `build_prefab_woods_water.gd`
+- `prefab_woods_stockpile` — builder script `build_prefab_woods_stockpile.gd`
+- `prefab_woods_tree` — builder script inlined in `tests/_regenerate_prefabs.gd` (no standalone EditorScript yet)
+- `prefab_woods_construction_site` — builder script `build_prefab_woods_construction_site.gd`
+
+Remaining to migrate:
+- Character prefabs (4): wolf, rabbit, builder, demo_npc — need `inherit_from`, component override, child scene wiring
+- Scene prefabs (2): alleyway, bar — need blockout or prefab builder
+- Sub-prefab (1): prefab_demo_npc_body — simple, low priority
+
+**Builder extension note**: `add_csg_box`, `add_csg_sphere`, `add_csg_cylinder`, `add_collision_box` added to `U_EditorPrefabBuilder` in P7.7a. Builder now supports all static prefab shapes. Character prefabs need `override_child_property` and inherited component override — not yet implemented.
 
 ---
 
-## P7.8 — Style Compliance, ADR & Cleanup — NOT STARTED
+## P7.8 — Style Compliance, ADR & Cleanup — IN PROGRESS
 
-**Commit 16 (GREEN)** — Add style enforcement: line caps, naming, import boundaries.
+**Commit 16 (GREEN)** — `U_EditorPrefabBuilder` line cap check: builder at 231 lines, exceeding 200-line cap. Extracted `add_csg_box`, `add_csg_sphere`, `add_csg_cylinder`, `add_collision_box`, `add_visual_mesh`, `add_collision_capsule` into `U_EditorShapeFactory` helper. Builder reduced to 198 lines.
 
-**Commit 17 (DOCS)** — ADR-0010, continuation prompt update, task checklist update.
+**Commit 17 (DOCS)** — ADR-0019 Editor Prefab Builder Pattern, continuation prompt update, task checklist update.
