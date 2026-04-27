@@ -13,6 +13,7 @@ Use this recipe when adding:
 
 This recipe does **not** cover:
 
+- Builder-driven configuration authoring (see `builders.md`)
 - QB rule conditions/effects (see `conditions_effects_rules.md`)
 - ECS component/system authoring (see `ecs.md`)
 - Movement system changes (owned by `S_MoveTargetFollowerSystem` / `S_MovementSystem`)
@@ -46,28 +47,32 @@ This recipe does **not** cover:
 | `U_BTRunner` | Runtime tick executor: `tick(root, context, state_bag) -> int`. |
 | `bt_state_bag` | Per-entity mutable dictionary keyed by `node.get_instance_id()`. Holds cooldown timestamps, action state, planner snapshots. |
 | `context` | Per-tick read-only dictionary assembled by `U_AIContextAssembler`. Contains `delta`, `time`, `entity`, `ecs_manager`, etc. |
+| `RS_AIBrainScriptSettings` | Subclass of `RS_AIBrainSettings`. Returns `root` built by a GDScript builder script. |
+| `U_AIBTFactory` | Static convenience factory for AI-specific BT nodes (actions, conditions, composites). |
+| `U_BTBuilder` | Static structural BT factory (sequence, selector, utility, decorators, scorers). |
 
 **Directory split** (per ADR 0007):
-
-- General BT framework: `scripts/core/resources/bt/`, `scripts/core/utils/bt/`
-- AI-specific BT nodes: `scripts/core/resources/ai/bt/`, `scripts/core/utils/ai/`
-
-A node that imports AI-specific types (`I_AIAction`, `I_Condition`, task-state keys) belongs under `ai/bt/`. A node with no AI imports belongs under `bt/`.
 
 ## Recipe
 
 ### Adding a new creature
 
-1. Create a brain settings `.tres` under `resources/demo/ai/<creature>/cfg_<creature>_brain.tres` with type `RS_AIBrainSettings`.
-2. Author the BT resource tree as `.tres` files under `resources/demo/ai/<creature>/bt/`. Start with an `RS_BTUtilitySelector` root, add scored branches for each behavior.
-3. Wire the root node into `cfg_<creature>_brain.tres` via the `root` property. Set `evaluation_interval` (0.0 = every frame, 0.5 = default).
-4. Add a `C_AIBrainComponent` to the creature's entity scene with `brain_settings` pointing to the new `.tres`.
-5. Write an integration test under `tests/unit/ai/integration/test_<creature>_brain_bt.gd` that:
-   - Verifies the brain settings resource loads and has a non-null `root`.
-   - Verifies the BT tree structure (expected branch count, scorer presence).
+1. Author the behavior tree as a builder script per `builders.md`.
+
+2. Create a script-backed brain settings `.tres` under `resources/demo/ai/<creature>/cfg_<creature>_brain_script.tres` with type `RS_AIBrainScriptSettings`.
+   - Set `builder_script` to `load("res://scripts/demo/ai/trees/<creature>_behavior.gd")`.
+   - Set `evaluation_interval` (0.0 = every frame, 0.5 = default).
+
+3. Add a `C_AIBrainComponent` to the creature's prefab scene with `brain_settings` pointing to the new `.tres`.
+
+4. Write an integration test under `tests/unit/ai/integration/test_<creature>_brain_bt.gd` that:
+   - Verifies the brain settings resource loads and `get_root()` returns a non-null `RS_BTNode`.
+   - Verifies the tree structure (expected branch count, scorer presence).
    - Verifies key behaviors via `U_BTRunner.tick()` with a fabricated context.
-6. Run `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_<creature>_brain_bt.gd` and verify red-then-green.
-7. Run `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd`.
+
+5. Run `tools/run_gut_suite.sh -gtest=res://tests/unit/ai/integration/test_<creature>_brain_bt.gd` and verify red-then-green.
+
+6. Run `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd`.
 
 ### Adding a new BT branch to an existing creature
 

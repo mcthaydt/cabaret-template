@@ -125,6 +125,7 @@ const REQUIRED_EXTENSION_RECIPES := [
 	"localization.md",
 	"resources.md",
 	"tests.md",
+	"builders.md",
 ]
 
 # Valid prefixes by directory

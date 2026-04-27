@@ -22,6 +22,7 @@ Extension recipes are derivation templates for adding new features after a subsy
 | Add localization key/language | `localization.md` (phase-tail recipe) |
 | Add validated resource | `resources.md` (phase-tail recipe) |
 | Add test/style guard | `tests.md` (phase-tail recipe) |
+| Add builder / fluent script configuration | `builders.md` (phase-tail recipe, covers BT, scene registry, input, QB, editor) |
 
 Use [TEMPLATE.md](TEMPLATE.md) when authoring a new recipe.
 
