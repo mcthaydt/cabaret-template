@@ -5,8 +5,8 @@
 Implements `docs/history/cleanup_v8/cleanup-v8-tasks.md` in phase order with TDD discipline. V8 is the follow-up to V7.2, addressing structural/organizational debt rather than internal architectural issues.
 
 **Branch**: `cleanup-v8` (off `main`, after `GOAP-AI` merged via PR #16).
-**Status**: Phases 1–4 complete. Phase 5 not started (deferred to last per sequencing plan). Phase 6 **COMPLETE** — P6.1 complete, P6.2 complete, P6.3 complete, P6.4 complete, P6.5 complete, P6.6 complete, P6.7 complete, P6.8 complete, P6.9 complete, P6.10 complete, P6.11 complete, P6.12 complete (`1148e2f5`). Phase 7 **NOT STARTED**.
-**Next Task**: Phase 7.1 — `U_EditorPrefabBuilder` Root Creation & Fluent API.
+**Status**: Phases 1–4 complete. Phase 5 not started (deferred to last per sequencing plan). Phase 6 **COMPLETE** — P6.1 complete, P6.2 complete, P6.3 complete, P6.4 complete, P6.5 complete, P6.6 complete, P6.7 complete, P6.8 complete, P6.9 complete, P6.10 complete, P6.11 complete, P6.12 complete (`1148e2f5`). Phase 7 **IN PROGRESS** — P7.1 complete (`1cc1e11c`, `a309ff3a`).
+**Next Task**: Phase 7.2 — `U_EditorPrefabBuilder` ECS Component Wiring.
 **Prerequisite**: V7.2 complete (`e015aff2`). Phase 4 complete (`cbf0fd61`). All 18 P3.5 extension recipes complete (`b0c5b1cd`). P6.1 complete (`ec14181a`). P6.2 complete (`a23270b1`). P6.3 complete (`0cd59475`). P6.4 complete (`c6608c79`). P6.5 complete (`e28d0c30`, gap patch `5a176f9a`–`b29e3618`). P6.6 complete (`fb576449`). P6.7 complete (`a33d1153`–`0b69200f`). P6.8 complete (`4d680390`–`deac3004`). P6.9 complete (`df1deff5`–`cfdd907a`, loader tests `a16b0783`). P6.10 complete (`eb7f37c0`–`20e28d54`). P6.11 complete (`7dc8a7aa`–`8a21f645`).
 
 ---
@@ -265,30 +265,19 @@ Test command: `tools/run_gut_suite.sh` (or `-gtest=<path>` for targeted runs).
 
 ---
 
-## P7.1 — U_EditorPrefabBuilder: Root Creation & Fluent API — NOT STARTED
+## P7.1 — U_EditorPrefabBuilder: Root Creation & Fluent API — COMPLETE
 
-**Files**:
-- NEW `scripts/core/utils/editors/u_editor_prefab_builder.gd`
-- NEW `tests/unit/editors/test_u_editor_prefab_builder.gd`
+**Commits**: `1cc1e11c` (RED), `a309ff3a` (GREEN).
 
-**Commit 1 (RED)** — Write tests for:
-- `create_root("Node3D", "TestRoot")` produces Node3D named "TestRoot"
-- `create_root("StaticBody3D", "TestStatic")` produces StaticBody3D
-- `inherit_from(tmpl_character_path)` produces instanced scene with inherited children
-- `set_entity_id(&"wolf")` and `set_tags([&"predator"])` set metadata on root
-- Fluent API: each method returns `self`
-- `build()` returns root node
-- Error: calling `build()` before `create_root()` or `inherit_from()` returns null/pushes error
+**Key implementation notes**:
+- `U_EditorPrefabBuilder` extends `RefCounted` with `class_name` (headless-testable, matches P6 builder conventions).
+- `create_root(node_type, name)` uses `ClassDB.instantiate(node_type)` — works for any Godot node class.
+- `inherit_from(scene_path)` uses `PackedScene.instantiate(PackedScene.GEN_EDIT_STATE_MAIN)` to preserve editable children in editor.
+- `set_tags` accepts `Array` (not `Array[StringName]`) to avoid headless `.call()` type-coercion failures when passing untyped Arrays from tests.
+- `build()` returns `_root` directly; `push_error` + return `null` if no root set.
+- 45 lines total; under 200-line LOC cap.
 
-**Commit 2 (GREEN)** — Implement:
-- `U_EditorPrefabBuilder` extends RefCounted
-- `_root: Node` internal state
-- `create_root(node_type: String, name: String)` — creates node by class name
-- `inherit_from(scene_path: String)` — loads PackedScene, instantiates with `GEN_EDIT_STATE_MAIN`
-- `set_entity_id(id: StringName)` — sets entity_id on root
-- `set_tags(tags: Array[StringName])` — sets tags on root
-- `build() -> Node` — returns root
-- Private `_ensure_components_container()` — finds or creates "Components" node
+**Result**: 9/9 tests passing, 41 asserts; style suite 92/92; full suite 0 regressions.
 
 ---
 

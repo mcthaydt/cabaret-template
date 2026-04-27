@@ -1846,7 +1846,7 @@ Phase 1 (AI BT rewrite)
 
 **Goal**: Core `create_root()`, `inherit_from()`, entity metadata, `build()`.
 
-- [ ] **Commit 1 (RED)** — `tests/unit/editors/test_u_editor_prefab_builder.gd`:
+- [x] **Commit 1 (RED)** — `tests/unit/editors/test_u_editor_prefab_builder.gd`:
   - `create_root("Node3D", "TestRoot")` produces Node3D named "TestRoot"
   - `create_root("StaticBody3D", "TestStatic")` produces StaticBody3D
   - `inherit_from(tmpl_character_path)` produces instanced scene with inherited children
@@ -1854,19 +1854,21 @@ Phase 1 (AI BT rewrite)
   - Fluent API: each method returns `self`
   - `build()` returns root node
   - Error: `build()` before `create_root()` or `inherit_from()` returns null
+  - Committed: `1cc1e11c`
 
-- [ ] **Commit 2 (GREEN)** — Create `scripts/core/utils/editors/u_editor_prefab_builder.gd`:
+- [x] **Commit 2 (GREEN)** — Create `scripts/core/utils/editors/u_editor_prefab_builder.gd`:
   - `U_EditorPrefabBuilder` extends RefCounted
   - `create_root(node_type, name)` — creates node by class name
   - `inherit_from(scene_path)` — loads PackedScene, instantiates with `GEN_EDIT_STATE_MAIN`
   - `set_entity_id(id)`, `set_tags(tags)` — sets metadata on root
   - `build() -> Node` — returns root
   - `_ensure_components_container()` — finds or creates "Components" node
+  - Committed: `a309ff3a`
 
 **P7.1 Verification**:
-- [ ] All new tests green.
-- [ ] Existing test suite green (no regressions).
-- [ ] Style enforcement green.
+- [x] All new tests green (9/9 passing, 41 asserts).
+- [x] Existing test suite green (no regressions).
+- [x] Style enforcement green (92/92).
 
 ---
 
