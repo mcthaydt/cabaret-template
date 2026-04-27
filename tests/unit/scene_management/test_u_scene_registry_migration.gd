@@ -1,6 +1,6 @@
 extends GutTest
 
-const MANIFEST_PATH := "res://scripts/demo/scene_management/scene_manifest.gd"
+const MANIFEST_PATH := "res://scripts/core/scene_management/u_scene_manifest.gd"
 
 func test_manifest_script_exists() -> void:
 	assert_true(FileAccess.file_exists(MANIFEST_PATH), "Scene manifest script must exist: %s" % MANIFEST_PATH)
