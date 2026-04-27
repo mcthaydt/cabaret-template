@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://tv3co5g08vle"]
 
 [ext_resource type="PackedScene" uid="uid://cyu3l6we2jq23" path="res://scenes/core/templates/tmpl_character.tscn" id="1_character"]
-[ext_resource type="Resource" path="res://resources/demo/ai/woods/rabbit/cfg_woods_rabbit_brain_script.tres" id="2_rabbit_brain"]
+[ext_resource type="Resource" uid="uid://bl50cd3aipopl" path="res://resources/demo/ai/woods/rabbit/cfg_woods_rabbit_brain_script.tres" id="2_rabbit_brain"]
 [ext_resource type="Resource" uid="uid://c3iw8kgrht1iy" path="res://resources/demo/base_settings/ai_woods/ai_woods/cfg_needs_rabbit.tres" id="3_needs_rabbit"]
 [ext_resource type="Resource" uid="uid://dhgxtfxmud4u1" path="res://resources/demo/base_settings/ai_woods/ai_woods/cfg_movement_woods.tres" id="4_movement"]
 [ext_resource type="Script" uid="uid://273k4tlpun6e" path="res://scripts/core/ecs/components/c_input_component.gd" id="5_input"]
