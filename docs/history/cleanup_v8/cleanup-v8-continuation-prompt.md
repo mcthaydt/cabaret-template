@@ -5,9 +5,9 @@
 Implements `docs/history/cleanup_v8/cleanup-v8-tasks.md` in phase order with TDD discipline. V8 is the follow-up to V7.2, addressing structural/organizational debt rather than internal architectural issues.
 
 **Branch**: `cleanup-v8` (off `main`, after `GOAP-AI` merged via PR #16).
-**Status**: Phases 1–4 complete. Phase 5 not started (deferred to last per sequencing plan). Phase 6 in progress — P6.1 complete, P6.2 complete, P6.3 complete, P6.4 complete, P6.5 next. Phase 7 not started.
-**Next Task**: P6.5 — BT Migration (`.tres` → builder scripts). Phase 7 queued after P6.12.
-**Prerequisite**: V7.2 complete (`e015aff2`). Phase 4 complete (`cbf0fd61`). All 18 P3.5 extension recipes complete (`b0c5b1cd`). P6.1 complete (`ec14181a`). P6.2 complete (`a23270b1`). P6.3 complete (`0cd59475`). P6.4 complete (`c6608c79`).
+**Status**: Phases 1–4 complete. Phase 5 not started (deferred to last per sequencing plan). Phase 6 in progress — P6.1 complete, P6.2 complete, P6.3 complete, P6.4 complete, P6.5 complete. Phase 7 not started.
+**Next Task**: P6.6 — Scene Registry Builder (`U_SceneRegistryBuilder`). Phase 7 queued after P6.12.
+**Prerequisite**: V7.2 complete (`e015aff2`). Phase 4 complete (`cbf0fd61`). All 18 P3.5 extension recipes complete (`b0c5b1cd`). P6.1 complete (`ec14181a`). P6.2 complete (`a23270b1`). P6.3 complete (`0cd59475`). P6.4 complete (`c6608c79`). P6.5 complete (`e28d0c30`).
 
 ---
 
@@ -119,6 +119,21 @@ Seven phases bundled for one goal: make the template LLM-friendly, modular, and 
 
 ---
 
+## P6.5 — BT Migration — `.tres` → Builder Scripts — COMPLETE
+
+**Commits**: `6e9e7b6a`–`e28d0c30` (5 commits).
+
+**Key implementation notes**:
+- Commit 1 (RED): integration tests in `tests/unit/ai/integration/` — one `test_*_behavior.gd` per creature, testing builder script output directly (no `.tres` comparison).
+- Commit 2 (GREEN): 6 builder scripts under `scripts/demo/ai/trees/` — each extends `RefCounted`, has `build() -> RS_BTNode`.
+- Commit 3 (GREEN): `cfg_*_brain_script.tres` files for all 6 creatures, each a `RS_AIBrainScriptSettings` pointing to its builder.
+- Commit 4 (GREEN): all demo scenes + tests rewired to `_script.tres` files.
+- Commit 5 (GREEN): deleted 6 original `cfg_*_brain.tres` files; wolf + rabbit `brain_bt` tests deleted (covered by behavior tests); patrol/sentry/guide/builder `brain_bt` tests updated to call `get_root()` instead of accessing `.root`; `_assert_brain_root_contract` updated to call `get_root()` and drop `resource_name` check; `patrol_drone_behavior.gd` sets `root.resource_name = "patrol_drone_bt_root"` for `active_goal_id` parity in `test_ai_demo_power_core`.
+
+**Result**: style suite 92/92; full suite 4679/4687 (8 pre-existing pending); 0 failures.
+
+---
+
 ## Sequencing
 
 ```
@@ -178,13 +193,16 @@ Test command: `tools/run_gut_suite.sh` (or `-gtest=<path>` for targeted runs).
 
 ## Next Steps
 
-1. **P6.5 Commit 1 (RED)** — Write integration tests in `tests/unit/ai/integration/` (or `tests/unit/ai/bt/`) for each creature brain: assert that a builder script produces a BT root structurally equivalent to the existing `.tres`-authored root (same node types, nesting, scorer values).
-2. **P6.5 Commit 2 (GREEN)** — Create builder scripts for each creature under `scripts/demo/ai/trees/`: `patrol_drone_behavior.gd`, `guide_prism_behavior.gd`, `sentry_behavior.gd`, `wolf_behavior.gd`, `rabbit_behavior.gd`, `builder_behavior.gd`. Each extends `RefCounted`, has `build() -> RS_BTNode`.
-3. **P6.5 Commit 3 (GREEN)** — Create `RS_AIBrainScriptSettings` `.tres` resources for each creature (`cfg_*_brain_script.tres`), each referencing its builder script via `builder_script`.
-4. **P6.5 Commit 4 (GREEN)** — Replace prefab NPC `brain_settings` references to point to the new script-backed `.tres` files. Verify full suite passes.
-5. **P6.5 Commit 5 (GREEN)** — Delete the original creature BT `.tres` files after visual parity confirmed.
-6. After P6.5: proceed to P6.6 — Scene Registry Builder.
-7. Keep docs/history references archived; new evergreen guidance belongs under `docs/guides/` or `docs/systems/`.
+1. **P6.6 Commit 1 (RED)** — Write tests in `tests/unit/scene_management/test_u_scene_registry_builder.gd`:
+   - `register(scene_id, path)` adds entry with defaults (GAMEPLAY type, "fade" transition, priority 0).
+   - `.with_type(scene_type)` sets scene type on last entry.
+   - `.with_transition(transition)` sets transition on last entry.
+   - `.with_preload(priority)` sets preload priority on last entry.
+   - Chaining: all methods return `self`.
+   - `build()` returns a `Dictionary` mapping `StringName → Dictionary` (same shape as `U_SceneRegistry` entries).
+2. **P6.6 Commit 2 (GREEN)** — Implement `U_SceneRegistryBuilder` in `scripts/core/utils/scene/u_scene_registry_builder.gd`. Static class with fluent API. `register()` starts a new entry; `with_*()` methods mutate the last entry.
+3. **P6.7** — Replace scene registry `.tres` with builder script.
+4. Keep docs/history references archived; new evergreen guidance belongs under `docs/guides/` or `docs/systems/`.
 
 ---
 
