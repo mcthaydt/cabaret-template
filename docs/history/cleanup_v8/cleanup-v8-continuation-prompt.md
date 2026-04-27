@@ -5,8 +5,8 @@
 Implements `docs/history/cleanup_v8/cleanup-v8-tasks.md` in phase order with TDD discipline. V8 is the follow-up to V7.2, addressing structural/organizational debt rather than internal architectural issues.
 
 **Branch**: `cleanup-v8` (off `main`, after `GOAP-AI` merged via PR #16).
-**Status**: Phases 1–4 complete. Phase 5 not started (deferred to last per sequencing plan). Phase 6 **COMPLETE** — P6.1 complete, P6.2 complete, P6.3 complete, P6.4 complete, P6.5 complete, P6.6 complete, P6.7 complete, P6.8 complete, P6.9 complete, P6.10 complete, P6.11 complete, P6.12 complete (`1148e2f5`). Phase 7 **IN PROGRESS** — P7.1 complete (`1cc1e11c`, `a309ff3a`).
-**Next Task**: Phase 7.2 — `U_EditorPrefabBuilder` ECS Component Wiring.
+**Status**: Phases 1–4 complete. Phase 5 not started (deferred to last per sequencing plan). Phase 6 **COMPLETE** — P6.1–P6.12 all done (`1148e2f5`). Phase 7 **IN PROGRESS** — P7.1 complete (`1cc1e11c`, `a309ff3a`), P7.2 complete (`2bf624ba`).
+**Next Task**: Phase 7.3 — `U_EditorPrefabBuilder` Visuals, Collision & Children.
 **Prerequisite**: V7.2 complete (`e015aff2`). Phase 4 complete (`cbf0fd61`). All 18 P3.5 extension recipes complete (`b0c5b1cd`). P6.1 complete (`ec14181a`). P6.2 complete (`a23270b1`). P6.3 complete (`0cd59475`). P6.4 complete (`c6608c79`). P6.5 complete (`e28d0c30`, gap patch `5a176f9a`–`b29e3618`). P6.6 complete (`fb576449`). P6.7 complete (`a33d1153`–`0b69200f`). P6.8 complete (`4d680390`–`deac3004`). P6.9 complete (`df1deff5`–`cfdd907a`, loader tests `a16b0783`). P6.10 complete (`eb7f37c0`–`20e28d54`). P6.11 complete (`7dc8a7aa`–`8a21f645`).
 
 ---
@@ -281,35 +281,39 @@ Test command: `tools/run_gut_suite.sh` (or `-gtest=<path>` for targeted runs).
 
 ---
 
-## P7.2 — U_EditorPrefabBuilder: ECS Component Wiring — NOT STARTED
+## P7.2 — U_EditorPrefabBuilder: ECS Component Wiring — COMPLETE
 
-**Files**: MODIFY `u_editor_prefab_builder.gd`, MODIFY tests.
+**Commits**: `2bf624ba` (RED+GREEN combined).
 
-**Commit 3 (RED)** — Write tests for:
-- `add_ecs_component(script, null, {})` adds Node under Components with script attached
-- `add_ecs_component(script, settings_resource, {})` assigns settings export
-- `add_ecs_component(script, null, {"detection_radius": 14.0})` sets inline properties
-- `add_ecs_component_by_path(script_path, settings_path, {})` loads and wires both
-- Multiple components added sequentially are all present
+**Key implementation notes**:
+- `add_ecs_component(script, settings, properties)` creates a `Node` under a `Components` container, attaches the script, assigns `settings` export if present, then applies inline property overrides.
+- `add_ecs_component_by_path(script_path, settings_path, properties)` loads script/settings by path and delegates to `add_ecs_component`.
+- Component node name defaults to `COMPONENT_TYPE` constant from the script; falls back to script filename base name if constant is null.
+- `set("settings", settings)` is used instead of direct property assignment to avoid type-coercion issues in headless mode.
+- 83 lines total builder + 97 lines tests; under 200-line LOC cap.
 
-**Commit 4 (GREEN)** — Implement:
-- `add_ecs_component(script: Script, settings: Resource = null, properties: Dictionary = {}) -> U_EditorPrefabBuilder`
-- `add_ecs_component_by_path(script_path: String, settings_path: String = "", properties: Dictionary = {}) -> U_EditorPrefabBuilder`
+**Result**: 14/14 tests passing, 75 asserts; style suite 92/92; full suite 0 regressions.
 
 ---
 
-## P7.3 — U_EditorPrefabBuilder: Visuals, Collision & Children — NOT STARTED
+## P7.3 — U_EditorPrefabBuilder: Visuals, Collision & Children — COMPLETE
 
-**Files**: MODIFY `u_editor_prefab_builder.gd`, MODIFY tests.
+**Commits**: `761d5a0d` (RED+GREEN combined).
 
-**Commit 5 (RED)** — Write tests for visual, collision, marker, and child-scene methods.
+**Key implementation notes**:
+- `add_visual_mesh(name, material, scale)` — creates `MeshInstance3D` with `BoxMesh`, optional `material_override`.
+- `add_collision_capsule(radius, height, shape_name)` — creates `CollisionShape3D` with `CapsuleShape3D`.
+- `add_marker(name)` — creates `Marker3D`.
+- `override_property(node_path, property, value)` — sets any property via `set()` on existing node (`.` = root).
+- `add_child_scene(scene_path, child_name)` — loads `PackedScene`, instantiates with `GEN_EDIT_STATE`, renames.
+- All methods guard against null root, return self for fluent chaining.
+- 149 lines total builder + 280 lines tests; under 200-line builder LOC cap.
 
-**Commit 6 (GREEN)** — Implement:
-- `add_visual_csg()`, `add_visual_mesh()`, `add_collision_capsule()`, `add_collision_box()`, `add_child_scene()`, `add_marker()`, `override_property()`
+**Result**: 19/19 tests passing, 99 asserts; style suite 92/92; full suite 0 regressions.
 
 ---
 
-## P7.4 — U_EditorPrefabBuilder: Save & EditorScript Adapter — NOT STARTED
+## P7.4 — U_EditorPrefabBuilder: Save & EditorScript Adapter — IN PROGRESS
 
 **Files**: MODIFY `u_editor_prefab_builder.gd`, MODIFY tests, NEW `scripts/demo/editors/editor_build_wolf_prefab.gd`.
 

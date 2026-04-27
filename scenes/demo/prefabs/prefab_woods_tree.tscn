@@ -1,37 +1,35 @@
-[gd_scene format=3 uid="uid://dnycfwtjofqrr"]
+[gd_scene format=3]
 
-[ext_resource type="Script" uid="uid://cdsyf67dlyr4m" path="res://scripts/demo/ecs/components/c_resource_node_component.gd" id="1_resource_node"]
-[ext_resource type="Resource" uid="uid://bmh7c6x66wfxv" path="res://resources/demo/base_settings/ai_woods/ai_woods/cfg_resource_node_wood.tres" id="2_wood_settings"]
+[ext_resource type="Script" path="res://scripts/demo/ecs/components/c_resource_node_component.gd" id="1_pllw2"]
+[ext_resource type="Resource" path="res://resources/demo/base_settings/ai_woods/ai_woods/cfg_resource_node_wood.tres" id="2_o58h1"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_trunk"]
-shading_mode = 0
-diffuse_mode = 3
-specular_mode = 1
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ykpkr"]
 albedo_color = Color(0.4, 0.26, 0.13, 1)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_foliage"]
-shading_mode = 0
-diffuse_mode = 3
-specular_mode = 1
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_uveea"]
 albedo_color = Color(0.2, 0.55, 0.15, 1)
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_collision"]
+[sub_resource type="BoxShape3D" id="BoxShape3D_xnwsi"]
 size = Vector3(1.5, 3, 1.5)
 
-[node name="E_WoodsTree" type="StaticBody3D" unique_id=2140588621]
+[node name="E_WoodsTree" type="StaticBody3D" unique_id=752494539]
 
-[node name="Trunk" type="CSGCylinder3D" parent="." unique_id=2136944077]
+[node name="Trunk" type="CSGCylinder3D" parent="." unique_id=2042676807]
 radius = 0.3
-material = SubResource("StandardMaterial3D_trunk")
+height = 3.0
+material = SubResource("StandardMaterial3D_ykpkr")
 
-[node name="Foliage" type="CSGSphere3D" parent="." unique_id=1689763463]
+[node name="Foliage" type="CSGSphere3D" parent="." unique_id=423205745]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
 radius = 1.2
-material = SubResource("StandardMaterial3D_foliage")
+material = SubResource("StandardMaterial3D_uveea")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=326957435]
-shape = SubResource("BoxShape3D_collision")
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=955476203]
+shape = SubResource("BoxShape3D_xnwsi")
 
-[node name="C_ResourceNodeComponent" type="Node" parent="." unique_id=15394930]
-script = ExtResource("1_resource_node")
-settings = ExtResource("2_wood_settings")
+[node name="Components" type="Node" parent="." unique_id=2040127008]
+
+[node name="C_ResourceNodeComponent" type="Node" parent="Components" unique_id=1458318983]
+script = ExtResource("1_pllw2")
+settings = ExtResource("2_o58h1")
+component_type = &"C_ResourceNodeComponent"
