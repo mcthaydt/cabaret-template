@@ -1,26 +1,26 @@
-[gd_scene format=3 uid="uid://8ktr2mhk2d3x"]
+[gd_scene format=3]
 
-[ext_resource type="Script" uid="uid://dku2qmk4p02q5" path="res://scripts/demo/ecs/components/c_inventory_component.gd" id="1_inventory"]
-[ext_resource type="Resource" uid="uid://8igrwp730iko" path="res://resources/demo/base_settings/ai_woods/ai_woods/cfg_inventory_stockpile.tres" id="2_stockpile_settings"]
+[ext_resource type="Script" path="res://scripts/demo/ecs/components/c_inventory_component.gd" id="1_qjd33"]
+[ext_resource type="Resource" path="res://resources/demo/base_settings/ai_woods/ai_woods/cfg_inventory_stockpile.tres" id="2_bjtmi"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_stockpile"]
-shading_mode = 0
-diffuse_mode = 3
-specular_mode = 1
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ebose"]
 albedo_color = Color(0.6, 0.45, 0.25, 1)
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_collision"]
+[sub_resource type="BoxShape3D" id="BoxShape3D_qdplc"]
 size = Vector3(2, 1, 2)
 
-[node name="E_WoodsStockpile" type="StaticBody3D" unique_id=1859250367]
+[node name="E_WoodsStockpile" type="StaticBody3D" unique_id=1871281242]
 
-[node name="Mesh" type="CSGBox3D" parent="." unique_id=2126792472]
+[node name="Mesh" type="CSGBox3D" parent="." unique_id=1584049512]
 size = Vector3(1.5, 0.5, 1.5)
-material = SubResource("StandardMaterial3D_stockpile")
+material = SubResource("StandardMaterial3D_ebose")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1423599400]
-shape = SubResource("BoxShape3D_collision")
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=252697313]
+shape = SubResource("BoxShape3D_qdplc")
 
-[node name="C_InventoryComponent" type="Node" parent="." unique_id=7681523]
-script = ExtResource("1_inventory")
-settings = ExtResource("2_stockpile_settings")
+[node name="Components" type="Node" parent="." unique_id=1946955312]
+
+[node name="C_InventoryComponent" type="Node" parent="Components" unique_id=1220245602]
+script = ExtResource("1_qjd33")
+settings = ExtResource("2_bjtmi")
+component_type = &"C_InventoryComponent"
