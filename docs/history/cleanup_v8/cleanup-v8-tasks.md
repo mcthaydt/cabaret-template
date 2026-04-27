@@ -1597,25 +1597,25 @@ resources/
 
 **Goal**: Convert existing scene registry `.tres` entry files to a builder script manifest, validating the scene registry builder pipeline end-to-end.
 
-- [ ] **Commit 1** (RED) — Integration test: builder script produces registry entries equivalent to existing `.tres` entries.
+- [x] **Commit 1** (RED) — Integration test: builder script produces registry entries equivalent to existing `.tres` entries.
   - Test loads the builder manifest script and compares produced entries against the current `U_SceneRegistry` state
   - Each entry matches: scene_id, path, scene_type, default_transition, preload_priority
-- [ ] **Commit 2** (GREEN) — Create `scripts/demo/scene_management/scene_manifest.gd`:
+- [x] **Commit 2** (GREEN) — Create `scripts/core/scene_management/u_scene_manifest.gd`:
   - Uses `U_SceneRegistryBuilder` to register all demo scenes
   - Replaces the 21 `PRELOADED_SCENE_REGISTRY_ENTRIES` const preloads in `U_SceneRegistryLoader`
   - Each `register()` call matches an existing `.tres` entry
-- [ ] **Commit 3** — Wire `scene_manifest.gd` into `U_SceneRegistryLoader.load_resource_entries()`:
+- [x] **Commit 3** (GREEN) — Wire `u_scene_manifest.gd` into `U_SceneRegistryLoader.load_resource_entries()`:
   - Loader calls the manifest script's build/apply during initialization
   - Mobile-compatible: manifest script replaces DirAccess scanning, not const preloads
-- [ ] **Commit 4** — Delete original `.tres` scene registry entries once manifest is verified
+- [x] **Commit 4** (GREEN) — Delete original `.tres` scene registry entries once manifest is verified
   - One commit so the removal is atomic and revertable
   - Update `PRELOADED_SCENE_REGISTRY_ENTRIES` in loader
 
 **P6.7 Verification**:
-- [ ] All scenes load identically to pre-migration
-- [ ] Builder manifest test green
-- [ ] Full suite green
-- [ ] No orphaned `.tres` references
+- [x] All scenes load identically to pre-migration
+- [x] Builder manifest test green
+- [x] Full suite green
+- [x] No orphaned `.tres` references
 
 ---
 

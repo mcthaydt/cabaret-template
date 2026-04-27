@@ -5,9 +5,9 @@
 Implements `docs/history/cleanup_v8/cleanup-v8-tasks.md` in phase order with TDD discipline. V8 is the follow-up to V7.2, addressing structural/organizational debt rather than internal architectural issues.
 
 **Branch**: `cleanup-v8` (off `main`, after `GOAP-AI` merged via PR #16).
-**Status**: Phases 1–4 complete. Phase 5 not started (deferred to last per sequencing plan). Phase 6 in progress — P6.1 complete, P6.2 complete, P6.3 complete, P6.4 complete, P6.5 complete, P6.6 complete. Phase 7 not started.
-**Next Task**: P6.7 — Scene Registry Migration. Phase 7 queued after P6.12.
-**Prerequisite**: V7.2 complete (`e015aff2`). Phase 4 complete (`cbf0fd61`). All 18 P3.5 extension recipes complete (`b0c5b1cd`). P6.1 complete (`ec14181a`). P6.2 complete (`a23270b1`). P6.3 complete (`0cd59475`). P6.4 complete (`c6608c79`). P6.5 complete (`e28d0c30`). P6.6 complete (`fb576449`).
+**Status**: Phases 1–4 complete. Phase 5 not started (deferred to last per sequencing plan). Phase 6 in progress — P6.1 complete, P6.2 complete, P6.3 complete, P6.4 complete, P6.5 complete, P6.6 complete, P6.7 complete. Phase 7 not started.
+**Next Task**: P6.8 — Input Profile Builder (`U_InputProfileBuilder`). Phase 7 queued after P6.12.
+**Prerequisite**: V7.2 complete (`e015aff2`). Phase 4 complete (`cbf0fd61`). All 18 P3.5 extension recipes complete (`b0c5b1cd`). P6.1 complete (`ec14181a`). P6.2 complete (`a23270b1`). P6.3 complete (`0cd59475`). P6.4 complete (`c6608c79`). P6.5 complete (`e28d0c30`). P6.6 complete (`fb576449`). P6.7 complete (`a33d1153`–`0b69200f`).
 
 ---
 
@@ -40,7 +40,7 @@ Seven phases bundled for one goal: make the template LLM-friendly, modular, and 
   - P4.10: `prototype_grids_png` → `assets/demo/textures/`; `editor_icons` → `assets/core/`; remaining core dirs → `assets/core/` (`bfc64316`–`58e4263e`).
   - Style suite: **89/89** after P4.10.
 - **Phase 5**: NOT STARTED. Deferred to last.
-- **Phase 6**: IN PROGRESS. P6.1 complete (`10310f00`–`ec14181a`). P6.2 complete (`a4c41434`–`a23270b1`). P6.3 complete (`d0c1224a`–`0cd59475`). P6.4 complete (`4a1218f1`–`c6608c79`). P6.5 complete (`6e9e7b6a`–`e28d0c30`). P6.6 complete (`f3806172`–`fb576449`). Style suite 92/92. Full suite 4679/4687 (8 pre-existing pending).
+- **Phase 6**: IN PROGRESS. P6.1 complete (`10310f00`–`ec14181a`). P6.2 complete (`a4c41434`–`a23270b1`). P6.3 complete (`d0c1224a`–`0cd59475`). P6.4 complete (`4a1218f1`–`c6608c79`). P6.5 complete (`6e9e7b6a`–`e28d0c30`). P6.6 complete (`f3806172`–`fb576449`). P6.7 complete (`a33d1153`–`0b69200f`). Style suite 92/92. Full suite 4687/4687 (all passing).
 - **Phase 7**: NOT STARTED. Planned after P6.12. Reference plan: `~/.claude/plans/lets-add-a-new-humming-kay.md`.
 
 ---
@@ -55,7 +55,7 @@ Seven phases bundled for one goal: make the template LLM-friendly, modular, and 
 | P6.4 | Script-Backed Brain Settings (`RS_AIBrainScriptSettings`) | Brain settings that return a root built by a GDScript factory |
 | P6.5 | BT Migration — `.tres` → Builder Scripts | Replace all creature BT `.tres` files with builder scripts |
 | P6.6 | Scene Registry Builder (`U_SceneRegistryBuilder`) | Fluent builder for scene registry configuration |
-| P6.7 | Scene Registry Migration | Replace scene registry `.tres` with builder script |
+| P6.7 | Scene Registry Migration | Replace scene registry `.tres` with builder script | COMPLETE (`a33d1153`–`0b69200f`). Manifest `u_scene_manifest.gd` with all 24 entries. Loader wired. All `.tres` removed. |
 | P6.8 | Input Profile Builder (`U_InputProfileBuilder`) | Fluent builder for input profiles |
 | P6.9 | Input Profile Migration | Replace input profile `.tres` files with builder scripts |
 | P6.10 | QB Rule Builder (`U_QBRuleBuilder`) | Fluent builder for QB rules and conditions |
