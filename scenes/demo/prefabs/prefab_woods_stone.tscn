@@ -1,7 +1,7 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://bryvjg0131sgf"]
 
-[ext_resource type="Script" path="res://scripts/demo/ecs/components/c_resource_node_component.gd" id="1_khtmp"]
-[ext_resource type="Resource" path="res://resources/demo/base_settings/ai_woods/ai_woods/cfg_resource_node_stone.tres" id="2_uhtif"]
+[ext_resource type="Script" uid="uid://cdsyf67dlyr4m" path="res://scripts/demo/ecs/components/c_resource_node_component.gd" id="1_khtmp"]
+[ext_resource type="Resource" uid="uid://77gej7er2umc" path="res://resources/demo/base_settings/ai_woods/ai_woods/cfg_resource_node_stone.tres" id="2_uhtif"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4rqxh"]
 albedo_color = Color(0.55, 0.55, 0.55, 1)

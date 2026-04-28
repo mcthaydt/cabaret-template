@@ -1,7 +1,7 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://dye47srqyw7o"]
 
-[ext_resource type="Script" path="res://scripts/demo/ecs/components/c_inventory_component.gd" id="1_qjd33"]
-[ext_resource type="Resource" path="res://resources/demo/base_settings/ai_woods/ai_woods/cfg_inventory_stockpile.tres" id="2_bjtmi"]
+[ext_resource type="Script" uid="uid://dku2qmk4p02q5" path="res://scripts/demo/ecs/components/c_inventory_component.gd" id="1_qjd33"]
+[ext_resource type="Resource" uid="uid://8igrwp730iko" path="res://resources/demo/base_settings/ai_woods/ai_woods/cfg_inventory_stockpile.tres" id="2_bjtmi"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ebose"]
 albedo_color = Color(0.6, 0.45, 0.25, 1)
