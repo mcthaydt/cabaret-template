@@ -21,7 +21,7 @@ Seven phases bundled for one goal: make the template LLM-friendly, modular, and 
 4. **Phase 4 — Template vs Demo Split.** COMPLETE (P4.1–P4.10). Scripts, resources, scenes, and assets all split into `core/` and `demo/`. Style suite 89/89.
 5. **Phase 5 — Base Scene.** NOT STARTED. Deferred to last (easiest once code is organized).
 6. **Phase 6 — LLM-First Fluent Builders.** COMPLETE. Replace `.tres` resource authoring with GDScript builder APIs across BT trees, scene registry, input profiles, and QB rules. Reference plan: `~/.claude/plans/stateless-tickling-meerkat.md`.
-7. **Phase 7 — EditorScript + PackedScene Builders.** NOT STARTED. Replace hand-authored `.tscn` creation with programmatic GDScript builder APIs (`U_EditorPrefabBuilder`, `U_EditorBlockoutBuilder`). Migrate all demo prefabs to builder scripts. Reference plan: `~/.claude/plans/lets-add-a-new-humming-kay.md`.
+7. **Phase 7 — EditorScript + PackedScene Builders.** COMPLETE. Hand-authored `.tscn` creation replaced with programmatic GDScript builder APIs (`U_EditorPrefabBuilder`, `U_EditorBlockoutBuilder`, `U_EditorShapeFactory`). 21 demo prefabs migrated to builder scripts. Builder LOC violations patched. Style suite 94/94. Full suite 4809/4809. Reference plan: `~/.claude/plans/lets-add-a-new-humming-kay.md`.
 
 ---
 
@@ -41,7 +41,7 @@ Seven phases bundled for one goal: make the template LLM-friendly, modular, and 
   - Style suite: **89/89** after P4.10.
 - **Phase 5**: NOT STARTED. Deferred to last.
 - **Phase 6**: COMPLETE. P6.1 complete (`10310f00`–`ec14181a`). P6.2 complete (`a4c41434`–`a23270b1`). P6.3 complete (`d0c1224a`–`0cd59475`). P6.4 complete (`4a1218f1`–`c6608c79`). P6.5 complete (`6e9e7b6a`–`e28d0c30`, gap-patched `5a176f9a`–`b29e3618`). P6.6 complete (`f3806172`–`fb576449`). P6.7 complete (`a33d1153`–`0b69200f`). P6.8 complete (`4d680390`–`deac3004`). P6.9 complete (`df1deff5`–`cfdd907a`, loader tests `a16b0783`). P6.10 complete (`eb7f37c0`–`20e28d54`). P6.11 complete (`7dc8a7aa`–`8a21f645`). P6.12 complete (`1148e2f5`): ADR 0011 Builder Pattern Taxonomy + builders.md extension recipe + style enforcement update.
-- **Phase 7**: COMPLETE. P7.1 complete (`1cc1e11c`, `a309ff3a`). P7.2 complete (`2bf624ba`). P7.3 complete (`761d5a0d`). P7.4 complete — `add_child_to` + `add_child_scene_to` builder methods. P7.5–P7.7 complete — builder scripts for all remaining prefabs (demo NPC body, wolf, rabbit, builder, demo NPC, player body, player, player ragdoll, alleyway, bar). Style suite 92/92, full suite 4807/4807 passing, 0 regressions. `.tscn` files kept as generated artifacts since other scenes/tests reference them via `ext_resource`.
+- **Phase 7**: COMPLETE. P7.1 complete (`1cc1e11c`, `a309ff3a`) — builder root creation + fluent API. P7.2 complete (`2bf624ba`). P7.3 complete (`761d5a0d`). P7.4 complete — `add_child_to` + `add_child_scene_to` builder methods. P7.5–P7.7 complete (`bb6c88aa`–`a7f530d9`) — builder scripts for all remaining prefabs. P7.8 complete (this commit) — extracted `U_EditorShapeFactory` to fix 251→193 LOC violation; added style enforcement tests for builder LOC caps; authored 7 additional builder scripts for core gameplay prefabs (character, checkpoint_safe_zone, death_zone, door_trigger, goal_zone, spike_trap, woods_tree). **21 total builder scripts** under `scripts/demo/editors/`. Style suite **94/94**, full suite **4809/4809** passing, 0 regressions. `.tscn` files kept as generated artifacts.
 
 ---
 

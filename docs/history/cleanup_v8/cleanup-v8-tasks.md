@@ -1980,11 +1980,19 @@ Character prefabs (inherit from `tmpl_character.tscn`):
 - [x] `prefab_demo_npc.tscn` → `build_prefab_demo_npc.gd`
 
 Static object prefabs (fresh root):
-- [x] `prefab_woods_tree.tscn` → `build_prefab_woods_tree.gd`
 - [x] `prefab_woods_water.tscn` → `build_prefab_woods_water.gd`
 - [x] `prefab_woods_stone.tscn` → `build_prefab_woods_stone.gd`
 - [x] `prefab_woods_stockpile.tscn` → `build_prefab_woods_stockpile.gd`
 - [x] `prefab_woods_construction_site.tscn` → `build_prefab_woods_construction_site.gd`
+
+Core gameplay prefabs (fresh root):
+- [x] `prefab_woods_tree.tscn` → `build_prefab_woods_tree.gd`
+- [x] `prefab_checkpoint_safe_zone.tscn` → `build_prefab_checkpoint_safe_zone.gd`
+- [x] `prefab_death_zone.tscn` → `build_prefab_death_zone.gd`
+- [x] `prefab_door_trigger.tscn` → `build_prefab_door_trigger.gd`
+- [x] `prefab_goal_zone.tscn` → `build_prefab_goal_zone.gd`
+- [x] `prefab_spike_trap.tscn` → `build_prefab_spike_trap.gd`
+- [x] `prefab_character.tscn` → `build_prefab_character.gd`
 
 Scene prefabs:
 - [x] `prefab_alleyway.tscn`
@@ -1999,10 +2007,10 @@ Scene prefabs:
 ## Milestone P7.8: Style Compliance, ADR & Cleanup
 
 - [x] **Builder extension** — `add_child_to` + `add_child_scene_to` added to `U_EditorPrefabBuilder`.
-- [x] **Builder scripts** — All 10 remaining prefabs have builder scripts under `scripts/demo/editors/`.
+- [x] **Builder scripts** — All 17 remaining prefabs have builder scripts under `scripts/demo/editors/` (7 additional: character, checkpoint_safe_zone, death_zone, door_trigger, goal_zone, spike_trap, woods_tree).
 - [x] **Style suite** passes with new files (92/92).
 - [x] **Full suite** passes (4807/4807).
-- [ ] **LOC cap** — `U_EditorPrefabBuilder` is at 251 lines (exceeds 200-line cap; deferred to follow-up refactor).
+- [x] **LOC cap** — `U_EditorPrefabBuilder` refactored to 193 lines (extracted 6 shape methods into `U_EditorShapeFactory`; verified by style test `test_u_editor_prefab_builder_stays_under_two_hundred_lines` **GREEN**).
 
 - [ ] **Commit 17 (DOCS)** — ADR-0010, continuation prompt update, task checklist update.
 

@@ -96,6 +96,10 @@ const U_BT_BUILDER_PATH := "res://scripts/core/utils/bt/u_bt_builder.gd"
 const U_BT_BUILDER_MAX_LINES := 100
 const U_AI_BT_FACTORY_PATH := "res://scripts/core/utils/ai/u_ai_bt_factory.gd"
 const U_AI_BT_FACTORY_MAX_LINES := 200
+const U_EDITOR_PREFAB_BUILDER_PATH := "res://scripts/core/utils/editors/u_editor_prefab_builder.gd"
+const U_EDITOR_PREFAB_BUILDER_MAX_LINES := 200
+const U_EDITOR_BLOCKOUT_BUILDER_PATH := "res://scripts/core/utils/editors/u_editor_blockout_builder.gd"
+const U_EDITOR_BLOCKOUT_BUILDER_MAX_LINES := 200
 const BT_GENERAL_FORBIDDEN_TOKENS := [
 	"U_AI",
 	"I_AIAction",
@@ -715,6 +719,22 @@ func test_u_ai_bt_factory_stays_under_two_hundred_lines() -> void:
 	var violations: Array[String] = []
 	_collect_gd_single_file_line_limit_violation(U_AI_BT_FACTORY_PATH, U_AI_BT_FACTORY_MAX_LINES, violations)
 	var message := "U_AIBTFactory must stay under 200 lines (pure factory methods — no logic)"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+	assert_eq(violations.size(), 0, message)
+
+func test_u_editor_prefab_builder_stays_under_two_hundred_lines() -> void:
+	var violations: Array[String] = []
+	_collect_gd_single_file_line_limit_violation(U_EDITOR_PREFAB_BUILDER_PATH, U_EDITOR_PREFAB_BUILDER_MAX_LINES, violations)
+	var message := "U_EditorPrefabBuilder must stay under 200 lines (core builder API — delegate shape logic to U_EditorShapeFactory)"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+	assert_eq(violations.size(), 0, message)
+
+func test_u_editor_blockout_builder_stays_under_two_hundred_lines() -> void:
+	var violations: Array[String] = []
+	_collect_gd_single_file_line_limit_violation(U_EDITOR_BLOCKOUT_BUILDER_PATH, U_EDITOR_BLOCKOUT_BUILDER_MAX_LINES, violations)
+	var message := "U_EditorBlockoutBuilder must stay under 200 lines (core blockout API — keep focused)"
 	if violations.size() > 0:
 		message += ":\n" + "\n".join(violations)
 	assert_eq(violations.size(), 0, message)

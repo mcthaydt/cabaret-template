@@ -1,8 +1,7 @@
 class_name U_EditorPrefabBuilder
 extends RefCounted
-
+const _ShapeFactory = preload("res://scripts/core/utils/editors/u_editor_shape_factory.gd")
 var _root: Node = null
-
 func create_root(node_type: String, node_name: String) -> U_EditorPrefabBuilder:
 	var node: Node = ClassDB.instantiate(node_type) as Node
 	if node == null:
@@ -11,7 +10,6 @@ func create_root(node_type: String, node_name: String) -> U_EditorPrefabBuilder:
 	node.name = node_name
 	_root = node
 	return self
-
 func inherit_from(scene_path: String) -> U_EditorPrefabBuilder:
 	var packed: PackedScene = load(scene_path) as PackedScene
 	if packed == null:
@@ -23,21 +21,18 @@ func inherit_from(scene_path: String) -> U_EditorPrefabBuilder:
 		return self
 	_root = instance
 	return self
-
 func set_entity_id(id: StringName) -> U_EditorPrefabBuilder:
 	if _root == null:
 		push_error("U_EditorPrefabBuilder: set_entity_id called before root creation")
 		return self
 	_root.set_meta("entity_id", id)
 	return self
-
 func set_tags(tags: Array) -> U_EditorPrefabBuilder:
 	if _root == null:
 		push_error("U_EditorPrefabBuilder: set_tags called before root creation")
 		return self
 	_root.set_meta("tags", tags)
 	return self
-
 func add_ecs_component(script: Script, settings: Resource = null, properties: Dictionary = {}) -> U_EditorPrefabBuilder:
 	if _root == null:
 		push_error("U_EditorPrefabBuilder: add_ecs_component called before root creation")
@@ -54,7 +49,6 @@ func add_ecs_component(script: Script, settings: Resource = null, properties: Di
 		component.set(key, properties[key])
 	components.add_child(component)
 	return self
-
 func add_ecs_component_by_path(script_path: String, settings_path: String = "", properties: Dictionary = {}) -> U_EditorPrefabBuilder:
 	if _root == null:
 		push_error("U_EditorPrefabBuilder: add_ecs_component_by_path called before root creation")
@@ -67,34 +61,18 @@ func add_ecs_component_by_path(script_path: String, settings_path: String = "", 
 	if settings_path != "":
 		settings = load(settings_path) as Resource
 	return add_ecs_component(script, settings, properties)
-
 func add_visual_mesh(node_name: String, material: Material = null, scale: Vector3 = Vector3.ONE) -> U_EditorPrefabBuilder:
 	if _root == null:
 		push_error("U_EditorPrefabBuilder: add_visual_mesh called before root creation")
 		return self
-	var mesh_instance: MeshInstance3D = MeshInstance3D.new()
-	mesh_instance.name = node_name
-	var box_mesh: BoxMesh = BoxMesh.new()
-	box_mesh.size = scale
-	mesh_instance.mesh = box_mesh
-	if material != null:
-		mesh_instance.material_override = material
-	_root.add_child(mesh_instance)
+	_root.add_child(_ShapeFactory.create_visual_mesh(node_name, material, scale))
 	return self
-
 func add_collision_capsule(radius: float, height: float, shape_name: String = "CollisionShape3D") -> U_EditorPrefabBuilder:
 	if _root == null:
 		push_error("U_EditorPrefabBuilder: add_collision_capsule called before root creation")
 		return self
-	var shape: CollisionShape3D = CollisionShape3D.new()
-	shape.name = shape_name
-	var capsule: CapsuleShape3D = CapsuleShape3D.new()
-	capsule.radius = radius
-	capsule.height = height
-	shape.shape = capsule
-	_root.add_child(shape)
+	_root.add_child(_ShapeFactory.create_collision_capsule(radius, height, shape_name))
 	return self
-
 func add_marker(marker_name: String) -> U_EditorPrefabBuilder:
 	if _root == null:
 		push_error("U_EditorPrefabBuilder: add_marker called before root creation")
@@ -103,7 +81,6 @@ func add_marker(marker_name: String) -> U_EditorPrefabBuilder:
 	marker.name = marker_name
 	_root.add_child(marker)
 	return self
-
 func override_property(node_path: String, property: StringName, value: Variant) -> U_EditorPrefabBuilder:
 	if _root == null:
 		push_error("U_EditorPrefabBuilder: override_property called before root creation")
@@ -114,7 +91,6 @@ func override_property(node_path: String, property: StringName, value: Variant) 
 		return self
 	target.set(property, value)
 	return self
-
 func add_child_scene(scene_path: String, child_name: String) -> U_EditorPrefabBuilder:
 	if _root == null:
 		push_error("U_EditorPrefabBuilder: add_child_scene called before root creation")
@@ -130,7 +106,6 @@ func add_child_scene(scene_path: String, child_name: String) -> U_EditorPrefabBu
 	instance.name = child_name
 	_root.add_child(instance)
 	return self
-
 func add_child_to(parent_path: String, node: Node) -> U_EditorPrefabBuilder:
 	if _root == null:
 		push_error("U_EditorPrefabBuilder: add_child_to called before root creation")
@@ -141,7 +116,6 @@ func add_child_to(parent_path: String, node: Node) -> U_EditorPrefabBuilder:
 		return self
 	parent.add_child(node)
 	return self
-
 func add_child_scene_to(parent_path: String, scene_path: String, child_name: String) -> U_EditorPrefabBuilder:
 	if _root == null:
 		push_error("U_EditorPrefabBuilder: add_child_scene_to called before root creation")
@@ -161,59 +135,30 @@ func add_child_scene_to(parent_path: String, scene_path: String, child_name: Str
 	instance.name = child_name
 	parent.add_child(instance)
 	return self
-
 func add_csg_box(name: String, size: Vector3, color: Color) -> U_EditorPrefabBuilder:
 	if _root == null:
 		push_error("U_EditorPrefabBuilder: add_csg_box called before root creation")
 		return self
-	var box: CSGBox3D = CSGBox3D.new()
-	box.name = name
-	box.size = size
-	var mat: StandardMaterial3D = StandardMaterial3D.new()
-	mat.albedo_color = color
-	box.material = mat
-	_root.add_child(box)
+	_root.add_child(_ShapeFactory.create_csg_box(name, size, color))
 	return self
-
 func add_csg_sphere(name: String, radius: float, color: Color) -> U_EditorPrefabBuilder:
 	if _root == null:
 		push_error("U_EditorPrefabBuilder: add_csg_sphere called before root creation")
 		return self
-	var sphere: CSGSphere3D = CSGSphere3D.new()
-	sphere.name = name
-	sphere.radius = radius
-	var mat: StandardMaterial3D = StandardMaterial3D.new()
-	mat.albedo_color = color
-	sphere.material = mat
-	_root.add_child(sphere)
+	_root.add_child(_ShapeFactory.create_csg_sphere(name, radius, color))
 	return self
-
 func add_csg_cylinder(name: String, radius: float, height: float, color: Color) -> U_EditorPrefabBuilder:
 	if _root == null:
 		push_error("U_EditorPrefabBuilder: add_csg_cylinder called before root creation")
 		return self
-	var cylinder: CSGCylinder3D = CSGCylinder3D.new()
-	cylinder.name = name
-	cylinder.radius = radius
-	cylinder.height = height
-	var mat: StandardMaterial3D = StandardMaterial3D.new()
-	mat.albedo_color = color
-	cylinder.material = mat
-	_root.add_child(cylinder)
+	_root.add_child(_ShapeFactory.create_csg_cylinder(name, radius, height, color))
 	return self
-
 func add_collision_box(shape_name: String, size: Vector3) -> U_EditorPrefabBuilder:
 	if _root == null:
 		push_error("U_EditorPrefabBuilder: add_collision_box called before root creation")
 		return self
-	var shape: CollisionShape3D = CollisionShape3D.new()
-	shape.name = shape_name
-	var box: BoxShape3D = BoxShape3D.new()
-	box.size = size
-	shape.shape = box
-	_root.add_child(shape)
+	_root.add_child(_ShapeFactory.create_collision_box(shape_name, size))
 	return self
-
 func save(save_path: String) -> bool:
 	if _root == null:
 		push_error("U_EditorPrefabBuilder: save() called before create_root() or inherit_from()")
@@ -230,18 +175,15 @@ func save(save_path: String) -> bool:
 		push_error("U_EditorPrefabBuilder: ResourceSaver.save() failed with code %d" % save_result)
 		return false
 	return true
-
 func _set_owner_recursive(node: Node, owner: Node) -> void:
 	node.set_owner(owner)
 	for child in node.get_children():
 		_set_owner_recursive(child, owner)
-
 func build() -> Node:
 	if _root == null:
 		push_error("U_EditorPrefabBuilder: build() called before create_root() or inherit_from()")
 		return null
 	return _root
-
 func _components_container() -> Node:
 	if _root.has_node("Components"):
 		return _root.get_node("Components")
