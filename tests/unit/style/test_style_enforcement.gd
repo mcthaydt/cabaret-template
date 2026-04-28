@@ -145,6 +145,7 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/core/utils": ["u_"],
 	"res://scripts/core/input": ["u_", "i_"],
 	"res://scripts/core/input/sources": [""], # Wildcard: validated by suffix rule (see test_input_source_scripts_follow_suffix_rule)
+	"res://scripts/core/resources/input/profiles": [""],
 	"res://scripts/core/resources/input": ["rs_"],
 	"res://scripts/core/resources/interactions": ["rs_"],
 	"res://scripts/core/resources/lighting": ["rs_"], # Character lighting resources

@@ -2,6 +2,10 @@
 extends Resource
 class_name RS_Rule
 
+const TRIGGER_TICK := "tick"
+const TRIGGER_EVENT := "event"
+const TRIGGER_BOTH := "both"
+
 var _conditions: Array[I_Condition] = []
 var _effects: Array[I_Effect] = []
 

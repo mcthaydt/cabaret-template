@@ -6,7 +6,7 @@ func build() -> RS_Rule:
 	return U_QB_RULE_BUILDER.rule(
 		&"pause_gate_shell",
 		[
-			U_QB_RULE_BUILDER.redux_field("navigation.shell", "not_equals", "gameplay"),
+			U_QB_RULE_BUILDER.redux_field("navigation.shell", RS_ConditionReduxField.MATCH_NOT_EQUALS, "gameplay"),
 		],
 		[
 			U_QB_RULE_BUILDER.set_context(&"is_gameplay_active", false, {}),

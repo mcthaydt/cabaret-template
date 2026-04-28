@@ -2,6 +2,10 @@
 extends "res://scripts/core/resources/qb/rs_base_condition.gd"
 class_name RS_ConditionReduxField
 
+const MATCH_NORMALIZE := "normalize"
+const MATCH_EQUALS := "equals"
+const MATCH_NOT_EQUALS := "not_equals"
+
 const U_PATH_RESOLVER := preload("res://scripts/core/utils/qb/u_path_resolver.gd")
 
 @export_group("Source")

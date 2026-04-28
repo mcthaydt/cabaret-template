@@ -44,8 +44,7 @@ static var _door_exits: Dictionary = {}
 ## T212: Now loads resource-based scene entries from resources/scene_registry/
 static func _static_init() -> void:
 	_register_scenes()
-	_load_resource_entries()  # T212: Load RS_SceneRegistryEntry resources
-	_backfill_default_gameplay_scenes()
+	_load_resource_entries()
 	_register_door_pairings()
 
 ## Register all scenes with metadata
@@ -183,7 +182,7 @@ static func _load_resource_entries() -> void:
 ## resource-based entries might be excluded by filters (e.g., mobile builds).
 ## If resource entries exist, this is a no-op.
 static func _backfill_default_gameplay_scenes() -> void:
-	_loader.backfill_default_gameplay_scenes(_scenes, Callable(U_SceneRegistry, "_register_scene"))
+	pass
 
 ## Register door pairings for seamless area transitions
 static func _register_door_pairings() -> void:

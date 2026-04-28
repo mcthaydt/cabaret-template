@@ -11,5 +11,5 @@ func build() -> RS_Rule:
 		[
 			U_QB_RULE_BUILDER.publish_event(&"checkpoint_activation_requested"),
 		],
-		{"trigger_mode": "event"}
+		{"trigger_mode": RS_Rule.TRIGGER_EVENT}
 	)

@@ -9,22 +9,22 @@ const RS_AI_ACTION_PUBLISH_EVENT := preload("res://scripts/core/resources/ai/act
 func build() -> RS_BTNode:
 	var cond_nav_goal := RS_CONDITION_REDUX_FIELD.new()
 	cond_nav_goal.state_path = "gameplay.ai_demo_flags.nav_goal_reached"
-	cond_nav_goal.match_mode = "equals"
+	cond_nav_goal.match_mode = RS_ConditionReduxField.MATCH_EQUALS
 	cond_nav_goal.match_value_string = "true"
 
 	var cond_airborne := RS_CONDITION_REDUX_FIELD.new()
 	cond_airborne.state_path = "gameplay.entities.player.is_on_floor"
-	cond_airborne.match_mode = "not_equals"
+	cond_airborne.match_mode = RS_ConditionReduxField.MATCH_NOT_EQUALS
 	cond_airborne.match_value_string = "true"
 
 	var cond_player_nearby := RS_CONDITION_REDUX_FIELD.new()
 	cond_player_nearby.state_path = "gameplay.ai_demo_flags.guide_player_nearby"
-	cond_player_nearby.match_mode = "equals"
+	cond_player_nearby.match_mode = RS_ConditionReduxField.MATCH_EQUALS
 	cond_player_nearby.match_value_string = "true"
 
 	var cond_player_not_nearby := RS_CONDITION_REDUX_FIELD.new()
 	cond_player_not_nearby.state_path = "gameplay.ai_demo_flags.guide_player_nearby"
-	cond_player_not_nearby.match_mode = "not_equals"
+	cond_player_not_nearby.match_mode = RS_ConditionReduxField.MATCH_NOT_EQUALS
 	cond_player_not_nearby.match_value_string = "true"
 
 	var celebrate_seq := U_BTBuilder.sequence([

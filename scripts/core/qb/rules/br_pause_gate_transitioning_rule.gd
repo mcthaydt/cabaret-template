@@ -6,7 +6,7 @@ func build() -> RS_Rule:
 	return U_QB_RULE_BUILDER.rule(
 		&"pause_gate_transitioning",
 		[
-			U_QB_RULE_BUILDER.redux_field("scene.is_transitioning", "equals", "true"),
+			U_QB_RULE_BUILDER.redux_field("scene.is_transitioning", RS_ConditionReduxField.MATCH_EQUALS, "true"),
 		],
 		[
 			U_QB_RULE_BUILDER.set_context(&"is_gameplay_active", false, {}),

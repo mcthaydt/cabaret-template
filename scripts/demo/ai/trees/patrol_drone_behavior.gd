@@ -8,12 +8,12 @@ const RS_AI_ACTION_WAIT := preload("res://scripts/core/resources/ai/actions/rs_a
 func build() -> RS_BTNode:
 	var cond_proximity := RS_CONDITION_REDUX_FIELD.new()
 	cond_proximity.state_path = "gameplay.ai_demo_flags.power_core_proximity"
-	cond_proximity.match_mode = "equals"
+	cond_proximity.match_mode = RS_ConditionReduxField.MATCH_EQUALS
 	cond_proximity.match_value_string = "true"
 
 	var cond_activated := RS_CONDITION_REDUX_FIELD.new()
 	cond_activated.state_path = "gameplay.ai_demo_flags.power_core_activated"
-	cond_activated.match_mode = "equals"
+	cond_activated.match_mode = RS_ConditionReduxField.MATCH_EQUALS
 	cond_activated.match_value_string = "true"
 
 	var scorer_proximity := U_BTBuilder.score_condition(cond_proximity, 11.0)

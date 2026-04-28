@@ -17,5 +17,5 @@ func build() -> RS_Rule:
 				{"scale_by_rule_score": true}
 			),
 		],
-		{"trigger_mode": "event", "score_threshold": -1.0}
+		{"trigger_mode": RS_Rule.TRIGGER_EVENT, "score_threshold": -1.0}
 	)

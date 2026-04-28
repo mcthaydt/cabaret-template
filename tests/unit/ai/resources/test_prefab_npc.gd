@@ -29,6 +29,9 @@ func _instantiate_npc_prefab() -> Node:
 		return null
 
 	var root: Node = root_variant as Node
+	var brain := root.get_node_or_null("Components/C_AIBrainComponent") as C_AIBrainComponent
+	if brain != null:
+		brain.brain_settings = RS_AIBrainSettings.new()
 	add_child_autofree(root)
 	return root
 

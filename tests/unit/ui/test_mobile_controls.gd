@@ -1,7 +1,7 @@
 extends GutTest
 
 const MobileControlsScene := preload("res://scenes/core/ui/hud/ui_mobile_controls.tscn")
-const DefaultTouchscreenProfileScript = preload("res://scripts/core/resources/input/profiles/rs_default_touchscreen_profile.gd")
+const DefaultTouchscreenProfileScript = preload("res://scripts/core/resources/input/profiles/default_touchscreen_profile.gd")
 var DefaultTouchscreenProfile: RS_InputProfile
 
 func before_each() -> void:

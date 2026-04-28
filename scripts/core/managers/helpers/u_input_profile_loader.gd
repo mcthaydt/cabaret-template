@@ -1,7 +1,7 @@
 extends RefCounted
 class_name U_InputProfileLoader
 
-const ProfileManifest := preload("res://scripts/core/resources/input/profiles/rs_manifest.gd")
+const ProfileManifest := preload("res://scripts/core/resources/input/profiles/input_profile_manifest.gd")
 
 func load_available_profiles() -> Dictionary:
 	var profiles: Dictionary = {}

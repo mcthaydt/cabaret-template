@@ -3,7 +3,6 @@ extends BaseTest
 const PANEL_SCRIPT_PATH := "res://scripts/demo/debug/debug_ai_brain_panel.gd"
 const C_AI_BRAIN_COMPONENT := preload("res://scripts/demo/ecs/components/c_ai_brain_component.gd")
 const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")
-const RS_AI_BRAIN_PLACEHOLDER := preload("res://resources/demo/ai/cfg_ai_brain_placeholder.tres")
 
 func _instantiate_panel() -> Control:
 	var panel_script_variant: Variant = load(PANEL_SCRIPT_PATH)
@@ -29,7 +28,6 @@ func _register_brain(mock_manager: MockECSManager, snapshot: Dictionary, parent:
 	autofree(entity)
 
 	var brain: C_AIBrainComponent = C_AI_BRAIN_COMPONENT.new()
-	brain.brain_settings = RS_AI_BRAIN_PLACEHOLDER
 	entity.add_child(brain)
 	autofree(brain)
 	brain.update_debug_snapshot(snapshot)

@@ -8,12 +8,12 @@ const RS_AI_ACTION_PUBLISH_EVENT := preload("res://scripts/core/resources/ai/act
 func build() -> RS_BTNode:
 	var cond_proximity := RS_CONDITION_REDUX_FIELD.new()
 	cond_proximity.state_path = "gameplay.ai_demo_flags.comms_disturbance_proximity"
-	cond_proximity.match_mode = "equals"
+	cond_proximity.match_mode = RS_ConditionReduxField.MATCH_EQUALS
 	cond_proximity.match_value_string = "true"
 
 	var cond_heard := RS_CONDITION_REDUX_FIELD.new()
 	cond_heard.state_path = "gameplay.ai_demo_flags.comms_disturbance_heard"
-	cond_heard.match_mode = "equals"
+	cond_heard.match_mode = RS_ConditionReduxField.MATCH_EQUALS
 	cond_heard.match_value_string = "true"
 
 	var scorer_proximity := U_BTBuilder.score_condition(cond_proximity, 11.0)

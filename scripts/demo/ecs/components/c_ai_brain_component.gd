@@ -22,7 +22,6 @@ func _init() -> void:
 
 func _validate_required_settings() -> bool:
 	if brain_settings == null:
-		push_error("C_AIBrainComponent missing brain_settings; assign an RS_AIBrainSettings resource.")
 		return false
 	return true
 

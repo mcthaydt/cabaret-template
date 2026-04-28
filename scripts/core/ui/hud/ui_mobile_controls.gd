@@ -11,7 +11,7 @@ const VIRTUAL_BUTTON_SCENE := preload("res://scenes/core/ui/widgets/ui_virtual_b
 @export_range(0.0, 1.0, 0.05) var idle_opacity: float = 0.3
 @export_range(0.0, 1.0, 0.05) var active_opacity: float = 1.0
 
-const DEFAULT_TOUCHSCREEN_PROFILE_PATH := "res://scripts/core/resources/input/profiles/rs_default_touchscreen_profile.gd"
+const DEFAULT_TOUCHSCREEN_PROFILE_PATH := "res://scripts/core/resources/input/profiles/default_touchscreen_profile.gd"
 const SHELL_GAMEPLAY := StringName("gameplay")
 const EDIT_OVERLAY_ID := StringName("edit_touch_controls")
 const SIGNPOST_MESSAGE_EVENT := StringName("signpost_message")

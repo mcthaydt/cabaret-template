@@ -2,12 +2,12 @@ extends GutTest
 
 const RS_InputProfile = preload("res://scripts/core/resources/input/rs_input_profile.gd")
 
-const DefaultKeyboardProfile = preload("res://scripts/core/resources/input/profiles/rs_default_keyboard_profile.gd")
-const AlternateKeyboardProfile = preload("res://scripts/core/resources/input/profiles/rs_alternate_keyboard_profile.gd")
-const AccessibilityKeyboardProfile = preload("res://scripts/core/resources/input/profiles/rs_accessibility_keyboard_profile.gd")
-const DefaultGamepadProfile = preload("res://scripts/core/resources/input/profiles/rs_default_gamepad_profile.gd")
-const AccessibilityGamepadProfile = preload("res://scripts/core/resources/input/profiles/rs_accessibility_gamepad_profile.gd")
-const DefaultTouchscreenProfile = preload("res://scripts/core/resources/input/profiles/rs_default_touchscreen_profile.gd")
+const DefaultKeyboardProfile = preload("res://scripts/core/resources/input/profiles/default_keyboard_profile.gd")
+const AlternateKeyboardProfile = preload("res://scripts/core/resources/input/profiles/alternate_keyboard_profile.gd")
+const AccessibilityKeyboardProfile = preload("res://scripts/core/resources/input/profiles/accessibility_keyboard_profile.gd")
+const DefaultGamepadProfile = preload("res://scripts/core/resources/input/profiles/default_gamepad_profile.gd")
+const AccessibilityGamepadProfile = preload("res://scripts/core/resources/input/profiles/accessibility_gamepad_profile.gd")
+const DefaultTouchscreenProfile = preload("res://scripts/core/resources/input/profiles/default_touchscreen_profile.gd")
 
 func test_defaults_and_setters() -> void:
 	var p := RS_InputProfile.new()
