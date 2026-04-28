@@ -1,7 +1,7 @@
 # Cross-System Cleanup V8 — Tasks Checklist
 
 **Branch**: `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch. Subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred. Matches continuation prompt.
-**Status**: Phase 1 complete — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 complete (`26289494`, `fffa2e55`, `7de2a6cf`, `c1d7b0fb`, `a2766455`, `2aacb999` + remediation `91c094c0`..`e416469c`); P1.9b complete (`348802ca`, `b2c67185`, `7a96c4b0`, `d2644cf3`, `0bb07870`, `085c428d`, `73a66510`, `cd2afbcf`, `94d4b7c6` + 2026-04-22 verification follow-through); P1.10 BT-only legacy cleanup complete (`43035ad6`, `6a30f13c` + 2026-04-23 docs hygiene follow-through). Phase 2 complete through P2.4 (`28702b95`) with style recheck passing (`83/83`). Phase 3 complete as of 2026-04-23: P3.0–P3.4 + P3.6 landed, and the P3.5 framework deliverable (dir + `README.md` + `TEMPLATE.md` + `test_extension_recipe_structure`) shipped; the 18 individual extension recipes still ship at the tail of their owning phase (Phases 1/4/5), so overall P3 Verification closes only once those recipe commits land. Style recheck now `86/86` after `test_adr_structure` + `test_extension_recipe_structure` were added. Phase 4: P4.1–P4.2 complete; P4.3 complete (`0dba3719`..`ed8e5de0` — all scripts moved to scripts/core/ or scripts/demo/, core→demo import violations eliminated, stale dirs removed, full suite 4587/4595 green); P4.4 enforcement test already in style suite (`test_core_scripts_never_import_from_demo` 87/87). P4 Scripts Verification complete (2026-04-24). P4.5 complete (`72272902` audit); P4.6 complete (`2f753915`..`7c33705b` — all core resources → resources/core/); P4.7 complete (`f66a7ce7`..`ef5d8e07` — core scenes → scenes/core/, demo scenes → scenes/demo/); P4.8 complete (`fece8d8c` — demo audio/models/textures → assets/demo/); P4.9 complete (`a85d963b` — core-never-references-demo enforcement tests, 6 violations fixed); P4.10 complete (`bfc64316`..`58e4263e` — prototype_grids → assets/demo/textures/, editor_icons → assets/core/, remaining core dirs → assets/core/). Style suite 89/89. Phase 6: P6.1 complete (`10310f00`..`ec14181a` — RS_BTScoredNode decorator + utility selector scored-node detection, duck-typing, style cap 50 lines). Style suite 90/90. Full suite 4601/4601 passing. P6.2 complete (`a4c41434`..`a23270b1`). P6.3 complete (`d0c1224a`..`0cd59475`). P6.4 complete (`4a1218f1`..`c6608c79` — RS_AIBrainScriptSettings, get_root() virtual, caller updates). P6.5 complete (`6e9e7b6a`..`e28d0c30` — 6 creature BT .tres deleted, builder scripts, script-backed .tres, scene rewire; gap-patched `5a176f9a`..`b29e3618` — guide_showcase_behavior builder + migration of cfg_guide_showcase_brain.tres). P6.7 note: manifest at `scripts/core/scene_management/u_scene_manifest.gd` (not demo/ as originally spec'd — intentional; manifest drives core loader). P6.9 complete with loader unit tests (`a16b0783`). Style suite 92/92. Full suite 4725/4733 (8 pre-existing pending, 0 failures). Phase 8 (UI menu builders): planned, not yet started.
+**Status**: Phase 1 complete — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 complete (`26289494`, `fffa2e55`, `7de2a6cf`, `c1d7b0fb`, `a2766455`, `2aacb999` + remediation `91c094c0`..`e416469c`); P1.9b complete (`348802ca`, `b2c67185`, `7a96c4b0`, `d2644cf3`, `0bb07870`, `085c428d`, `73a66510`, `cd2afbcf`, `94d4b7c6` + 2026-04-22 verification follow-through); P1.10 BT-only legacy cleanup complete (`43035ad6`, `6a30f13c` + 2026-04-23 docs hygiene follow-through). Phase 2 complete through P2.4 (`28702b95`) with style recheck passing (`83/83`). Phase 3 complete as of 2026-04-23: P3.0–P3.4 + P3.6 landed, and the P3.5 framework deliverable (dir + `README.md` + `TEMPLATE.md` + `test_extension_recipe_structure`) shipped; the 18 individual extension recipes still ship at the tail of their owning phase (Phases 1/4/5), so overall P3 Verification closes only once those recipe commits land. Style recheck now `86/86` after `test_adr_structure` + `test_extension_recipe_structure` were added. Phase 4: P4.1–P4.2 complete; P4.3 complete (`0dba3719`..`ed8e5de0` — all scripts moved to scripts/core/ or scripts/demo/, core→demo import violations eliminated, stale dirs removed, full suite 4587/4595 green); P4.4 enforcement test already in style suite (`test_core_scripts_never_import_from_demo` 87/87). P4 Scripts Verification complete (2026-04-24). P4.5 complete (`72272902` audit); P4.6 complete (`2f753915`..`7c33705b` — all core resources → resources/core/); P4.7 complete (`f66a7ce7`..`ef5d8e07` — core scenes → scenes/core/, demo scenes → scenes/demo/); P4.8 complete (`fece8d8c` — demo audio/models/textures → assets/demo/); P4.9 complete (`a85d963b` — core-never-references-demo enforcement tests, 6 violations fixed); P4.10 complete (`bfc64316`..`58e4263e` — prototype_grids → assets/demo/textures/, editor_icons → assets/core/, remaining core dirs → assets/core/). Style suite 89/89. Phase 6: P6.1 complete (`10310f00`..`ec14181a` — RS_BTScoredNode decorator + utility selector scored-node detection, duck-typing, style cap 50 lines). Style suite 90/90. Full suite 4601/4601 passing. P6.2 complete (`a4c41434`..`a23270b1`). P6.3 complete (`d0c1224a`..`0cd59475`). P6.4 complete (`4a1218f1`..`c6608c79` — RS_AIBrainScriptSettings, get_root() virtual, caller updates). P6.5 complete (`6e9e7b6a`..`e28d0c30` — 6 creature BT .tres deleted, builder scripts, script-backed .tres, scene rewire; gap-patched `5a176f9a`..`b29e3618` — guide_showcase_behavior builder + migration of cfg_guide_showcase_brain.tres). P6.7 note: manifest at `scripts/core/scene_management/u_scene_manifest.gd` (not demo/ as originally spec'd — intentional; manifest drives core loader). P6.9 complete with loader unit tests (`a16b0783`). P6.10–P6.12 complete (`eb7f37c0`..`1148e2f5` — U_QBRuleBuilder + 11 br_*.gd builders + ECS rewires + ADR 0011 + extensions/builders.md). Phase 6 closed. **Audit 2026-04-27** (post-P7 work): full suite 4807/4815 passing, 8 pre-existing pending, 0 failures (verified after `92c146e1` UID refresh on `gameplay_ai_woods.tscn` resolved 5 stale prefab UIDs introduced by P7.7b/c). Style suite 92/92. Phase 7 in progress through P7.8. Phase 8 (UI menu builders): planned, not yet started.
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred.
 **Scope**: Eight phases. Phase 1 is the largest (AI rewrite) and must complete before Phases 2–5, because Phases 4–5 depend on a stable AI architecture to decide what is "core template" vs "demo content." Phase 6 (fluent builders) can proceed after Phase 4 completes. Phase 7 (EditorScript + PackedScene builders) proceeds after Phase 6 completes. Phase 8 (UI menu builders) proceeds after Phase 6 (builder precedent) and extends the fluent-builder philosophy to UI layout, theming, localization, focus, and signal wiring.
 
@@ -1563,6 +1563,7 @@ resources/
 - [x] **Commit 5** (GREEN) — Delete 6 original creature BT `.tres` files; redirect all remaining test references to `_script.tres`. (`e28d0c30`)
   - wolf + rabbit `brain_bt` tests deleted (duplicated by behavior tests); patrol/sentry/guide/builder `brain_bt` tests updated to use `get_root()`.
   - `patrol_drone_behavior.gd` sets `root.resource_name = "patrol_drone_bt_root"` for `active_goal_id` parity in `test_ai_demo_power_core.gd`.
+- [x] **Gap-patch** (`5a176f9a`..`b29e3618`) — `guide_showcase_behavior.gd` builder + `cfg_guide_showcase_brain_script.tres` migration; rewires `gameplay_ai_showcase` scene + integration test. Brings creature builder count to 7.
 
 **P6.5 Verification**:
 - [x] Builder script tests green
@@ -1608,6 +1609,8 @@ resources/
   - Uses `U_SceneRegistryBuilder` to register all demo scenes
   - Replaces the 21 `PRELOADED_SCENE_REGISTRY_ENTRIES` const preloads in `U_SceneRegistryLoader`
   - Each `register()` call matches an existing `.tres` entry
+  - Path note: lives in `scripts/core/scene_management/` (the loader's home), not `scripts/demo/` — intentional, since the manifest is loaded by the core scene-registry loader and includes core scenes (`gameplay_base`) alongside demo scenes
+  - Uses `U_SceneRegistry.SceneType.{GAMEPLAY,UI,END_GAME}` constants (not magic numbers) for readable LLM diffs
 - [x] **Commit 3** (GREEN) — Wire `u_scene_manifest.gd` into `U_SceneRegistryLoader.load_resource_entries()`:
   - Loader calls the manifest script's build/apply during initialization
   - Mobile-compatible: manifest script replaces DirAccess scanning, not const preloads
@@ -1637,10 +1640,11 @@ resources/
   - `.with_touchscreen(virtual_buttons, joystick_pos)` sets touchscreen fields
   - `.build()` returns configured `RS_InputProfile`
   - Built profile passes `RS_InputProfile` validation (non-empty name, non-empty action_mappings)
-- [x] **Commit 2** (GREEN) — `scripts/core/managers/helpers/u_input_profile_builder.gd`:
+- [x] **Commit 2** (GREEN) — `scripts/core/utils/input/u_input_profile_builder.gd`:
   - `class_name U_InputProfileBuilder`, extends `RefCounted`
   - Instance-based fluent API
   - Creates `InputEvent` objects and configures `RS_InputProfile.action_mappings`
+  - Path note: shipped under `core/utils/input/` (not `core/managers/helpers/` as originally drafted) to align with sibling builders (`U_BTBuilder`, `U_QBRuleBuilder`, `U_SceneRegistryBuilder`) that all live under `scripts/core/utils/<domain>/`.
 - [x] **Commit 3** (GREEN) — Style enforcement: add line-count guard (max 150 lines).
 
 **P6.8 Verification**:
@@ -1658,17 +1662,18 @@ resources/
 - [x] **Commit 1** (RED) — Integration test: builder scripts produce profiles equivalent to existing `.tres` profiles.
   - Test loads each builder script and compares produced profile against the corresponding `.tres` resource
   - Action mappings match: same actions, same key bindings, same device types
-- [x] **Commit 2** (GREEN) — Create builder scripts under `scripts/demo/input/profiles/`:
-  - `default_keyboard_profile.gd` — replaces `cfg_default_keyboard.tres`
-  - `alternate_keyboard_profile.gd` — replaces `cfg_alternate_keyboard.tres`
-  - `accessibility_keyboard_profile.gd` — replaces `cfg_accessibility_keyboard.tres`
-  - `default_gamepad_profile.gd` — replaces `cfg_default_gamepad.tres`
-  - `accessibility_gamepad_profile.gd` — replaces `cfg_accessibility_gamepad.tres`
-  - `default_touchscreen_profile.gd` — replaces `cfg_default_touchscreen.tres`
-  - Each script extends `RefCounted`, has `build() -> RS_InputProfile` using `U_InputProfileBuilder`
-- [x] **Commit 3** — Update `U_InputProfileLoader.load_available_profiles()` to load from builder scripts:
-  - Replace hardcoded `.tres` resource paths with builder script paths
-  - Call `build()` on each script instance instead of `load()`
+- [x] **Commit 2** (GREEN) — Create builder scripts under `scripts/core/resources/input/profiles/`:
+  - `rs_default_keyboard_profile.gd` — replaces `cfg_default_keyboard.tres`
+  - `rs_alternate_keyboard_profile.gd` — replaces `cfg_alternate_keyboard.tres`
+  - `rs_accessibility_keyboard_profile.gd` — replaces `cfg_accessibility_keyboard.tres`
+  - `rs_default_gamepad_profile.gd` — replaces `cfg_default_gamepad.tres`
+  - `rs_accessibility_gamepad_profile.gd` — replaces `cfg_accessibility_gamepad.tres`
+  - `rs_default_touchscreen_profile.gd` — replaces `cfg_default_touchscreen.tres`
+  - Each script extends `RefCounted`, has `build() -> RS_InputProfile` using `U_InputProfileBuilder`.
+  - Path/prefix note: profiles live in `core/resources/input/profiles/` with `rs_` prefix (the directory's existing prefix rule from `SCRIPT_PREFIX_RULES`). They are builder scripts, not `Resource` subclasses — the `rs_` prefix is locally consistent with directory convention but diverges from sibling builder conventions (BT brains use no prefix, QB rules use `br_`). Decision deferred to follow-up.
+- [x] **Commit 3** — `U_InputProfileLoader.load_available_profiles()` loads via `rs_manifest.gd` aggregator (one extra layer of indirection compared to BT/scene-registry/QB chains):
+  - Manifest preloads each profile builder and calls `build()` to assemble the profile dictionary.
+  - Loader instantiates the manifest and copies its result into the available-profile map.
 - [x] **Commit 4** — Delete original `.tres` input profile files once builder scripts are verified
   - One commit so the removal is atomic and revertable
 
@@ -1691,7 +1696,7 @@ resources/
   - `set_field` and `set_context` detect value type at runtime (`float`, `int`, `bool`, `String`, `StringName`, `Vector2`, `Vector3`)
   - Built rules pass `U_RuleValidator` validation
   - Parity tests for `camera_shake`, `victory_forward`, `pause_gate_paused`, `landing_impact`
-- [x] **Commit 2** (GREEN) — `scripts/core/utils/qb/u_qb_rule_builder.gd` (~141 lines):
+- [x] **Commit 2** (GREEN) — `scripts/core/utils/qb/u_qb_rule_builder.gd` (199 lines as shipped; original draft estimated ~141 lines, grew with `_sanitize_*` helpers + private effect-value setters):
   - `class_name U_QBRuleBuilder`, extends `RefCounted`, all static methods
   - Static factory API matching `U_BTBuilder` / `U_AIBTFactory` conventions
   - Preload consts for all condition/effect/resource scripts (headless-safe)
