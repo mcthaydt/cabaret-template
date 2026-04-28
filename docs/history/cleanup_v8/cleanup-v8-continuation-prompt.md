@@ -5,9 +5,9 @@
 Implements `docs/history/cleanup_v8/cleanup-v8-tasks.md` in phase order with TDD discipline. V8 is the follow-up to V7.2, addressing structural/organizational debt rather than internal architectural issues.
 
 **Branch**: `cleanup-v8` (off `main`, after `GOAP-AI` merged via PR #16).
-**Status**: Phases 1–4 complete. Phase 5 not started (deferred to last per sequencing plan). Phase 6 **COMPLETE** — P6.1–P6.12 all done (`1148e2f5`). Phase 7 **COMPLETE** — P7.1 complete (`1cc1e11c`, `a309ff3a`), P7.2 complete (`2bf624ba`), P7.3 complete (`761d5a0d`), P7.4–P7.7 complete (`bb6c88aa`–`a7f530d9`).
-**Next Task**: Phase 5 — Base Scene cleanup (deferred to last per original plan).
-**Prerequisite**: V7.2 complete (`e015aff2`). Phase 4 complete (`cbf0fd61`). All 18 P3.5 extension recipes complete (`b0c5b1cd`). P6.1 complete (`ec14181a`). P6.2 complete (`a23270b1`). P6.3 complete (`0cd59475`). P6.4 complete (`c6608c79`). P6.5 complete (`e28d0c30`, gap patch `5a176f9a`–`b29e3618`). P6.6 complete (`fb576449`). P6.7 complete (`a33d1153`–`0b69200f`). P6.8 complete (`4d680390`–`deac3004`). P6.9 complete (`df1deff5`–`cfdd907a`, loader tests `a16b0783`). P6.10 complete (`eb7f37c0`–`20e28d54`). P6.11 complete (`7dc8a7aa`–`8a21f645`).
+**Status**: Phases 1–4 complete. Phase 5 not started (deferred to last per sequencing plan). Phase 6 **COMPLETE** (P6.1–P6.13). Phase 7 **COMPLETE** (P7.1–P7.8). Phase 8 not started.
+**Next Task**: Phase 8 — LLM-First UI Menu Builders.
+**Prerequisite**: V7.2 complete (`e015aff2`). Phase 4 complete (`cbf0fd61`). All 18 P3.5 extension recipes complete (`b0c5b1cd`).
 
 ---
 
@@ -20,8 +20,9 @@ Seven phases bundled for one goal: make the template LLM-friendly, modular, and 
 3. **Phase 3 — Docs Split.** COMPLETE. `AGENTS.md` is a 58-line routing index. All 18 extension recipes shipped. ADR structure in place.
 4. **Phase 4 — Template vs Demo Split.** COMPLETE (P4.1–P4.10). Scripts, resources, scenes, and assets all split into `core/` and `demo/`. Style suite 89/89.
 5. **Phase 5 — Base Scene.** NOT STARTED. Deferred to last (easiest once code is organized).
-6. **Phase 6 — LLM-First Fluent Builders.** COMPLETE. Replace `.tres` resource authoring with GDScript builder APIs across BT trees, scene registry, input profiles, and QB rules. Reference plan: `~/.claude/plans/stateless-tickling-meerkat.md`.
-7. **Phase 7 — EditorScript + PackedScene Builders.** COMPLETE. Hand-authored `.tscn` creation replaced with programmatic GDScript builder APIs (`U_EditorPrefabBuilder`, `U_EditorBlockoutBuilder`, `U_EditorShapeFactory`). 21 demo prefabs migrated to builder scripts. Builder LOC violations patched. Style suite 94/94. Full suite 4809/4809. Reference plan: `~/.claude/plans/lets-add-a-new-humming-kay.md`.
+6. **Phase 6 — LLM-First Fluent Builders.** COMPLETE (P6.1–P6.13). Replace `.tres` resource authoring with GDScript builder APIs across BT trees, scene registry, input profiles, and QB rules. P6.13 gap-patch backfill removal + constant migrations (`64210f85`–`279fcc33`). Reference plan: `~/.claude/plans/stateless-tickling-meerkat.md`.
+7. **Phase 7 — EditorScript + PackedScene Builders.** COMPLETE (P7.1–P7.8). Hand-authored `.tscn` creation replaced with programmatic GDScript builder APIs (`U_EditorPrefabBuilder`, `U_EditorBlockoutBuilder`, `U_EditorShapeFactory`). 21 builder scripts under `scripts/demo/editors/`. ADR-0012 (Editor Builder Pattern). Style suite 94/94. Reference plan: `~/.claude/plans/lets-add-a-new-humming-kay.md`.
+8. **Phase 8 — LLM-First UI Menu Builders.** NOT STARTED. Fluent builders for settings tabs and menu screens to replace `@onready`-heavy `.tscn` UI authoring.
 
 ---
 
@@ -40,8 +41,8 @@ Seven phases bundled for one goal: make the template LLM-friendly, modular, and 
   - P4.10: `prototype_grids_png` → `assets/demo/textures/`; `editor_icons` → `assets/core/`; remaining core dirs → `assets/core/` (`bfc64316`–`58e4263e`).
   - Style suite: **89/89** after P4.10.
 - **Phase 5**: NOT STARTED. Deferred to last.
-- **Phase 6**: COMPLETE. P6.1 complete (`10310f00`–`ec14181a`). P6.2 complete (`a4c41434`–`a23270b1`). P6.3 complete (`d0c1224a`–`0cd59475`). P6.4 complete (`4a1218f1`–`c6608c79`). P6.5 complete (`6e9e7b6a`–`e28d0c30`, gap-patched `5a176f9a`–`b29e3618`). P6.6 complete (`f3806172`–`fb576449`). P6.7 complete (`a33d1153`–`0b69200f`). P6.8 complete (`4d680390`–`deac3004`). P6.9 complete (`df1deff5`–`cfdd907a`, loader tests `a16b0783`). P6.10 complete (`eb7f37c0`–`20e28d54`). P6.11 complete (`7dc8a7aa`–`8a21f645`). P6.12 complete (`1148e2f5`): ADR 0011 Builder Pattern Taxonomy + builders.md extension recipe + style enforcement update.
-- **Phase 7**: COMPLETE. P7.1 complete (`1cc1e11c`, `a309ff3a`) — builder root creation + fluent API. P7.2 complete (`2bf624ba`). P7.3 complete (`761d5a0d`). P7.4 complete — `add_child_to` + `add_child_scene_to` builder methods. P7.5–P7.7 complete (`bb6c88aa`–`a7f530d9`) — builder scripts for all remaining prefabs. P7.8 complete (this commit) — extracted `U_EditorShapeFactory` to fix 251→193 LOC violation; added style enforcement tests for builder LOC caps; authored 7 additional builder scripts for core gameplay prefabs (character, checkpoint_safe_zone, death_zone, door_trigger, goal_zone, spike_trap, woods_tree). **21 total builder scripts** under `scripts/demo/editors/`. Style suite **94/94**, full suite **4809/4809** passing, 0 regressions. `.tscn` files kept as generated artifacts.
+- **Phase 6**: COMPLETE (P6.1–P6.13). P6.1 complete (`10310f00`–`ec14181a`). P6.2 complete (`a4c41434`–`a23270b1`). P6.3 complete (`d0c1224a`–`0cd59475`). P6.4 complete (`4a1218f1`–`c6608c79`). P6.5 complete (`6e9e7b6a`–`e28d0c30`, gap-patched `5a176f9a`–`b29e3618`). P6.6 complete (`f3806172`–`fb576449`). P6.7 complete (`a33d1153`–`0b69200f`). P6.8 complete (`4d680390`–`deac3004`). P6.9 complete (`df1deff5`–`cfdd907a`, loader tests `a16b0783`). P6.10 complete (`eb7f37c0`–`20e28d54`). P6.11 complete (`7dc8a7aa`–`8a21f645`). P6.12 complete (`1148e2f5`): ADR 0011 Builder Pattern Taxonomy + builders.md extension recipe + style enforcement update. P6.13 complete (`64210f85`–`279fcc33`): backfill removal, `RS_ConditionComposite.CompositeMode` constants, `RS_EffectSetField.OP_SET/OP_ADD` constants, `TRIGGER`/`OP`/`MATCH` constant swaps in rules + AI behaviors.
+- **Phase 7**: COMPLETE (P7.1–P7.8). P7.1 complete (`1cc1e11c`, `a309ff3a`) — builder root creation + fluent API. P7.2 complete (`2bf624ba`) — ECS component wiring. P7.3 complete (`761d5a0d`) — visuals, collision & children. P7.4 complete (`fe595fc6`) — save & EditorScript adapter. P7.5 complete (`9a792b43`) — blockout builder core CSG API. P7.6 complete (`6c340624`) — blockout builder materials, environment & save. P7.7 complete (`b3e81551`–`0be92548`) — all 21 prefab builder scripts. P7.8 complete (`e26cc256`, `5c7f1fce`, `3bb5a0fa`) — `U_EditorShapeFactory` extraction (251→193 LOC), 7 additional builder scripts, ADR-0012, style suite 94/94.
 
 ---
 
@@ -176,8 +177,9 @@ Seven phases bundled for one goal: make the template LLM-friendly, modular, and 
 Phase 1 ──┬── Phase 2 (independent, complete)
           ├── Phase 3 (independent, docs-only, complete)
           └── Phase 4 ── Phase 5 (not started, deferred to last)
-                     └── Phase 6 (complete, now ready for Phase 7)
-                        └── Phase 7 (not started: P7.1 → ... → P7.8)
+                     └── Phase 6 (complete, P6.1–P6.13)
+                        ├── Phase 7 (complete, P7.1–P7.8)
+                        └── Phase 8 (not started)
 ```
 
 ---
@@ -186,14 +188,14 @@ Phase 1 ──┬── Phase 2 (independent, complete)
 
 | # | Milestone | Content |
 |---|---|---|
-| P7.1 | U_EditorPrefabBuilder: Root Creation & Fluent API | `create_root`, `inherit_from`, `set_entity_id`, `set_tags`, `build` |
-| P7.2 | U_EditorPrefabBuilder: ECS Component Wiring | `add_ecs_component`, `add_ecs_component_by_path`, settings + inline properties |
-| P7.3 | U_EditorPrefabBuilder: Visuals, Collision & Children | CSG/mesh visuals, collision shapes, markers, child scenes, property overrides |
-| P7.4 | U_EditorPrefabBuilder: Save & EditorScript Adapter | `save()`, owner propagation, wolf prefab EditorScript demo |
-| P7.5 | U_EditorBlockoutBuilder: Core CSG API | `create_root`, CSG primitives, spawn points, markers, `execute_custom` |
-| P7.6 | U_EditorBlockoutBuilder: Materials, Environment & Save | Material helpers, directional light, world env, `save()`, arena blockout demo |
-| P7.7 | Prefab Migration | All 12 demo prefabs migrated to builder scripts; original .tscn deleted |
-| P7.8 | Style Compliance, ADR & Cleanup | Style enforcement tests, ADR-0010, docs update |
+| P7.1 | U_EditorPrefabBuilder: Root Creation & Fluent API | `create_root`, `inherit_from`, `set_entity_id`, `set_tags`, `build` | COMPLETE |
+| P7.2 | U_EditorPrefabBuilder: ECS Component Wiring | `add_ecs_component`, `add_ecs_component_by_path`, settings + inline properties | COMPLETE |
+| P7.3 | U_EditorPrefabBuilder: Visuals, Collision & Children | CSG/mesh visuals, collision shapes, markers, child scenes, property overrides | COMPLETE |
+| P7.4 | U_EditorPrefabBuilder: Save & EditorScript Adapter | `save()`, owner propagation, `add_child_to`, `add_child_scene_to` | COMPLETE |
+| P7.5 | U_EditorBlockoutBuilder: Core CSG API | `create_root`, CSG primitives, spawn points, markers, `execute_custom` | COMPLETE |
+| P7.6 | U_EditorBlockoutBuilder: Materials, Environment & Save | Material helpers, directional light, world env, `save()`, arena blockout demo | COMPLETE |
+| P7.7 | Prefab Migration | All 21 demo prefab builder scripts migrated | COMPLETE |
+| P7.8 | Style Compliance, ADR & Cleanup | `U_EditorShapeFactory` extraction, LOC caps, ADR-0012 | COMPLETE |
 
 ---
 
@@ -229,34 +231,27 @@ Test command: `tools/run_gut_suite.sh` (or `-gtest=<path>` for targeted runs).
 
 ## Next Steps
 
-1. **P6.7 Commit 1 (RED)** — Integration test in `tests/unit/scene_management/test_u_scene_registry_migration.gd`:
-   - Loads the builder manifest script (`scripts/demo/scene_management/scene_manifest.gd`) and calls `build()`.
-   - Verifies the produced Dictionary contains entries for all current non-critical demo scenes (alleyway, bar, interior_house, game_over, victory, credits, gameplay_base).
-   - Each entry has correct scene_id, path, scene_type, default_transition, preload_priority matching the existing `.tres` files.
-2. **P6.7 Commit 2 (GREEN)** — Create `scripts/demo/scene_management/scene_manifest.gd`:
-   - Extends `RefCounted`, has `build() -> Dictionary`.
-   - Uses `U_SceneRegistryBuilder` to register all demo scenes.
-   - Replace the `.tres` entries currently loaded by `U_SceneRegistryLoader._load_resource_entries()`.
-3. **P6.7 Commit 3 (GREEN)** — Wire `scene_manifest.gd` into `U_SceneRegistryLoader`:
-   - Instantiate manifest, call `build()`, iterate entries, call `_register_scene_from_dict()`.
-   - Keep mobile-compatible: no DirAccess scanning.
-4. **P6.7 Commit 4 (GREEN)** — Delete original `.tres` scene registry entries; remove `PRELOADED_SCENE_REGISTRY_ENTRIES` const preloads from loader.
-5. Keep docs/history references archived; new evergreen guidance belongs under `docs/guides/` or `docs/systems/`.
+Two candidate next phases — user chooses:
+
+1. **Phase 5 — Base Scene cleanup** (deferred to last per original plan). Audit all `.tscn` files, define canonical base scene, migrate demo content, delete temp/fake scenes.
+2. **Phase 8 — LLM-First UI Menu Builders.** Replace `@onready`-heavy settings/menu scripts with `U_SettingsTabBuilder`, `U_UIMenuBuilder`, and `U_UISettingsCatalog` fluent builders. Depends on Phase 6 (already complete). Can proceed in parallel with Phase 5.
 
 ---
 
-## Phase 7 — EditorScript + PackedScene Builders — NOT STARTED
+## Phase 7 — EditorScript + PackedScene Builders — COMPLETE
 
 **Reference plan**: `~/.claude/plans/lets-add-a-new-humming-kay.md`.
 
-**Goal**: Replace hand-authored `.tscn` creation with programmatic GDScript builder APIs. Two new RefCounted builders (`U_EditorPrefabBuilder`, `U_EditorBlockoutBuilder`) provide fluent APIs for constructing scene trees. Thin `@tool extends EditorScript` wrappers in `scripts/demo/editors/` invoke them and call `save()`. All 12 demo prefabs migrate from `.tscn` to builder scripts.
+**Goal**: Replace hand-authored `.tscn` creation with programmatic GDScript builder APIs. Two `RefCounted` builders (`U_EditorPrefabBuilder`, `U_EditorBlockoutBuilder`) provide fluent APIs for constructing scene trees. Thin `@tool extends EditorScript` wrappers in `scripts/demo/editors/` invoke them and call `save()`. 21 demo prefab builder scripts migrated.
 
 **Key design decisions**:
 - Builders extend `RefCounted` (not `EditorScript`) for headless GUT testability.
 - `U_EditorPrefabBuilder` handles both character prefabs (inheriting from `tmpl_character.tscn`) and static objects (fresh `StaticBody3D` roots).
 - `U_EditorBlockoutBuilder` handles CSG level blockouts with spawn points, lights, and environment.
+- `U_EditorShapeFactory` extracted from `U_EditorPrefabBuilder` to stay under 200-line LOC cap.
 - EditorScript wrappers are 5-line thin adapters: instantiate builder, call fluent API, call `save()`.
-- Migration mirrors P6.5 approach: create builder → verify parity → delete original `.tscn`.
+- Migration mirrors P6.5 approach: create builder → verify parity → keep `.tscn` as generated artifact.
+- ADR-0012 documents the editor builder pattern decision.
 
 **Directory structure**:
 - `scripts/core/utils/editors/` — Builder infrastructure (template-reusable)
@@ -313,56 +308,56 @@ Test command: `tools/run_gut_suite.sh` (or `-gtest=<path>` for targeted runs).
 
 ---
 
-## P7.4 — U_EditorPrefabBuilder: Save & EditorScript Adapter — IN PROGRESS
+## P7.4 — U_EditorPrefabBuilder: Save & EditorScript Adapter — COMPLETE
 
-**Files**: MODIFY `u_editor_prefab_builder.gd`, MODIFY tests, NEW `scripts/demo/editors/editor_build_wolf_prefab.gd`.
+**Commits**: `fe595fc6` (GREEN).
 
-**Commit 7 (RED)** — Write test for `build()` producing a tree that `PackedScene.pack()` accepts.
-
-**Commit 8 (GREEN)** — Implement `save()`, owner propagation, create wolf prefab EditorScript demo.
-
----
-
-## P7.5 — U_EditorBlockoutBuilder: Core CSG API — NOT STARTED
-
-**Files**: NEW `scripts/core/utils/editors/u_editor_blockout_builder.gd`, NEW `tests/unit/editors/test_u_editor_blockout_builder.gd`.
-
-**Commit 9 (RED)** — Write tests for CSG primitives, spawn points, markers, `execute_custom`.
-
-**Commit 10 (GREEN)** — Implement `U_EditorBlockoutBuilder` with all CSG methods, `build()`, `save()`.
+**Key implementation notes**:
+- `save()` with owner propagation, wolf prefab EditorScript demo.
+- `add_child_to` + `add_child_scene_to` builder methods added (`bb6c88aa`).
 
 ---
 
-## P7.6 — U_EditorBlockoutBuilder: Materials, Environment & Save — NOT STARTED
+## P7.5 — U_EditorBlockoutBuilder: Core CSG API — COMPLETE
 
-**Files**: MODIFY `u_editor_blockout_builder.gd`, MODIFY tests, NEW `scripts/demo/editors/editor_build_arena_blockout.gd`.
+**Commits**: `9a792b43` (GREEN).
 
-**Commit 11 (RED)** — Write tests for materials, lights, environment, collision flags.
-
-**Commit 12 (GREEN)** — Implement material helper, `add_directional_light()`, `add_world_environment()`, arena blockout demo.
-
----
-
-## P7.7 — Prefab Migration — IN PROGRESS (5 of 12 done)
-
-Migrated (builder regenerated + `.tscn` overwritten):
-- `prefab_woods_stone` — builder script `build_prefab_woods_stone.gd`
-- `prefab_woods_water` — builder script `build_prefab_woods_water.gd`
-- `prefab_woods_stockpile` — builder script `build_prefab_woods_stockpile.gd`
-- `prefab_woods_tree` — builder script inlined in `tests/_regenerate_prefabs.gd` (no standalone EditorScript yet)
-- `prefab_woods_construction_site` — builder script `build_prefab_woods_construction_site.gd`
-
-Remaining to migrate:
-- Character prefabs (4): wolf, rabbit, builder, demo_npc — need `inherit_from`, component override, child scene wiring
-- Scene prefabs (2): alleyway, bar — need blockout or prefab builder
-- Sub-prefab (1): prefab_demo_npc_body — simple, low priority
-
-**Builder extension note**: `add_csg_box`, `add_csg_sphere`, `add_csg_cylinder`, `add_collision_box` added to `U_EditorPrefabBuilder` in P7.7a. Builder now supports all static prefab shapes. Character prefabs need `override_child_property` and inherited component override — not yet implemented.
+**Key implementation notes**:
+- `create_root`, CSG primitives (`add_csg_box`, `add_csg_sphere`, `add_csg_cylinder`), spawn points, markers, `execute_custom`, `build()`, `save()`.
 
 ---
 
-## P7.8 — Style Compliance, ADR & Cleanup — IN PROGRESS
+## P7.6 — U_EditorBlockoutBuilder: Materials, Environment & Save — COMPLETE
 
-**Commit 16 (GREEN)** — `U_EditorPrefabBuilder` line cap check: builder at 231 lines, exceeding 200-line cap. Extracted `add_csg_box`, `add_csg_sphere`, `add_csg_cylinder`, `add_collision_box`, `add_visual_mesh`, `add_collision_capsule` into `U_EditorShapeFactory` helper. Builder reduced to 198 lines.
+**Commits**: `6c340624` (GREEN).
 
-**Commit 17 (DOCS)** — ADR-0019 Editor Prefab Builder Pattern, continuation prompt update, task checklist update.
+**Key implementation notes**:
+- Material helpers, `add_directional_light()`, `add_world_environment()`, arena blockout demo.
+
+---
+
+## P7.7 — Prefab Migration — COMPLETE
+
+All 21 builder scripts under `scripts/demo/editors/`:
+- Static object prefabs: `build_prefab_woods_stone.gd`, `build_prefab_woods_water.gd`, `build_prefab_woods_stockpile.gd`, `build_prefab_woods_tree.gd`, `build_prefab_woods_construction_site.gd`
+- Character prefabs: `build_prefab_woods_wolf.gd`, `build_prefab_woods_rabbit.gd`, `build_prefab_woods_builder.gd`, `build_prefab_demo_npc.gd`
+- Core gameplay: `build_prefab_character.gd`, `build_prefab_checkpoint_safe_zone.gd`, `build_prefab_death_zone.gd`, `build_prefab_door_trigger.gd`, `build_prefab_goal_zone.gd`, `build_prefab_spike_trap.gd`
+- Scene prefabs: `build_prefab_alleyway.gd`, `build_prefab_bar.gd`
+- Player: `build_prefab_player.gd`, `build_prefab_player_body.gd`, `build_prefab_player_ragdoll.gd`
+- Sub-prefab: `build_prefab_demo_npc_body.gd`
+
+Builder API extensions: `add_csg_box`, `add_csg_sphere`, `add_csg_cylinder`, `add_collision_box` added in P7.7a. `add_child_to` + `add_child_scene_to` added in P7.4.
+
+---
+
+## P7.8 — Style Compliance, ADR & Cleanup — COMPLETE
+
+**Commits**: `e26cc256`, `5c7f1fce`, `3bb5a0fa`.
+
+- Extracted `U_EditorShapeFactory` from `U_EditorPrefabBuilder` to fix 251→193 LOC violation.
+- Added style enforcement tests for builder LOC caps.
+- Authored 7 additional builder scripts for core gameplay prefabs.
+- ADR-0012 Editor Builder Pattern (not ADR-0010 — ADR-0010 is base-scene).
+- Fixed Godot 3.x Transform3D constructor syntax for Godot 4.x.
+- Transformed `int` literal fixes and Unicode arrow fixes in builder scripts.
+- Style suite **94/94**.

@@ -4,6 +4,7 @@
 **Status**: Phase 1 complete — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 complete (`26289494`, `fffa2e55`, `7de2a6cf`, `c1d7b0fb`, `a2766455`, `2aacb999` + remediation `91c094c0`..`e416469c`); P1.9b complete (`348802ca`, `b2c67185`, `7a96c4b0`, `d2644cf3`, `0bb07870`, `085c428d`, `73a66510`, `cd2afbcf`, `94d4b7c6` + 2026-04-22 verification follow-through); P1.10 BT-only legacy cleanup complete (`43035ad6`, `6a30f13c` + 2026-04-23 docs hygiene follow-through). Phase 2 complete through P2.4 (`28702b95`) with style recheck passing (`83/83`). Phase 3 complete as of 2026-04-23: P3.0–P3.4 + P3.6 landed, and the P3.5 framework deliverable (dir + `README.md` + `TEMPLATE.md` + `test_extension_recipe_structure`) shipped; the 18 individual extension recipes still ship at the tail of their owning phase (Phases 1/4/5), so overall P3 Verification closes only once those recipe commits land. Style recheck now `86/86` after `test_adr_structure` + `test_extension_recipe_structure` were added. Phase 4: P4.1–P4.2 complete; P4.3 complete (`0dba3719`..`ed8e5de0` — all scripts moved to scripts/core/ or scripts/demo/, core→demo import violations eliminated, stale dirs removed, full suite 4587/4595 green); P4.4 enforcement test already in style suite (`test_core_scripts_never_import_from_demo` 87/87). P4 Scripts Verification complete (2026-04-24). P4.5 complete (`72272902` audit); P4.6 complete (`2f753915`..`7c33705b` — all core resources → resources/core/); P4.7 complete (`f66a7ce7`..`ef5d8e07` — core scenes → scenes/core/, demo scenes → scenes/demo/); P4.8 complete (`fece8d8c` — demo audio/models/textures → assets/demo/); P4.9 complete (`a85d963b` — core-never-references-demo enforcement tests, 6 violations fixed); P4.10 complete (`bfc64316`..`58e4263e` — prototype_grids → assets/demo/textures/, editor_icons → assets/core/, remaining core dirs → assets/core/). Style suite 89/89. Phase 6: P6.1 complete (`10310f00`..`ec14181a` — RS_BTScoredNode decorator + utility selector scored-node detection, duck-typing, style cap 50 lines). Style suite 90/90. Full suite 4601/4601 passing. P6.2 complete (`a4c41434`..`a23270b1`). P6.3 complete (`d0c1224a`..`0cd59475`). P6.4 complete (`4a1218f1`..`c6608c79` — RS_AIBrainScriptSettings, get_root() virtual, caller updates). P6.5 complete (`6e9e7b6a`..`e28d0c30` — 6 creature BT .tres deleted, builder scripts, script-backed .tres, scene rewire; gap-patched `5a176f9a`..`b29e3618` — guide_showcase_behavior builder + migration of cfg_guide_showcase_brain.tres). P6.7 note: manifest at `scripts/core/scene_management/u_scene_manifest.gd` (not demo/ as originally spec'd — intentional; manifest drives core loader). P6.9 complete with loader unit tests (`a16b0783`). P6.10–P6.12 complete (`eb7f37c0`..`1148e2f5` — U_QBRuleBuilder + 11 br_*.gd builders + ECS rewires + ADR 0011 + extensions/builders.md). Phase 6 closed. **Audit 2026-04-27** (post-P7 work): full suite 4807/4815 passing, 8 pre-existing pending, 0 failures (verified after `92c146e1` UID refresh on `gameplay_ai_woods.tscn` resolved 5 stale prefab UIDs introduced by P7.7b/c). Style suite 92/92. Phase 7 in progress through P7.8. Phase 8 (UI menu builders): planned, not yet started.
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred.
 **Scope**: Eight phases. Phase 1 is the largest (AI rewrite) and must complete before Phases 2–5, because Phases 4–5 depend on a stable AI architecture to decide what is "core template" vs "demo content." Phase 6 (fluent builders) can proceed after Phase 4 completes. Phase 7 (EditorScript + PackedScene builders) proceeds after Phase 6 completes. Phase 8 (UI menu builders) proceeds after Phase 6 (builder precedent) and extends the fluent-builder philosophy to UI layout, theming, localization, focus, and signal wiring.
+**Current status (2026-04-28)**: Phases 1–4, 6–7 COMPLETE. Phase 5 not started (deferred to last). Phase 8 not started. Style suite 94/94. P6.13 (gap patches + constant migrations) complete. P7.1–P7.8 all complete. 21 builder scripts under `scripts/demo/editors/`. ADR-0012 (Editor Builder Pattern) shipped.
 
 **Relationship to cleanup-v7.2**: This is a successor plan, not a replacement. V7.2 addressed architectural weaknesses inside existing systems. V8 addresses structural/organizational debt surfaced while working on the AI forest: the planner stack is overbuilt, debug/perf code is scattered across managers, `AGENTS.md` is sprawling, template-vs-demo content is entangled, and temp scenes are piling up.
 
@@ -1775,30 +1776,48 @@ resources/
 
 ---
 
+## Milestone P6.13: Gap Patches & Constant Migrations — COMPLETE
+
+**Goal**: Clean up remaining gaps from P6 migrations and replace magic numbers with named constants.
+
+- [x] **Commit P6.13a** (`64210f85`) — Rewrite backfill tests: assert manifest is source of truth for non-critical scenes.
+- [x] **Commit P6.13b** (`085dedd0`) — Gap patch: input profile manifest parity.
+- [x] **Commit P6.13c** (`64a4ef68`) — Replace composite magic numbers with `RS_ConditionComposite.CompositeMode` constants.
+- [x] **Commit P6.13d** — Remove backfill call; add `TRIGGER`/`OP`/`MATCH` constants; swap call sites (absorbed into P6.13b-e).
+- [x] **Commit P6.13e** (`6430709b`, `279fcc33`) — Add `RS_EffectSetField.OP_SET/OP_ADD` constants; swap call sites; add `TRIGGER`/`OP`/`MATCH` constants to rules + AI behaviors.
+
+**P6.13 Verification**:
+- [x] Backfill tests assert manifest is source of truth
+- [x] All magic number call sites replaced with named constants
+- [x] Full suite green
+
+---
+
 ## Dependency Graph
 
 ```
-Phase 1 (AI BT rewrite)
-   ├── Phase 2 (debug/perf) — independent
-   ├── Phase 3 (docs split) — independent
-   ├── Phase 4 (template/demo split) ── depends on Phase 1
-   ├── Phase 5 (scenes) ── depends on Phase 4
-   ├── Phase 6 (fluent builders) ── depends on Phase 4
-   │   ├── P6.1 → P6.2 → P6.3 → P6.4 → P6.5 (BT chain)
-   │   ├── P6.6 → P6.7 (scene registry chain)
-   │   ├── P6.8 → P6.9 (input profile chain)
-   │   └── P6.10 → P6.11 (QB rule chain)
-   ├── Phase 7 (editor/prefab builders) ── depends on Phase 6
-   └── Phase 8 (UI menu builders) ── depends on Phase 6
-       ├── P8.1 → P8.2 → P8.3 (catalog → tab builder → display migration)
-       ├── P8.4 (audio migration, independent after P8.2)
-       ├── P8.5 (VFX migration, independent after P8.2)
-       ├── P8.6 → P8.7 (menu builder → main/pause migration)
-       ├── P8.8 (remaining menu migrations, independent after P8.6)
-       ├── P8.9 (input overlays, independent after P8.2)
-       ├── P8.10 (remaining overlays, independent after P8.2)
-       ├── P8.11 (consolidation + enforcement, after all migrations)
-       └── P8.12 (ADR + docs, after P8.11)
+Phase 1 (AI BT rewrite) — COMPLETE
+   ├── Phase 2 (debug/perf) — COMPLETE
+   ├── Phase 3 (docs split) — COMPLETE
+   ├── Phase 4 (template/demo split) — COMPLETE
+      └── Phase 5 (scenes) — NOT STARTED (deferred to last)
+   └── Phase 6 (fluent builders) — COMPLETE (P6.1–P6.13)
+      ├── P6.1 → P6.2 → P6.3 → P6.4 → P6.5 (BT chain) — COMPLETE
+      ├── P6.6 → P6.7 (scene registry chain) — COMPLETE
+      ├── P6.8 → P6.9 (input profile chain) — COMPLETE
+      ├── P6.10 → P6.11 (QB rule chain) — COMPLETE
+      └── P6.12 → P6.13 (ADR + gap patches) — COMPLETE
+   └── Phase 7 (editor/prefab builders) — COMPLETE (P7.1–P7.8)
+   └── Phase 8 (UI menu builders) — NOT STARTED
+      ├── P8.1 → P8.2 → P8.3 (catalog → tab builder → display migration)
+      ├── P8.4 (audio migration, independent after P8.2)
+      ├── P8.5 (VFX migration, independent after P8.2)
+      ├── P8.6 → P8.7 (menu builder → main/pause migration)
+      ├── P8.8 (remaining menu migrations, independent after P8.6)
+      ├── P8.9 (input overlays, independent after P8.2)
+      ├── P8.10 (remaining overlays, independent after P8.2)
+      ├── P8.11 (consolidation + enforcement, after all migrations)
+      └── P8.12 (ADR + docs, after P8.11)
 ```
 
 ---
@@ -1881,19 +1900,13 @@ Phase 1 (AI BT rewrite)
 
 **Goal**: `add_ecs_component()` and `add_ecs_component_by_path()`.
 
-- [ ] **Commit 3 (RED)** — Add tests for:
-  - `add_ecs_component(script, null, {})` adds Node under Components with script attached
-  - `add_ecs_component(script, settings_resource, {})` assigns settings export
-  - `add_ecs_component(script, null, {"detection_radius": 14.0, "target_tag": &"prey"})` sets inline properties
-  - `add_ecs_component_by_path(script_path, settings_path, {})` loads and wires both
-  - Multiple components added sequentially are all present
-
-- [ ] **Commit 4 (GREEN)** — Implement `add_ecs_component()` and `add_ecs_component_by_path()`.
+- [x] **Commit 3 (RED)** — `tests/unit/editors/test_u_editor_prefab_builder.gd`: ECS component wiring tests.
+- [x] **Commit 4 (GREEN)** — Implement `add_ecs_component()` and `add_ecs_component_by_path()`. Committed: `2bf624ba`.
 
 **P7.2 Verification**:
-- [ ] All new tests green.
-- [ ] Existing test suite green.
-- [ ] Style enforcement green.
+- [x] All new tests green (14/14, 75 asserts).
+- [x] Existing test suite green (no regressions).
+- [x] Style enforcement green (92/92).
 
 ---
 
@@ -1901,14 +1914,12 @@ Phase 1 (AI BT rewrite)
 
 **Goal**: Visual mesh, CSG, collision shapes, markers, child scenes, property overrides.
 
-- [ ] **Commit 5 (RED)** — Add tests for visual, collision, marker, child-scene methods.
-
-- [ ] **Commit 6 (GREEN)** — Implement `add_visual_csg()`, `add_visual_mesh()`, `add_collision_capsule()`, `add_collision_box()`, `add_child_scene()`, `add_marker()`, `override_property()`, `_ensure_body_container()`, `_create_material()`.
+- [x] **Commit 5 (RED+GREEN)** — Add tests and implement visual, collision, marker, child-scene methods. Committed: `761d5a0d`.
 
 **P7.3 Verification**:
-- [ ] All new tests green.
-- [ ] Existing test suite green.
-- [ ] Style enforcement green.
+- [x] All new tests green (19/19, 99 asserts).
+- [x] Existing test suite green (no regressions).
+- [x] Style enforcement green (92/92).
 
 ---
 
@@ -1916,14 +1927,13 @@ Phase 1 (AI BT rewrite)
 
 **Goal**: `save()` method and a working wolf prefab EditorScript.
 
-- [ ] **Commit 7 (RED)** — Add test for `build()` producing a tree that `PackedScene.pack()` accepts.
-
-- [ ] **Commit 8 (GREEN)** — Implement `save()`, owner propagation. Create `scripts/demo/editors/editor_build_wolf_prefab.gd`.
+- [x] **Commit 7 (RED+GREEN)** — Implement `save()` with owner propagation. Committed: `fe595fc6`.
+- [x] **Builder extension** — `add_child_to` + `add_child_scene_to` added. Committed: `bb6c88aa`.
 
 **P7.4 Verification**:
-- [ ] All new tests green.
-- [ ] Existing test suite green.
-- [ ] Wolf prefab generated in editor matches original visually.
+- [x] All new tests green.
+- [x] Existing test suite green.
+- [x] Wolf prefab generated in editor matches original visually.
 
 ---
 
@@ -1931,19 +1941,12 @@ Phase 1 (AI BT rewrite)
 
 **Goal**: Blockout builder with CSG primitives, spawn points, markers.
 
-- [ ] **Commit 9 (RED)** — `tests/unit/editors/test_u_editor_blockout_builder.gd`:
-  - `create_root()` produces Node3D
-  - `add_csg_box()`, `add_csg_cylinder()`, `add_csg_sphere()` create correct CSG nodes
-  - `add_player_spawn()`, `add_marker()` create Node3D markers
-  - `execute_custom()` invokes callback
-  - Fluent chaining returns self
-
-- [ ] **Commit 10 (GREEN)** — Create `scripts/core/utils/editors/u_editor_blockout_builder.gd`.
+- [x] **Commit 9 (RED+GREEN)** — `U_EditorBlockoutBuilder` with CSG primitives, spawn points, markers, `execute_custom`, `build()`, `save()`. Committed: `9a792b43`.
 
 **P7.5 Verification**:
-- [ ] All new tests green.
-- [ ] Existing test suite green.
-- [ ] Style enforcement green.
+- [x] All new tests green.
+- [x] Existing test suite green.
+- [x] Style enforcement green.
 
 ---
 
@@ -1951,27 +1954,20 @@ Phase 1 (AI BT rewrite)
 
 **Goal**: Material helpers, environment nodes, save, demo blockout.
 
-- [ ] **Commit 11 (RED)** — Add tests for materials, lights, environment, collision flags, save.
-
-- [ ] **Commit 12 (GREEN)** — Implement material helper, `add_directional_light()`, `add_world_environment()`, `use_collision`. Create `scripts/demo/editors/editor_build_arena_blockout.gd`.
+- [x] **Commit 11 (RED+GREEN)** — Material helper, `add_directional_light()`, `add_world_environment()`, `use_collision`, `save()`, arena blockout demo. Committed: `6c340624`.
 
 **P7.6 Verification**:
-- [ ] All new tests green.
-- [ ] Existing test suite green.
-- [ ] Arena blockout generated in editor looks correct.
+- [x] All new tests green.
+- [x] Existing test suite green.
+- [x] Arena blockout generated in editor looks correct.
 
 ---
 
 ## Milestone P7.7: Prefab Migration — Demo Prefabs → Builder Scripts
 
-**Goal**: All 12 demo prefabs migrated to builder scripts.
+**Goal**: All demo prefabs migrated to builder scripts (21 total).
 
-- [ ] **Commits 13–15 (GREEN)** — For each prefab:
-  1. Create builder script in `scripts/demo/editors/`
-  2. Run in editor, verify parity with original `.tscn`
-  3. Update any scene references pointing to old `.tscn`
-  4. Delete original `.tscn` file
-  5. Run full test suite
+- [x] **Commits 13–15 (GREEN)** — For each prefab, builder script created under `scripts/demo/editors/`, verified parity, `.tscn` kept as generated artifact.
 
 Character prefabs (inherit from `tmpl_character.tscn`):
 - [x] `prefab_woods_wolf.tscn` → `build_prefab_woods_wolf.gd`
@@ -1994,6 +1990,14 @@ Core gameplay prefabs (fresh root):
 - [x] `prefab_spike_trap.tscn` → `build_prefab_spike_trap.gd`
 - [x] `prefab_character.tscn` → `build_prefab_character.gd`
 
+Player prefabs:
+- [x] `prefab_player.tscn` → `build_prefab_player.gd`
+- [x] `prefab_player_body.tscn` → `build_prefab_player_body.gd`
+- [x] `prefab_player_ragdoll.tscn` → `build_prefab_player_ragdoll.gd`
+
+Sub-prefab:
+- [x] `prefab_demo_npc_body.tscn` → `build_prefab_demo_npc_body.gd`
+
 Scene prefabs:
 - [x] `prefab_alleyway.tscn`
 - [x] `prefab_bar.tscn`
@@ -2007,17 +2011,17 @@ Scene prefabs:
 ## Milestone P7.8: Style Compliance, ADR & Cleanup
 
 - [x] **Builder extension** — `add_child_to` + `add_child_scene_to` added to `U_EditorPrefabBuilder`.
-- [x] **Builder scripts** — All 17 remaining prefabs have builder scripts under `scripts/demo/editors/` (7 additional: character, checkpoint_safe_zone, death_zone, door_trigger, goal_zone, spike_trap, woods_tree).
-- [x] **Style suite** passes with new files (92/92).
-- [x] **Full suite** passes (4807/4807).
-- [x] **LOC cap** — `U_EditorPrefabBuilder` refactored to 193 lines (extracted 6 shape methods into `U_EditorShapeFactory`; verified by style test `test_u_editor_prefab_builder_stays_under_two_hundred_lines` **GREEN**).
-
-- [ ] **Commit 17 (DOCS)** — ADR-0010, continuation prompt update, task checklist update.
+- [x] **Builder scripts** — All **21** prefabs have builder scripts under `scripts/demo/editors/`.
+- [x] **Style suite** passes with new files (94/94).
+- [x] **Full suite** passes (8 pending, 0 failures).
+- [x] **LOC cap** — `U_EditorPrefabBuilder` refactored to 193 lines (extracted shape methods into `U_EditorShapeFactory`; verified by style test `test_u_editor_prefab_builder_stays_under_two_hundred_lines` **GREEN**).
+- [x] **ADR-0012** — Editor Builder Pattern documented at `docs/architecture/adr/0012-editor-builder-pattern.md`.
+- [x] **Fix commits** — Godot 3.x Transform3D constructor syntax (`5c7f1fce`), int literal + Unicode arrow fixes (`94cf9f0e`).
 
 **P7.8 Verification**:
-- [ ] Style suite passes with new rules.
-- [ ] Full suite green.
-- [ ] ADR-0010 documents architecture decisions.
+- [x] Style suite passes (94/94).
+- [x] Full suite green (8 pending, 0 failures).
+- [x] ADR-0012 documents architecture decisions.
 
 ---
 
