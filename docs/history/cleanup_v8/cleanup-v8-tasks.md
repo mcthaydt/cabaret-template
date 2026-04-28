@@ -2060,21 +2060,21 @@ These ~780 lines of boilerplate collapse to ~80 lines of declarative builder cha
 
 **Goal**: A data utility that centralizes the dropdown/slider option data currently scattered across `_populate_option_buttons()` in each settings tab. Single source of truth for valid display, audio, and VFX options.
 
-- [ ] **Commit 1** (RED) — `tests/unit/ui/helpers/test_u_ui_settings_catalog.gd`:
+- [x] **Commit 1** (RED) — `tests/unit/ui/helpers/test_u_ui_settings_catalog.gd`:
   - Display options: `get_window_sizes()` returns `Array[Dictionary]` with `id`/`label_key`/`value` entries; `get_window_modes()` returns mode entries; `get_vsync_options()` returns vsync entries; `get_quality_presets()` returns quality entries; `get_ui_scale_range()` returns `{min, max, step, default}`.
   - Audio options: `get_audio_bus_names()` returns bus name array; `get_volume_range()` returns `{min, max, step}`; `get_default_volume()` returns float; `get_spatial_audio_default()` returns bool.
   - VFX options: `get_toggle_options()` returns `{key, label_key, tooltip_key, default}` entries for shake/intensity/flash/particles/silhouette; `get_intensity_range()` returns `{min, max, step, default}`.
   - Localization keys are `StringName` constants (not bare strings).
   - All methods return fresh arrays (not shared mutable state).
-- [ ] **Commit 2** (GREEN) — `scripts/core/ui/helpers/u_ui_settings_catalog.gd`:
+- [x] **Commit 2** (GREEN) — `scripts/core/ui/helpers/u_ui_settings_catalog.gd`:
   - `class_name U_UISettingsCatalog`, extends `RefCounted`
   - Static methods returning typed arrays of option dictionaries
   - Localization keys use `&"settings.display.*"` / `&"settings.audio.*"` / `&"settings.vfx.*"` patterns matching existing project keys
   - Option dictionaries follow `{id: StringName, label_key: StringName, value: Variant}` shape
 
 **P8.1 Verification**:
-- [ ] Catalog tests green
-- [ ] Style enforcement green
+- [x] Catalog tests green
+- [x] Style enforcement green
 
 ---
 
@@ -2082,7 +2082,7 @@ These ~780 lines of boilerplate collapse to ~80 lines of declarative builder cha
 
 **Goal**: Fluent builder that constructs a vertical settings tab programmatically, replacing @onready declarations, manual theme application, localization, focus chains, and signal wiring. The builder produces node trees and wires everything in `build()`.
 
-- [ ] **Commit 1** (RED) — `tests/unit/ui/helpers/test_u_settings_tab_builder.gd`:
+- [x] **Commit 1** (RED) — `tests/unit/ui/helpers/test_u_settings_tab_builder.gd`:
   - `U_SettingsTabBuilder.new(tab)` initializes with parent tab Control.
   - `set_heading(&"settings.display.title")` creates a heading label and applies `config.heading` font_size.
   - `begin_section(&"settings.display.section.graphics")` creates a section header label and applies `config.section_header` font_size + `config.section_header_color`.
@@ -2095,7 +2095,7 @@ These ~780 lines of boilerplate collapse to ~80 lines of declarative builder cha
   - `localize_labels()` re-applies all localization keys via `U_LOCALIZATION_UTILS.localize(key)`.
   - `apply_theme_tokens(config)` re-applies all theme overrides from a given config.
   - Fluent chaining: every method returns `self` except `build()` which returns the parent tab.
-- [ ] **Commit 2** (GREEN) — `scripts/core/ui/helpers/u_settings_tab_builder.gd`:
+- [x] **Commit 2** (GREEN) — `scripts/core/ui/helpers/u_settings_tab_builder.gd`:
   - `class_name U_SettingsTabBuilder`, extends `RefCounted`
   - Instance-based fluent API (methods return `self`)
   - Internal state: `_tab: Control`, `_controls: Array[Control]`, `_label_keys: Dictionary`, `_theme_map: Array[Dictionary]`, `_focusable_controls: Array[Control]`
@@ -2103,12 +2103,12 @@ These ~780 lines of boilerplate collapse to ~80 lines of declarative builder cha
   - `localize_labels()` re-applies all localization keys
   - `apply_theme_tokens(config)` re-applies all theme overrides
   - Internal `_localize(key, fallback)` replaces per-script `_localize_with_fallback()`
-- [ ] **Commit 3** (GREEN) — Style enforcement: LOC cap 300 lines for `u_settings_tab_builder.gd`.
+- [x] **Commit 3** (GREEN) — Style enforcement: LOC cap 300 lines for `u_settings_tab_builder.gd`.
 
 **P8.2 Verification**:
-- [ ] Builder tests green
+- [x] Builder tests green
 - [ ] Built tabs render correctly in editor (manual check with display settings)
-- [ ] Style enforcement green
+- [x] Style enforcement green
 
 ---
 
