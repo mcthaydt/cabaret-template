@@ -433,3 +433,39 @@ func test_migrate_stockpile_prefab_matches_gold() -> void:
 	var root: Variant = builder.call("build")
 	if root is Node:
 		(root as Node).queue_free()
+
+func test_add_child_to_adds_node_under_parent() -> void:
+	var builder: Object = _new_builder()
+	if builder == null:
+		return
+	builder.call("create_root", "Node3D", "TestRoot")
+	builder.call("add_visual_mesh", "ParentMesh", null, Vector3.ONE)
+	var child: MeshInstance3D = MeshInstance3D.new()
+	child.name = "ChildMesh"
+	builder.call("add_child_to", "ParentMesh", child)
+	var root: Variant = builder.call("build")
+	assert_not_null(root, "build must return root")
+	var parent_node: Node = (root as Node).get_node_or_null("ParentMesh")
+	assert_not_null(parent_node, "ParentMesh must exist")
+	var found_child: Node = parent_node.get_node_or_null("ChildMesh")
+	assert_not_null(found_child, "add_child_to must add child under specified parent")
+	assert_eq(found_child.name, "ChildMesh", "Child name must match")
+	if root is Node:
+		(root as Node).queue_free()
+
+func test_add_child_scene_to_instantiates_under_parent() -> void:
+	var builder: Object = _new_builder()
+	if builder == null:
+		return
+	builder.call("create_root", "Node3D", "TestRoot")
+	builder.call("add_marker", "ParentMarker")
+	builder.call("add_child_scene_to", "ParentMarker", TMPL_CHARACTER_PATH, "CharChild")
+	var root: Variant = builder.call("build")
+	assert_not_null(root, "build must return root")
+	var parent_node: Node = (root as Node).get_node_or_null("ParentMarker")
+	assert_not_null(parent_node, "ParentMarker must exist")
+	var child: Node = parent_node.get_node_or_null("CharChild")
+	assert_not_null(child, "add_child_scene_to must instantiate child under parent")
+	if root is Node:
+		(root as Node).queue_free()
+

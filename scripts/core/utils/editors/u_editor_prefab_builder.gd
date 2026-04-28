@@ -131,6 +131,37 @@ func add_child_scene(scene_path: String, child_name: String) -> U_EditorPrefabBu
 	_root.add_child(instance)
 	return self
 
+func add_child_to(parent_path: String, node: Node) -> U_EditorPrefabBuilder:
+	if _root == null:
+		push_error("U_EditorPrefabBuilder: add_child_to called before root creation")
+		return self
+	var parent: Node = _root.get_node_or_null(parent_path) if parent_path != "." else _root
+	if parent == null:
+		push_error("U_EditorPrefabBuilder: add_child_to parent not found at '%s'" % parent_path)
+		return self
+	parent.add_child(node)
+	return self
+
+func add_child_scene_to(parent_path: String, scene_path: String, child_name: String) -> U_EditorPrefabBuilder:
+	if _root == null:
+		push_error("U_EditorPrefabBuilder: add_child_scene_to called before root creation")
+		return self
+	var parent: Node = _root.get_node_or_null(parent_path) if parent_path != "." else _root
+	if parent == null:
+		push_error("U_EditorPrefabBuilder: add_child_scene_to parent not found at '%s'" % parent_path)
+		return self
+	var packed: PackedScene = load(scene_path) as PackedScene
+	if packed == null:
+		push_error("U_EditorPrefabBuilder: failed to load child scene at '%s'" % scene_path)
+		return self
+	var instance: Node = packed.instantiate(PackedScene.GEN_EDIT_STATE_MAIN) as Node
+	if instance == null:
+		push_error("U_EditorPrefabBuilder: failed to instantiate child scene from '%s'" % scene_path)
+		return self
+	instance.name = child_name
+	parent.add_child(instance)
+	return self
+
 func add_csg_box(name: String, size: Vector3, color: Color) -> U_EditorPrefabBuilder:
 	if _root == null:
 		push_error("U_EditorPrefabBuilder: add_csg_box called before root creation")
