@@ -13,8 +13,8 @@ func build() -> RS_Rule:
 				&"C_CameraStateComponent",
 				&"shake_trauma",
 				0.5,
-				{"operation": "add", "use_clamp": true}
+				{"operation": RS_EffectSetField.OP_ADD, "use_clamp": true}
 			),
 		],
-		{"trigger_mode": "event"}
+		{"trigger_mode": RS_Rule.TRIGGER_EVENT}
 	)

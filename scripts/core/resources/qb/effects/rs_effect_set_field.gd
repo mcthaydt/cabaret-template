@@ -2,6 +2,9 @@
 extends "res://scripts/core/resources/qb/rs_base_effect.gd"
 class_name RS_EffectSetField
 
+const OP_SET := "set"
+const OP_ADD := "add"
+
 const U_PATH_RESOLVER := preload("res://scripts/core/utils/qb/u_path_resolver.gd")
 
 @export_group("Target")
