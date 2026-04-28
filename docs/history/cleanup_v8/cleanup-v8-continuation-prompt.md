@@ -5,8 +5,8 @@
 Implements `docs/history/cleanup_v8/cleanup-v8-tasks.md` in phase order with TDD discipline. V8 is the follow-up to V7.2, addressing structural/organizational debt rather than internal architectural issues.
 
 **Branch**: `cleanup-v8` (off `main`, after `GOAP-AI` merged via PR #16).
-**Status**: Phases 1–4 complete. Phase 5 not started (deferred to last per sequencing plan). Phase 6 **COMPLETE** — P6.1–P6.12 all done (`1148e2f5`). Phase 7 **IN PROGRESS** — P7.1 complete (`1cc1e11c`, `a309ff3a`), P7.2 complete (`2bf624ba`).
-**Next Task**: Phase 7.3 — `U_EditorPrefabBuilder` Visuals, Collision & Children.
+**Status**: Phases 1–4 complete. Phase 5 not started (deferred to last per sequencing plan). Phase 6 **COMPLETE** — P6.1–P6.12 all done (`1148e2f5`). Phase 7 **COMPLETE** — P7.1 complete (`1cc1e11c`, `a309ff3a`), P7.2 complete (`2bf624ba`), P7.3 complete (`761d5a0d`), P7.4–P7.7 complete (`bb6c88aa`–`a7f530d9`).
+**Next Task**: Phase 5 — Base Scene cleanup (deferred to last per original plan).
 **Prerequisite**: V7.2 complete (`e015aff2`). Phase 4 complete (`cbf0fd61`). All 18 P3.5 extension recipes complete (`b0c5b1cd`). P6.1 complete (`ec14181a`). P6.2 complete (`a23270b1`). P6.3 complete (`0cd59475`). P6.4 complete (`c6608c79`). P6.5 complete (`e28d0c30`, gap patch `5a176f9a`–`b29e3618`). P6.6 complete (`fb576449`). P6.7 complete (`a33d1153`–`0b69200f`). P6.8 complete (`4d680390`–`deac3004`). P6.9 complete (`df1deff5`–`cfdd907a`, loader tests `a16b0783`). P6.10 complete (`eb7f37c0`–`20e28d54`). P6.11 complete (`7dc8a7aa`–`8a21f645`).
 
 ---
@@ -41,7 +41,7 @@ Seven phases bundled for one goal: make the template LLM-friendly, modular, and 
   - Style suite: **89/89** after P4.10.
 - **Phase 5**: NOT STARTED. Deferred to last.
 - **Phase 6**: COMPLETE. P6.1 complete (`10310f00`–`ec14181a`). P6.2 complete (`a4c41434`–`a23270b1`). P6.3 complete (`d0c1224a`–`0cd59475`). P6.4 complete (`4a1218f1`–`c6608c79`). P6.5 complete (`6e9e7b6a`–`e28d0c30`, gap-patched `5a176f9a`–`b29e3618`). P6.6 complete (`f3806172`–`fb576449`). P6.7 complete (`a33d1153`–`0b69200f`). P6.8 complete (`4d680390`–`deac3004`). P6.9 complete (`df1deff5`–`cfdd907a`, loader tests `a16b0783`). P6.10 complete (`eb7f37c0`–`20e28d54`). P6.11 complete (`7dc8a7aa`–`8a21f645`). P6.12 complete (`1148e2f5`): ADR 0011 Builder Pattern Taxonomy + builders.md extension recipe + style enforcement update.
-- **Phase 7**: NOT STARTED. Reference plan: `~/.claude/plans/lets-add-a-new-humming-kay.md`.
+- **Phase 7**: COMPLETE. P7.1 complete (`1cc1e11c`, `a309ff3a`). P7.2 complete (`2bf624ba`). P7.3 complete (`761d5a0d`). P7.4 complete — `add_child_to` + `add_child_scene_to` builder methods. P7.5–P7.7 complete — builder scripts for all remaining prefabs (demo NPC body, wolf, rabbit, builder, demo NPC, player body, player, player ragdoll, alleyway, bar). Style suite 92/92, full suite 4807/4807 passing, 0 regressions. `.tscn` files kept as generated artifacts since other scenes/tests reference them via `ext_resource`.
 
 ---
 

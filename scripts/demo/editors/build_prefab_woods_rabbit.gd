@@ -1,7 +1,7 @@
 @tool
 extends EditorScript
 
-func _run() -\u003e void:
+func _run() -> void:
 	var builder: U_EditorPrefabBuilder = U_EditorPrefabBuilder.new()
 	builder.inherit_from("res://scenes/core/templates/tmpl_character.tscn")
 	builder.set_entity_id(\u0026"rabbit")
@@ -9,7 +9,7 @@ func _run() -\u003e void:
 
 	var body_mesh: CSGBox3D = CSGBox3D.new()
 	body_mesh.name = "Body_Mesh"
-	body_mesh.transform = Transform3D(0.6, 0, 0, 0, 0.7, 0, 0, 0, 0.9, 0, 0.7, 0)
+	body_mesh.transform = Transform3D(0.6, 0.0, 0.0, 0.0, 0.7, 0.0, 0.0, 0.0, 0.9, 0.0, 0.7, 0.0)
 	var mat: StandardMaterial3D = StandardMaterial3D.new()
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mat.albedo_color = Color(0.95, 0.95, 0.95)
