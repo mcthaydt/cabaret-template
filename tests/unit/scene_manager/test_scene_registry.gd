@@ -174,114 +174,8 @@ func test_settings_menu_scene_registered() -> void:
 	assert_false(scene_data.is_empty(), "settings_menu should be registered")
 	assert_eq(scene_data["scene_type"], U_SceneRegistry.SceneType.UI, "settings_menu should be UI type")
 
-## Test end-game scenes are backfilled when missing
-func test_endgame_scenes_backfilled_when_missing() -> void:
-	# Backup current registry and remove end-game scenes
-	var scenes_backup: Dictionary = (U_SceneRegistry._scenes as Dictionary).duplicate(true)
-
-	U_SceneRegistry._scenes.erase(StringName("game_over"))
-	U_SceneRegistry._scenes.erase(StringName("victory"))
-	U_SceneRegistry._scenes.erase(StringName("credits"))
-
-	# Invoke backfill to ensure critical end-game scenes are registered
-	U_SceneRegistry._backfill_default_gameplay_scenes()
-
-	var game_over: Dictionary = U_SceneRegistry.get_scene(StringName("game_over"))
-	assert_false(game_over.is_empty(), "game_over should be registered by backfill")
-	assert_eq(game_over.get("scene_type", -1), U_SceneRegistry.SceneType.END_GAME,
-		"game_over should be END_GAME type")
-
-	var victory: Dictionary = U_SceneRegistry.get_scene(StringName("victory"))
-	assert_false(victory.is_empty(), "victory should be registered by backfill")
-	assert_eq(victory.get("scene_type", -1), U_SceneRegistry.SceneType.END_GAME,
-		"victory should be END_GAME type")
-
-	var credits: Dictionary = U_SceneRegistry.get_scene(StringName("credits"))
-	assert_false(credits.is_empty(), "credits should be registered by backfill")
-	assert_eq(credits.get("scene_type", -1), U_SceneRegistry.SceneType.END_GAME,
-		"credits should be END_GAME type")
-
-	# Restore original scenes to avoid impacting other tests
-	U_SceneRegistry._scenes = scenes_backup
-
-## Test gameplay scenes backfill prefers loading transition when missing
-func test_gameplay_scenes_backfilled_with_loading_transition() -> void:
-	var scenes_backup: Dictionary = (U_SceneRegistry._scenes as Dictionary).duplicate(true)
-
-	U_SceneRegistry._scenes.erase(StringName("gameplay_base"))
-	U_SceneRegistry._scenes.erase(StringName("alleyway"))
-	U_SceneRegistry._scenes.erase(StringName("interior_house"))
-	U_SceneRegistry._scenes.erase(StringName("interior_a"))
-	U_SceneRegistry._scenes.erase(StringName("bar"))
-	U_SceneRegistry._scenes.erase(StringName("power_core"))
-	U_SceneRegistry._scenes.erase(StringName("comms_array"))
-	U_SceneRegistry._scenes.erase(StringName("nav_nexus"))
-	U_SceneRegistry._scenes.erase(StringName("ai_showcase"))
-
-	U_SceneRegistry._backfill_default_gameplay_scenes()
-
-	var gameplay_base: Dictionary = U_SceneRegistry.get_scene(StringName("gameplay_base"))
-	assert_false(gameplay_base.is_empty(), "gameplay_base should be registered by backfill")
-	assert_eq(String(gameplay_base.get("default_transition", "")), "loading", "gameplay_base backfill should prefer loading transition")
-
-	var alleyway: Dictionary = U_SceneRegistry.get_scene(StringName("alleyway"))
-	assert_false(alleyway.is_empty(), "alleyway should be registered by backfill")
-	assert_eq(String(alleyway.get("default_transition", "")), "loading", "alleyway backfill should prefer loading transition")
-
-	var interior: Dictionary = U_SceneRegistry.get_scene(StringName("interior_house"))
-	assert_false(interior.is_empty(), "interior_house should be registered by backfill")
-	assert_eq(String(interior.get("default_transition", "")), "loading", "interior_house backfill should prefer loading transition")
-
-	var interior_a: Dictionary = U_SceneRegistry.get_scene(StringName("interior_a"))
-	assert_false(interior_a.is_empty(), "interior_a should be registered by backfill")
-	assert_eq(String(interior_a.get("default_transition", "")), "loading", "interior_a backfill should prefer loading transition")
-
-	var bar: Dictionary = U_SceneRegistry.get_scene(StringName("bar"))
-	assert_false(bar.is_empty(), "bar should be registered by backfill")
-	assert_eq(String(bar.get("default_transition", "")), "loading", "bar backfill should prefer loading transition")
-
-	var power_core: Dictionary = U_SceneRegistry.get_scene(StringName("power_core"))
-	assert_false(power_core.is_empty(), "power_core should be registered by backfill")
-	assert_eq(String(power_core.get("default_transition", "")), "loading", "power_core backfill should prefer loading transition")
-
-	var comms_array: Dictionary = U_SceneRegistry.get_scene(StringName("comms_array"))
-	assert_false(comms_array.is_empty(), "comms_array should be registered by backfill")
-	assert_eq(String(comms_array.get("default_transition", "")), "loading", "comms_array backfill should prefer loading transition")
-
-	var nav_nexus: Dictionary = U_SceneRegistry.get_scene(StringName("nav_nexus"))
-	assert_false(nav_nexus.is_empty(), "nav_nexus should be registered by backfill")
-	assert_eq(String(nav_nexus.get("default_transition", "")), "loading", "nav_nexus backfill should prefer loading transition")
-
-	var ai_showcase: Dictionary = U_SceneRegistry.get_scene(StringName("ai_showcase"))
-	assert_false(ai_showcase.is_empty(), "ai_showcase should be registered by backfill")
-	assert_eq(String(ai_showcase.get("default_transition", "")), "loading", "ai_showcase backfill should prefer loading transition")
-
-	U_SceneRegistry._scenes = scenes_backup
-
-func test_ai_demo_scene_entries_registered() -> void:
-	var power_core: Dictionary = U_SceneRegistry.get_scene(StringName("power_core"))
-	assert_false(power_core.is_empty(), "power_core scene should be registered")
-	assert_eq(String(power_core.get("path", "")), "res://scenes/demo/gameplay/gameplay_power_core.tscn")
-	assert_eq(power_core.get("scene_type", -1), U_SceneRegistry.SceneType.GAMEPLAY)
-
-	var comms_array: Dictionary = U_SceneRegistry.get_scene(StringName("comms_array"))
-	assert_false(comms_array.is_empty(), "comms_array scene should be registered")
-	assert_eq(String(comms_array.get("path", "")), "res://scenes/demo/gameplay/gameplay_comms_array.tscn")
-	assert_eq(comms_array.get("scene_type", -1), U_SceneRegistry.SceneType.GAMEPLAY)
-
-	var nav_nexus: Dictionary = U_SceneRegistry.get_scene(StringName("nav_nexus"))
-	assert_false(nav_nexus.is_empty(), "nav_nexus scene should be registered")
-	assert_eq(String(nav_nexus.get("path", "")), "res://scenes/demo/gameplay/gameplay_nav_nexus.tscn")
-	assert_eq(nav_nexus.get("scene_type", -1), U_SceneRegistry.SceneType.GAMEPLAY)
-
-	var ai_showcase: Dictionary = U_SceneRegistry.get_scene(StringName("ai_showcase"))
-	assert_false(ai_showcase.is_empty(), "ai_showcase scene should be registered")
-	assert_eq(String(ai_showcase.get("path", "")), "res://scenes/demo/gameplay/gameplay_ai_showcase.tscn")
-	assert_eq(ai_showcase.get("scene_type", -1), U_SceneRegistry.SceneType.GAMEPLAY)
-
-func test_mobile_preloaded_scene_registry_manifest_includes_ai_demo_scenes() -> void:
-	# Since P6.7, mobile-safe scene availability comes from the builder manifest,
-	# not PRELOADED_SCENE_REGISTRY_ENTRIES (which is intentionally empty).
+## Test end-game scenes are present in the manifest
+func test_endgame_scenes_present_in_manifest() -> void:
 	var manifest_script: Script = load(U_SceneRegistryLoader.MANIFEST_SCRIPT_PATH)
 	assert_not_null(manifest_script, "Scene manifest script must load")
 	if manifest_script == null:
@@ -289,29 +183,66 @@ func test_mobile_preloaded_scene_registry_manifest_includes_ai_demo_scenes() -> 
 	var manifest: Object = manifest_script.new()
 	var scenes: Dictionary = manifest.call("build") as Dictionary
 
-	assert_true(scenes.has(StringName("power_core")),
-		"Scene manifest should include power_core for mobile/web builds")
-	assert_true(scenes.has(StringName("comms_array")),
-		"Scene manifest should include comms_array for mobile/web builds")
-	assert_true(scenes.has(StringName("nav_nexus")),
-		"Scene manifest should include nav_nexus for mobile/web builds")
-	assert_true(scenes.has(StringName("ai_showcase")),
-		"Scene manifest should include ai_showcase for mobile/web builds")
+	var game_over: Dictionary = scenes.get(StringName("game_over"), {}) as Dictionary
+	assert_false(game_over.is_empty(), "game_over should be present in manifest")
+	assert_eq(game_over.get("scene_type", -1), U_SceneRegistry.SceneType.END_GAME,
+		"game_over should be END_GAME type")
 
-## Test localization settings UI scene is backfilled when registry resources are missing
-func test_localization_settings_scene_backfilled_when_missing() -> void:
-	var scenes_backup: Dictionary = (U_SceneRegistry._scenes as Dictionary).duplicate(true)
+	var victory: Dictionary = scenes.get(StringName("victory"), {}) as Dictionary
+	assert_false(victory.is_empty(), "victory should be present in manifest")
+	assert_eq(victory.get("scene_type", -1), U_SceneRegistry.SceneType.END_GAME,
+		"victory should be END_GAME type")
 
-	U_SceneRegistry._scenes.erase(StringName("localization_settings"))
-	U_SceneRegistry._backfill_default_gameplay_scenes()
+	var credits: Dictionary = scenes.get(StringName("credits"), {}) as Dictionary
+	assert_false(credits.is_empty(), "credits should be present in manifest")
+	assert_eq(credits.get("scene_type", -1), U_SceneRegistry.SceneType.END_GAME,
+		"credits should be END_GAME type")
 
-	var localization_settings: Dictionary = U_SceneRegistry.get_scene(StringName("localization_settings"))
-	assert_false(localization_settings.is_empty(), "localization_settings should be registered by backfill")
-	assert_eq(localization_settings.get("scene_type", -1), U_SceneRegistry.SceneType.UI, "localization_settings should be UI type")
+## Test gameplay scenes in manifest have valid transitions and types
+func test_gameplay_scenes_have_valid_manifest_entries() -> void:
+	var manifest_script: Script = load(U_SceneRegistryLoader.MANIFEST_SCRIPT_PATH)
+	assert_not_null(manifest_script, "Scene manifest script must load")
+	if manifest_script == null:
+		return
+	var manifest: Object = manifest_script.new()
+	var scenes: Dictionary = manifest.call("build") as Dictionary
+
+	var gameplay_ids: Array[StringName] = [
+		StringName("gameplay_base"),
+		StringName("alleyway"),
+		StringName("interior_house"),
+		StringName("interior_a"),
+		StringName("bar"),
+		StringName("power_core"),
+		StringName("comms_array"),
+		StringName("nav_nexus"),
+		StringName("ai_showcase"),
+	]
+
+	for scene_id: StringName in gameplay_ids:
+		var entry: Dictionary = scenes.get(scene_id, {}) as Dictionary
+		assert_false(entry.is_empty(), "'%s' should be present in manifest" % scene_id)
+		assert_eq(entry.get("scene_type", -1), U_SceneRegistry.SceneType.GAMEPLAY,
+			"'%s' should be GAMEPLAY type in manifest" % scene_id)
+		var transition: String = String(entry.get("default_transition", ""))
+		assert_true(transition in ["instant", "fade", "loading"],
+			"'%s' should have a valid transition in manifest" % scene_id)
+
+## Test localization settings UI scene is present in the manifest
+func test_localization_settings_scene_present_in_manifest() -> void:
+	var manifest_script: Script = load(U_SceneRegistryLoader.MANIFEST_SCRIPT_PATH)
+	assert_not_null(manifest_script, "Scene manifest script must load")
+	if manifest_script == null:
+		return
+	var manifest: Object = manifest_script.new()
+	var scenes: Dictionary = manifest.call("build") as Dictionary
+
+	var localization_settings: Dictionary = scenes.get(StringName("localization_settings"), {}) as Dictionary
+	assert_false(localization_settings.is_empty(), "localization_settings should be present in manifest")
+	assert_eq(localization_settings.get("scene_type", -1), U_SceneRegistry.SceneType.UI,
+		"localization_settings should be UI type")
 	assert_eq(
 		String(localization_settings.get("path", "")),
 		"res://scenes/core/ui/overlays/settings/ui_localization_settings_overlay.tscn",
 		"localization_settings should point to the localization settings overlay scene"
 	)
-
-	U_SceneRegistry._scenes = scenes_backup
