@@ -11,7 +11,7 @@ func _run() -> void:
 		"res://resources/core/interactions/doors/cfg_door_default.tres",
 		{})
 	var door_visual: Node = U_EditorShapeFactory.create_csg_cylinder("DoorVisual", 0.7910156, 2.0715332, Color.WHITE)
-	door_visual.transform = Transform3D(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, -0.40026855, 0.0)
+	door_visual.position = Vector3(0.0, -0.40026855, 0.0)
 	builder.add_child_to(".", door_visual)
 	builder.save("res://scenes/core/prefabs/prefab_door_trigger.tscn")
 	print("prefab_door_trigger rebuilt.")

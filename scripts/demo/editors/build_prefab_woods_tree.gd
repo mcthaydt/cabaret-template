@@ -6,7 +6,7 @@ func _run() -> void:
 	builder.create_root("StaticBody3D", "E_WoodsTree")
 	builder.add_csg_cylinder("Trunk", 0.3, 3.0, Color(0.4, 0.26, 0.13))
 	var foliage: Node = U_EditorShapeFactory.create_csg_sphere("Foliage", 1.2, Color(0.2, 0.55, 0.15))
-	foliage.transform = Transform3D(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 2.0, 0.0)
+	foliage.position = Vector3(0.0, 2.0, 0.0)
 	builder.add_child_to(".", foliage)
 	builder.add_collision_box("CollisionShape3D", Vector3(1.5, 3.0, 1.5))
 	builder.add_ecs_component_by_path(

@@ -14,7 +14,7 @@ func _run() -> void:
 		})
 	builder.add_csg_box("MeshInstance3D", Vector3(1.5, 0.5, 1.5), Color.WHITE)
 	var spikes: Node = U_EditorShapeFactory.create_csg_cylinder("SpikeTips", 0.0, 1.0, Color.WHITE)
-	spikes.transform = Transform3D(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.5, 0.0)
+	spikes.position = Vector3(0.0, 0.5, 0.0)
 	builder.add_child_to(".", spikes)
 	builder.save("res://scenes/core/prefabs/prefab_spike_trap.tscn")
 	print("prefab_spike_trap rebuilt.")

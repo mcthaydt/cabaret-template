@@ -9,7 +9,7 @@ func _run() -> void:
 
 	var body_mesh: CSGBox3D = CSGBox3D.new()
 	body_mesh.name = "Body_Mesh"
-	body_mesh.transform = Transform3D(0.6, 0.0, 0.0, 0.0, 0.7, 0.0, 0.0, 0.0, 0.9, 0.0, 0.7, 0.0)
+	body_mesh.transform = Transform3D(Basis(Vector3(0.6, 0.0, 0.0), Vector3(0.0, 0.7, 0.0), Vector3(0.0, 0.0, 0.9)), Vector3(0.0, 0.7, 0.0))
 	var mat: StandardMaterial3D = StandardMaterial3D.new()
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mat.albedo_color = Color(0.95, 0.95, 0.95)

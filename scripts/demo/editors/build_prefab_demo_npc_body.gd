@@ -22,7 +22,7 @@ func _run() -> void:
 
 	var ground: Sprite3D = Sprite3D.new()
 	ground.name = "GroundIndicator"
-	ground.transform = Transform3D(0.2, 0.0, 0.0, 0.0, -8.742278e-09, -0.2, 0.0, 0.2, -8.742278e-09, 0.0, -2.3227184, 0.0)
+	ground.transform = Transform3D(Basis(Vector3(0.2, 0.0, 0.0), Vector3(0.0, -8.742278e-09, 0.2), Vector3(0.0, -0.2, -8.742278e-09)), Vector3(0.0, -2.3227184, 0.0))
 	ground.modulate = Color(1, 1, 1, 0.49803922)
 	ground.texture = load("res://assets/core/textures/tex_shadow_blob.png")
 	builder.add_child_to(".", ground)
