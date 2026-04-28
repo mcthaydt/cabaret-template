@@ -5,6 +5,8 @@ class_name UI_DisplaySettingsTab
 const DEFAULT_DISPLAY_INITIAL_STATE: Resource = preload("res://resources/core/base_settings/state/cfg_display_initial_state.tres")
 const WINDOW_CONFIRM_SECONDS := 10
 const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_localization_utils.gd")
+const U_SETTINGS_TAB_BUILDER := preload("res://scripts/core/ui/helpers/u_settings_tab_builder.gd")
+const U_UI_SETTINGS_CATALOG := preload("res://scripts/core/ui/helpers/u_ui_settings_catalog.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 
@@ -44,6 +46,7 @@ var _has_local_edits: bool = false
 var _window_confirm_active: bool = false
 var _window_confirm_seconds_left: int = 0
 var _pending_window_settings: Dictionary = {}
+var _builder: RefCounted = null
 
 var _window_size_values: Array[String] = []
 var _window_mode_values: Array[String] = []
@@ -89,11 +92,11 @@ var _color_blind_mode_values: Array[String] = []
 @onready var _high_contrast_label: Label = $Scroll/ContentMargin/Content/AccessibilitySection/AccessibilityVBox/AccessibilityInner/HighContrastRow/HighContrastLabel
 
 func _ready() -> void:
-	_apply_theme_tokens()
-	_connect_signals()
-	_localize_labels()
+	_setup_builder()
 	_hide_desktop_only_controls_on_mobile()
-	_configure_focus_neighbors()
+	if _builder != null:
+		_builder.build()
+	set_meta(&"settings_builder", true)
 
 	_state_store = U_StateUtils.get_store(self)
 	if _state_store == null:
@@ -105,65 +108,44 @@ func _ready() -> void:
 	_unsubscribe = _state_store.subscribe(_on_state_changed)
 	_on_state_changed({}, _state_store.get_state())
 
-func _apply_theme_tokens() -> void:
-	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
-	if not (config_resource is RS_UI_THEME_CONFIG):
-		return
-	var config := config_resource as RS_UI_THEME_CONFIG
-
-	if _content_margin != null:
-		_content_margin.add_theme_constant_override(&"margin_left", config.margin_section)
-		_content_margin.add_theme_constant_override(&"margin_top", config.margin_section)
-		_content_margin.add_theme_constant_override(&"margin_right", config.margin_section)
-		_content_margin.add_theme_constant_override(&"margin_bottom", config.margin_section)
-
-	if _heading_label != null:
-		_heading_label.add_theme_font_size_override(&"font_size", config.heading)
-
-	var section_headers: Array[Label] = [
-		_graphics_header_label,
-		_post_process_header_label,
-		_ui_header_label,
-		_accessibility_header_label,
-	]
-	for section_header in section_headers:
-		if section_header != null:
-			section_header.add_theme_font_size_override(&"font_size", config.section_header)
-			section_header.add_theme_color_override(&"font_color", config.section_header_color)
-
-	var field_labels: Array[Label] = [
-		_window_size_label,
-		_window_mode_label,
-		_vsync_label,
-		_quality_label,
-		_post_processing_label,
-		_post_process_preset_label,
-		_ui_scale_label,
-		_color_blind_mode_label,
-		_high_contrast_label,
-	]
-	for field_label in field_labels:
-		if field_label != null:
-			field_label.add_theme_font_size_override(&"font_size", config.body_small)
-			field_label.add_theme_color_override(&"font_color", config.text_secondary)
-
-	var controls_with_section_header_size: Array[Control] = [
-		_window_size_option,
-		_window_mode_option,
-		_vsync_toggle,
-		_quality_preset_option,
-		_post_processing_toggle,
-		_post_processing_preset_option,
-		_ui_scale_value,
-		_color_blind_mode_option,
-		_high_contrast_toggle,
-		_cancel_button,
-		_reset_button,
-		_apply_button,
-	]
-	for themed_control in controls_with_section_header_size:
-		if themed_control != null:
-			themed_control.add_theme_font_size_override(&"font_size", config.section_header)
+func _setup_builder() -> void:
+	_populate_option_buttons()
+	_builder = U_SETTINGS_TAB_BUILDER.new(self)
+	_builder.bind_heading(_heading_label, TITLE_KEY)
+	_builder.bind_section_header(_graphics_header_label, SECTION_GRAPHICS_KEY)
+	_builder.bind_section_header(_post_process_header_label, SECTION_POST_PROCESSING_KEY)
+	_builder.bind_section_header(_ui_header_label, SECTION_UI_KEY)
+	_builder.bind_section_header(_accessibility_header_label, SECTION_ACCESSIBILITY_KEY)
+	_builder.bind_field_label(_window_size_label, LABEL_WINDOW_SIZE_KEY)
+	_builder.bind_field_label(_window_mode_label, LABEL_WINDOW_MODE_KEY)
+	_builder.bind_field_label(_vsync_label, LABEL_VSYNC_KEY)
+	_builder.bind_field_label(_quality_label, LABEL_QUALITY_PRESET_KEY)
+	_builder.bind_field_label(_post_processing_label, LABEL_POST_PROCESSING_KEY)
+	_builder.bind_field_label(_post_process_preset_label, LABEL_POST_PROCESSING_PRESET_KEY)
+	_builder.bind_field_label(_ui_scale_label, LABEL_UI_SCALE_KEY)
+	_builder.bind_value_label(_ui_scale_value)
+	_builder.bind_field_label(_color_blind_mode_label, LABEL_COLOR_BLIND_MODE_KEY)
+	_builder.bind_field_label(_high_contrast_label, LABEL_HIGH_CONTRAST_KEY)
+	_builder.bind_field_control(_window_size_option, _on_window_size_selected)
+	_builder.bind_field_control(_window_mode_option, _on_window_mode_selected)
+	_builder.bind_field_control(_vsync_toggle, _on_vsync_toggled)
+	_builder.bind_field_control(_quality_preset_option, _on_quality_preset_selected)
+	_builder.bind_field_control(_post_processing_toggle, _on_post_processing_toggled)
+	_builder.bind_field_control(_post_processing_preset_option, _on_post_processing_preset_selected)
+	_builder.bind_field_control(_ui_scale_slider, _on_ui_scale_changed)
+	_builder.bind_field_control(_color_blind_mode_option, _on_color_blind_mode_selected)
+	_builder.bind_field_control(_high_contrast_toggle, _on_high_contrast_toggled)
+	_builder.bind_action_button(_cancel_button, &"common.cancel", _on_cancel_pressed)
+	_builder.bind_action_button(_reset_button, &"common.reset", _on_reset_pressed)
+	_builder.bind_action_button(_apply_button, &"common.apply", _on_apply_pressed)
+	_connect_window_confirm_signals()
+	_setup_option_button_popup_focus(_window_size_option)
+	_setup_option_button_popup_focus(_window_mode_option)
+	_setup_option_button_popup_focus(_quality_preset_option)
+	_setup_option_button_popup_focus(_post_processing_preset_option)
+	_setup_option_button_popup_focus(_color_blind_mode_option)
+	_configure_tooltips()
+	_apply_builder_margin_tokens()
 
 func _exit_tree() -> void:
 	_stop_window_confirm_timer()
@@ -173,35 +155,7 @@ func _exit_tree() -> void:
 		_unsubscribe.call()
 		_unsubscribe = Callable()
 
-func _connect_signals() -> void:
-	if _window_size_option != null and not _window_size_option.item_selected.is_connected(_on_window_size_selected):
-		_window_size_option.item_selected.connect(_on_window_size_selected)
-	if _window_mode_option != null and not _window_mode_option.item_selected.is_connected(_on_window_mode_selected):
-		_window_mode_option.item_selected.connect(_on_window_mode_selected)
-	if _vsync_toggle != null and not _vsync_toggle.toggled.is_connected(_on_vsync_toggled):
-		_vsync_toggle.toggled.connect(_on_vsync_toggled)
-	if _quality_preset_option != null and not _quality_preset_option.item_selected.is_connected(_on_quality_preset_selected):
-		_quality_preset_option.item_selected.connect(_on_quality_preset_selected)
-
-	if _post_processing_toggle != null and not _post_processing_toggle.toggled.is_connected(_on_post_processing_toggled):
-		_post_processing_toggle.toggled.connect(_on_post_processing_toggled)
-	if _post_processing_preset_option != null and not _post_processing_preset_option.item_selected.is_connected(_on_post_processing_preset_selected):
-		_post_processing_preset_option.item_selected.connect(_on_post_processing_preset_selected)
-
-	if _ui_scale_slider != null and not _ui_scale_slider.value_changed.is_connected(_on_ui_scale_changed):
-		_ui_scale_slider.value_changed.connect(_on_ui_scale_changed)
-
-	if _color_blind_mode_option != null and not _color_blind_mode_option.item_selected.is_connected(_on_color_blind_mode_selected):
-		_color_blind_mode_option.item_selected.connect(_on_color_blind_mode_selected)
-	if _high_contrast_toggle != null and not _high_contrast_toggle.toggled.is_connected(_on_high_contrast_toggled):
-		_high_contrast_toggle.toggled.connect(_on_high_contrast_toggled)
-
-	if _cancel_button != null and not _cancel_button.pressed.is_connected(_on_cancel_pressed):
-		_cancel_button.pressed.connect(_on_cancel_pressed)
-	if _reset_button != null and not _reset_button.pressed.is_connected(_on_reset_pressed):
-		_reset_button.pressed.connect(_on_reset_pressed)
-	if _apply_button != null and not _apply_button.pressed.is_connected(_on_apply_pressed):
-		_apply_button.pressed.connect(_on_apply_pressed)
+func _connect_window_confirm_signals() -> void:
 	if _window_confirm_dialog != null:
 		_configure_window_confirm_dialog()
 		if not _window_confirm_dialog.confirmed.is_connected(_on_window_confirm_keep):
@@ -214,26 +168,20 @@ func _connect_signals() -> void:
 	if _window_confirm_timer != null and not _window_confirm_timer.timeout.is_connected(_on_window_confirm_timer_timeout):
 		_window_confirm_timer.timeout.connect(_on_window_confirm_timer_timeout)
 
-	_setup_option_button_popup_focus(_window_size_option)
-	_setup_option_button_popup_focus(_window_mode_option)
-	_setup_option_button_popup_focus(_quality_preset_option)
-	_setup_option_button_popup_focus(_post_processing_preset_option)
-	_setup_option_button_popup_focus(_color_blind_mode_option)
-
 func _populate_option_buttons() -> void:
 	_populate_option_button(
 		_window_size_option,
-		U_DisplayOptionCatalog.get_window_size_option_entries(),
+		U_UI_SETTINGS_CATALOG.get_window_sizes(),
 		_window_size_values
 	)
 	_populate_option_button(
 		_window_mode_option,
-		U_DisplayOptionCatalog.get_window_mode_option_entries(),
+		U_UI_SETTINGS_CATALOG.get_window_modes(),
 		_window_mode_values
 	)
 	_populate_option_button(
 		_quality_preset_option,
-		U_DisplayOptionCatalog.get_quality_option_entries(),
+		U_UI_SETTINGS_CATALOG.get_quality_presets(),
 		_quality_preset_values
 	)
 	_populate_option_button(
@@ -255,55 +203,12 @@ func _populate_option_button(button: OptionButton, options: Array, values: Array
 	for option in options:
 		if option is Dictionary:
 			var entry := option as Dictionary
-			var label := str(entry.get("label", ""))
+			var label := _localize_with_fallback(entry.get("label_key", &""), str(entry.get("id", "")))
 			var value := str(entry.get("id", ""))
 			if label.is_empty():
 				label = value
 			button.add_item(label)
 			values.append(value)
-
-func _configure_focus_neighbors() -> void:
-	var focusables: Array[Control] = []
-	# Only add visible controls to the focusables list (respects mobile platform hiding)
-	if _window_size_option != null and _window_size_option.get_parent().visible:
-		focusables.append(_window_size_option)
-	if _window_mode_option != null and _window_mode_option.get_parent().visible:
-		focusables.append(_window_mode_option)
-	if _vsync_toggle != null and _vsync_toggle.get_parent().visible:
-		focusables.append(_vsync_toggle)
-	if _quality_preset_option != null:
-		focusables.append(_quality_preset_option)
-
-	if _post_processing_toggle != null:
-		focusables.append(_post_processing_toggle)
-	if _post_processing_preset_option != null:
-		focusables.append(_post_processing_preset_option)
-
-	if _ui_scale_slider != null:
-		focusables.append(_ui_scale_slider)
-	if _color_blind_mode_option != null:
-		focusables.append(_color_blind_mode_option)
-	if _high_contrast_toggle != null:
-		focusables.append(_high_contrast_toggle)
-
-	var buttons: Array[Control] = []
-	if _cancel_button != null:
-		buttons.append(_cancel_button)
-	if _reset_button != null:
-		buttons.append(_reset_button)
-	if _apply_button != null:
-		buttons.append(_apply_button)
-
-	# Add buttons to focusables for vertical wrapping
-	for button in buttons:
-		focusables.append(button)
-
-	if not focusables.is_empty():
-		U_FocusConfigurator.configure_vertical_focus(focusables, true)
-
-	# Configure horizontal navigation between buttons
-	if not buttons.is_empty():
-		U_FocusConfigurator.configure_horizontal_focus(buttons, true)
 
 func _configure_tooltips() -> void:
 	if _window_size_option != null:
@@ -326,6 +231,18 @@ func _configure_tooltips() -> void:
 			TOOLTIP_UI_SCALE_KEY,
 			"Scales the UI size."
 		)
+
+func _apply_builder_margin_tokens() -> void:
+	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
+	if not (config_resource is RS_UI_THEME_CONFIG):
+		return
+	var config := config_resource as RS_UI_THEME_CONFIG
+	if _content_margin == null:
+		return
+	_content_margin.add_theme_constant_override(&"margin_left", config.margin_section)
+	_content_margin.add_theme_constant_override(&"margin_top", config.margin_section)
+	_content_margin.add_theme_constant_override(&"margin_right", config.margin_section)
+	_content_margin.add_theme_constant_override(&"margin_bottom", config.margin_section)
 
 func _hide_desktop_only_controls_on_mobile() -> void:
 	# Hide desktop-only controls on mobile platforms
@@ -764,36 +681,8 @@ func _on_locale_changed(_locale: StringName) -> void:
 func _localize_labels() -> void:
 	_relocalize_option_buttons()
 	_configure_tooltips()
-
-	if _heading_label != null:
-		_heading_label.text = _localize_with_fallback(TITLE_KEY, "Display Settings")
-	if _graphics_header_label != null:
-		_graphics_header_label.text = _localize_with_fallback(SECTION_GRAPHICS_KEY, "Graphics")
-	if _post_process_header_label != null:
-		_post_process_header_label.text = _localize_with_fallback(SECTION_POST_PROCESSING_KEY, "Post-Processing")
-	if _ui_header_label != null:
-		_ui_header_label.text = _localize_with_fallback(SECTION_UI_KEY, "UI")
-	if _accessibility_header_label != null:
-		_accessibility_header_label.text = _localize_with_fallback(SECTION_ACCESSIBILITY_KEY, "Accessibility")
-
-	if _window_size_label != null:
-		_window_size_label.text = _localize_with_fallback(LABEL_WINDOW_SIZE_KEY, "Window Size")
-	if _window_mode_label != null:
-		_window_mode_label.text = _localize_with_fallback(LABEL_WINDOW_MODE_KEY, "Window Mode")
-	if _vsync_label != null:
-		_vsync_label.text = _localize_with_fallback(LABEL_VSYNC_KEY, "VSync")
-	if _quality_label != null:
-		_quality_label.text = _localize_with_fallback(LABEL_QUALITY_PRESET_KEY, "Quality Preset")
-	if _post_processing_label != null:
-		_post_processing_label.text = _localize_with_fallback(LABEL_POST_PROCESSING_KEY, "Post-Processing")
-	if _post_process_preset_label != null:
-		_post_process_preset_label.text = _localize_with_fallback(LABEL_POST_PROCESSING_PRESET_KEY, "Intensity Preset")
-	if _ui_scale_label != null:
-		_ui_scale_label.text = _localize_with_fallback(LABEL_UI_SCALE_KEY, "UI Scale")
-	if _color_blind_mode_label != null:
-		_color_blind_mode_label.text = _localize_with_fallback(LABEL_COLOR_BLIND_MODE_KEY, "Color Blind Mode")
-	if _high_contrast_label != null:
-		_high_contrast_label.text = _localize_with_fallback(LABEL_HIGH_CONTRAST_KEY, "High Contrast")
+	if _builder != null:
+		_builder.localize_labels()
 
 	var enabled_text: String = _localize_with_fallback(LABEL_TOGGLE_ENABLED_KEY, "Enabled")
 	if _vsync_toggle != null:

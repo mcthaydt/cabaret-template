@@ -126,6 +126,30 @@ func test_builder_refreshes_localization_and_theme() -> void:
 	assert_eq(heading.text, "settings.audio.title", "Localization refresh should keep fallback key text")
 
 
+func test_builder_can_bind_existing_controls() -> void:
+	var builder_script := _get_builder_script()
+	if builder_script == null:
+		return
+	var config := RS_UI_THEME_CONFIG.new()
+	config.heading = 34
+	U_UI_THEME_BUILDER.active_config = config
+	var tab := VBoxContainer.new()
+	var heading := Label.new()
+	var option := OptionButton.new()
+	tab.add_child(heading)
+	tab.add_child(option)
+	add_child_autofree(tab)
+
+	var builder = builder_script.new(tab)
+	assert_eq(builder.bind_heading(heading, &"settings.display.title"), builder, "Binding should be fluent")
+	builder.bind_field_control(option, _on_dropdown_selected).build()
+	option.item_selected.emit(2)
+
+	assert_eq(heading.text, "settings.display.title", "Bound label should localize")
+	assert_eq(heading.get_theme_font_size(&"font_size"), 34, "Bound label should theme")
+	assert_eq(_dropdown_selected, 2, "Bound control should wire callback")
+
+
 func _get_builder_script() -> GDScript:
 	if not ResourceLoader.exists(BUILDER_PATH):
 		assert_true(false, "U_SettingsTabBuilder script should exist")

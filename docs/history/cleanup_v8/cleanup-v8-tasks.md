@@ -2116,14 +2116,14 @@ These ~780 lines of boilerplate collapse to ~80 lines of declarative builder cha
 
 **Goal**: Convert `ui_display_settings_tab.gd` from 873 lines / 35 @onready vars to a builder-driven implementation. Proof-of-concept and validation of the full builder pipeline end-to-end.
 
-- [ ] **Commit 1** (RED) — Integration test: `tests/unit/ui/settings/test_ui_display_settings_tab_builder.gd`:
+- [x] **Commit 1** (RED) — Integration test: `tests/unit/ui/settings/test_ui_display_settings_tab_builder.gd`:
   - Builder script produces a tab with all display settings controls equivalent to the existing `.tscn`-authored tab.
   - All OptionButtons populated from `U_UISettingsCatalog`.
   - All signal callbacks fire correctly (window size, window mode, vsync, quality, etc.).
   - Focus chain covers all interactive controls in correct order.
   - Theme tokens applied correctly to all controls.
   - Localization keys resolve to current locale strings.
-- [ ] **Commit 2** (GREEN) — Refactor `ui_display_settings_tab.gd`:
+- [x] **Commit 2** (GREEN) — Refactor `ui_display_settings_tab.gd`:
   - Replace 35 @onready vars with builder-constructed nodes
   - Replace `_apply_theme_tokens()` (60 lines) with `builder.apply_theme_tokens(config)`
   - Replace `_localize_labels()` (54 lines) with `builder.localize_labels()`
@@ -2137,11 +2137,11 @@ These ~780 lines of boilerplate collapse to ~80 lines of declarative builder cha
 
 **P8.3 Verification**:
 - [ ] Display settings tab functions identically to pre-migration
-- [ ] All theme tokens applied correctly
-- [ ] Localization refresh works on locale change
+- [x] All theme tokens applied correctly
+- [x] Localization refresh works on locale change
 - [ ] Focus chain navigable by gamepad
-- [ ] Full suite green
-- [ ] No orphaned scene references
+- [x] Full suite green
+- [x] No orphaned scene references
 
 ---
 

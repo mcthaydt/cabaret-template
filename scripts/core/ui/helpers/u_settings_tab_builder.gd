@@ -22,6 +22,44 @@ func set_heading(key: StringName) -> U_SettingsTabBuilder:
 	_theme_map.append({"control": label, "role": &"heading"})
 	return self
 
+func bind_heading(label: Label, key: StringName) -> U_SettingsTabBuilder:
+	_bind_label(label, key, &"heading")
+	return self
+
+func bind_section_header(label: Label, key: StringName) -> U_SettingsTabBuilder:
+	_bind_label(label, key, &"section_header")
+	return self
+
+func bind_field_label(label: Label, key: StringName) -> U_SettingsTabBuilder:
+	_bind_label(label, key, &"field_label")
+	return self
+
+func bind_value_label(label: Label, key: StringName = &"") -> U_SettingsTabBuilder:
+	_bind_label(label, key, &"value_label")
+	return self
+
+func bind_row(row: Control, compact: bool = false) -> U_SettingsTabBuilder:
+	if row != null:
+		_theme_map.append({"control": row, "role": &"compact_row" if compact else &"default_row"})
+	return self
+
+func bind_field_control(control: Control, callback: Callable = Callable()) -> U_SettingsTabBuilder:
+	if control == null:
+		return self
+	_theme_map.append({"control": control, "role": &"field_control"})
+	_focusable_controls.append(control)
+	_wire_control_callback(control, callback)
+	return self
+
+func bind_action_button(button: Button, key: StringName, callback: Callable = Callable()) -> U_SettingsTabBuilder:
+	if button == null:
+		return self
+	_label_keys[button] = key
+	_theme_map.append({"control": button, "role": &"action"})
+	_focusable_controls.append(button)
+	_connect(button.pressed, callback)
+	return self
+
 func begin_section(key: StringName) -> U_SettingsTabBuilder:
 	var section := VBoxContainer.new()
 	section.name = "Section"
@@ -140,6 +178,22 @@ func _register_field(label: Label, control: Control) -> void:
 	_theme_map.append({"control": label, "role": &"field_label"})
 	_theme_map.append({"control": control, "role": &"field_control"})
 	_focusable_controls.append(control)
+
+func _bind_label(label: Label, key: StringName, role: StringName) -> void:
+	if label == null:
+		return
+	_label_keys[label] = key
+	_theme_map.append({"control": label, "role": role})
+
+func _wire_control_callback(control: Control, callback: Callable) -> void:
+	if callback == Callable():
+		return
+	if control is OptionButton:
+		_connect((control as OptionButton).item_selected, callback)
+	elif control is BaseButton:
+		_connect((control as BaseButton).toggled, callback)
+	elif control is Range:
+		_connect((control as Range).value_changed, callback)
 
 func _connect(signal_ref: Signal, callback: Callable) -> void:
 	if callback.is_valid() and not signal_ref.is_connected(callback):
