@@ -4,8 +4,8 @@ extends EditorScript
 func _run() -> void:
 	var builder: U_EditorPrefabBuilder = U_EditorPrefabBuilder.new()
 	builder.inherit_from("res://scenes/core/templates/tmpl_character.tscn")
-	builder.set_entity_id(\u0026"rabbit")
-	builder.set_tags([\u0026"prey", \u0026"ai", \u0026"woods"])
+	builder.set_entity_id("rabbit")
+	builder.set_tags(["prey", "ai", "woods"])
 
 	var body_mesh: CSGBox3D = CSGBox3D.new()
 	body_mesh.name = "Body_Mesh"
