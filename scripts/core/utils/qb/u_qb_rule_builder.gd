@@ -96,7 +96,7 @@ static func constant(score: float = 1.0) -> RS_ConditionConstant:
 
 static func composite_all(children: Array) -> RS_ConditionComposite:
 	var c: RS_ConditionComposite = RS_CONDITION_COMPOSITE.new()
-	c.set("mode", 0)
+	c.mode = RS_ConditionComposite.CompositeMode.ALL
 	var sanitized: Variant = c.call("_sanitize_children", children)
 	c.set("_children", sanitized)
 	return c
@@ -104,7 +104,7 @@ static func composite_all(children: Array) -> RS_ConditionComposite:
 
 static func composite_any(children: Array) -> RS_ConditionComposite:
 	var c: RS_ConditionComposite = RS_CONDITION_COMPOSITE.new()
-	c.set("mode", 1)
+	c.mode = RS_ConditionComposite.CompositeMode.ANY
 	var sanitized: Variant = c.call("_sanitize_children", children)
 	c.set("_children", sanitized)
 	return c
