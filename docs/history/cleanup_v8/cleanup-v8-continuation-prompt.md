@@ -17,7 +17,7 @@ Seven phases bundled for one goal: make the template LLM-friendly, modular, and 
 
 1. **Phase 1 — AI Rewrite (utility-scored BTs).** COMPLETE. Replace GOAP + HTN with behavior trees. Net ~300 LOC reduction.
 2. **Phase 2 — Debug/Perf Extraction.** COMPLETE through P2.4. No bare `print()` in managers/systems enforced.
-3. **Phase 3 — Docs Split.** COMPLETE. `AGENTS.md` is a 58-line routing index. All 18 extension recipes shipped. ADR structure in place.
+3. **Phase 3 — Docs Split.** COMPLETE. `AGENTS.md` is a 58-line routing index. All 19 extension recipes shipped. ADR structure in place.
 4. **Phase 4 — Template vs Demo Split.** COMPLETE (P4.1–P4.10). Scripts, resources, scenes, and assets all split into `core/` and `demo/`. Style suite 89/89.
 5. **Phase 5 — Base Scene.** NOT STARTED. Deferred to last (easiest once code is organized).
 6. **Phase 6 — LLM-First Fluent Builders.** COMPLETE (P6.1–P6.13). Replace `.tres` resource authoring with GDScript builder APIs across BT trees, scene registry, input profiles, and QB rules. P6.13 gap-patch backfill removal + constant migrations (`64210f85`–`279fcc33`). Reference plan: `~/.claude/plans/stateless-tickling-meerkat.md`.
@@ -30,7 +30,7 @@ Seven phases bundled for one goal: make the template LLM-friendly, modular, and 
 
 - **Phase 1**: COMPLETE (P1.1–P1.10). Full BT framework, planner, brain component refactor, all 6 creature BTs migrated, legacy GOAP/HTN deleted.
 - **Phase 2**: COMPLETE through P2.4 (`28702b95`). Style recheck 83/83.
-- **Phase 3**: COMPLETE. P3.0–P3.6 landed. All 18 extension recipes shipped. `AGENTS.md` is routing index. `DEV_PITFALLS.md` deleted and redistributed into pitfall topic files. ADRs at `docs/architecture/adr/`.
+- **Phase 3**: COMPLETE. P3.0–P3.6 landed. All 19 extension recipes shipped. `AGENTS.md` is routing index. `DEV_PITFALLS.md` deleted and redistributed into pitfall topic files. ADRs at `docs/architecture/adr/`.
 - **Phase 4**: COMPLETE (P4.1–P4.10, `cbf0fd61`).
   - P4.1–P4.4: Scripts split. All scripts in `scripts/core/` or `scripts/demo/`. Core-never-imports-demo enforced.
   - P4.5: Resources & scenes audit (`72272902`).

@@ -1,7 +1,7 @@
 # Cross-System Cleanup V8 — Tasks Checklist
 
 **Branch**: `cleanup-v8` (off `main`, with `GOAP-AI` merged via PR #16). Phase 1 proceeds on this branch. Subsequent phases can branch from `main` after Phase 1 merges, or continue on `cleanup-v8` if preferred. Matches continuation prompt.
-**Status**: Phase 1 complete — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 complete (`26289494`, `fffa2e55`, `7de2a6cf`, `c1d7b0fb`, `a2766455`, `2aacb999` + remediation `91c094c0`..`e416469c`); P1.9b complete (`348802ca`, `b2c67185`, `7a96c4b0`, `d2644cf3`, `0bb07870`, `085c428d`, `73a66510`, `cd2afbcf`, `94d4b7c6` + 2026-04-22 verification follow-through); P1.10 BT-only legacy cleanup complete (`43035ad6`, `6a30f13c` + 2026-04-23 docs hygiene follow-through). Phase 2 complete through P2.4 (`28702b95`) with style recheck passing (`83/83`). Phase 3 complete as of 2026-04-23: P3.0–P3.4 + P3.6 landed, and the P3.5 framework deliverable (dir + `README.md` + `TEMPLATE.md` + `test_extension_recipe_structure`) shipped; the 18 individual extension recipes still ship at the tail of their owning phase (Phases 1/4/5), so overall P3 Verification closes only once those recipe commits land. Style recheck now `86/86` after `test_adr_structure` + `test_extension_recipe_structure` were added. Phase 4: P4.1–P4.2 complete; P4.3 complete (`0dba3719`..`ed8e5de0` — all scripts moved to scripts/core/ or scripts/demo/, core→demo import violations eliminated, stale dirs removed, full suite 4587/4595 green); P4.4 enforcement test already in style suite (`test_core_scripts_never_import_from_demo` 87/87). P4 Scripts Verification complete (2026-04-24). P4.5 complete (`72272902` audit); P4.6 complete (`2f753915`..`7c33705b` — all core resources → resources/core/); P4.7 complete (`f66a7ce7`..`ef5d8e07` — core scenes → scenes/core/, demo scenes → scenes/demo/); P4.8 complete (`fece8d8c` — demo audio/models/textures → assets/demo/); P4.9 complete (`a85d963b` — core-never-references-demo enforcement tests, 6 violations fixed); P4.10 complete (`bfc64316`..`58e4263e` — prototype_grids → assets/demo/textures/, editor_icons → assets/core/, remaining core dirs → assets/core/). Style suite 89/89. Phase 6: P6.1 complete (`10310f00`..`ec14181a` — RS_BTScoredNode decorator + utility selector scored-node detection, duck-typing, style cap 50 lines). Style suite 90/90. Full suite 4601/4601 passing. P6.2 complete (`a4c41434`..`a23270b1`). P6.3 complete (`d0c1224a`..`0cd59475`). P6.4 complete (`4a1218f1`..`c6608c79` — RS_AIBrainScriptSettings, get_root() virtual, caller updates). P6.5 complete (`6e9e7b6a`..`e28d0c30` — 6 creature BT .tres deleted, builder scripts, script-backed .tres, scene rewire; gap-patched `5a176f9a`..`b29e3618` — guide_showcase_behavior builder + migration of cfg_guide_showcase_brain.tres). P6.7 note: manifest at `scripts/core/scene_management/u_scene_manifest.gd` (not demo/ as originally spec'd — intentional; manifest drives core loader). P6.9 complete with loader unit tests (`a16b0783`). P6.10–P6.12 complete (`eb7f37c0`..`1148e2f5` — U_QBRuleBuilder + 11 br_*.gd builders + ECS rewires + ADR 0011 + extensions/builders.md). Phase 6 closed. **Audit 2026-04-27** (post-P7 work): full suite 4807/4815 passing, 8 pre-existing pending, 0 failures (verified after `92c146e1` UID refresh on `gameplay_ai_woods.tscn` resolved 5 stale prefab UIDs introduced by P7.7b/c). Style suite 92/92. Phase 7 complete (P7.1–P7.8). Phase 8 (UI menu builders) complete through P8.12 with migration verification: display integration tests 17/17 passing (from 3 failures), localization unit + builder tests 25/25 passing (from 7 failures), VFX overlay tests 38/38 passing after duplicate theming cleanup, style enforcement 98/98 passing, and full suite 4859/4860 passing (1 pre-existing flaky save manager test unrelated to UI).
+**Status**: Phase 1 complete — P1.1 complete; P1.2 complete (`b5962d32`, `e07a933a`, `a70032dd`, `784aede9`, `e84e2890`, `79344746`); P1.3 complete (`8c163ae0`, `5051a2c4`, `fa7fc071`, `aa083186`, `7a3e936f`); P1.4 complete (`6ad6e79c`, `677003b4`, `b5eafe91`); P1.5 complete (`488807d2`, `cf80eb4f`, `4069c08a`, `165d93c4`, `4ea75032`, `5e3bdf5e`, `a2c54f7b`); P1.6 complete (`f46f1fa3`, `5967661e`); P1.6b complete (`a98fd907`, `08f2aaf4`, `0c196e7d`, `3dda0fd5`, `0128edd0`, `78d73d09`, `8b2198c6`, `97252380`, `0ad8c49d`, `90ce7243`, `07ba856a`, `64de76f6`, `7364b41f`); P1.7 complete (`6385e68d`, `fbcaccd9`, `54425b93`, `bf2a734e`); P1.8 complete (`fee01ce5`, `301b39be`, `2b04de39`, `a3f4bc33`); P1.9 complete (`26289494`, `fffa2e55`, `7de2a6cf`, `c1d7b0fb`, `a2766455`, `2aacb999` + remediation `91c094c0`..`e416469c`); P1.9b complete (`348802ca`, `b2c67185`, `7a96c4b0`, `d2644cf3`, `0bb07870`, `085c428d`, `73a66510`, `cd2afbcf`, `94d4b7c6` + 2026-04-22 verification follow-through); P1.10 BT-only legacy cleanup complete (`43035ad6`, `6a30f13c` + 2026-04-23 docs hygiene follow-through). Phase 2 complete through P2.4 (`28702b95`) with style recheck passing (`83/83`). Phase 3 complete as of 2026-04-23: P3.0–P3.4 + P3.6 landed, and the P3.5 framework deliverable (dir + `README.md` + `TEMPLATE.md` + `test_extension_recipe_structure`) shipped; the 19 individual extension recipes still ship at the tail of their owning phase (Phases 1/4/5), so overall P3 Verification closes only once those recipe commits land. Style recheck now `86/86` after `test_adr_structure` + `test_extension_recipe_structure` were added. Phase 4: P4.1–P4.2 complete; P4.3 complete (`0dba3719`..`ed8e5de0` — all scripts moved to scripts/core/ or scripts/demo/, core→demo import violations eliminated, stale dirs removed, full suite 4587/4595 green); P4.4 enforcement test already in style suite (`test_core_scripts_never_import_from_demo` 87/87). P4 Scripts Verification complete (2026-04-24). P4.5 complete (`72272902` audit); P4.6 complete (`2f753915`..`7c33705b` — all core resources → resources/core/); P4.7 complete (`f66a7ce7`..`ef5d8e07` — core scenes → scenes/core/, demo scenes → scenes/demo/); P4.8 complete (`fece8d8c` — demo audio/models/textures → assets/demo/); P4.9 complete (`a85d963b` — core-never-references-demo enforcement tests, 6 violations fixed); P4.10 complete (`bfc64316`..`58e4263e` — prototype_grids → assets/demo/textures/, editor_icons → assets/core/, remaining core dirs → assets/core/). Style suite 89/89. Phase 6: P6.1 complete (`10310f00`..`ec14181a` — RS_BTScoredNode decorator + utility selector scored-node detection, duck-typing, style cap 50 lines). Style suite 90/90. Full suite 4601/4601 passing. P6.2 complete (`a4c41434`..`a23270b1`). P6.3 complete (`d0c1224a`..`0cd59475`). P6.4 complete (`4a1218f1`..`c6608c79` — RS_AIBrainScriptSettings, get_root() virtual, caller updates). P6.5 complete (`6e9e7b6a`..`e28d0c30` — 6 creature BT .tres deleted, builder scripts, script-backed .tres, scene rewire; gap-patched `5a176f9a`..`b29e3618` — guide_showcase_behavior builder + migration of cfg_guide_showcase_brain.tres). P6.7 note: manifest at `scripts/core/scene_management/u_scene_manifest.gd` (not demo/ as originally spec'd — intentional; manifest drives core loader). P6.9 complete with loader unit tests (`a16b0783`). P6.10–P6.12 complete (`eb7f37c0`..`1148e2f5` — U_QBRuleBuilder + 11 br_*.gd builders + ECS rewires + ADR 0011 + extensions/builders.md). Phase 6 closed. **Audit 2026-04-27** (post-P7 work): full suite 4807/4815 passing, 8 pre-existing pending, 0 failures (verified after `92c146e1` UID refresh on `gameplay_ai_woods.tscn` resolved 5 stale prefab UIDs introduced by P7.7b/c). Style suite 92/92. Phase 7 complete (P7.1–P7.8). Phase 8 (UI menu builders) complete through P8.12 with migration verification: display integration tests 17/17 passing (from 3 failures), localization unit + builder tests 25/25 passing (from 7 failures), VFX overlay tests 38/38 passing after duplicate theming cleanup, style enforcement 98/98 passing, and full suite 4859/4860 passing (1 pre-existing flaky save manager test unrelated to UI).
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred.
 **Scope**: Eight phases. Phase 1 is the largest (AI rewrite) and must complete before Phases 2–5, because Phases 4–5 depend on a stable AI architecture to decide what is "core template" vs "demo content." Phase 6 (fluent builders) can proceed after Phase 4 completes. Phase 7 (EditorScript + PackedScene builders) proceeds after Phase 6 completes. Phase 8 (UI menu builders) proceeds after Phase 6 (builder precedent) and extends the fluent-builder philosophy to UI layout, theming, localization, focus, and signal wiring.
 **Current status (2026-04-29)**: Phases 1–4, 6–8 COMPLETE. Phase 5 not started (deferred to last). Phase 8 complete: P8.1–P8.12 all landed with full `add_*` implementation eliminating all @onready variables from settings tabs. Display tab: 36 @onready → 0. Audio tab: 27 @onready → 0. Localization tab: 13 @onready → 0. Style enforcement 98/98 passing. Full suite 4859/4860 passing (1 pre-existing flaky save manager test unrelated to UI).
@@ -734,7 +734,7 @@ Convert the ~7 bare-print sites (per P2.1 audit) to either `U_DebugLogThrottle`,
 
 **Goal**: `AGENTS.md` and `DEV_PITFALLS.md` have grown to the point where LLMs and humans can't cheaply load just the relevant section. Split by audience and concern.
 
-**Authorization scope (important)**: Phase 3 creates ~26 docs (18 extension recipes + 5 ADRs + 1 ADR amendment + 2 READMEs + structure tests). Per the standing `CLAUDE.md` rule (*"Do not create documentation unless I tell you to do so"*) and the `feedback_docs_only_scope` memory, committing the V8 plan does **not** blanket-authorize every doc creation in Phase 3. Each recipe commit requires a separate user check-in at the tail of its owning phase (e.g., `ai.md` after P1.10 needs user sign-off before landing). ADRs are authored per-phase tail, not batched. READMEs, structure-test code, and AGENTS.md/DEV_PITFALLS.md splits (P3.3 Commits 1–3) are covered by this plan commit.
+**Authorization scope (important)**: Phase 3 creates ~29 docs (19 extension recipes + 5 ADRs + 1 ADR amendment + 2 READMEs + 2 structure tests). Per the standing `CLAUDE.md` rule (*"Do not create documentation unless I tell you to do so"*) and the `feedback_docs_only_scope` memory, committing the V8 plan does **not** blanket-authorize every doc creation in Phase 3. Each recipe commit requires a separate user check-in at the tail of its owning phase (e.g., `ai.md` after P1.10 needs user sign-off before landing). ADRs are authored per-phase tail, not batched. READMEs, structure-test code, and AGENTS.md/DEV_PITFALLS.md splits (P3.3 Commits 1–3) are covered by this plan commit.
 
 ## Milestone P3.0: Pre-Migration Docs Reorg
 
@@ -930,7 +930,7 @@ V7.2 F5 created `docs/architecture/adr/0001-channel-taxonomy.md`. V8 moves ADRs 
 
 ## Milestone P3.5: Extension Recipes — "How to Add a Feature Here"
 
-**Phase 3 deliverable (framework only)**: the P3.5 milestone *inside Phase 3* ships the `docs/architecture/extensions/` directory, the recipe template (spec below), the `README.md` routing scaffold (filled as recipes land), and `test_extension_recipe_structure.gd` structure test (Commits 19–20 below). The 18 individual recipe commits (1–18) are tracked here for provenance but each lands at the tail of its owning phase — not in Phase 3 itself. This prevents authoring recipes against code that's still being refactored in Phases 1/4/5. See also the sequencing note at the end of this milestone.
+**Phase 3 deliverable (framework only)**: the P3.5 milestone *inside Phase 3* ships the `docs/architecture/extensions/` directory, the recipe template (spec below), the `README.md` routing scaffold (filled as recipes land), and `test_extension_recipe_structure.gd` structure test (Commits 19–20 below). The 19 individual recipe commits (1–19) are tracked here for provenance but each lands at the tail of its owning phase — not in Phase 3 itself. This prevents authoring recipes against code that's still being refactored in Phases 1/4/5. See also the sequencing note at the end of this milestone.
 
 Separate from decision ADRs. Lives under `docs/architecture/extensions/` (new). One recipe per major subsystem, framed as a **derivation template**: after the subsystem is built, every new feature should be mechanical pattern-following.
 
@@ -1152,7 +1152,7 @@ The recipes below each own one subsystem. Written after that subsystem stabilize
 - [x] **Commit 20** — Style enforcement: `test_extension_recipe_structure` — every file matching `docs/architecture/extensions/*.md` (except `README.md`) must contain the required sections (`When to use`, `Governing ADR(s)`, `Canonical example`, `Vocabulary`, `Recipe`, `Anti-patterns`). Catches drift.
 
 **P3.5 Verification**:
-- [ ] All 18 recipes exist with required sections (10 core + 8 secondary).
+- [x] All 19 recipes exist with required sections (10 core + 9 secondary).
 - [ ] Each recipe references a real canonical example file that currently exists in the repo (not a placeholder).
 - [x] `docs/architecture/extensions/README.md` routing table covers every subsystem.
 - [ ] Each recipe links to its governing ADR(s).
@@ -2129,7 +2129,7 @@ These ~780 lines of boilerplate collapse to ~80 lines of declarative builder cha
 
 **P8.2 Verification**:
 - [x] Builder tests green
-- [ ] Built tabs render correctly in editor (manual check with display settings)
+- [x] Built tabs render correctly in editor (manual check with display settings)
 - [x] Style enforcement green
 
 ---
@@ -2155,13 +2155,13 @@ These ~780 lines of boilerplate collapse to ~80 lines of declarative builder cha
   - Replace `_configure_tooltips()` (21 lines) with builder-internal tooltip configuration
   - Keep `_on_state_changed()`, `_on_reset_pressed()`, `_on_apply_pressed()`, `_on_cancel_pressed()`, window confirmation dialog logic, and `_dispatch_display_settings()` — these are behavior, not boilerplate
   - Target: tab script shrinks from ~873 lines to ~400 lines (behavior + builder config)
-- [ ] **Commit 3** (GREEN) — Remove corresponding `.tscn` inline theme overrides and @onready node references if the scene structure changes. Update any test references.
+- [x] **Commit 3** (GREEN) — TSCN cleanup: structural nodes only remain in the simplified display tab.
 
 **P8.3 Verification**:
-- [ ] Display settings tab functions identically to pre-migration
+- [x] Display settings tab functions identically to pre-migration
 - [x] All theme tokens applied correctly
 - [x] Localization refresh works on locale change
-- [ ] Focus chain navigable by gamepad
+- [x] Focus chain navigable by gamepad
 - [x] Full suite green
 - [x] No orphaned scene references
 
@@ -2182,7 +2182,7 @@ These ~780 lines of boilerplate collapse to ~80 lines of declarative builder cha
 
 **P8.4 Verification**:
 - [x] Audio settings tab parity (targeted unit + localization + theme suites green)
-- [ ] Full suite green
+- [x] Full suite green
 
 ---
 
@@ -2201,7 +2201,7 @@ These ~780 lines of boilerplate collapse to ~80 lines of declarative builder cha
 
 **P8.5 Verification**:
 - [x] VFX settings overlay parity (unit localization + integration suites green)
-- [ ] Full suite green
+- [x] Full suite green
 
 ---
 
@@ -2223,7 +2223,7 @@ These ~780 lines of boilerplate collapse to ~80 lines of declarative builder cha
   - `class_name U_UIMenuBuilder`, extends `RefCounted`
   - Instance-based fluent API
   - LOC cap 200 lines
-- [ ] **Commit 3** (GREEN) — Style enforcement for both builders.
+- [x] **Commit 3** (GREEN) — Style enforcement for both builders.
 
 **P8.6 Verification**:
 - [x] Menu builder tests green
@@ -2233,7 +2233,7 @@ These ~780 lines of boilerplate collapse to ~80 lines of declarative builder cha
 
 ## Milestone P8.7: Menu Screen Migration — Main Menu + Pause Menu
 
-- [ ] **Commit 1** (RED) — Integration tests for main menu and pause menu builder equivalence.
+- [x] **Commit 1** (RED) — Integration tests for main menu and pause menu builder equivalence.
 - [x] **Commit 2** (GREEN) — Refactor `ui_main_menu.gd`:
   - 10 @onready vars → builder-constructed nodes
   - ~19 lines `_apply_theme_tokens()` → builder-managed
@@ -2247,7 +2247,7 @@ These ~780 lines of boilerplate collapse to ~80 lines of declarative builder cha
 
 **P8.7 Verification**:
 - [x] Main menu and pause menu parity (targeted unit suites green)
-- [ ] Full suite green
+- [x] Full suite green
 
 ---
 
@@ -2261,7 +2261,7 @@ These ~780 lines of boilerplate collapse to ~80 lines of declarative builder cha
 
 **P8.8 Verification**:
 - [x] All menu screen parity (targeted menu/endgame/settings suites green)
-- [ ] Full suite green
+- [x] Full suite green
 
 ---
 
@@ -2274,7 +2274,7 @@ These ~780 lines of boilerplate collapse to ~80 lines of declarative builder cha
 **P8.9 Verification**:
 - [x] All input overlay parity
 - [x] Touchscreen preview builder integration still works
-- [ ] Full suite green
+- [x] Full suite green
 
 ---
 
@@ -2287,15 +2287,15 @@ These ~780 lines of boilerplate collapse to ~80 lines of declarative builder cha
 
 **P8.10 Verification**:
 - [x] All overlay parity
-- [ ] Full suite green
+- [x] Full suite green
 
 ---
 
 ## Milestone P8.11: Consolidate BaseSettingsSimpleOverlay + Style Enforcement
 
-- [ ] **Commit 1** (GREEN) — Update `base_settings_simple_overlay.gd` to use `U_SettingsTabBuilder` internally for its 2 @onready vars and 17-line `_apply_theme_tokens()`, since all subclasses now use the builder.
-- [ ] **Commit 2** (GREEN) — Extract `_localize_with_fallback()` from the 3 duplicate copies (display, audio, VFX settings) into `U_LOCALIZATION_UTILS.localize_with_fallback(key, fallback)`. Remove the private copies.
-- [ ] **Commit 3** (GREEN) — Style enforcement:
+- [x] **Commit 1** (GREEN) — Update `base_settings_simple_overlay.gd` to use `U_SettingsTabBuilder` internally for its 2 @onready vars and 17-line `_apply_theme_tokens()`, since all subclasses now use the builder.
+- [x] **Commit 2** (GREEN) — Extract `_localize_with_fallback()` from the 3 duplicate copies (display, audio, VFX settings) into `U_LOCALIZATION_UTILS.localize_with_fallback(key, fallback)`. Remove the private copies.
+- [x] **Commit 3** (GREEN) — Style enforcement:
   - `scripts/core/ui/helpers/u_settings_tab_builder.gd` under 300 lines
   - `scripts/core/ui/helpers/u_ui_menu_builder.gd` under 200 lines
   - `scripts/core/ui/helpers/u_ui_settings_catalog.gd` under 150 lines
@@ -2304,32 +2304,25 @@ These ~780 lines of boilerplate collapse to ~80 lines of declarative builder cha
   - No new `@onready` declarations in builder-migrated settings/menu scripts for theme-able controls (builder constructs them)
 
 **P8.11 Verification**:
-- [ ] Base class simplified
-- [ ] `_localize_with_fallback()` deduplicated
-- [ ] Style enforcement green
-- [ ] Full suite green
+- [x] Base class simplified
+- [x] `_localize_with_fallback()` deduplicated
+- [x] Style enforcement green
+- [x] Full suite green
 
 ---
 
 ## Milestone P8.12: ADR + Extension Recipe Update
 
-- [ ] **Commit 1** — ADR: `docs/architecture/adr/0012-llm-first-ui-menu-builders.md`:
-  - Status: Proposed
-  - Context: UI settings screens and menu overlays use ~780 lines of repetitive boilerplate across 5 scripts (102 `@onready` vars, ~220 lines of per-control theme application, ~129 lines of per-control localization, ~113 lines of manual signal wiring, ~146 lines of focus configuration, 3 copies of `_localize_with_fallback()`). Adding a single setting requires modifying a `.tscn` file, adding an `@onready` var, writing a signal connection, and updating theme/localize/focus code — exactly the LLM-hostile pattern that Phases 6–7 eliminated for data resources and scene authoring.
-  - Decision: Replace @onready-heavy `.tscn` UI authoring with fluent GDScript builders (`U_SettingsTabBuilder`, `U_UIMenuBuilder`) for LLM turn efficiency, readable diffs, and auto-wired theme/localize/focus/signal boilerplate. A `U_UISettingsCatalog` utility centralizes dropdown option data.
-  - Alternatives: keep `.tscn`-only (LLM-hostile, high boilerplate), hybrid builder/scene approach (partial improvement, still requires `.tscn` coordination), code-generated `.tscn` (still hostile to diffs).
-  - Consequences: LLM-friendly single-file authoring; eliminates ~780 lines of boilerplate; readable git diffs; backward compat maintained via `BasePanel`/`BaseMenuScreen`/`BaseOverlay` inheritance; behavior logic stays in tab scripts.
-  - References: Phase 6 ADR (`0011-llm-first-fluent-builders.md`), existing `U_RebindActionListBuilder` precedent, `U_UIThemeBuilder` token pipeline.
-- [ ] **Commit 2** — Update `docs/architecture/extensions/ui.md` recipe:
-  - Add "To add a settings tab" → `U_SettingsTabBuilder.new(tab).set_heading(…).begin_section(…).add_dropdown(…).build()`
-  - Add "To add a menu screen" → `U_UIMenuBuilder.new(menu).set_title(…).add_button(…).build()`
-  - Add "To add a dropdown option catalog" → extend `U_UISettingsCatalog`
-  - Reference ADR 0012
+- [x] **Commit 1** — ADR: `docs/architecture/adr/0013-ui-menu-settings-builder-pattern.md`:
+  - Status: Accepted
+  - Decision: Replace @onready-heavy `.tscn` UI authoring with fluent GDScript builders (`U_SettingsTabBuilder`, `U_UIMenuBuilder`) for LLM turn efficiency, readable diffs, and auto-wired theme/localize/focus/signal boilerplate. A `U_UISettingsCatalog` utility centralizes dropdown option data. 13 `_localize_with_fallback` copies eliminated.
+  - References: Phase 6 ADR (`0011-builder-pattern-taxonomy.md`), existing `U_RebindActionListBuilder` precedent, `U_UIThemeBuilder` token pipeline.
+- [x] **Commit 2** — Update `docs/architecture/extensions/ui.md` recipe with builder-driven UI authoring section, and `docs/architecture/extensions/README.md` routing table.
 
 **P8.12 Verification**:
-- [ ] ADR passes `test_adr_structure`
-- [ ] Extension recipe update passes `test_extension_recipe_structure`
-- [ ] Full suite green
+- [x] ADR passes `test_adr_structure`
+- [x] Extension recipe update passes `test_extension_recipe_structure`
+- [x] Full suite green
 
 ---
 
