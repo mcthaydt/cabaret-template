@@ -87,6 +87,8 @@ func _get_language_confirm_timer() -> Node:
 
 func _ready() -> void:
 	_setup_builder()
+	if _builder != null:
+		_builder.build()
 	_apply_theme_tokens()
 	_populate_language_option()
 	_connect_signals()
