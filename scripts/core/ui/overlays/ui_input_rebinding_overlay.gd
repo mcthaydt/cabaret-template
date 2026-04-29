@@ -5,6 +5,7 @@ class_name UI_InputRebindingOverlay
 const I_INPUT_PROFILE_MANAGER := preload("res://scripts/core/interfaces/i_input_profile_manager.gd")
 const DEFAULT_REBIND_SETTINGS: Resource = preload("res://resources/core/input/rebind_settings/cfg_default_rebind_settings.tres")
 const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_localization_utils.gd")
+const U_UI_MENU_BUILDER := preload("res://scripts/core/ui/helpers/u_ui_menu_builder.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 
@@ -63,8 +64,10 @@ var _is_on_bottom_row: bool = false
 var _bottom_button_index: int = 0
 @warning_ignore("unused_private_class_variable")
 var _row_button_index: int = 0
+var _builder: RefCounted = null
 
 func _on_panel_ready() -> void:
+	_setup_builder()
 	_apply_theme_tokens()
 	_profile_manager = _resolve_input_profile_manager()
 	if _profile_manager != null and "store_ref" in _profile_manager:
@@ -80,9 +83,6 @@ func _on_panel_ready() -> void:
 	else:
 		_rebind_settings = RS_RebindSettings.new()
 
-	_close_button.pressed.connect(_on_close_pressed)
-	if _reset_button != null:
-		_reset_button.pressed.connect(_on_reset_pressed)
 	_conflict_dialog.confirmed.connect(_on_conflict_confirmed)
 	_conflict_dialog.canceled.connect(_on_conflict_canceled)
 	_reset_confirm_dialog.confirmed.connect(_on_reset_confirmed)
@@ -100,6 +100,13 @@ func _on_panel_ready() -> void:
 	_set_reset_button_enabled(_profile_manager != null)
 	_connect_bottom_row_focus_handlers()
 	play_enter_animation()
+
+func _setup_builder() -> void:
+	_builder = U_UI_MENU_BUILDER.new(self)
+	_builder.bind_title(_title_label, TITLE_KEY)
+	_builder.bind_button(_reset_button, RESET_BUTTON_KEY, _on_reset_pressed)
+	_builder.bind_button(_close_button, CLOSE_BUTTON_KEY, _on_close_pressed)
+	_builder.build()
 
 func _resolve_input_profile_manager() -> Node:
 	if input_profile_manager != null and is_instance_valid(input_profile_manager):
@@ -390,14 +397,10 @@ func _on_locale_changed(_locale: StringName) -> void:
 		_update_status(U_RebindCaptureHandler.get_capture_prompt(_pending_action))
 
 func _localize_static_labels() -> void:
-	if _title_label != null:
-		_title_label.text = _localize_with_fallback(TITLE_KEY, "Rebind Controls")
+	if _builder != null:
+		_builder.localize_labels()
 	if _search_box != null:
 		_search_box.placeholder_text = _localize_with_fallback(SEARCH_PLACEHOLDER_KEY, "Search actions...")
-	if _close_button != null:
-		_close_button.text = _localize_with_fallback(CLOSE_BUTTON_KEY, "Close")
-	if _reset_button != null:
-		_reset_button.text = _localize_with_fallback(RESET_BUTTON_KEY, "Reset to Defaults")
 	if _conflict_dialog != null:
 		_conflict_dialog.title = _localize_with_fallback(CONFLICT_TITLE_KEY, "Conflict Detected")
 		var conflict_ok := _conflict_dialog.get_ok_button()
@@ -422,6 +425,9 @@ func _localize_static_labels() -> void:
 		_error_dialog.title = _localize_with_fallback(ERROR_TITLE_KEY, "Rebind Error")
 
 func _apply_theme_tokens() -> void:
+	if _builder != null:
+		_builder.apply_theme_tokens(U_UI_THEME_BUILDER.active_config)
+
 	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
 	if not (config_resource is RS_UI_THEME_CONFIG):
 		return
@@ -448,8 +454,6 @@ func _apply_theme_tokens() -> void:
 	if _button_row != null:
 		_button_row.add_theme_constant_override(&"separation", config.separation_default)
 
-	if _title_label != null:
-		_title_label.add_theme_font_size_override(&"font_size", config.heading)
 	if _status_label != null:
 		_status_label.add_theme_font_size_override(&"font_size", config.section_header)
 		_status_label.add_theme_color_override(&"font_color", config.text_secondary)
@@ -463,11 +467,6 @@ func _apply_theme_tokens() -> void:
 		_search_box.add_theme_color_override(&"font_color", config.text_primary)
 		_search_box.add_theme_color_override(&"font_placeholder_color", config.text_secondary)
 		_search_box.add_theme_color_override(&"caret_color", config.text_primary)
-	if _reset_button != null:
-		_reset_button.add_theme_font_size_override(&"font_size", config.section_header)
-	if _close_button != null:
-		_close_button.add_theme_font_size_override(&"font_size", config.section_header)
-
 func _build_search_stylebox(bg_color: Color, border_color: Color, border_width: int) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = bg_color
