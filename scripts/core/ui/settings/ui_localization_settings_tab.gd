@@ -8,6 +8,7 @@ const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_l
 const U_NAVIGATION_ACTIONS := preload("res://scripts/core/state/actions/u_navigation_actions.gd")
 const U_NAVIGATION_SELECTORS := preload("res://scripts/core/state/selectors/u_navigation_selectors.gd")
 const U_FOCUS_CONFIGURATOR := preload("res://scripts/core/ui/helpers/u_focus_configurator.gd")
+const U_SETTINGS_TAB_BUILDER := preload("res://scripts/core/ui/helpers/u_settings_tab_builder.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 const DEFAULT_LOCALIZATION_INITIAL_STATE: Resource = preload("res://resources/core/base_settings/state/cfg_localization_initial_state.tres")
@@ -33,6 +34,7 @@ var _language_confirm_seconds_left: int = 0
 var _pending_locale: StringName = &""
 var _pre_change_locale: StringName = &""
 var _pre_change_dyslexia: bool = false
+var _builder: RefCounted = null
 
 @onready var _heading_label: Label = %HeadingLabel
 @onready var _language_section_label: Label = %LanguageSection
@@ -51,6 +53,7 @@ var _pre_change_dyslexia: bool = false
 @onready var _language_confirm_timer: Timer = %LanguageConfirmTimer
 
 func _ready() -> void:
+	_setup_builder()
 	_apply_theme_tokens()
 	_populate_language_option()
 	_connect_signals()
@@ -67,7 +70,18 @@ func _ready() -> void:
 	_unsubscribe = _state_store.subscribe(_on_state_changed)
 	_on_state_changed({}, _state_store.get_state())
 
+func _setup_builder() -> void:
+	_builder = U_SETTINGS_TAB_BUILDER.new(self)
+	_builder.bind_heading(_heading_label, &"settings.localization.title")
+	_builder.bind_action_button(_cancel_button, &"common.cancel", _on_cancel_pressed)
+	_builder.bind_action_button(_reset_button, &"common.reset", _on_reset_pressed)
+	_builder.bind_action_button(_apply_button, &"common.apply", _on_apply_pressed)
+	_builder.build()
+
 func _apply_theme_tokens() -> void:
+	if _builder != null:
+		_builder.apply_theme_tokens(U_UI_THEME_BUILDER.active_config)
+
 	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
 	if not (config_resource is RS_UI_THEME_CONFIG):
 		return
@@ -82,8 +96,6 @@ func _apply_theme_tokens() -> void:
 	if _button_row != null:
 		_button_row.add_theme_constant_override(&"separation", config.separation_compact)
 
-	if _heading_label != null:
-		_heading_label.add_theme_font_size_override(&"font_size", config.heading)
 	if _language_section_label != null:
 		_language_section_label.add_theme_font_size_override(&"font_size", config.section_header)
 		_language_section_label.add_theme_color_override(&"font_color", config.section_header_color)
@@ -104,15 +116,6 @@ func _apply_theme_tokens() -> void:
 		_language_option.add_theme_font_size_override(&"font_size", config.section_header)
 	if _dyslexia_toggle != null:
 		_dyslexia_toggle.add_theme_font_size_override(&"font_size", config.section_header)
-
-	var action_buttons: Array[Button] = [
-		_cancel_button,
-		_reset_button,
-		_apply_button,
-	]
-	for action_button in action_buttons:
-		if action_button != null:
-			action_button.add_theme_font_size_override(&"font_size", config.section_header)
 
 func _exit_tree() -> void:
 	_stop_language_confirm_timer()
@@ -143,13 +146,6 @@ func _connect_signals() -> void:
 		_language_option.item_selected.connect(_on_language_selected)
 	if _dyslexia_toggle != null and not _dyslexia_toggle.toggled.is_connected(_on_dyslexia_toggled):
 		_dyslexia_toggle.toggled.connect(_on_dyslexia_toggled)
-
-	if _apply_button != null and not _apply_button.pressed.is_connected(_on_apply_pressed):
-		_apply_button.pressed.connect(_on_apply_pressed)
-	if _cancel_button != null and not _cancel_button.pressed.is_connected(_on_cancel_pressed):
-		_cancel_button.pressed.connect(_on_cancel_pressed)
-	if _reset_button != null and not _reset_button.pressed.is_connected(_on_reset_pressed):
-		_reset_button.pressed.connect(_on_reset_pressed)
 
 	if _language_confirm_dialog != null:
 		_configure_language_confirm_dialog()
@@ -482,8 +478,8 @@ func _on_locale_changed(_locale: StringName) -> void:
 
 func _localize_labels() -> void:
 	_populate_language_option()
-	if _heading_label != null:
-		_heading_label.text = U_LOCALIZATION_UTILS.localize(&"settings.localization.title")
+	if _builder != null:
+		_builder.localize_labels()
 	if _language_section_label != null:
 		_language_section_label.text = U_LOCALIZATION_UTILS.localize(&"settings.localization.language_section")
 	if _language_label != null:
@@ -492,10 +488,4 @@ func _localize_labels() -> void:
 		_accessibility_section_label.text = U_LOCALIZATION_UTILS.localize(&"settings.localization.accessibility_section")
 	if _dyslexia_label != null:
 		_dyslexia_label.text = U_LOCALIZATION_UTILS.localize(&"settings.localization.dyslexia_label")
-	if _apply_button != null:
-		_apply_button.text = U_LOCALIZATION_UTILS.localize(&"common.apply")
-	if _cancel_button != null:
-		_cancel_button.text = U_LOCALIZATION_UTILS.localize(&"common.cancel")
-	if _reset_button != null:
-		_reset_button.text = U_LOCALIZATION_UTILS.localize(&"common.reset")
 	_refresh_language_confirm_dialog_localization(_language_confirm_active)

@@ -2258,7 +2258,7 @@ These ~780 lines of boilerplate collapse to ~80 lines of declarative builder cha
 
 ## Milestone P8.10: Remaining Overlay Migrations
 
-- [ ] **Commit 1** (GREEN) — Refactor `ui_localization_settings_tab.gd` (15 @onready → builder). Language dropdown populated from `U_UISettingsCatalog`; confirm dialog preserved as behavior.
+- [x] **Commit 1** (GREEN) — Refactor `ui_localization_settings_tab.gd` (15 @onready → builder). Language dropdown populated from `U_UISettingsCatalog`; confirm dialog preserved as behavior.
 - [ ] **Commit 2** (GREEN) — Refactor `ui_input_profile_selector.gd` (15 @onready → builder). Profile cycling preserved as behavior.
 - [ ] **Commit 3** (GREEN) — Refactor `ui_save_load_menu.gd` (12 @onready → builder). Slot list preserved as behavior.
 - [ ] **Commit 4** (GREEN) — Refactor `ui_input_rebinding_overlay.gd` (14 @onready → builder). Note: this already uses `U_RebindActionListBuilder`, so `U_UIMenuBuilder` handles the outer chrome (title, buttons) while `U_RebindActionListBuilder` continues handling action rows.
