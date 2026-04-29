@@ -11,6 +11,7 @@ class_name UI_GameOver
 
 const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_localization_utils.gd")
 const U_TRANSITION_OVERLAY_SNAP := preload("res://scripts/core/scene_management/helpers/u_transition_overlay_snap.gd")
+const U_UI_MENU_BUILDER := preload("res://scripts/core/ui/helpers/u_ui_menu_builder.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 const RS_UI_MOTION_PRESET := preload("res://scripts/core/resources/ui/rs_ui_motion_preset.gd")
@@ -24,6 +25,7 @@ const RS_UI_MOTION_PRESET := preload("res://scripts/core/resources/ui/rs_ui_moti
 @onready var _menu_button: Button = %MenuButton
 
 var _store_unsubscribe: Callable = Callable()
+var _menu_builder: RefCounted = null
 
 func _on_store_ready(store: M_StateStore) -> void:
 	if _store_unsubscribe != Callable() and _store_unsubscribe.is_valid():
@@ -34,12 +36,21 @@ func _on_store_ready(store: M_StateStore) -> void:
 		_update_death_count(store.get_state())
 
 func _on_panel_ready() -> void:
+	_setup_menu_builder()
 	_apply_theme_tokens()
-	_connect_buttons()
 	_configure_focus_neighbors()
 	_localize_labels()
 	play_enter_animation()
 	_play_title_enter_motion()
+
+func _setup_menu_builder() -> void:
+	_menu_builder = U_UI_MENU_BUILDER.new(self)
+	_menu_builder.bind_title(_title_label, &"menu.game_over.title")
+	_menu_builder.bind_button_group([
+		{"button": _retry_button, "key": &"menu.game_over.retry", "callback": _on_retry_pressed},
+		{"button": _menu_button, "key": &"menu.game_over.menu", "callback": _on_menu_pressed},
+	])
+	_menu_builder.build()
 
 func _apply_theme_tokens() -> void:
 	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
@@ -87,12 +98,6 @@ func _exit_tree() -> void:
 		_store_unsubscribe.call()
 	_store_unsubscribe = Callable()
 
-func _connect_buttons() -> void:
-	if _retry_button != null and not _retry_button.pressed.is_connected(_on_retry_pressed):
-		_retry_button.pressed.connect(_on_retry_pressed)
-	if _menu_button != null and not _menu_button.pressed.is_connected(_on_menu_pressed):
-		_menu_button.pressed.connect(_on_menu_pressed)
-
 func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
 	_update_death_count(state)
 
@@ -114,12 +119,8 @@ func _on_locale_changed(_locale: StringName) -> void:
 	_localize_labels()
 
 func _localize_labels() -> void:
-	if _title_label != null:
-		_title_label.text = U_LOCALIZATION_UTILS.localize(&"menu.game_over.title")
-	if _retry_button != null:
-		_retry_button.text = U_LOCALIZATION_UTILS.localize(&"menu.game_over.retry")
-	if _menu_button != null:
-		_menu_button.text = U_LOCALIZATION_UTILS.localize(&"menu.game_over.menu")
+	if _menu_builder != null:
+		_menu_builder.localize_labels()
 	_update_death_count()
 
 func _on_retry_pressed() -> void:

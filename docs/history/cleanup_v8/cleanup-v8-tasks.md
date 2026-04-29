@@ -2233,7 +2233,7 @@ These ~780 lines of boilerplate collapse to ~80 lines of declarative builder cha
 
 - [x] **Commit 1** (GREEN) — Refactor `ui_language_selector.gd` (12 @onready → builder). Grid focus configuration preserved via `U_FocusConfigurator.configure_grid_focus()` call after `build()`.
 - [x] **Commit 2** (GREEN) — Refactor `ui_credits.gd` (12 @onready → builder). Auto-scroll behavior preserved.
-- [ ] **Commit 3** (GREEN) — Refactor `ui_game_over.gd` (7 @onready → builder).
+- [x] **Commit 3** (GREEN) — Refactor `ui_game_over.gd` (7 @onready → builder).
 - [ ] **Commit 4** (GREEN) — Refactor `ui_victory.gd` (8 @onready → builder).
 - [ ] **Commit 5** (GREEN) — Refactor `ui_settings_menu.gd` (15 @onready → builder).
 
