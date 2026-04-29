@@ -10,6 +10,7 @@ const U_NAVIGATION_SELECTORS := preload("res://scripts/core/state/selectors/u_na
 const U_FOCUS_CONFIGURATOR := preload("res://scripts/core/ui/helpers/u_focus_configurator.gd")
 const U_SETTINGS_TAB_BUILDER := preload("res://scripts/core/ui/helpers/u_settings_tab_builder.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
+const U_UI_SETTINGS_CATALOG := preload("res://scripts/core/ui/helpers/u_ui_settings_catalog.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 const DEFAULT_LOCALIZATION_INITIAL_STATE: Resource = preload("res://resources/core/base_settings/state/cfg_localization_initial_state.tres")
 
@@ -36,21 +37,53 @@ var _pre_change_locale: StringName = &""
 var _pre_change_dyslexia: bool = false
 var _builder: RefCounted = null
 
-@onready var _heading_label: Label = %HeadingLabel
-@onready var _language_section_label: Label = %LanguageSection
-@onready var _language_label: Label = %LanguageLabel
-@onready var _accessibility_section_label: Label = %AccessibilitySection
-@onready var _dyslexia_label: Label = %DyslexiaLabel
-@onready var _language_row: HBoxContainer = $LanguageRow
-@onready var _dyslexia_row: HBoxContainer = $DyslexiaRow
-@onready var _button_row: HBoxContainer = $ButtonRow
-@onready var _language_option: OptionButton = %LanguageOptionButton
-@onready var _dyslexia_toggle: CheckButton = %DyslexiaCheckButton
-@onready var _apply_button: Button = %ApplyButton
-@onready var _cancel_button: Button = %CancelButton
-@onready var _reset_button: Button = %ResetButton
-@onready var _language_confirm_dialog: ConfirmationDialog = %LanguageConfirmDialog
-@onready var _language_confirm_timer: Timer = %LanguageConfirmTimer
+func _get_control_by_name(name: String) -> Control:
+	return find_child(name, true, false) as Control
+
+func _get_heading_label() -> Label:
+	return _get_control_by_name("HeadingLabel") as Label
+
+func _get_language_section_label() -> Label:
+	return _get_control_by_name("LanguageSection") as Label
+
+func _get_language_label() -> Label:
+	return _get_control_by_name("LanguageLabel") as Label
+
+func _get_accessibility_section_label() -> Label:
+	return _get_control_by_name("AccessibilitySection") as Label
+
+func _get_dyslexia_label() -> Label:
+	return _get_control_by_name("DyslexiaLabel") as Label
+
+func _get_language_row() -> HBoxContainer:
+	return _get_control_by_name("LanguageRow") as HBoxContainer
+
+func _get_dyslexia_row() -> HBoxContainer:
+	return _get_control_by_name("DyslexiaRow") as HBoxContainer
+
+func _get_button_row() -> HBoxContainer:
+	return _get_control_by_name("ButtonRow") as HBoxContainer
+
+func _get_language_option() -> OptionButton:
+	return _get_control_by_name("LanguageOptionButton") as OptionButton
+
+func _get_dyslexia_toggle() -> CheckButton:
+	return _get_control_by_name("DyslexiaCheckButton") as CheckButton
+
+func _get_apply_button() -> Button:
+	return _get_control_by_name("ApplyButton") as Button
+
+func _get_cancel_button() -> Button:
+	return _get_control_by_name("CancelButton") as Button
+
+func _get_reset_button() -> Button:
+	return _get_control_by_name("ResetButton") as Button
+
+func _get_language_confirm_dialog() -> Node:
+	return _get_control_by_name("LanguageConfirmDialog")
+
+func _get_language_confirm_timer() -> Node:
+	return _get_control_by_name("LanguageConfirmTimer")
 
 func _ready() -> void:
 	_setup_builder()
@@ -71,12 +104,11 @@ func _ready() -> void:
 	_on_state_changed({}, _state_store.get_state())
 
 func _setup_builder() -> void:
-	_builder = U_SETTINGS_TAB_BUILDER.new(self)
-	_builder.bind_heading(_heading_label, &"settings.localization.title")
-	_builder.bind_action_button(_cancel_button, &"common.cancel", _on_cancel_pressed, "Cancel")
-	_builder.bind_action_button(_reset_button, &"common.reset", _on_reset_pressed, "Reset")
-	_builder.bind_action_button(_apply_button, &"common.apply", _on_apply_pressed, "Apply")
-	_builder.build()
+	_builder = U_UI_SETTINGS_CATALOG.create_localization_builder(
+		self,
+		_on_language_selected,
+		_on_test_localization_pressed
+	)
 
 func _apply_theme_tokens() -> void:
 	if _builder != null:
@@ -89,33 +121,33 @@ func _apply_theme_tokens() -> void:
 
 	add_theme_constant_override(&"separation", config.separation_default)
 
-	if _language_row != null:
-		_language_row.add_theme_constant_override(&"separation", config.separation_default)
-	if _dyslexia_row != null:
-		_dyslexia_row.add_theme_constant_override(&"separation", config.separation_default)
-	if _button_row != null:
-		_button_row.add_theme_constant_override(&"separation", config.separation_compact)
+	if _get_language_row() != null:
+		_get_language_row().add_theme_constant_override(&"separation", config.separation_default)
+	if _get_dyslexia_row() != null:
+		_get_dyslexia_row().add_theme_constant_override(&"separation", config.separation_default)
+	if _get_button_row() != null:
+		_get_button_row().add_theme_constant_override(&"separation", config.separation_compact)
 
-	if _language_section_label != null:
-		_language_section_label.add_theme_font_size_override(&"font_size", config.section_header)
-		_language_section_label.add_theme_color_override(&"font_color", config.section_header_color)
-	if _accessibility_section_label != null:
-		_accessibility_section_label.add_theme_font_size_override(&"font_size", config.section_header)
-		_accessibility_section_label.add_theme_color_override(&"font_color", config.section_header_color)
+	if _get_language_section_label() != null:
+		_get_language_section_label().add_theme_font_size_override(&"font_size", config.section_header)
+		_get_language_section_label().add_theme_color_override(&"font_color", config.section_header_color)
+	if _get_accessibility_section_label() != null:
+		_get_accessibility_section_label().add_theme_font_size_override(&"font_size", config.section_header)
+		_get_accessibility_section_label().add_theme_color_override(&"font_color", config.section_header_color)
 
 	var body_labels: Array[Label] = [
-		_language_label,
-		_dyslexia_label,
+		_get_language_label(),
+		_get_dyslexia_label(),
 	]
 	for body_label in body_labels:
 		if body_label != null:
 			body_label.add_theme_font_size_override(&"font_size", config.body_small)
 			body_label.add_theme_color_override(&"font_color", config.text_secondary)
 
-	if _language_option != null:
-		_language_option.add_theme_font_size_override(&"font_size", config.section_header)
-	if _dyslexia_toggle != null:
-		_dyslexia_toggle.add_theme_font_size_override(&"font_size", config.section_header)
+	if _get_language_option() != null:
+		_get_language_option().add_theme_font_size_override(&"font_size", config.section_header)
+	if _get_dyslexia_toggle() != null:
+		_get_dyslexia_toggle().add_theme_font_size_override(&"font_size", config.section_header)
 
 func _exit_tree() -> void:
 	_stop_language_confirm_timer()
@@ -126,55 +158,57 @@ func _exit_tree() -> void:
 		_unsubscribe = Callable()
 
 func _populate_language_option() -> void:
-	if _language_option == null:
+	if _get_language_option() == null:
 		return
-	var selected_index: int = _language_option.selected
-	_language_option.set_block_signals(true)
-	_language_option.clear()
+	var selected_index: int = _get_language_option().selected
+	_get_language_option().set_block_signals(true)
+	_get_language_option().clear()
 	for i: int in SUPPORTED_LOCALES.size():
 		var locale_label_key: StringName = LOCALE_LABEL_KEYS[i] if i < LOCALE_LABEL_KEYS.size() else StringName("")
 		var display_name: String = str(SUPPORTED_LOCALES[i])
 		if not locale_label_key.is_empty():
 			display_name = U_LOCALIZATION_UTILS.localize(locale_label_key)
-		_language_option.add_item(display_name)
-	if selected_index >= 0 and selected_index < _language_option.item_count:
-		_language_option.selected = selected_index
-	_language_option.set_block_signals(false)
+		_get_language_option().add_item(display_name)
+	if selected_index >= 0 and selected_index < _get_language_option().item_count:
+		_get_language_option().selected = selected_index
+	_get_language_option().set_block_signals(false)
 
 func _connect_signals() -> void:
-	if _language_option != null and not _language_option.item_selected.is_connected(_on_language_selected):
-		_language_option.item_selected.connect(_on_language_selected)
-	if _dyslexia_toggle != null and not _dyslexia_toggle.toggled.is_connected(_on_dyslexia_toggled):
-		_dyslexia_toggle.toggled.connect(_on_dyslexia_toggled)
+	if _get_language_option() != null and not _get_language_option().item_selected.is_connected(_on_language_selected):
+		_get_language_option().item_selected.connect(_on_language_selected)
+	if _get_dyslexia_toggle() != null and not _get_dyslexia_toggle().toggled.is_connected(_on_dyslexia_toggled):
+		_get_dyslexia_toggle().toggled.connect(_on_dyslexia_toggled)
 
-	if _language_confirm_dialog != null:
+	var confirm_dialog := _get_language_confirm_dialog()
+	if confirm_dialog != null:
 		_configure_language_confirm_dialog()
-		if not _language_confirm_dialog.confirmed.is_connected(_on_language_confirm_keep):
-			_language_confirm_dialog.confirmed.connect(_on_language_confirm_keep)
-		if not _language_confirm_dialog.canceled.is_connected(_on_language_confirm_revert):
-			_language_confirm_dialog.canceled.connect(_on_language_confirm_revert)
-		if _language_confirm_dialog.has_signal("close_requested"):
-			if not _language_confirm_dialog.close_requested.is_connected(_on_language_confirm_revert):
-				_language_confirm_dialog.close_requested.connect(_on_language_confirm_revert)
-	if _language_confirm_timer != null and not _language_confirm_timer.timeout.is_connected(_on_language_confirm_timer_timeout):
-		_language_confirm_timer.timeout.connect(_on_language_confirm_timer_timeout)
+		if not confirm_dialog.confirmed.is_connected(_on_language_confirm_keep):
+			confirm_dialog.confirmed.connect(_on_language_confirm_keep)
+		if not confirm_dialog.canceled.is_connected(_on_language_confirm_revert):
+			confirm_dialog.canceled.connect(_on_language_confirm_revert)
+		if confirm_dialog.has_signal("close_requested"):
+			if not confirm_dialog.close_requested.is_connected(_on_language_confirm_revert):
+				confirm_dialog.close_requested.connect(_on_language_confirm_revert)
+	var confirm_timer := _get_language_confirm_timer()
+	if confirm_timer != null and not confirm_timer.timeout.is_connected(_on_language_confirm_timer_timeout):
+		confirm_timer.timeout.connect(_on_language_confirm_timer_timeout)
 
-	_setup_option_button_popup_focus(_language_option)
+	_setup_option_button_popup_focus(_get_language_option())
 
 func _configure_focus_neighbors() -> void:
 	var focusables: Array[Control] = []
-	if _language_option != null:
-		focusables.append(_language_option)
-	if _dyslexia_toggle != null:
-		focusables.append(_dyslexia_toggle)
+	if _get_language_option() != null:
+		focusables.append(_get_language_option())
+	if _get_dyslexia_toggle() != null:
+		focusables.append(_get_dyslexia_toggle())
 
 	var buttons: Array[Control] = []
-	if _cancel_button != null:
-		buttons.append(_cancel_button)
-	if _reset_button != null:
-		buttons.append(_reset_button)
-	if _apply_button != null:
-		buttons.append(_apply_button)
+	if _get_cancel_button() != null:
+		buttons.append(_get_cancel_button())
+	if _get_reset_button() != null:
+		buttons.append(_get_reset_button())
+	if _get_apply_button() != null:
+		buttons.append(_get_apply_button())
 
 	for button: Control in buttons:
 		focusables.append(button)
@@ -202,13 +236,13 @@ func _on_state_changed(action: Dictionary, state: Dictionary) -> void:
 	var locale_index: int = SUPPORTED_LOCALES.find(locale)
 	if locale_index < 0:
 		locale_index = 0
-	if _language_option != null:
-		_language_option.set_block_signals(true)
-		_language_option.selected = locale_index
-		_language_option.set_block_signals(false)
+	if _get_language_option() != null:
+		_get_language_option().set_block_signals(true)
+		_get_language_option().selected = locale_index
+		_get_language_option().set_block_signals(false)
 
 	var dyslexia: bool = U_LOCALIZATION_SELECTORS.is_dyslexia_font_enabled(state)
-	_set_toggle_value_silently(_dyslexia_toggle, dyslexia)
+	_set_toggle_value_silently(_get_dyslexia_toggle(), dyslexia)
 
 	_updating_from_state = false
 	_has_local_edits = false
@@ -219,6 +253,9 @@ func _on_language_selected(_index: int) -> void:
 	U_UISoundPlayer.play_confirm()
 	_has_local_edits = true
 	_update_localization_preview_from_ui()
+
+func _on_test_localization_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
 
 func _on_dyslexia_toggled(_pressed: bool) -> void:
 	if _updating_from_state:
@@ -265,11 +302,11 @@ func _on_reset_pressed() -> void:
 	var locale_index: int = SUPPORTED_LOCALES.find(default_locale)
 	if locale_index < 0:
 		locale_index = 0
-	if _language_option != null:
-		_language_option.set_block_signals(true)
-		_language_option.selected = locale_index
-		_language_option.set_block_signals(false)
-	_set_toggle_value_silently(_dyslexia_toggle, default_dyslexia)
+	if _get_language_option() != null:
+		_get_language_option().set_block_signals(true)
+		_get_language_option().selected = locale_index
+		_get_language_option().set_block_signals(false)
+	_set_toggle_value_silently(_get_dyslexia_toggle(), default_dyslexia)
 	_updating_from_state = false
 
 	_has_local_edits = false
@@ -295,34 +332,39 @@ func _begin_language_confirm(
 	_show_language_confirm_dialog()
 
 func _show_language_confirm_dialog() -> void:
-	if _language_confirm_dialog == null:
+	var confirm_dialog := _get_language_confirm_dialog()
+	if confirm_dialog == null:
 		return
 	_refresh_language_confirm_dialog_localization(true)
-	_language_confirm_dialog.popup_centered()
+	confirm_dialog.popup_centered()
 	_start_language_confirm_timer()
 	var ok_button := _get_language_confirm_ok_button()
 	if ok_button != null:
 		ok_button.grab_focus()
 
 func _start_language_confirm_timer() -> void:
-	if _language_confirm_timer == null:
+	var confirm_timer := _get_language_confirm_timer()
+	if confirm_timer == null:
 		return
-	_language_confirm_timer.stop()
-	_language_confirm_timer.start()
+	confirm_timer.stop()
+	confirm_timer.start()
 
 func _stop_language_confirm_timer() -> void:
-	if _language_confirm_timer == null:
+	var confirm_timer := _get_language_confirm_timer()
+	if confirm_timer == null:
 		return
-	_language_confirm_timer.stop()
+	confirm_timer.stop()
 
 func _update_language_confirm_text() -> void:
-	if _language_confirm_dialog == null:
+	var confirm_dialog := _get_language_confirm_dialog()
+	if confirm_dialog == null:
 		return
 	var text_template: String = U_LOCALIZATION_UTILS.localize(&"settings.localization.confirm_text")
-	_language_confirm_dialog.dialog_text = text_template % _language_confirm_seconds_left
+	confirm_dialog.dialog_text = text_template % _language_confirm_seconds_left
 
 func _configure_language_confirm_dialog() -> void:
-	if _language_confirm_dialog == null:
+	var confirm_dialog := _get_language_confirm_dialog()
+	if confirm_dialog == null:
 		return
 	var ok_button := _get_language_confirm_ok_button()
 	if ok_button != null:
@@ -332,26 +374,29 @@ func _configure_language_confirm_dialog() -> void:
 		cancel_button.text = U_LOCALIZATION_UTILS.localize(&"common.revert")
 
 func _refresh_language_confirm_dialog_localization(update_countdown_text: bool) -> void:
-	if _language_confirm_dialog == null:
+	var confirm_dialog := _get_language_confirm_dialog()
+	if confirm_dialog == null:
 		return
-	_language_confirm_dialog.title = U_LOCALIZATION_UTILS.localize(&"settings.localization.confirm_title")
+	confirm_dialog.title = U_LOCALIZATION_UTILS.localize(&"settings.localization.confirm_title")
 	_configure_language_confirm_dialog()
 	if update_countdown_text:
 		_update_language_confirm_text()
 
 func _get_language_confirm_ok_button() -> Button:
-	if _language_confirm_dialog == null:
+	var dialog := _get_language_confirm_dialog()
+	if dialog == null:
 		return null
-	if not _language_confirm_dialog.has_method("get_ok_button"):
+	if not dialog.has_method("get_ok_button"):
 		return null
-	return _language_confirm_dialog.get_ok_button()
+	return dialog.get_ok_button()
 
 func _get_language_confirm_cancel_button() -> Button:
-	if _language_confirm_dialog == null:
+	var dialog := _get_language_confirm_dialog()
+	if dialog == null:
 		return null
-	if not _language_confirm_dialog.has_method("get_cancel_button"):
+	if not dialog.has_method("get_cancel_button"):
 		return null
-	return _language_confirm_dialog.get_cancel_button()
+	return dialog.get_cancel_button()
 
 func _on_language_confirm_timer_timeout() -> void:
 	if not _language_confirm_active:
@@ -373,8 +418,9 @@ func _on_language_confirm_revert() -> void:
 func _finalize_language_confirm(keep_changes: bool) -> void:
 	_stop_language_confirm_timer()
 	_language_confirm_active = false
-	if _language_confirm_dialog != null and _language_confirm_dialog.visible:
-		_language_confirm_dialog.hide()
+	var confirm_dialog := _get_language_confirm_dialog()
+	if confirm_dialog != null and confirm_dialog.visible:
+		confirm_dialog.hide()
 	if keep_changes:
 		_pending_locale = &""
 		_clear_localization_preview()
@@ -418,17 +464,17 @@ func _dispatch_localization_settings(locale: StringName, dyslexia: bool) -> void
 # --- Helpers ---
 
 func _get_selected_locale() -> StringName:
-	if _language_option == null:
+	if _get_language_option() == null:
 		return &"en"
-	var idx := _language_option.selected
+	var idx := _get_language_option().selected
 	if idx < 0 or idx >= SUPPORTED_LOCALES.size():
 		return &"en"
 	return SUPPORTED_LOCALES[idx]
 
 func _get_dyslexia_value() -> bool:
-	if _dyslexia_toggle == null:
+	if _get_dyslexia_toggle() == null:
 		return false
-	return _dyslexia_toggle.button_pressed
+	return _get_dyslexia_toggle().button_pressed
 
 func _set_toggle_value_silently(toggle: BaseButton, pressed: bool) -> void:
 	if toggle == null:
@@ -480,12 +526,12 @@ func _localize_labels() -> void:
 	_populate_language_option()
 	if _builder != null:
 		_builder.localize_labels()
-	if _language_section_label != null:
-		_language_section_label.text = U_LOCALIZATION_UTILS.localize(&"settings.localization.language_section")
-	if _language_label != null:
-		_language_label.text = U_LOCALIZATION_UTILS.localize(&"settings.localization.language_label")
-	if _accessibility_section_label != null:
-		_accessibility_section_label.text = U_LOCALIZATION_UTILS.localize(&"settings.localization.accessibility_section")
-	if _dyslexia_label != null:
-		_dyslexia_label.text = U_LOCALIZATION_UTILS.localize(&"settings.localization.dyslexia_label")
+	if _get_language_section_label() != null:
+		_get_language_section_label().text = U_LOCALIZATION_UTILS.localize(&"settings.localization.language_section")
+	if _get_language_label() != null:
+		_get_language_label().text = U_LOCALIZATION_UTILS.localize(&"settings.localization.language_label")
+	if _get_accessibility_section_label() != null:
+		_get_accessibility_section_label().text = U_LOCALIZATION_UTILS.localize(&"settings.localization.accessibility_section")
+	if _get_dyslexia_label() != null:
+		_get_dyslexia_label().text = U_LOCALIZATION_UTILS.localize(&"settings.localization.dyslexia_label")
 	_refresh_language_confirm_dialog_localization(_language_confirm_active)
