@@ -56,6 +56,9 @@ var _color_blind_mode_values: Array[String] = []
 func _get_control_by_name(name: String) -> Control:
 	return find_child(name, true, false) as Control
 
+func _get_node_by_name(name: String) -> Node:
+	return find_child(name, true, false)
+
 func _get_window_size_option() -> OptionButton:
 	return _get_control_by_name("WindowSizeOption") as OptionButton
 
@@ -95,8 +98,8 @@ func _get_reset_button() -> Button:
 func _get_apply_button() -> Button:
 	return _get_control_by_name("ApplyButton") as Button
 
-func _get_window_confirm_dialog():
-	return _get_control_by_name("WindowConfirmDialog")
+func _get_window_confirm_dialog() -> Node:
+	return _get_node_by_name("WindowConfirmDialog")
 
 func _get_window_confirm_timer():
 	return _get_control_by_name("WindowConfirmTimer")

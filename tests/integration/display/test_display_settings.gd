@@ -77,11 +77,14 @@ func _instantiate_overlay() -> UI_DisplaySettingsOverlay:
 	await _await_overlay_store_ready(overlay)
 	return overlay
 
-func _await_overlay_store_ready(overlay: UI_DisplaySettingsOverlay, max_frames: int = 30) -> void:
+func _await_overlay_store_ready(overlay: UI_DisplaySettingsOverlay, max_frames: int = 60) -> void:
 	for _i in range(max_frames):
 		await get_tree().process_frame
-		if overlay != null and overlay.get_store() != null:
-			return
+		var tab := _get_tab(overlay)
+		if overlay != null and overlay.get_store() != null and tab != null and tab._state_store != null:
+			var confirm_dialog := tab._get_window_confirm_dialog()
+			if confirm_dialog != null:
+				return
 
 func _get_tab(overlay: Node) -> UI_DisplaySettingsTab:
 	return overlay.get_node_or_null("CenterContainer/Panel/VBox/DisplaySettingsTab") as UI_DisplaySettingsTab

@@ -55,9 +55,7 @@ func _await_overlay_ready(overlay: UI_LocalizationSettingsOverlay, max_frames: i
 		await get_tree().process_frame
 		var tab := _get_tab(overlay)
 		if overlay != null and overlay.get_store() != null and tab != null and tab._state_store != null:
-			var confirm_dialog := tab._get_language_confirm_dialog()
-			if confirm_dialog != null:
-				return
+			return
 
 func _get_tab(overlay: Node) -> UI_LocalizationSettingsTab:
 	return overlay.get_node_or_null("CenterContainer/Panel/VBox/LocalizationSettingsTab") as UI_LocalizationSettingsTab

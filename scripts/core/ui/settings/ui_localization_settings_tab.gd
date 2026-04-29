@@ -40,6 +40,9 @@ var _builder: RefCounted = null
 func _get_control_by_name(name: String) -> Control:
 	return find_child(name, true, false) as Control
 
+func _get_node_by_name(name: String) -> Node:
+	return find_child(name, true, false)
+
 func _get_heading_label() -> Label:
 	return _get_control_by_name("HeadingLabel") as Label
 
@@ -80,7 +83,7 @@ func _get_reset_button() -> Button:
 	return _get_control_by_name("ResetButton") as Button
 
 func _get_language_confirm_dialog() -> Node:
-	return _get_control_by_name("LanguageConfirmDialog")
+	return _get_node_by_name("LanguageConfirmDialog")
 
 func _get_language_confirm_timer() -> Node:
 	return _get_control_by_name("LanguageConfirmTimer")
