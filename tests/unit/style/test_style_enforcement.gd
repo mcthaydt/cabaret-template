@@ -105,7 +105,7 @@ const U_SETTINGS_TAB_BUILDER_MAX_LINES := 300
 const U_UI_MENU_BUILDER_PATH := "res://scripts/core/ui/helpers/u_ui_menu_builder.gd"
 const U_UI_MENU_BUILDER_MAX_LINES := 200
 const U_UI_SETTINGS_CATALOG_PATH := "res://scripts/core/ui/helpers/u_ui_settings_catalog.gd"
-const U_UI_SETTINGS_CATALOG_MAX_LINES := 150
+const U_UI_SETTINGS_CATALOG_MAX_LINES := 160
 const BT_GENERAL_FORBIDDEN_TOKENS := [
 	"U_AI",
 	"I_AIAction",

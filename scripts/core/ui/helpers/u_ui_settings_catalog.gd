@@ -125,3 +125,26 @@ static func create_display_builder(
 		post_processing_cb, post_processing_preset_cb, ui_scale_cb,
 		color_blind_cb, high_contrast_cb, apply_cb, cancel_cb, reset_cb
 	)
+
+static func create_audio_builder(
+	tab: Control,
+	master_vol_cb: Callable,
+	music_vol_cb: Callable,
+	sfx_vol_cb: Callable,
+	ambient_vol_cb: Callable,
+	master_mute_cb: Callable,
+	music_mute_cb: Callable,
+	sfx_mute_cb: Callable,
+	ambient_mute_cb: Callable,
+	spatial_cb: Callable,
+	apply_cb: Callable,
+	cancel_cb: Callable,
+	reset_cb: Callable
+):
+	var U_AUDIO_TAB_BUILDER := preload("res://scripts/core/ui/helpers/u_audio_tab_builder.gd")
+	var builder := U_AUDIO_TAB_BUILDER.new(tab)
+	return builder.set_callbacks(
+		master_vol_cb, music_vol_cb, sfx_vol_cb, ambient_vol_cb,
+		master_mute_cb, music_mute_cb, sfx_mute_cb, ambient_mute_cb,
+		spatial_cb, apply_cb, cancel_cb, reset_cb
+	)
