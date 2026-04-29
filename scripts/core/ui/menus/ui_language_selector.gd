@@ -13,6 +13,7 @@ const SUPPORTED_LOCALES: Array[StringName] = [&"en", &"es", &"pt", &"zh_CN", &"j
 const I_SCENE_MANAGER := preload("res://scripts/core/interfaces/i_scene_manager.gd")
 const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_localization_utils.gd")
 const U_DEBUG_SELECTORS := preload("res://scripts/core/state/selectors/u_debug_selectors.gd")
+const U_UI_MENU_BUILDER := preload("res://scripts/core/ui/helpers/u_ui_menu_builder.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 
@@ -28,6 +29,7 @@ const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme
 @onready var _zh_cn_button: Button = %ZhCnButton
 @onready var _ja_button: Button = %JaButton
 @onready var _background: ColorRect = $Background
+var _menu_builder: RefCounted = null
 
 
 func _ready() -> void:
@@ -49,15 +51,11 @@ func _on_store_ready(_store_ref: M_StateStore) -> void:
 
 
 func _setup_buttons() -> void:
+	_setup_menu_builder()
 	_apply_theme_tokens()
 	if _button_container != null:
 		_button_container.visible = true
 
-	_connect_locale_button(_en_button, &"en")
-	_connect_locale_button(_es_button, &"es")
-	_connect_locale_button(_pt_button, &"pt")
-	_connect_locale_button(_zh_cn_button, &"zh_CN")
-	_connect_locale_button(_ja_button, &"ja")
 	_localize_labels()
 
 	# Build 3-column grid for keyboard/gamepad navigation:
@@ -72,6 +70,18 @@ func _setup_buttons() -> void:
 	if _en_button != null:
 		_en_button.grab_focus()
 	play_enter_animation()
+
+func _setup_menu_builder() -> void:
+	_menu_builder = U_UI_MENU_BUILDER.new(self)
+	_menu_builder.bind_title(_title_label, &"menu.language_selector.title")
+	_menu_builder.bind_button_group([
+		{"button": _en_button, "key": &"locale.name.en", "callback": _on_locale_selected.bind(&"en")},
+		{"button": _es_button, "key": &"locale.name.es", "callback": _on_locale_selected.bind(&"es")},
+		{"button": _pt_button, "key": &"locale.name.pt", "callback": _on_locale_selected.bind(&"pt")},
+		{"button": _zh_cn_button, "key": &"locale.name.zh_cn", "callback": _on_locale_selected.bind(&"zh_CN")},
+		{"button": _ja_button, "key": &"locale.name.ja", "callback": _on_locale_selected.bind(&"ja")},
+	])
+	_menu_builder.build()
 
 func _apply_theme_tokens() -> void:
 	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
@@ -97,13 +107,6 @@ func _apply_theme_tokens() -> void:
 
 func _on_locale_changed(_locale: StringName) -> void:
 	_localize_labels()
-
-func _connect_locale_button(button: Button, locale: StringName) -> void:
-	if button == null:
-		return
-	if not button.pressed.is_connected(_on_locale_selected.bind(locale)):
-		button.pressed.connect(_on_locale_selected.bind(locale))
-
 
 func _on_locale_selected(locale: StringName) -> void:
 	U_UISoundPlayer.play_confirm()
@@ -138,8 +141,8 @@ func _on_back_pressed() -> void:
 	pass  # No back action on first-run screen
 
 func _localize_labels() -> void:
-	if _title_label != null:
-		_title_label.text = U_LOCALIZATION_UTILS.localize(&"menu.language_selector.title")
+	if _menu_builder != null:
+		_menu_builder.localize_labels()
 	if _en_button != null:
 		_en_button.text = "%s\nEN" % U_LOCALIZATION_UTILS.localize(&"locale.name.en")
 	if _es_button != null:
