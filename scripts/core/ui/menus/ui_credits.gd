@@ -9,6 +9,7 @@ class_name UI_Credits
 
 
 const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_localization_utils.gd")
+const U_UI_MENU_BUILDER := preload("res://scripts/core/ui/helpers/u_ui_menu_builder.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 
@@ -30,6 +31,7 @@ var _auto_return_timer: Timer = null
 var _scroll_duration: float = 55.0
 var _auto_return_duration: float = 60.0
 var _is_returning: bool = false
+var _menu_builder: RefCounted = null
 
 func set_test_durations(scroll_duration: float, auto_return_duration: float) -> void:
 	_scroll_duration = max(scroll_duration, 0.01)
@@ -43,13 +45,17 @@ func set_test_durations(scroll_duration: float, auto_return_duration: float) -> 
 	_restart_scroll_tween()
 
 func _on_panel_ready() -> void:
+	_setup_menu_builder()
 	_apply_theme_tokens()
-	if _skip_button and not _skip_button.pressed.is_connected(_on_skip_pressed):
-		_skip_button.pressed.connect(_on_skip_pressed)
 	_localize_labels()
 	_start_auto_return_timer()
 	_start_scroll_tween()
 	play_enter_animation()
+
+func _setup_menu_builder() -> void:
+	_menu_builder = U_UI_MENU_BUILDER.new(self)
+	_menu_builder.bind_button(_skip_button, &"common.skip", _on_skip_pressed)
+	_menu_builder.build()
 
 func _apply_theme_tokens() -> void:
 	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
@@ -92,6 +98,8 @@ func _on_locale_changed(_locale: StringName) -> void:
 	_localize_labels()
 
 func _localize_labels() -> void:
+	if _menu_builder != null:
+		_menu_builder.localize_labels()
 	if _team_label != null:
 		_team_label.text = U_LOCALIZATION_UTILS.localize(&"menu.credits.team")
 	if _names_label != null:
@@ -100,8 +108,6 @@ func _localize_labels() -> void:
 		_thanks_label.text = U_LOCALIZATION_UTILS.localize(&"menu.credits.thanks")
 	if _footer_label != null:
 		_footer_label.text = U_LOCALIZATION_UTILS.localize(&"menu.credits.copyright")
-	if _skip_button != null:
-		_skip_button.text = U_LOCALIZATION_UTILS.localize(&"common.skip")
 
 func _exit_tree() -> void:
 	if _auto_return_timer != null:
