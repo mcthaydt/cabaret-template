@@ -2212,19 +2212,19 @@ These ~780 lines of boilerplate collapse to ~80 lines of declarative builder cha
 ## Milestone P8.7: Menu Screen Migration — Main Menu + Pause Menu
 
 - [ ] **Commit 1** (RED) — Integration tests for main menu and pause menu builder equivalence.
-- [ ] **Commit 2** (GREEN) — Refactor `ui_main_menu.gd`:
+- [x] **Commit 2** (GREEN) — Refactor `ui_main_menu.gd`:
   - 10 @onready vars → builder-constructed nodes
   - ~19 lines `_apply_theme_tokens()` → builder-managed
   - ~22 lines `_localize_labels()` → builder-managed
   - Signal wiring from `_on_panel_ready()` → builder-internal
   - Target: ~339 → ~180 lines
-- [ ] **Commit 3** (GREEN) — Refactor `ui_pause_menu.gd`:
+- [x] **Commit 3** (GREEN) — Refactor `ui_pause_menu.gd`:
   - 9 @onready vars → builder-constructed nodes
   - Theme/localize/focus → builder-managed
   - Target: ~280 → ~150 lines
 
 **P8.7 Verification**:
-- [ ] Main menu and pause menu parity
+- [x] Main menu and pause menu parity (targeted unit suites green)
 - [ ] Full suite green
 
 ---

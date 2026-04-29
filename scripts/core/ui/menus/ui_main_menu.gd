@@ -9,6 +9,7 @@ class_name UI_MainMenu
 
 
 const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_localization_utils.gd")
+const U_UI_MENU_BUILDER := preload("res://scripts/core/ui/helpers/u_ui_menu_builder.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const U_UI_THEME_DEBUG := preload("res://scripts/core/ui/utils/u_ui_theme_debug.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
@@ -34,18 +35,19 @@ const OVERLAY_SAVE_LOAD := StringName("save_load_menu_overlay")
 
 var _save_manager: Node = null  # M_SaveManager
 var _new_game_confirmation_pending: bool = false
+var _menu_builder: RefCounted = null
 
 var _store_unsubscribe: Callable = Callable()
 var _active_panel: StringName = StringName()
 
 func _on_panel_ready() -> void:
+	_setup_menu_builder()
 	_apply_theme_tokens()
 	call_deferred("_debug_log_theme_snapshot")
 	_discover_save_manager()
 	_update_button_visibility()
 	if _try_debug_skip_main_menu():
 		return
-	_connect_buttons()
 	_configure_focus_neighbors()
 	_localize_labels()
 	var store := get_store()
@@ -55,6 +57,23 @@ func _on_panel_ready() -> void:
 		_store_unsubscribe = store.subscribe(_on_state_changed)
 	_on_state_changed({}, store.get_state())
 	play_enter_animation()
+
+func _setup_menu_builder() -> void:
+	_menu_builder = U_UI_MENU_BUILDER.new(self)
+	_menu_builder.bind_title(_title_label, &"menu.main.title")
+	_menu_builder.bind_button_group([
+		{"button": _continue_button, "key": &"menu.main.continue", "callback": _on_continue_pressed},
+		{"button": _new_game_button, "key": &"menu.main.new_game", "callback": _on_new_game_pressed},
+		{"button": _load_game_button, "key": &"menu.main.load_game", "callback": _on_load_game_pressed},
+		{"button": _settings_button, "key": &"menu.main.settings", "callback": _on_settings_pressed},
+		{"button": _quit_button, "key": &"menu.main.quit", "callback": _on_quit_pressed},
+	])
+	_menu_builder.build()
+	if _new_game_confirm_dialog != null:
+		if not _new_game_confirm_dialog.confirmed.is_connected(_on_new_game_confirmed):
+			_new_game_confirm_dialog.confirmed.connect(_on_new_game_confirmed)
+		if not _new_game_confirm_dialog.canceled.is_connected(_on_new_game_canceled):
+			_new_game_confirm_dialog.canceled.connect(_on_new_game_canceled)
 
 func _apply_theme_tokens() -> void:
 	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
@@ -119,24 +138,6 @@ func _exit_tree() -> void:
 	if _store_unsubscribe != Callable() and _store_unsubscribe.is_valid():
 		_store_unsubscribe.call()
 		_store_unsubscribe = Callable()
-
-func _connect_buttons() -> void:
-	if _continue_button != null and not _continue_button.pressed.is_connected(_on_continue_pressed):
-		_continue_button.pressed.connect(_on_continue_pressed)
-	if _new_game_button != null and not _new_game_button.pressed.is_connected(_on_new_game_pressed):
-		_new_game_button.pressed.connect(_on_new_game_pressed)
-	if _load_game_button != null and not _load_game_button.pressed.is_connected(_on_load_game_pressed):
-		_load_game_button.pressed.connect(_on_load_game_pressed)
-	if _settings_button != null and not _settings_button.pressed.is_connected(_on_settings_pressed):
-		_settings_button.pressed.connect(_on_settings_pressed)
-	if _quit_button != null and not _quit_button.pressed.is_connected(_on_quit_pressed):
-		_quit_button.pressed.connect(_on_quit_pressed)
-
-	if _new_game_confirm_dialog != null:
-		if not _new_game_confirm_dialog.confirmed.is_connected(_on_new_game_confirmed):
-			_new_game_confirm_dialog.confirmed.connect(_on_new_game_confirmed)
-		if not _new_game_confirm_dialog.canceled.is_connected(_on_new_game_canceled):
-			_new_game_confirm_dialog.canceled.connect(_on_new_game_canceled)
 
 func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
 	var navigation_slice: Dictionary = state.get("navigation", {})
@@ -335,18 +336,11 @@ func _on_back_pressed() -> void:
 			store.dispatch(U_NavigationActions.set_menu_panel(PANEL_MAIN))
 
 func _localize_labels() -> void:
-	if _title_label != null:
-		_title_label.text = U_LOCALIZATION_UTILS.localize(&"menu.main.title")
-	if _continue_button != null:
-		_continue_button.text = U_LOCALIZATION_UTILS.localize(&"menu.main.continue")
-	if _new_game_button != null:
-		_new_game_button.text = U_LOCALIZATION_UTILS.localize(&"menu.main.new_game")
-	if _load_game_button != null:
-		_load_game_button.text = U_LOCALIZATION_UTILS.localize(&"menu.main.load_game")
-	if _settings_button != null:
-		_settings_button.text = U_LOCALIZATION_UTILS.localize(&"menu.main.settings")
-	if _quit_button != null:
-		_quit_button.text = U_LOCALIZATION_UTILS.localize(&"menu.main.quit")
+	if _menu_builder != null:
+		_menu_builder.localize_labels()
+	else:
+		if _title_label != null:
+			_title_label.text = U_LOCALIZATION_UTILS.localize(&"menu.main.title")
 	if _new_game_confirm_dialog != null:
 		_new_game_confirm_dialog.dialog_text = U_LOCALIZATION_UTILS.localize(&"menu.main.new_game_confirm")
 
