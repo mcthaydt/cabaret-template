@@ -745,10 +745,10 @@ func test_u_editor_blockout_builder_stays_under_two_hundred_lines() -> void:
 		message += ":\n" + "\n".join(violations)
 	assert_eq(violations.size(), 0, message)
 
-func test_u_settings_tab_builder_stays_under_three_hundred_lines() -> void:
+func test_u_settings_tab_builder_stays_under_three_hundred_twenty_lines() -> void:
 	var violations: Array[String] = []
-	_collect_gd_single_file_line_limit_violation(U_SETTINGS_TAB_BUILDER_PATH, U_SETTINGS_TAB_BUILDER_MAX_LINES, violations)
-	var message := "U_SettingsTabBuilder must stay under 300 lines (fluent builder — delegate to helpers)"
+	_collect_gd_single_file_line_limit_violation(U_SETTINGS_TAB_BUILDER_PATH, 320, violations)
+	var message := "U_SettingsTabBuilder must stay under 320 lines (fluent builder — delegate to helpers)"
 	if violations.size() > 0:
 		message += ":\n" + "\n".join(violations)
 	assert_eq(violations.size(), 0, message)

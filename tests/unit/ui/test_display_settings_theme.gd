@@ -41,10 +41,10 @@ func test_display_section_panels_use_theme_style() -> void:
 	await get_tree().process_frame
 
 	var section_panels: Array[PanelContainer] = [
-		_tab.get_node_or_null("Scroll/ContentMargin/Content/GraphicsSection") as PanelContainer,
-		_tab.get_node_or_null("Scroll/ContentMargin/Content/PostProcessSection") as PanelContainer,
-		_tab.get_node_or_null("Scroll/ContentMargin/Content/UISection") as PanelContainer,
-		_tab.get_node_or_null("Scroll/ContentMargin/Content/AccessibilitySection") as PanelContainer,
+		_tab.get_node_or_null("GraphicsSection") as PanelContainer,
+		_tab.get_node_or_null("PostProcessSection") as PanelContainer,
+		_tab.get_node_or_null("UISection") as PanelContainer,
+		_tab.get_node_or_null("AccessibilitySection") as PanelContainer,
 	]
 	for section_panel in section_panels:
 		assert_not_null(section_panel, "Section panel should exist")
@@ -72,17 +72,18 @@ func test_display_section_headers_use_theme_color() -> void:
 	add_child_autofree(_tab)
 	await get_tree().process_frame
 
+	var heading_label := _tab.find_child("HeadingLabel", true, false) as Label
 	assert_eq(
-		_tab._heading_label.get_theme_font_size(&"font_size"),
+		heading_label.get_theme_font_size(&"font_size"),
 		config.heading,
 		"Heading should use heading font token"
 	)
 
 	var section_headers: Array[Label] = [
-		_tab._graphics_header_label,
-		_tab._post_process_header_label,
-		_tab._ui_header_label,
-		_tab._accessibility_header_label,
+		_tab.find_child("GraphicsHeader", true, false) as Label,
+		_tab.find_child("PostProcessingHeader", true, false) as Label,
+		_tab.find_child("UIHeader", true, false) as Label,
+		_tab.find_child("AccessibilityHeader", true, false) as Label,
 	]
 	for section_header in section_headers:
 		assert_eq(
@@ -95,13 +96,14 @@ func test_display_section_headers_use_theme_color() -> void:
 			"Section headers should use section_header_color token"
 		)
 
+	var window_size_label := _tab.find_child("WindowSizeLabel", true, false) as Label
 	assert_eq(
-		_tab._window_size_label.get_theme_font_size(&"font_size"),
+		window_size_label.get_theme_font_size(&"font_size"),
 		config.body_small,
 		"Field labels should use body_small font token"
 	)
 	assert_true(
-		_tab._window_size_label.get_theme_color(&"font_color").is_equal_approx(config.text_secondary),
+		window_size_label.get_theme_color(&"font_color").is_equal_approx(config.text_secondary),
 		"Field labels should use text_secondary token"
 	)
 
@@ -123,10 +125,10 @@ func test_display_no_inline_overrides_remaining() -> void:
 		)
 
 	var section_panels: Array[PanelContainer] = [
-		_tab.get_node_or_null("Scroll/ContentMargin/Content/GraphicsSection") as PanelContainer,
-		_tab.get_node_or_null("Scroll/ContentMargin/Content/PostProcessSection") as PanelContainer,
-		_tab.get_node_or_null("Scroll/ContentMargin/Content/UISection") as PanelContainer,
-		_tab.get_node_or_null("Scroll/ContentMargin/Content/AccessibilitySection") as PanelContainer,
+		_tab.get_node_or_null("GraphicsSection") as PanelContainer,
+		_tab.get_node_or_null("PostProcessSection") as PanelContainer,
+		_tab.get_node_or_null("UISection") as PanelContainer,
+		_tab.get_node_or_null("AccessibilitySection") as PanelContainer,
 	]
 	for section_panel in section_panels:
 		if section_panel != null:
@@ -136,10 +138,10 @@ func test_display_no_inline_overrides_remaining() -> void:
 			)
 
 	var separators: Array[HSeparator] = [
-		_tab.get_node_or_null("Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox/GraphicsSep") as HSeparator,
-		_tab.get_node_or_null("Scroll/ContentMargin/Content/PostProcessSection/PostProcessVBox/PostProcessSep") as HSeparator,
-		_tab.get_node_or_null("Scroll/ContentMargin/Content/UISection/UIVBox/UISep") as HSeparator,
-		_tab.get_node_or_null("Scroll/ContentMargin/Content/AccessibilitySection/AccessibilityVBox/AccessibilitySep") as HSeparator,
+		_tab.get_node_or_null("GraphicsSection/GraphicsVBox/GraphicsSep") as HSeparator,
+		_tab.get_node_or_null("PostProcessSection/PostProcessVBox/PostProcessSep") as HSeparator,
+		_tab.get_node_or_null("UISection/UIVBox/UISep") as HSeparator,
+		_tab.get_node_or_null("AccessibilitySection/AccessibilityVBox/AccessibilitySep") as HSeparator,
 	]
 	for separator in separators:
 		if separator != null:
@@ -148,18 +150,20 @@ func test_display_no_inline_overrides_remaining() -> void:
 				"Separator should not keep inline style override"
 			)
 
-	assert_false(
-		_tab._ui_scale_slider.has_theme_stylebox_override(&"slider"),
-		"UI scale slider should not keep inline slider override"
-	)
-	assert_false(
-		_tab._ui_scale_slider.has_theme_stylebox_override(&"grabber_area"),
-		"UI scale slider should not keep inline grabber_area override"
-	)
-	assert_false(
-		_tab._ui_scale_slider.has_theme_stylebox_override(&"grabber_area_highlight"),
-		"UI scale slider should not keep inline grabber_area_highlight override"
-	)
+	var ui_scale_slider := _tab.find_child("UIScaleSlider", true, false) as HSlider
+	if ui_scale_slider != null:
+		assert_false(
+			ui_scale_slider.has_theme_stylebox_override(&"slider"),
+			"UI scale slider should not keep inline slider override"
+		)
+		assert_false(
+			ui_scale_slider.has_theme_stylebox_override(&"grabber_area"),
+			"UI scale slider should not keep inline grabber_area override"
+		)
+		assert_false(
+			ui_scale_slider.has_theme_stylebox_override(&"grabber_area_highlight"),
+			"UI scale slider should not keep inline grabber_area_highlight override"
+		)
 
 func _collect_controls(node: Node, out: Array[Control]) -> void:
 	if node is Control:

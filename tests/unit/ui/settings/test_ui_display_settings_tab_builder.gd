@@ -83,10 +83,14 @@ func test_display_builder_applies_theme_tokens() -> void:
 	U_UI_THEME_BUILDER.active_config = config
 	_instantiate_tab()
 
-	assert_eq(_tab._heading_label.get_theme_font_size(&"font_size"), config.heading, "Heading should use builder theme token")
-	assert_eq(_tab._graphics_header_label.get_theme_font_size(&"font_size"), config.section_header, "Section should use builder theme token")
-	assert_eq(_tab._window_size_label.get_theme_font_size(&"font_size"), config.body_small, "Field labels should use builder theme token")
-	assert_true(_tab._window_size_label.get_theme_color(&"font_color").is_equal_approx(config.text_secondary), "Field labels should use secondary color")
+	var heading_label := _tab.find_child("HeadingLabel", true, false) as Label
+	var graphics_header := _tab.find_child("GraphicsHeader", true, false) as Label
+	var window_size_label := _tab.find_child("WindowSizeLabel", true, false) as Label
+	
+	assert_eq(heading_label.get_theme_font_size(&"font_size"), config.heading, "Heading should use builder theme token")
+	assert_eq(graphics_header.get_theme_font_size(&"font_size"), config.section_header, "Section should use builder theme token")
+	assert_eq(window_size_label.get_theme_font_size(&"font_size"), config.body_small, "Field labels should use builder theme token")
+	assert_true(window_size_label.get_theme_color(&"font_color").is_equal_approx(config.text_secondary), "Field labels should use secondary color")
 
 
 func _instantiate_tab() -> void:

@@ -5,7 +5,6 @@ class_name UI_DisplaySettingsTab
 const DEFAULT_DISPLAY_INITIAL_STATE: Resource = preload("res://resources/core/base_settings/state/cfg_display_initial_state.tres")
 const WINDOW_CONFIRM_SECONDS := 10
 const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_localization_utils.gd")
-const U_SETTINGS_TAB_BUILDER := preload("res://scripts/core/ui/helpers/u_settings_tab_builder.gd")
 const U_UI_SETTINGS_CATALOG := preload("res://scripts/core/ui/helpers/u_ui_settings_catalog.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
@@ -54,42 +53,74 @@ var _quality_preset_values: Array[String] = []
 var _post_processing_preset_values: Array[String] = []
 var _color_blind_mode_values: Array[String] = []
 
-@onready var _window_size_option: OptionButton = %WindowSizeOption
-@onready var _window_mode_option: OptionButton = %WindowModeOption
-@onready var _vsync_toggle: CheckBox = %VSyncToggle
-@onready var _quality_preset_option: OptionButton = %QualityPresetOption
+func _get_control_by_name(name: String) -> Control:
+	return find_child(name, true, false) as Control
 
-@onready var _post_processing_toggle: CheckBox = %PostProcessingToggle
-@onready var _post_processing_preset_option: OptionButton = %PostProcessPresetOption
+func _get_window_size_option() -> OptionButton:
+	return _get_control_by_name("WindowSizeOption") as OptionButton
 
-@onready var _ui_scale_slider: HSlider = %UIScaleSlider
-@onready var _ui_scale_value: Label = %UIScaleValue
+func _get_window_mode_option() -> OptionButton:
+	return _get_control_by_name("WindowModeOption") as OptionButton
 
-@onready var _color_blind_mode_option: OptionButton = %ColorBlindModeOption
-@onready var _high_contrast_toggle: CheckBox = %HighContrastToggle
+func _get_vsync_toggle() -> CheckBox:
+	return _get_control_by_name("VSyncToggle") as CheckBox
 
-@onready var _cancel_button: Button = %CancelButton
-@onready var _reset_button: Button = %ResetButton
-@onready var _apply_button: Button = %ApplyButton
-@onready var _window_confirm_dialog: ConfirmationDialog = %WindowConfirmDialog
-@onready var _window_confirm_timer: Timer = %WindowConfirmTimer
+func _get_quality_preset_option() -> OptionButton:
+	return _get_control_by_name("QualityPresetOption") as OptionButton
 
-@onready var _heading_label: Label = $HeadingLabel
-@onready var _content_margin: MarginContainer = $Scroll/ContentMargin
-@onready var _graphics_header_label: Label = $Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox/GraphicsHeader
-@onready var _post_process_header_label: Label = $Scroll/ContentMargin/Content/PostProcessSection/PostProcessVBox/PostProcessHeader
-@onready var _ui_header_label: Label = $Scroll/ContentMargin/Content/UISection/UIVBox/UIHeader
-@onready var _accessibility_header_label: Label = $Scroll/ContentMargin/Content/AccessibilitySection/AccessibilityVBox/AccessibilityHeader
+func _get_post_processing_toggle() -> CheckBox:
+	return _get_control_by_name("PostProcessingToggle") as CheckBox
 
-@onready var _window_size_label: Label = $Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox/GraphicsInner/WindowSizeRow/WindowSizeLabel
-@onready var _window_mode_label: Label = $Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox/GraphicsInner/WindowModeRow/WindowModeLabel
-@onready var _vsync_label: Label = $Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox/GraphicsInner/VSyncRow/VSyncLabel
-@onready var _quality_label: Label = $Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox/GraphicsInner/QualityRow/QualityLabel
-@onready var _post_processing_label: Label = $Scroll/ContentMargin/Content/PostProcessSection/PostProcessVBox/PostProcessInner/PostProcessingToggleRow/PostProcessingLabel
-@onready var _post_process_preset_label: Label = $Scroll/ContentMargin/Content/PostProcessSection/PostProcessVBox/PostProcessInner/PostProcessPresetRow/PostProcessPresetLabel
-@onready var _ui_scale_label: Label = $Scroll/ContentMargin/Content/UISection/UIVBox/UIInner/UIScaleRow/UIScaleLabel
-@onready var _color_blind_mode_label: Label = $Scroll/ContentMargin/Content/AccessibilitySection/AccessibilityVBox/AccessibilityInner/ColorBlindModeRow/ColorBlindModeLabel
-@onready var _high_contrast_label: Label = $Scroll/ContentMargin/Content/AccessibilitySection/AccessibilityVBox/AccessibilityInner/HighContrastRow/HighContrastLabel
+func _get_post_processing_preset_option() -> OptionButton:
+	return _get_control_by_name("PostProcessPresetOption") as OptionButton
+
+func _get_ui_scale_slider() -> HSlider:
+	return _get_control_by_name("UIScaleSlider") as HSlider
+
+func _get_ui_scale_value() -> Label:
+	return _get_control_by_name("UIScaleValue") as Label
+
+func _get_color_blind_mode_option() -> OptionButton:
+	return _get_control_by_name("ColorBlindModeOption") as OptionButton
+
+func _get_high_contrast_toggle() -> CheckBox:
+	return _get_control_by_name("HighContrastToggle") as CheckBox
+
+func _get_cancel_button() -> Button:
+	return _get_control_by_name("CancelButton") as Button
+
+func _get_reset_button() -> Button:
+	return _get_control_by_name("ResetButton") as Button
+
+func _get_apply_button() -> Button:
+	return _get_control_by_name("ApplyButton") as Button
+
+func _get_window_confirm_dialog():
+	return _get_control_by_name("WindowConfirmDialog")
+
+func _get_window_confirm_timer():
+	return _get_control_by_name("WindowConfirmTimer")
+
+func _get_heading_label() -> Label:
+	return _get_control_by_name("HeadingLabel") as Label
+
+func _get_content_margin() -> MarginContainer:
+	var scroll := find_child("Scroll", true, false) as ScrollContainer
+	if scroll != null:
+		return scroll.find_child("ContentMargin", true, false) as MarginContainer
+	return null
+
+func _get_graphics_header() -> Label:
+	return _get_control_by_name("GraphicsHeader") as Label
+
+func _get_post_processing_header() -> Label:
+	return _get_control_by_name("PostProcessingHeader") as Label
+
+func _get_ui_header() -> Label:
+	return _get_control_by_name("UIHeader") as Label
+
+func _get_accessibility_header() -> Label:
+	return _get_control_by_name("AccessibilityHeader") as Label
 
 func _ready() -> void:
 	_setup_builder()
@@ -109,42 +140,26 @@ func _ready() -> void:
 	_on_state_changed({}, _state_store.get_state())
 
 func _setup_builder() -> void:
-	_populate_option_buttons()
-	_builder = U_SETTINGS_TAB_BUILDER.new(self)
-	_builder.bind_heading(_heading_label, TITLE_KEY)
-	_builder.bind_section_header(_graphics_header_label, SECTION_GRAPHICS_KEY)
-	_builder.bind_section_header(_post_process_header_label, SECTION_POST_PROCESSING_KEY)
-	_builder.bind_section_header(_ui_header_label, SECTION_UI_KEY)
-	_builder.bind_section_header(_accessibility_header_label, SECTION_ACCESSIBILITY_KEY)
-	_builder.bind_field_label(_window_size_label, LABEL_WINDOW_SIZE_KEY)
-	_builder.bind_field_label(_window_mode_label, LABEL_WINDOW_MODE_KEY)
-	_builder.bind_field_label(_vsync_label, LABEL_VSYNC_KEY)
-	_builder.bind_field_label(_quality_label, LABEL_QUALITY_PRESET_KEY)
-	_builder.bind_field_label(_post_processing_label, LABEL_POST_PROCESSING_KEY)
-	_builder.bind_field_label(_post_process_preset_label, LABEL_POST_PROCESSING_PRESET_KEY)
-	_builder.bind_field_label(_ui_scale_label, LABEL_UI_SCALE_KEY)
-	_builder.bind_value_label(_ui_scale_value)
-	_builder.bind_field_label(_color_blind_mode_label, LABEL_COLOR_BLIND_MODE_KEY)
-	_builder.bind_field_label(_high_contrast_label, LABEL_HIGH_CONTRAST_KEY)
-	_builder.bind_field_control(_window_size_option, _on_window_size_selected)
-	_builder.bind_field_control(_window_mode_option, _on_window_mode_selected)
-	_builder.bind_field_control(_vsync_toggle, _on_vsync_toggled)
-	_builder.bind_field_control(_quality_preset_option, _on_quality_preset_selected)
-	_builder.bind_field_control(_post_processing_toggle, _on_post_processing_toggled)
-	_builder.bind_field_control(_post_processing_preset_option, _on_post_processing_preset_selected)
-	_builder.bind_field_control(_ui_scale_slider, _on_ui_scale_changed)
-	_builder.bind_field_control(_color_blind_mode_option, _on_color_blind_mode_selected)
-	_builder.bind_field_control(_high_contrast_toggle, _on_high_contrast_toggled)
-	_builder.bind_action_button(_cancel_button, &"common.cancel", _on_cancel_pressed, "Cancel")
-	_builder.bind_action_button(_reset_button, &"common.reset", _on_reset_pressed, "Reset")
-	_builder.bind_action_button(_apply_button, &"common.apply", _on_apply_pressed, "Apply")
-	_connect_window_confirm_signals()
-	_setup_option_button_popup_focus(_window_size_option)
-	_setup_option_button_popup_focus(_window_mode_option)
-	_setup_option_button_popup_focus(_quality_preset_option)
-	_setup_option_button_popup_focus(_post_processing_preset_option)
-	_setup_option_button_popup_focus(_color_blind_mode_option)
-	_configure_tooltips()
+	_display_manager = U_DisplayUtils.get_display_manager()
+	
+	_builder = U_UI_SETTINGS_CATALOG.create_display_builder(
+		self,
+		_on_window_size_selected,
+		_on_window_mode_selected,
+		_on_vsync_toggled,
+		_on_quality_preset_selected,
+		_on_post_processing_toggled,
+		_on_post_processing_preset_selected,
+		_on_ui_scale_changed,
+		_on_color_blind_mode_selected,
+		_on_high_contrast_toggled,
+		_on_apply_pressed,
+		_on_cancel_pressed,
+		_on_reset_pressed
+	)
+	
+	_populate_value_arrays()
+	_configure_tooltips_via_builder()
 	_apply_builder_margin_tokens()
 
 func _exit_tree() -> void:
@@ -156,41 +171,55 @@ func _exit_tree() -> void:
 		_unsubscribe = Callable()
 
 func _connect_window_confirm_signals() -> void:
-	if _window_confirm_dialog != null:
+	var window_confirm_dialog: ConfirmationDialog = _get_window_confirm_dialog()
+	if window_confirm_dialog != null:
 		_configure_window_confirm_dialog()
-		if not _window_confirm_dialog.confirmed.is_connected(_on_window_confirm_keep):
-			_window_confirm_dialog.confirmed.connect(_on_window_confirm_keep)
-		if not _window_confirm_dialog.canceled.is_connected(_on_window_confirm_revert):
-			_window_confirm_dialog.canceled.connect(_on_window_confirm_revert)
-		if _window_confirm_dialog.has_signal("close_requested"):
-			if not _window_confirm_dialog.close_requested.is_connected(_on_window_confirm_revert):
-				_window_confirm_dialog.close_requested.connect(_on_window_confirm_revert)
-	if _window_confirm_timer != null and not _window_confirm_timer.timeout.is_connected(_on_window_confirm_timer_timeout):
-		_window_confirm_timer.timeout.connect(_on_window_confirm_timer_timeout)
+		if not window_confirm_dialog.confirmed.is_connected(_on_window_confirm_keep):
+			window_confirm_dialog.confirmed.connect(_on_window_confirm_keep)
+		if not window_confirm_dialog.canceled.is_connected(_on_window_confirm_revert):
+			window_confirm_dialog.canceled.connect(_on_window_confirm_revert)
+		if window_confirm_dialog.has_signal("close_requested"):
+			if not window_confirm_dialog.close_requested.is_connected(_on_window_confirm_revert):
+				window_confirm_dialog.close_requested.connect(_on_window_confirm_revert)
+	var window_confirm_timer: Timer = _get_window_confirm_timer()
+	if window_confirm_timer != null and not window_confirm_timer.timeout.is_connected(_on_window_confirm_timer_timeout):
+		window_confirm_timer.timeout.connect(_on_window_confirm_timer_timeout)
+
+func _populate_value_arrays() -> void:
+	for option in U_UI_SETTINGS_CATALOG.get_window_sizes():
+		_window_size_values.append(str(option.get("id", "")))
+	for option in U_UI_SETTINGS_CATALOG.get_window_modes():
+		_window_mode_values.append(str(option.get("id", "")))
+	for option in U_UI_SETTINGS_CATALOG.get_quality_presets():
+		_quality_preset_values.append(str(option.get("id", "")))
+	for option in U_DisplayOptionCatalog.get_post_processing_preset_option_entries():
+		_post_processing_preset_values.append(str(option.get("id", "")))
+	for option in U_DisplayOptionCatalog.get_color_blind_mode_option_entries():
+		_color_blind_mode_values.append(str(option.get("id", "")))
 
 func _populate_option_buttons() -> void:
 	_populate_option_button(
-		_window_size_option,
+		_get_window_size_option(),
 		U_UI_SETTINGS_CATALOG.get_window_sizes(),
 		_window_size_values
 	)
 	_populate_option_button(
-		_window_mode_option,
+		_get_window_mode_option(),
 		U_UI_SETTINGS_CATALOG.get_window_modes(),
 		_window_mode_values
 	)
 	_populate_option_button(
-		_quality_preset_option,
+		_get_quality_preset_option(),
 		U_UI_SETTINGS_CATALOG.get_quality_presets(),
 		_quality_preset_values
 	)
 	_populate_option_button(
-		_post_processing_preset_option,
+		_get_post_processing_preset_option(),
 		U_DisplayOptionCatalog.get_post_processing_preset_option_entries(),
 		_post_processing_preset_values
 	)
 	_populate_option_button(
-		_color_blind_mode_option,
+		_get_color_blind_mode_option(),
 		U_DisplayOptionCatalog.get_color_blind_mode_option_entries(),
 		_color_blind_mode_values
 	)
@@ -211,71 +240,56 @@ func _populate_option_button(button: OptionButton, options: Array, values: Array
 			button.add_item(label)
 			values.append(value)
 
-func _configure_tooltips() -> void:
-	if _window_size_option != null:
-		_window_size_option.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
-			TOOLTIP_WINDOW_SIZE_KEY,
-			"Available only in Windowed mode."
-		)
-	if _window_mode_option != null:
-		_window_mode_option.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
-			TOOLTIP_WINDOW_MODE_KEY,
-			"Borderless fills the screen without changing display mode."
-		)
-	if _post_processing_preset_option != null:
-		_post_processing_preset_option.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
-			TOOLTIP_POST_PROCESSING_PRESET_KEY,
-			"Intensity level for post-processing effects (Film Grain, Dither)."
-		)
-	if _ui_scale_slider != null:
-		_ui_scale_slider.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
-			TOOLTIP_UI_SCALE_KEY,
-			"Scales the UI size."
-		)
+func _configure_tooltips_via_builder() -> void:
+	if _builder == null:
+		return
+	_builder.set_tooltip(
+		&"settings.display.label.window_size",
+		U_LOCALIZATION_UTILS.localize_with_fallback(TOOLTIP_WINDOW_SIZE_KEY, "Available only in Windowed mode.")
+	)
+	_builder.set_tooltip(
+		&"settings.display.label.window_mode",
+		U_LOCALIZATION_UTILS.localize_with_fallback(TOOLTIP_WINDOW_MODE_KEY, "Borderless fills the screen without changing display mode.")
+	)
+	_builder.set_tooltip(
+		&"settings.display.label.post_processing_preset",
+		U_LOCALIZATION_UTILS.localize_with_fallback(TOOLTIP_POST_PROCESSING_PRESET_KEY, "Intensity level for post-processing effects (Film Grain, Dither).")
+	)
+	_builder.set_tooltip(
+		&"settings.display.label.ui_scale",
+		U_LOCALIZATION_UTILS.localize_with_fallback(TOOLTIP_UI_SCALE_KEY, "Scales the UI size.")
+	)
 
 func _apply_builder_margin_tokens() -> void:
 	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
 	if not (config_resource is RS_UI_THEME_CONFIG):
 		return
 	var config := config_resource as RS_UI_THEME_CONFIG
-	if _content_margin == null:
+	var content_margin := _get_content_margin()
+	if content_margin == null:
 		return
-	_content_margin.add_theme_constant_override(&"margin_left", config.margin_section)
-	_content_margin.add_theme_constant_override(&"margin_top", config.margin_section)
-	_content_margin.add_theme_constant_override(&"margin_right", config.margin_section)
-	_content_margin.add_theme_constant_override(&"margin_bottom", config.margin_section)
+	content_margin.add_theme_constant_override(&"margin_left", config.margin_section)
+	content_margin.add_theme_constant_override(&"margin_top", config.margin_section)
+	content_margin.add_theme_constant_override(&"margin_right", config.margin_section)
+	content_margin.add_theme_constant_override(&"margin_bottom", config.margin_section)
 
 func _hide_desktop_only_controls_on_mobile() -> void:
-	# Hide desktop-only controls on mobile platforms
 	if not OS.has_feature("mobile"):
 		return
-
-	# Hide window size control and its parent row
-	if _window_size_option != null:
-		var window_size_row := _window_size_option.get_parent()
-		if window_size_row is Control:
-			(window_size_row as Control).visible = false
-
-	# Hide window mode control and its parent row
-	if _window_mode_option != null:
-		var window_mode_row := _window_mode_option.get_parent()
-		if window_mode_row is Control:
-			(window_mode_row as Control).visible = false
-
-	# Hide vsync control and its parent row
-	if _vsync_toggle != null:
-		var vsync_row := _vsync_toggle.get_parent()
-		if vsync_row is Control:
-			(vsync_row as Control).visible = false
+	if _builder == null:
+		return
+	_builder.hide_control_by_key(&"settings.display.label.window_size")
+	_builder.hide_control_by_key(&"settings.display.label.window_mode")
+	_builder.hide_control_by_key(&"settings.display.label.vsync")
 
 func _update_dependent_controls() -> void:
 	var defaults := _get_default_display_state()
-	var window_mode := _get_selected_value(_window_mode_option, _window_mode_values, defaults.window_mode)
+	var window_mode := _get_selected_value(_get_window_mode_option(), _window_mode_values, defaults.window_mode)
 	var windowed := window_mode == "windowed"
-	_set_control_group_enabled(_window_size_option, windowed)
+	_set_control_group_enabled(_get_window_size_option(), windowed)
 
-	var post_processing_enabled := _get_toggle_value(_post_processing_toggle, defaults.post_processing_enabled)
-	_set_control_group_enabled(_post_processing_preset_option, post_processing_enabled)
+	var post_processing_enabled := _get_toggle_value(_get_post_processing_toggle(), defaults.post_processing_enabled)
+	_set_control_group_enabled(_get_post_processing_preset_option(), post_processing_enabled)
 
 func _on_state_changed(action: Dictionary, state: Dictionary) -> void:
 	if state == null:
@@ -292,20 +306,20 @@ func _on_state_changed(action: Dictionary, state: Dictionary) -> void:
 
 	_updating_from_state = true
 
-	_select_option_value(_window_size_option, _window_size_values, U_DisplaySelectors.get_window_size_preset(state))
-	_select_option_value(_window_mode_option, _window_mode_values, U_DisplaySelectors.get_window_mode(state))
-	_set_toggle_value_silently(_vsync_toggle, U_DisplaySelectors.is_vsync_enabled(state))
-	_select_option_value(_quality_preset_option, _quality_preset_values, U_DisplaySelectors.get_quality_preset(state))
+	_select_option_value(_get_window_size_option(), _window_size_values, U_DisplaySelectors.get_window_size_preset(state))
+	_select_option_value(_get_window_mode_option(), _window_mode_values, U_DisplaySelectors.get_window_mode(state))
+	_set_toggle_value_silently(_get_vsync_toggle(), U_DisplaySelectors.is_vsync_enabled(state))
+	_select_option_value(_get_quality_preset_option(), _quality_preset_values, U_DisplaySelectors.get_quality_preset(state))
 
-	_set_toggle_value_silently(_post_processing_toggle, U_DisplaySelectors.is_post_processing_enabled(state))
-	_select_option_value(_post_processing_preset_option, _post_processing_preset_values, U_DisplaySelectors.get_post_processing_preset(state))
+	_set_toggle_value_silently(_get_post_processing_toggle(), U_DisplaySelectors.is_post_processing_enabled(state))
+	_select_option_value(_get_post_processing_preset_option(), _post_processing_preset_values, U_DisplaySelectors.get_post_processing_preset(state))
 
 	var ui_scale := U_DisplaySelectors.get_ui_scale(state)
-	_set_slider_value_silently(_ui_scale_slider, ui_scale)
-	_update_scale_label(_ui_scale_value, ui_scale)
+	_set_slider_value_silently(_get_ui_scale_slider(), ui_scale)
+	_update_scale_label(_get_ui_scale_value(), ui_scale)
 
-	_select_option_value(_color_blind_mode_option, _color_blind_mode_values, U_DisplaySelectors.get_color_blind_mode(state))
-	_set_toggle_value_silently(_high_contrast_toggle, U_DisplaySelectors.is_high_contrast_enabled(state))
+	_select_option_value(_get_color_blind_mode_option(), _color_blind_mode_values, U_DisplaySelectors.get_color_blind_mode(state))
+	_set_toggle_value_silently(_get_high_contrast_toggle(), U_DisplaySelectors.is_high_contrast_enabled(state))
 
 	_updating_from_state = false
 	_update_dependent_controls()
@@ -362,7 +376,7 @@ func _on_post_processing_preset_selected(index: int) -> void:
 	_update_display_settings_preview_from_ui()
 
 func _on_ui_scale_changed(value: float) -> void:
-	_update_scale_label(_ui_scale_value, value)
+	_update_scale_label(_get_ui_scale_value(), value)
 	if _updating_from_state:
 		return
 	U_UISoundPlayer.play_slider_tick()
@@ -390,19 +404,19 @@ func _on_reset_pressed() -> void:
 	var defaults := _get_default_display_state()
 
 	_updating_from_state = true
-	_select_option_value(_window_size_option, _window_size_values, defaults.window_size_preset)
-	_select_option_value(_window_mode_option, _window_mode_values, defaults.window_mode)
-	_set_toggle_value_silently(_vsync_toggle, defaults.vsync_enabled)
-	_select_option_value(_quality_preset_option, _quality_preset_values, defaults.quality_preset)
+	_select_option_value(_get_window_size_option(), _window_size_values, defaults.window_size_preset)
+	_select_option_value(_get_window_mode_option(), _window_mode_values, defaults.window_mode)
+	_set_toggle_value_silently(_get_vsync_toggle(), defaults.vsync_enabled)
+	_select_option_value(_get_quality_preset_option(), _quality_preset_values, defaults.quality_preset)
 
-	_set_toggle_value_silently(_post_processing_toggle, defaults.post_processing_enabled)
-	_select_option_value(_post_processing_preset_option, _post_processing_preset_values, defaults.post_processing_preset)
+	_set_toggle_value_silently(_get_post_processing_toggle(), defaults.post_processing_enabled)
+	_select_option_value(_get_post_processing_preset_option(), _post_processing_preset_values, defaults.post_processing_preset)
 
-	_set_slider_value_silently(_ui_scale_slider, defaults.ui_scale)
-	_update_scale_label(_ui_scale_value, defaults.ui_scale)
+	_set_slider_value_silently(_get_ui_scale_slider(), defaults.ui_scale)
+	_update_scale_label(_get_ui_scale_value(), defaults.ui_scale)
 
-	_select_option_value(_color_blind_mode_option, _color_blind_mode_values, defaults.color_blind_mode)
-	_set_toggle_value_silently(_high_contrast_toggle, defaults.high_contrast_enabled)
+	_select_option_value(_get_color_blind_mode_option(), _color_blind_mode_values, defaults.color_blind_mode)
+	_set_toggle_value_silently(_get_high_contrast_toggle(), defaults.high_contrast_enabled)
 
 	_updating_from_state = false
 	_update_dependent_controls()
@@ -507,58 +521,65 @@ func _begin_window_confirm(settings: Dictionary) -> void:
 	_show_window_confirm_dialog()
 
 func _show_window_confirm_dialog() -> void:
-	if _window_confirm_dialog == null:
+	var window_confirm_dialog: ConfirmationDialog = _get_window_confirm_dialog()
+	if window_confirm_dialog == null:
 		return
 	_update_window_confirm_text()
-	_window_confirm_dialog.popup_centered()
+	window_confirm_dialog.popup_centered()
 	_start_window_confirm_timer()
-	var ok_button := _get_window_confirm_ok_button()
+	var ok_button: Button = _get_window_confirm_ok_button()
 	if ok_button != null:
 		ok_button.grab_focus()
 
 func _start_window_confirm_timer() -> void:
-	if _window_confirm_timer == null:
+	var window_confirm_timer: Timer = _get_window_confirm_timer()
+	if window_confirm_timer == null:
 		return
-	_window_confirm_timer.stop()
-	_window_confirm_timer.start()
+	window_confirm_timer.stop()
+	window_confirm_timer.start()
 
 func _stop_window_confirm_timer() -> void:
-	if _window_confirm_timer == null:
+	var window_confirm_timer: Timer = _get_window_confirm_timer()
+	if window_confirm_timer == null:
 		return
-	_window_confirm_timer.stop()
+	window_confirm_timer.stop()
 
 func _update_window_confirm_text() -> void:
-	if _window_confirm_dialog == null:
+	var window_confirm_dialog: ConfirmationDialog = _get_window_confirm_dialog()
+	if window_confirm_dialog == null:
 		return
 	var confirm_template := U_LOCALIZATION_UTILS.localize_with_fallback(
 		DIALOG_WINDOW_CONFIRM_TEXT_KEY,
 		"Keep these display changes? Reverting in %ds."
 	)
-	_window_confirm_dialog.dialog_text = confirm_template % _window_confirm_seconds_left
+	window_confirm_dialog.dialog_text = confirm_template % _window_confirm_seconds_left
 
 func _configure_window_confirm_dialog() -> void:
-	if _window_confirm_dialog == null:
+	var window_confirm_dialog: ConfirmationDialog = _get_window_confirm_dialog()
+	if window_confirm_dialog == null:
 		return
-	var ok_button := _get_window_confirm_ok_button()
+	var ok_button: Button = _get_window_confirm_ok_button()
 	if ok_button != null:
 		ok_button.text = U_LOCALIZATION_UTILS.localize_with_fallback(&"common.keep", "Keep")
-	var cancel_button := _get_window_confirm_cancel_button()
+	var cancel_button: Button = _get_window_confirm_cancel_button()
 	if cancel_button != null:
 		cancel_button.text = U_LOCALIZATION_UTILS.localize_with_fallback(&"common.revert", "Revert")
 
 func _get_window_confirm_ok_button() -> Button:
-	if _window_confirm_dialog == null:
+	var window_confirm_dialog: ConfirmationDialog = _get_window_confirm_dialog()
+	if window_confirm_dialog == null:
 		return null
-	if not _window_confirm_dialog.has_method("get_ok_button"):
+	if not window_confirm_dialog.has_method("get_ok_button"):
 		return null
-	return _window_confirm_dialog.get_ok_button()
+	return window_confirm_dialog.get_ok_button()
 
 func _get_window_confirm_cancel_button() -> Button:
-	if _window_confirm_dialog == null:
+	var window_confirm_dialog: ConfirmationDialog = _get_window_confirm_dialog()
+	if window_confirm_dialog == null:
 		return null
-	if not _window_confirm_dialog.has_method("get_cancel_button"):
+	if not window_confirm_dialog.has_method("get_cancel_button"):
 		return null
-	return _window_confirm_dialog.get_cancel_button()
+	return window_confirm_dialog.get_cancel_button()
 
 func _on_window_confirm_timer_timeout() -> void:
 	if not _window_confirm_active:
@@ -580,8 +601,9 @@ func _on_window_confirm_revert() -> void:
 func _finalize_window_confirm(keep_changes: bool) -> void:
 	_stop_window_confirm_timer()
 	_window_confirm_active = false
-	if _window_confirm_dialog != null and _window_confirm_dialog.visible:
-		_window_confirm_dialog.hide()
+	var window_confirm_dialog: ConfirmationDialog = _get_window_confirm_dialog()
+	if window_confirm_dialog != null and window_confirm_dialog.visible:
+		window_confirm_dialog.hide()
 	if keep_changes:
 		_dispatch_window_settings(_pending_window_settings)
 		_pending_window_settings.clear()
@@ -597,15 +619,15 @@ func _finalize_window_confirm(keep_changes: bool) -> void:
 func _get_display_settings_from_ui() -> Dictionary:
 	var defaults: Dictionary = _get_default_display_state()
 	return {
-		"window_size_preset": _get_selected_value(_window_size_option, _window_size_values, defaults.get("window_size_preset", "1920x1080")),
-		"window_mode": _get_selected_value(_window_mode_option, _window_mode_values, defaults.get("window_mode", "windowed")),
-		"vsync_enabled": _get_toggle_value(_vsync_toggle, defaults.get("vsync_enabled", true)),
-		"quality_preset": _get_selected_value(_quality_preset_option, _quality_preset_values, defaults.get("quality_preset", "high")),
-		"post_processing_enabled": _get_toggle_value(_post_processing_toggle, defaults.get("post_processing_enabled", false)),
-		"post_processing_preset": _get_selected_value(_post_processing_preset_option, _post_processing_preset_values, defaults.get("post_processing_preset", "medium")),
-		"ui_scale": _get_slider_value(_ui_scale_slider, defaults.get("ui_scale", 1.0)),
-		"color_blind_mode": _get_selected_value(_color_blind_mode_option, _color_blind_mode_values, defaults.get("color_blind_mode", "normal")),
-		"high_contrast_enabled": _get_toggle_value(_high_contrast_toggle, defaults.get("high_contrast_enabled", false)),
+		"window_size_preset": _get_selected_value(_get_window_size_option(), _window_size_values, defaults.get("window_size_preset", "1920x1080")),
+		"window_mode": _get_selected_value(_get_window_mode_option(), _window_mode_values, defaults.get("window_mode", "windowed")),
+		"vsync_enabled": _get_toggle_value(_get_vsync_toggle(), defaults.get("vsync_enabled", true)),
+		"quality_preset": _get_selected_value(_get_quality_preset_option(), _quality_preset_values, defaults.get("quality_preset", "high")),
+		"post_processing_enabled": _get_toggle_value(_get_post_processing_toggle(), defaults.get("post_processing_enabled", false)),
+		"post_processing_preset": _get_selected_value(_get_post_processing_preset_option(), _post_processing_preset_values, defaults.get("post_processing_preset", "medium")),
+		"ui_scale": _get_slider_value(_get_ui_scale_slider(), defaults.get("ui_scale", 1.0)),
+		"color_blind_mode": _get_selected_value(_get_color_blind_mode_option(), _color_blind_mode_values, defaults.get("color_blind_mode", "normal")),
+		"high_contrast_enabled": _get_toggle_value(_get_high_contrast_toggle(), defaults.get("high_contrast_enabled", false)),
 	}
 
 func _get_selected_value(button: OptionButton, values: Array[String], fallback: String) -> String:
@@ -681,27 +703,34 @@ func _on_locale_changed(_locale: StringName) -> void:
 
 func _localize_labels() -> void:
 	_relocalize_option_buttons()
-	_configure_tooltips()
+	_configure_tooltips_via_builder()
 	if _builder != null:
 		_builder.localize_labels()
 
 	var enabled_text: String = U_LOCALIZATION_UTILS.localize_with_fallback(LABEL_TOGGLE_ENABLED_KEY, "Enabled")
-	if _vsync_toggle != null:
-		_vsync_toggle.text = enabled_text
-	if _post_processing_toggle != null:
-		_post_processing_toggle.text = enabled_text
-	if _high_contrast_toggle != null:
-		_high_contrast_toggle.text = enabled_text
+	var vsync_toggle := _get_vsync_toggle()
+	if vsync_toggle != null:
+		vsync_toggle.text = enabled_text
+	var post_processing_toggle := _get_post_processing_toggle()
+	if post_processing_toggle != null:
+		post_processing_toggle.text = enabled_text
+	var high_contrast_toggle := _get_high_contrast_toggle()
+	if high_contrast_toggle != null:
+		high_contrast_toggle.text = enabled_text
 
-	if _cancel_button != null:
-		_cancel_button.text = U_LOCALIZATION_UTILS.localize_with_fallback(&"common.cancel", "Cancel")
-	if _reset_button != null:
-		_reset_button.text = U_LOCALIZATION_UTILS.localize_with_fallback(&"common.reset", "Reset")
-	if _apply_button != null:
-		_apply_button.text = U_LOCALIZATION_UTILS.localize_with_fallback(&"common.apply", "Apply")
+	var cancel_button := _get_cancel_button()
+	if cancel_button != null:
+		cancel_button.text = U_LOCALIZATION_UTILS.localize_with_fallback(&"common.cancel", "Cancel")
+	var reset_button := _get_reset_button()
+	if reset_button != null:
+		reset_button.text = U_LOCALIZATION_UTILS.localize_with_fallback(&"common.reset", "Reset")
+	var apply_button := _get_apply_button()
+	if apply_button != null:
+		apply_button.text = U_LOCALIZATION_UTILS.localize_with_fallback(&"common.apply", "Apply")
 
-	if _window_confirm_dialog != null:
-		_window_confirm_dialog.title = U_LOCALIZATION_UTILS.localize_with_fallback(DIALOG_WINDOW_CONFIRM_TITLE_KEY, "Confirm Display Changes")
+	var window_confirm_dialog: ConfirmationDialog = _get_window_confirm_dialog()
+	if window_confirm_dialog != null:
+		window_confirm_dialog.title = U_LOCALIZATION_UTILS.localize_with_fallback(DIALOG_WINDOW_CONFIRM_TITLE_KEY, "Confirm Display Changes")
 		_configure_window_confirm_dialog()
 		if _window_confirm_active:
 			_update_window_confirm_text()
@@ -709,37 +738,37 @@ func _localize_labels() -> void:
 func _relocalize_option_buttons() -> void:
 	var defaults := _get_default_display_state()
 	var window_size_value: String = _get_selected_value(
-		_window_size_option,
+		_get_window_size_option(),
 		_window_size_values,
 		str(defaults.get("window_size_preset", "1920x1080"))
 	)
 	var window_mode_value: String = _get_selected_value(
-		_window_mode_option,
+		_get_window_mode_option(),
 		_window_mode_values,
 		str(defaults.get("window_mode", "windowed"))
 	)
 	var quality_value: String = _get_selected_value(
-		_quality_preset_option,
+		_get_quality_preset_option(),
 		_quality_preset_values,
 		str(defaults.get("quality_preset", "high"))
 	)
 	var post_processing_value: String = _get_selected_value(
-		_post_processing_preset_option,
+		_get_post_processing_preset_option(),
 		_post_processing_preset_values,
 		str(defaults.get("post_processing_preset", "medium"))
 	)
 	var color_blind_value: String = _get_selected_value(
-		_color_blind_mode_option,
+		_get_color_blind_mode_option(),
 		_color_blind_mode_values,
 		str(defaults.get("color_blind_mode", "normal"))
 	)
 
 	_populate_option_buttons()
-	_select_option_value(_window_size_option, _window_size_values, window_size_value)
-	_select_option_value(_window_mode_option, _window_mode_values, window_mode_value)
-	_select_option_value(_quality_preset_option, _quality_preset_values, quality_value)
-	_select_option_value(_post_processing_preset_option, _post_processing_preset_values, post_processing_value)
-	_select_option_value(_color_blind_mode_option, _color_blind_mode_values, color_blind_value)
+	_select_option_value(_get_window_size_option(), _window_size_values, window_size_value)
+	_select_option_value(_get_window_mode_option(), _window_mode_values, window_mode_value)
+	_select_option_value(_get_quality_preset_option(), _quality_preset_values, quality_value)
+	_select_option_value(_get_post_processing_preset_option(), _post_processing_preset_values, post_processing_value)
+	_select_option_value(_get_color_blind_mode_option(), _color_blind_mode_values, color_blind_value)
 
 func _setup_option_button_popup_focus(option_button: OptionButton) -> void:
 	if option_button == null:

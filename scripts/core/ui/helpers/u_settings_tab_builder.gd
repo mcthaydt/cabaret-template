@@ -137,6 +137,24 @@ func _apply_tooltip(control: Control, tooltip_key: StringName) -> void:
 	if tooltip_key != &"":
 		control.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(tooltip_key, str(tooltip_key))
 
+func set_tooltip(key: StringName, tooltip_text: String) -> U_SettingsTabBuilder:
+	for entry in _theme_map:
+		if entry.get("role") == &"field_control":
+			var control := entry.get("control") as Control
+			if control != null and control.name.to_lower().contains(key.to_lower().replace(".", "").replace("_", "")):
+				control.tooltip_text = tooltip_text
+	return self
+
+func hide_control_by_key(key: StringName) -> U_SettingsTabBuilder:
+	for entry in _theme_map:
+		if entry.get("role") == &"field_control":
+			var control := entry.get("control") as Control
+			if control != null and control.name.to_lower().contains(key.to_lower().replace(".", "").replace("_", "")):
+				var row := control.get_parent()
+				if row is Control:
+					(row as Control).visible = false
+	return self
+
 func add_action_buttons(
 	apply_callback: Callable,
 	cancel_callback: Callable,
