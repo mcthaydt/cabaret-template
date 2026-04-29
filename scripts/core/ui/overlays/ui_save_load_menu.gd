@@ -12,6 +12,7 @@ class_name UI_SaveLoadMenu
 
 const PLACEHOLDER_TEXTURE_PATH: String = "res://resources/core/ui/tex_save_slot_placeholder.png"
 const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_localization_utils.gd")
+const U_UI_MENU_BUILDER := preload("res://scripts/core/ui/helpers/u_ui_menu_builder.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 const U_SAVE_ACTIONS := preload("res://scripts/core/state/actions/u_save_actions.gd")
@@ -60,6 +61,7 @@ var _placeholder_texture: Texture2D = null
 
 ## Confirmation dialog state
 var _pending_action: Dictionary = {} # {action: "save"|"delete", slot_id: StringName}
+var _builder: RefCounted = null
 
 ## UI References (set via @onready once scene is created)
 @onready var _mode_label: Label = %ModeLabel
@@ -709,16 +711,19 @@ func _set_buttons_enabled(enabled: bool) -> void:
 					delete_button.disabled = not enabled
 
 func _on_panel_ready() -> void:
+	_setup_builder()
 	_apply_theme_tokens()
 	_connect_buttons()
 	_localize_static_ui()
 	_read_mode_from_state()
 	play_enter_animation()
 
-func _connect_buttons() -> void:
-	if _back_button != null and not _back_button.pressed.is_connected(_on_back_pressed_button):
-		_back_button.pressed.connect(_on_back_pressed_button)
+func _setup_builder() -> void:
+	_builder = U_UI_MENU_BUILDER.new(self)
+	_builder.bind_button(_back_button, &"common.back", _on_back_pressed_button)
+	_builder.build()
 
+func _connect_buttons() -> void:
 	if _confirmation_dialog != null:
 		if not _confirmation_dialog.confirmed.is_connected(_on_confirmation_ok):
 			_confirmation_dialog.confirmed.connect(_on_confirmation_ok)
@@ -740,8 +745,8 @@ func _on_back_pressed() -> void:
 		store.dispatch(U_NavigationActions.close_top_overlay())
 
 func _localize_static_ui() -> void:
-	if _back_button != null:
-		_back_button.text = _localize_with_fallback(&"common.back", "Back")
+	if _builder != null:
+		_builder.localize_labels()
 	if _loading_label != null:
 		_loading_label.text = _localize_with_fallback(LOADING_LABEL_KEY, "Loading...")
 	if _confirmation_dialog != null:
@@ -760,6 +765,9 @@ func _localize_with_fallback(key: StringName, fallback: String) -> String:
 	return localized
 
 func _apply_theme_tokens() -> void:
+	if _builder != null:
+		_builder.apply_theme_tokens(U_UI_THEME_BUILDER.active_config)
+
 	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
 	if not (config_resource is RS_UI_THEME_CONFIG):
 		return
@@ -795,8 +803,6 @@ func _apply_theme_tokens() -> void:
 		_spinner_label.add_theme_font_size_override(&"font_size", config.subheading)
 	if _loading_label != null:
 		_loading_label.add_theme_font_size_override(&"font_size", config.section_header)
-	if _back_button != null:
-		_back_button.add_theme_font_size_override(&"font_size", config.section_header)
 
 func _apply_slot_item_theme(slot_container: HBoxContainer, main_button: Button, delete_button: Button, thumbnail_rect: TextureRect) -> void:
 	if slot_container == null:
