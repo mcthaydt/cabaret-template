@@ -86,6 +86,17 @@ static func get_toggle_options() -> Array[Dictionary]:
 static func get_intensity_range() -> Dictionary:
 	return {"min": 0.0, "max": 2.0, "step": 0.1, "default": 1.0}
 
+static func get_language_options() -> Array[Dictionary]:
+	var options: Array[Dictionary] = []
+	var locales := TranslationServer.get_loaded_locales()
+	for locale in locales:
+		options.append({
+			"id": locale,
+			"label_key": &"settings.localization.option.%s" % locale,
+			"value": locale,
+		})
+	return options
+
 static func _display_entries_to_options(entries: Array[Dictionary]) -> Array[Dictionary]:
 	var options: Array[Dictionary] = []
 	for entry in entries:
@@ -148,3 +159,12 @@ static func create_audio_builder(
 		master_mute_cb, music_mute_cb, sfx_mute_cb, ambient_mute_cb,
 		spatial_cb, apply_cb, cancel_cb, reset_cb
 	)
+
+static func create_localization_builder(
+	tab: Control,
+	language_cb: Callable,
+	test_cb: Callable
+):
+	var U_LOCALIZATION_TAB_BUILDER := preload("res://scripts/core/ui/helpers/u_localization_tab_builder.gd")
+	var builder := U_LOCALIZATION_TAB_BUILDER.new(tab)
+	return builder.set_callbacks(language_cb, test_cb)
