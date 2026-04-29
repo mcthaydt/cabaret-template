@@ -86,78 +86,35 @@ func _on_panel_ready() -> void:
 
 func _setup_builder() -> void:
 	_builder = U_SETTINGS_TAB_BUILDER.new(self)
+	_builder.bind_overlay_background(0.5, get_node_or_null("OverlayBackground") as ColorRect)
+	_builder.bind_panel(_main_panel, _main_panel_content, _main_panel_padding)
+	_builder.bind_panel(_preview_panel, null, null)
+	_builder.bind_row(_preview_content, true)
 	_builder.bind_heading(_title_label, TITLE_KEY)
+	_builder.bind_row(_left_row, true)
+	_builder.bind_row(_right_row, true)
+	_builder.bind_row(_sensitivity_row, true)
+	_builder.bind_row(_vibration_enable_row, true)
+	_builder.bind_row(_vibration_row, true)
+	_builder.bind_row(_button_row, true)
+	_builder.bind_section_header(_left_deadzone_label, LABEL_LEFT_DEADZONE_KEY)
+	_builder.bind_section_header(_right_deadzone_label, LABEL_RIGHT_DEADZONE_KEY)
+	_builder.bind_section_header(_sensitivity_text_label, LABEL_ROTATE_SENSITIVITY_KEY)
+	_builder.bind_section_header(_vibration_enabled_label, LABEL_VIBRATION_ENABLED_KEY)
+	_builder.bind_section_header(_vibration_intensity_label, LABEL_VIBRATION_INTENSITY_KEY)
+	_builder.bind_value_label(_left_label, &"")
+	_builder.bind_value_label(_right_label, &"")
+	_builder.bind_value_label(_sensitivity_label, &"")
+	_builder.bind_value_label(_vibration_label, &"")
 	_builder.bind_action_button(_cancel_button, &"common.cancel", _on_cancel_pressed, "Cancel")
 	_builder.bind_action_button(_reset_button, BUTTON_RESET_DEFAULTS_KEY, _on_reset_pressed, "Reset to Defaults")
 	_builder.bind_action_button(_apply_button, &"common.apply", _on_apply_pressed, "Apply")
+	_builder.bind_field_control(_vibration_checkbox)
 	_builder.build()
 
 func _apply_theme_tokens() -> void:
 	if _builder != null:
 		_builder.apply_theme_tokens(U_UI_THEME_BUILDER.active_config)
-
-	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
-	if not (config_resource is RS_UI_THEME_CONFIG):
-		return
-	var config := config_resource as RS_UI_THEME_CONFIG
-
-	var dim_color := config.bg_base
-	dim_color.a = 0.5
-	background_color = dim_color
-	var overlay_background := get_node_or_null("OverlayBackground") as ColorRect
-	if overlay_background != null:
-		overlay_background.color = dim_color
-
-	if _main_panel != null and config.panel_section != null:
-		_main_panel.add_theme_stylebox_override(&"panel", config.panel_section)
-	if _preview_panel != null and config.panel_section != null:
-		_preview_panel.add_theme_stylebox_override(&"panel", config.panel_section)
-	if _main_panel_padding != null:
-		_main_panel_padding.add_theme_constant_override(&"margin_left", config.margin_section)
-		_main_panel_padding.add_theme_constant_override(&"margin_top", config.margin_section)
-		_main_panel_padding.add_theme_constant_override(&"margin_right", config.margin_section)
-		_main_panel_padding.add_theme_constant_override(&"margin_bottom", config.margin_section)
-	if _main_panel_content != null:
-		_main_panel_content.add_theme_constant_override(&"separation", config.separation_default)
-
-	var compact_rows: Array[HBoxContainer] = [
-		_left_row,
-		_right_row,
-		_sensitivity_row,
-		_vibration_enable_row,
-		_vibration_row,
-		_button_row,
-	]
-	for row in compact_rows:
-		if row != null:
-			row.add_theme_constant_override(&"separation", config.separation_compact)
-	if _preview_content != null:
-		_preview_content.add_theme_constant_override(&"separation", config.separation_compact)
-
-	if _left_deadzone_label != null:
-		_left_deadzone_label.add_theme_font_size_override(&"font_size", config.section_header)
-	if _right_deadzone_label != null:
-		_right_deadzone_label.add_theme_font_size_override(&"font_size", config.section_header)
-	if _vibration_enabled_label != null:
-		_vibration_enabled_label.add_theme_font_size_override(&"font_size", config.section_header)
-	if _vibration_intensity_label != null:
-		_vibration_intensity_label.add_theme_font_size_override(&"font_size", config.section_header)
-	if _sensitivity_text_label != null:
-		_sensitivity_text_label.add_theme_font_size_override(&"font_size", config.section_header)
-	if _left_label != null:
-		_left_label.add_theme_font_size_override(&"font_size", config.body_small)
-		_left_label.add_theme_color_override(&"font_color", config.text_secondary)
-	if _right_label != null:
-		_right_label.add_theme_font_size_override(&"font_size", config.body_small)
-		_right_label.add_theme_color_override(&"font_color", config.text_secondary)
-	if _sensitivity_label != null:
-		_sensitivity_label.add_theme_font_size_override(&"font_size", config.body_small)
-		_sensitivity_label.add_theme_color_override(&"font_color", config.text_secondary)
-	if _vibration_label != null:
-		_vibration_label.add_theme_font_size_override(&"font_size", config.body_small)
-		_vibration_label.add_theme_color_override(&"font_color", config.text_secondary)
-	if _vibration_checkbox != null:
-		_vibration_checkbox.add_theme_font_size_override(&"font_size", config.section_header)
 func _configure_preview_prompts() -> void:
 	_preview_active = false
 	_localize_preview_prompts()

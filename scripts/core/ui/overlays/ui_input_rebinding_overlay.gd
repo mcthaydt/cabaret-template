@@ -103,6 +103,7 @@ func _on_panel_ready() -> void:
 
 func _setup_builder() -> void:
 	_builder = U_UI_MENU_BUILDER.new(self)
+	_builder.bind_panel(_main_panel, _main_panel_padding, _main_panel_content)
 	_builder.bind_title(_title_label, TITLE_KEY, "Rebind Controls")
 	_builder.bind_button(_reset_button, RESET_BUTTON_KEY, _on_reset_pressed, "Reset")
 	_builder.bind_button(_close_button, CLOSE_BUTTON_KEY, _on_close_pressed, "Close")
@@ -427,33 +428,16 @@ func _localize_static_labels() -> void:
 func _apply_theme_tokens() -> void:
 	if _builder != null:
 		_builder.apply_theme_tokens(U_UI_THEME_BUILDER.active_config)
-
 	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
 	if not (config_resource is RS_UI_THEME_CONFIG):
 		return
 	var config := config_resource as RS_UI_THEME_CONFIG
-
 	var dim_color := config.bg_base
 	dim_color.a = 0.5
 	background_color = dim_color
 	var overlay_background := get_node_or_null("OverlayBackground") as ColorRect
 	if overlay_background != null:
 		overlay_background.color = dim_color
-
-	if _main_panel != null and config.panel_section != null:
-		_main_panel.add_theme_stylebox_override(&"panel", config.panel_section)
-	if _main_panel_padding != null:
-		_main_panel_padding.add_theme_constant_override(&"margin_left", config.margin_section)
-		_main_panel_padding.add_theme_constant_override(&"margin_top", config.margin_section)
-		_main_panel_padding.add_theme_constant_override(&"margin_right", config.margin_section)
-		_main_panel_padding.add_theme_constant_override(&"margin_bottom", config.margin_section)
-	if _main_panel_content != null:
-		_main_panel_content.add_theme_constant_override(&"separation", config.separation_default)
-	if _action_list != null:
-		_action_list.add_theme_constant_override(&"separation", config.separation_compact)
-	if _button_row != null:
-		_button_row.add_theme_constant_override(&"separation", config.separation_default)
-
 	if _status_label != null:
 		_status_label.add_theme_font_size_override(&"font_size", config.section_header)
 		_status_label.add_theme_color_override(&"font_color", config.text_secondary)
@@ -464,9 +448,11 @@ func _apply_theme_tokens() -> void:
 		_search_box.add_theme_stylebox_override(&"normal", search_normal)
 		_search_box.add_theme_stylebox_override(&"focus", search_focus)
 		_search_box.add_theme_stylebox_override(&"read_only", search_normal.duplicate(true))
-		_search_box.add_theme_color_override(&"font_color", config.text_primary)
 		_search_box.add_theme_color_override(&"font_placeholder_color", config.text_secondary)
-		_search_box.add_theme_color_override(&"caret_color", config.text_primary)
+	if _action_list != null:
+		_action_list.add_theme_constant_override(&"separation", config.separation_compact)
+	if _button_row != null:
+		_button_row.add_theme_constant_override(&"separation", config.separation_default)
 func _build_search_stylebox(bg_color: Color, border_color: Color, border_width: int) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = bg_color

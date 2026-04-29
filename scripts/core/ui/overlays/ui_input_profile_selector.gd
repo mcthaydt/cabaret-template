@@ -86,7 +86,17 @@ func _on_panel_ready() -> void:
 
 func _setup_builder() -> void:
 	_builder = U_SETTINGS_TAB_BUILDER.new(self)
+	_builder.bind_overlay_background(0.5, get_node_or_null("OverlayBackground") as ColorRect)
+	_builder.bind_panel(_main_panel, _main_panel_content, _main_panel_padding)
 	_builder.bind_heading(_heading_label, OVERLAY_TITLE_KEY)
+	_builder.bind_row(_profile_row)
+	_builder.bind_row(_preview_container, true)
+	_builder.bind_row(_bindings_container, true)
+	_builder.bind_row(_button_row, true)
+	_builder.bind_field_label(_profile_label, OVERLAY_PROFILE_LABEL_KEY)
+	_builder.bind_value_label(_header_label, &"")
+	_builder.bind_value_label(_description_label, &"")
+	_builder.bind_field_control(_profile_button)
 	_builder.bind_action_button(_cancel_button, &"common.cancel", _on_cancel_pressed, "Cancel")
 	_builder.bind_action_button(_reset_button, OVERLAY_RESET_BUTTON_KEY, _on_reset_pressed, "Reset to Defaults")
 	_builder.bind_action_button(_apply_button, &"common.apply", _on_apply_pressed, "Apply")
@@ -368,42 +378,8 @@ func _apply_theme_tokens() -> void:
 		return
 	var config := config_resource as RS_UI_THEME_CONFIG
 	_theme_config = config
-
-	var dim_color := config.bg_base
-	dim_color.a = 0.5
-	background_color = dim_color
-	var overlay_background := get_node_or_null("OverlayBackground") as ColorRect
-	if overlay_background != null:
-		overlay_background.color = dim_color
-
-	if _main_panel != null and config.panel_section != null:
-		_main_panel.add_theme_stylebox_override(&"panel", config.panel_section)
-	if _main_panel_padding != null:
-		_main_panel_padding.add_theme_constant_override(&"margin_left", config.margin_section)
-		_main_panel_padding.add_theme_constant_override(&"margin_top", config.margin_section)
-		_main_panel_padding.add_theme_constant_override(&"margin_right", config.margin_section)
-		_main_panel_padding.add_theme_constant_override(&"margin_bottom", config.margin_section)
-	if _main_panel_content != null:
-		_main_panel_content.add_theme_constant_override(&"separation", config.separation_default)
-	if _profile_row != null:
-		_profile_row.add_theme_constant_override(&"separation", config.separation_default)
-	if _preview_container != null:
-		_preview_container.add_theme_constant_override(&"separation", config.separation_compact)
-	if _bindings_container != null:
-		_bindings_container.add_theme_constant_override(&"separation", config.separation_compact)
-	if _button_row != null:
-		_button_row.add_theme_constant_override(&"separation", config.separation_compact)
-
-	if _profile_label != null:
-		_profile_label.add_theme_font_size_override(&"font_size", config.section_header)
-		_profile_label.add_theme_color_override(&"font_color", config.section_header)
 	if _header_label != null:
 		_header_label.add_theme_font_size_override(&"font_size", config.subheading)
-	if _description_label != null:
-		_description_label.add_theme_font_size_override(&"font_size", config.body_small)
-		_description_label.add_theme_color_override(&"font_color", config.text_secondary)
-	if _profile_button != null:
-		_profile_button.add_theme_font_size_override(&"font_size", config.section_header)
 
 func _transition_back_to_settings_scene() -> void:
 	var store := get_store()

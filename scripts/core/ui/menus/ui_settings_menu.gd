@@ -72,6 +72,7 @@ func _on_panel_ready() -> void:
 
 func _setup_menu_builder() -> void:
 	_menu_builder = U_UI_MENU_BUILDER.new(self)
+	_menu_builder.bind_panel(_main_panel, _main_panel_padding, _main_panel_content)
 	_menu_builder.bind_title(_title_label, &"menu.settings.title", "Settings")
 	_menu_builder.bind_button_group([
 		{"button": _input_profiles_button, "key": &"menu.settings.input_profiles", "callback": _on_input_profiles_pressed, "fallback": "Input Profiles"},
@@ -262,22 +263,12 @@ func _update_back_button_label() -> void:
 	_back_button.text = U_LOCALIZATION_UTILS.localize(&"menu.settings.back") if is_overlay else U_LOCALIZATION_UTILS.localize(&"menu.settings.back_to_main")
 
 func _apply_theme_tokens() -> void:
+	if _menu_builder != null:
+		_menu_builder.apply_theme_tokens(U_UI_THEME_BUILDER.active_config)
 	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
-	if config_resource is RS_UI_THEME_CONFIG:
+	if config_resource is RS_UI_THEME_CONFIG and _buttons_vbox != null:
 		var config := config_resource as RS_UI_THEME_CONFIG
-		if _main_panel != null and config.panel_section != null:
-			_main_panel.add_theme_stylebox_override(&"panel", config.panel_section)
-		if _main_panel_padding != null:
-			_main_panel_padding.add_theme_constant_override(&"margin_left", config.margin_section)
-			_main_panel_padding.add_theme_constant_override(&"margin_top", config.margin_section)
-			_main_panel_padding.add_theme_constant_override(&"margin_right", config.margin_section)
-			_main_panel_padding.add_theme_constant_override(&"margin_bottom", config.margin_section)
-		if _main_panel_content != null:
-			_main_panel_content.add_theme_constant_override(&"separation", config.separation_default)
-		if _buttons_vbox != null:
-			_buttons_vbox.add_theme_constant_override(&"separation", config.separation_default)
-		if _title_label != null:
-			_title_label.add_theme_font_size_override(&"font_size", config.heading)
+		_buttons_vbox.add_theme_constant_override(&"separation", config.separation_default)
 
 	_refresh_background_dim()
 

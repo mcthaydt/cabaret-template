@@ -73,6 +73,8 @@ func _setup_buttons() -> void:
 
 func _setup_menu_builder() -> void:
 	_menu_builder = U_UI_MENU_BUILDER.new(self)
+	_menu_builder.bind_background(_background)
+	_menu_builder.bind_panel(_panel_container, _panel_padding, _content_vbox)
 	_menu_builder.bind_title(_title_label, &"menu.language_selector.title", "Select Language")
 	_menu_builder.bind_button_group([
 		{"button": _en_button, "key": &"locale.name.en", "callback": _on_locale_selected.bind(&"en"), "fallback": "English"},
@@ -84,26 +86,15 @@ func _setup_menu_builder() -> void:
 	_menu_builder.build()
 
 func _apply_theme_tokens() -> void:
+	if _menu_builder != null:
+		_menu_builder.apply_theme_tokens(U_UI_THEME_BUILDER.active_config)
 	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
 	if not (config_resource is RS_UI_THEME_CONFIG):
 		return
 	var config := config_resource as RS_UI_THEME_CONFIG
-	if _background != null:
-		_background.color = config.bg_base
-	if _panel_container != null and config.panel_section != null:
-		_panel_container.add_theme_stylebox_override(&"panel", config.panel_section)
-	if _panel_padding != null:
-		_panel_padding.add_theme_constant_override(&"margin_left", config.margin_section)
-		_panel_padding.add_theme_constant_override(&"margin_top", config.margin_section)
-		_panel_padding.add_theme_constant_override(&"margin_right", config.margin_section)
-		_panel_padding.add_theme_constant_override(&"margin_bottom", config.margin_section)
-	if _content_vbox != null:
-		_content_vbox.add_theme_constant_override(&"separation", config.separation_default)
 	if _grid_container != null:
 		_grid_container.add_theme_constant_override(&"h_separation", config.separation_compact)
 		_grid_container.add_theme_constant_override(&"v_separation", config.separation_compact)
-	if _title_label != null:
-		_title_label.add_theme_font_size_override(&"font_size", config.heading)
 
 func _on_locale_changed(_locale: StringName) -> void:
 	_localize_labels()

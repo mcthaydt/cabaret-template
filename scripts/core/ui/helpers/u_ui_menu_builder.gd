@@ -31,6 +31,20 @@ func bind_title(label: Label, key: StringName, fallback: String = "") -> U_UIMen
 		_bind_label(label, key, &"heading", fallback)
 	return self
 
+func bind_panel(panel: PanelContainer, padding: MarginContainer = null, content: VBoxContainer = null) -> U_UIMenuBuilder:
+	if panel != null:
+		_theme_map.append({"control": panel, "role": &"main_panel"})
+	if padding != null:
+		_theme_map.append({"control": padding, "role": &"panel_padding"})
+	if content != null:
+		_theme_map.append({"control": content, "role": &"content_vbox"})
+	return self
+
+func bind_background(color_rect: ColorRect) -> U_UIMenuBuilder:
+	if color_rect != null:
+		_theme_map.append({"control": color_rect, "role": &"background_color"})
+	return self
+
 func add_button(key: StringName, callback: Callable, fallback: String = "") -> U_UIMenuBuilder:
 	var button := Button.new()
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -154,5 +168,17 @@ func _apply_theme_entry(entry: Dictionary, config: RS_UI_THEME_CONFIG) -> void:
 			control.add_theme_font_size_override(&"font_size", config.section_header)
 		&"button_column":
 			control.add_theme_constant_override(&"separation", config.separation_default)
+		&"main_panel":
+			if config.panel_section != null:
+				control.add_theme_stylebox_override(&"panel", config.panel_section)
+		&"panel_padding":
+			control.add_theme_constant_override(&"margin_left", config.margin_section)
+			control.add_theme_constant_override(&"margin_top", config.margin_section)
+			control.add_theme_constant_override(&"margin_right", config.margin_section)
+			control.add_theme_constant_override(&"margin_bottom", config.margin_section)
+		&"content_vbox":
+			control.add_theme_constant_override(&"separation", config.separation_default)
+		&"background_color":
+			(control as ColorRect).color = config.bg_base
 		&"background":
 			pass

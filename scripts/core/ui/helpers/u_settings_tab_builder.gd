@@ -1,40 +1,32 @@
 extends RefCounted
 class_name U_SettingsTabBuilder
-
 const U_FOCUS_CONFIGURATOR := preload("res://scripts/core/ui/helpers/u_focus_configurator.gd")
 const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_localization_utils.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
-
 var _tab: Control = null
 var _current_parent: Control = null
 var _label_keys: Dictionary = {}
 var _label_fallbacks: Dictionary = {}
 var _theme_map: Array[Dictionary] = []
 var _focusable_controls: Array[Control] = []
-
 func _init(tab: Control) -> void:
 	_tab = tab
 	_current_parent = tab
-
 func set_heading(key: StringName) -> U_SettingsTabBuilder:
 	var label := _add_label(key, _tab)
 	label.name = "HeadingLabel"
 	_theme_map.append({"control": label, "role": &"heading"})
 	return self
-
 func bind_heading(label: Label, key: StringName, fallback: String = "") -> U_SettingsTabBuilder:
 	_bind_label(label, key, &"heading", fallback)
 	return self
-
 func bind_section_header(label: Label, key: StringName, fallback: String = "") -> U_SettingsTabBuilder:
 	_bind_label(label, key, &"section_header", fallback)
 	return self
-
 func bind_field_label(label: Label, key: StringName, fallback: String = "") -> U_SettingsTabBuilder:
 	_bind_label(label, key, &"field_label", fallback)
 	return self
-
 func bind_value_label(label: Label, key: StringName = &"", fallback: String = "") -> U_SettingsTabBuilder:
 	_bind_label(label, key, &"value_label", fallback)
 	return self
@@ -43,7 +35,6 @@ func bind_row(row: Control, compact: bool = false) -> U_SettingsTabBuilder:
 	if row != null:
 		_theme_map.append({"control": row, "role": &"compact_row" if compact else &"default_row"})
 	return self
-
 func bind_field_control(control: Control, callback: Callable = Callable()) -> U_SettingsTabBuilder:
 	if control == null:
 		return self
@@ -65,11 +56,11 @@ func bind_action_button(button: Button, key: StringName, callback: Callable = Ca
 
 func begin_section(key: StringName, section_name: String = "Section") -> U_SettingsTabBuilder:
 	var section := VBoxContainer.new()
-	section.name = section_name
+	section.name = section_name + "Section" if section_name.ends_with("Header") else section_name
 	_tab.add_child(section)
 	_current_parent = section
 	var label := _add_label(key, section)
-	label.name = "SectionHeader"
+	label.name = section_name if section_name.ends_with("Header") else "SectionHeader"
 	_theme_map.append({"control": label, "role": &"section_header"})
 	return self
 
@@ -80,6 +71,9 @@ func end_section() -> U_SettingsTabBuilder:
 func add_dropdown(key: StringName, options: Array[Dictionary], callback: Callable, tooltip_key: StringName = &"", fallback: String = "", custom_name: String = "") -> U_SettingsTabBuilder:
 	var row := _add_row()
 	var label := _add_label(key, row, fallback)
+	if custom_name != "":
+		var label_name := custom_name.replace("Option", "Label")
+		label.name = label_name if label_name != custom_name else custom_name + "Label"
 	label.custom_minimum_size = Vector2(180, 0)
 	var dropdown := OptionButton.new()
 	dropdown.name = custom_name if custom_name != "" else key.capitalize().replace(" ", "") + "Option"
@@ -95,6 +89,9 @@ func add_dropdown(key: StringName, options: Array[Dictionary], callback: Callabl
 func add_toggle(key: StringName, callback: Callable, tooltip_key: StringName = &"", fallback: String = "", custom_name: String = "") -> U_SettingsTabBuilder:
 	var row := _add_row()
 	var label := _add_label(key, row, fallback)
+	if custom_name != "":
+		var label_name := custom_name.replace("Toggle", "Label").replace("CheckButton", "Label")
+		label.name = label_name if label_name != custom_name else custom_name + "Label"
 	label.custom_minimum_size = Vector2(180, 0)
 	var toggle := CheckBox.new()
 	toggle.name = custom_name if custom_name != "" else key.capitalize().replace(" ", "") + "Toggle"
@@ -108,6 +105,9 @@ func add_toggle(key: StringName, callback: Callable, tooltip_key: StringName = &
 func add_slider(key: StringName, min_val: float, max_val: float, step: float, callback: Callable, value_label_key: StringName = &"", tooltip_key: StringName = &"", fallback: String = "", custom_name: String = "") -> U_SettingsTabBuilder:
 	var row := _add_row()
 	var label := _add_label(key, row, fallback)
+	if custom_name != "":
+		var label_name := custom_name.replace("Slider", "Label")
+		label.name = label_name if label_name != custom_name else custom_name + "Label"
 	label.custom_minimum_size = Vector2(180, 0)
 	var slider := HSlider.new()
 	slider.name = custom_name if custom_name != "" else key.capitalize().replace(" ", "") + "Slider"
@@ -136,15 +136,13 @@ func _create_slider_value_label(key: StringName, custom_name: String = "") -> La
 func _apply_tooltip(control: Control, tooltip_key: StringName) -> void:
 	if tooltip_key != &"":
 		control.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(tooltip_key, str(tooltip_key))
-
 func set_tooltip(key: StringName, tooltip_text: String) -> U_SettingsTabBuilder:
 	for entry in _theme_map:
 		if entry.get("role") == &"field_control":
 			var control := entry.get("control") as Control
 			if control != null and control.name.to_lower().contains(key.to_lower().replace(".", "").replace("_", "")):
-				control.tooltip_text = tooltip_text
+					control.tooltip_text = tooltip_text
 	return self
-
 func hide_control_by_key(key: StringName) -> U_SettingsTabBuilder:
 	for entry in _theme_map:
 		if entry.get("role") == &"field_control":
@@ -154,24 +152,14 @@ func hide_control_by_key(key: StringName) -> U_SettingsTabBuilder:
 				if row is Control:
 					(row as Control).visible = false
 	return self
-
 func add_action_buttons(
-	apply_callback: Callable,
-	cancel_callback: Callable,
-	reset_callback: Callable,
-	apply_fallback: String = "Apply",
-	cancel_fallback: String = "Cancel",
-	reset_fallback: String = "Reset"
+	apply_callback: Callable, cancel_callback: Callable, reset_callback: Callable,
+	apply_fallback: String = "Apply", cancel_fallback: String = "Cancel", reset_fallback: String = "Reset"
 ) -> U_SettingsTabBuilder:
-	var row := HBoxContainer.new()
-	row.name = "ActionButtons"
-	_current_parent.add_child(row)
-	_theme_map.append({"control": row, "role": &"compact_row"})
-	_add_button(row, &"common.apply", apply_callback, apply_fallback)
-	_add_button(row, &"common.cancel", cancel_callback, cancel_fallback)
-	_add_button(row, &"common.reset", reset_callback, reset_fallback)
-	return self
-
+	return add_button_row(
+		apply_callback, cancel_callback, reset_callback, &"common.apply", &"common.cancel", &"common.reset",
+		apply_fallback, cancel_fallback, reset_fallback
+	)
 func add_button_row(
 	apply_callback: Callable,
 	cancel_callback: Callable,
@@ -194,14 +182,12 @@ func add_button_row(
 	var reset_btn := _add_button(row, reset_key, reset_callback, reset_fallback)
 	reset_btn.name = "ResetButton"
 	return self
-
 func build() -> Control:
 	apply_theme_tokens(U_UI_THEME_BUILDER.active_config)
 	localize_labels()
 	if not _focusable_controls.is_empty():
 		U_FOCUS_CONFIGURATOR.configure_vertical_focus(_focusable_controls, true)
 	return _tab
-
 func localize_labels() -> void:
 	for control in _label_keys.keys():
 		var fallback: String = _label_fallbacks.get(control, str(_label_keys[control]))
@@ -209,14 +195,12 @@ func localize_labels() -> void:
 			(control as Label).text = _localize(_label_keys[control], fallback)
 		elif control is Button:
 			(control as Button).text = _localize(_label_keys[control], fallback)
-
 func apply_theme_tokens(config: Resource) -> void:
 	if not (config is RS_UI_THEME_CONFIG):
 		return
 	var theme_config := config as RS_UI_THEME_CONFIG
 	for entry in _theme_map:
 		_apply_theme_entry(entry, theme_config)
-
 func _add_row() -> HBoxContainer:
 	var row := HBoxContainer.new()
 	row.name = "SettingRow"
@@ -260,11 +244,17 @@ func _bind_label(label: Label, key: StringName, role: StringName, fallback: Stri
 		_label_fallbacks[label] = fallback
 	_theme_map.append({"control": label, "role": role})
 
-func bind_panel(panel: PanelContainer, content_vbox: VBoxContainer) -> U_SettingsTabBuilder:
+func bind_panel(panel: PanelContainer, content_vbox: VBoxContainer = null, padding: MarginContainer = null) -> U_SettingsTabBuilder:
 	if panel != null:
 		_theme_map.append({"control": panel, "role": &"main_panel"})
 	if content_vbox != null:
 		_theme_map.append({"control": content_vbox, "role": &"content_vbox"})
+	if padding != null:
+		_theme_map.append({"control": padding, "role": &"panel_padding"})
+	return self
+
+func bind_overlay_background(alpha: float, overlay_background: ColorRect = null) -> U_SettingsTabBuilder:
+	_theme_map.append({"control": overlay_background, "role": &"overlay_dim", "alpha": alpha})
 	return self
 
 func _wire_control_callback(control: Control, callback: Callable) -> void:
@@ -288,9 +278,18 @@ func _localize(key: Variant, fallback: String) -> String:
 
 func _apply_theme_entry(entry: Dictionary, config: RS_UI_THEME_CONFIG) -> void:
 	var control := entry.get("control") as Control
+	var role: StringName = entry.get("role", &"")
+	if role == &"overlay_dim":
+		var dim_color := config.bg_base
+		dim_color.a = float(entry.get("alpha", 0.5))
+		if _tab != null:
+			_tab.set("background_color", dim_color)
+		if control is ColorRect:
+			(control as ColorRect).color = dim_color
+		return
 	if control == null:
 		return
-	match entry.get("role", &""):
+	match role:
 		&"heading":
 			control.add_theme_font_size_override(&"font_size", config.heading)
 		&"section_header":
@@ -313,3 +312,8 @@ func _apply_theme_entry(entry: Dictionary, config: RS_UI_THEME_CONFIG) -> void:
 				control.add_theme_stylebox_override(&"panel", config.panel_section)
 		&"content_vbox":
 			control.add_theme_constant_override(&"separation", config.separation_default)
+		&"panel_padding":
+			control.add_theme_constant_override(&"margin_left", config.margin_section)
+			control.add_theme_constant_override(&"margin_top", config.margin_section)
+			control.add_theme_constant_override(&"margin_right", config.margin_section)
+			control.add_theme_constant_override(&"margin_bottom", config.margin_section)

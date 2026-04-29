@@ -73,7 +73,19 @@ func _on_panel_ready() -> void:
 
 func _setup_builder() -> void:
 	_builder = U_SETTINGS_TAB_BUILDER.new(self)
+	_builder.bind_overlay_background(0.5, get_node_or_null("OverlayBackground") as ColorRect)
+	_builder.bind_panel(_main_panel, _main_panel_content, _main_panel_padding)
 	_builder.bind_heading(_title_label, TITLE_KEY)
+	_builder.bind_row(_mouse_sensitivity_row, true)
+	_builder.bind_row(_keyboard_look_enabled_row, true)
+	_builder.bind_row(_keyboard_look_speed_row, true)
+	_builder.bind_row(_button_row, true)
+	_builder.bind_field_label(_mouse_sensitivity_label, LABEL_MOUSE_SENSITIVITY_KEY)
+	_builder.bind_field_label(_keyboard_look_enabled_label, LABEL_KEYBOARD_LOOK_ENABLED_KEY)
+	_builder.bind_field_label(_keyboard_look_speed_label, LABEL_KEYBOARD_LOOK_SPEED_KEY)
+	_builder.bind_value_label(_mouse_sensitivity_value_label, &"")
+	_builder.bind_value_label(_keyboard_look_speed_value_label, &"")
+	_builder.bind_field_control(_keyboard_look_enabled_check)
 	_builder.bind_action_button(_cancel_button, &"common.cancel", _on_cancel_pressed, "Cancel")
 	_builder.bind_action_button(_reset_button, BUTTON_RESET_DEFAULTS_KEY, _on_reset_pressed, "Reset to Defaults")
 	_builder.bind_action_button(_rebind_button, BUTTON_REBIND_LOOK_KEY, _on_rebind_pressed, "Rebind")
@@ -83,53 +95,6 @@ func _setup_builder() -> void:
 func _apply_theme_tokens() -> void:
 	if _builder != null:
 		_builder.apply_theme_tokens(U_UI_THEME_BUILDER.active_config)
-
-	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
-	if not (config_resource is RS_UI_THEME_CONFIG):
-		return
-	var config := config_resource as RS_UI_THEME_CONFIG
-
-	var dim_color := config.bg_base
-	dim_color.a = 0.5
-	background_color = dim_color
-	var overlay_background := get_node_or_null("OverlayBackground") as ColorRect
-	if overlay_background != null:
-		overlay_background.color = dim_color
-
-	if _main_panel != null and config.panel_section != null:
-		_main_panel.add_theme_stylebox_override(&"panel", config.panel_section)
-	if _main_panel_padding != null:
-		_main_panel_padding.add_theme_constant_override(&"margin_left", config.margin_section)
-		_main_panel_padding.add_theme_constant_override(&"margin_top", config.margin_section)
-		_main_panel_padding.add_theme_constant_override(&"margin_right", config.margin_section)
-		_main_panel_padding.add_theme_constant_override(&"margin_bottom", config.margin_section)
-	if _main_panel_content != null:
-		_main_panel_content.add_theme_constant_override(&"separation", config.separation_default)
-
-	var compact_rows: Array[HBoxContainer] = [
-		_mouse_sensitivity_row,
-		_keyboard_look_enabled_row,
-		_keyboard_look_speed_row,
-		_button_row,
-	]
-	for row in compact_rows:
-		if row != null:
-			row.add_theme_constant_override(&"separation", config.separation_compact)
-
-	if _mouse_sensitivity_label != null:
-		_mouse_sensitivity_label.add_theme_font_size_override(&"font_size", config.section_header)
-	if _keyboard_look_enabled_label != null:
-		_keyboard_look_enabled_label.add_theme_font_size_override(&"font_size", config.section_header)
-	if _keyboard_look_speed_label != null:
-		_keyboard_look_speed_label.add_theme_font_size_override(&"font_size", config.section_header)
-	if _mouse_sensitivity_value_label != null:
-		_mouse_sensitivity_value_label.add_theme_font_size_override(&"font_size", config.body_small)
-		_mouse_sensitivity_value_label.add_theme_color_override(&"font_color", config.text_secondary)
-	if _keyboard_look_speed_value_label != null:
-		_keyboard_look_speed_value_label.add_theme_font_size_override(&"font_size", config.body_small)
-		_keyboard_look_speed_value_label.add_theme_color_override(&"font_color", config.text_secondary)
-	if _keyboard_look_enabled_check != null:
-		_keyboard_look_enabled_check.add_theme_font_size_override(&"font_size", config.section_header)
 func _configure_focus_neighbors() -> void:
 	var vertical_controls: Array[Control] = []
 	if _mouse_sensitivity_slider != null:

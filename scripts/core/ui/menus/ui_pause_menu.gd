@@ -118,6 +118,7 @@ func _on_panel_ready() -> void:
 
 func _setup_menu_builder() -> void:
 	_menu_builder = U_UI_MENU_BUILDER.new(self)
+	_menu_builder.bind_panel(_main_panel, _main_panel_padding, _main_panel_content)
 	_menu_builder.bind_title(_title_label, &"menu.pause.title", "Paused")
 	_menu_builder.bind_button_group([
 		{"button": _resume_button, "key": &"menu.pause.resume", "callback": _on_resume_pressed, "fallback": "Resume"},
@@ -129,29 +130,18 @@ func _setup_menu_builder() -> void:
 	_menu_builder.build()
 
 func _apply_theme_tokens() -> void:
+	if _menu_builder != null:
+		_menu_builder.apply_theme_tokens(U_UI_THEME_BUILDER.active_config)
 	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
 	if not (config_resource is RS_UI_THEME_CONFIG):
 		return
-
 	var config := config_resource as RS_UI_THEME_CONFIG
 	var dim_color := config.bg_base
 	dim_color.a = 0.7
 	background_color = dim_color
-
 	var overlay_background := get_node_or_null("OverlayBackground") as ColorRect
 	if overlay_background != null:
 		overlay_background.color = dim_color
-	if _main_panel != null and config.panel_section != null:
-		_main_panel.add_theme_stylebox_override(&"panel", config.panel_section)
-	if _main_panel_padding != null:
-		_main_panel_padding.add_theme_constant_override(&"margin_left", config.margin_section)
-		_main_panel_padding.add_theme_constant_override(&"margin_top", config.margin_section)
-		_main_panel_padding.add_theme_constant_override(&"margin_right", config.margin_section)
-		_main_panel_padding.add_theme_constant_override(&"margin_bottom", config.margin_section)
-	if _main_panel_content != null:
-		_main_panel_content.add_theme_constant_override(&"separation", config.separation_default)
-	if _title_label != null:
-		_title_label.add_theme_font_size_override(&"font_size", config.heading)
 
 func _on_resume_pressed() -> void:
 	U_UISoundPlayer.play_confirm()

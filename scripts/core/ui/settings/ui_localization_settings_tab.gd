@@ -118,45 +118,23 @@ func _setup_builder() -> void:
 		_on_cancel_pressed,
 		_on_reset_pressed
 	)
+	if _builder != null:
+		_builder.bind_row(_get_language_row(), false)
+		_builder.bind_row(_get_dyslexia_row(), false)
+		_builder.bind_row(_get_button_row(), true)
+		_builder.bind_section_header(_get_language_section_label(), &"settings.localization.section.language")
+		_builder.bind_section_header(_get_accessibility_section_label(), &"settings.localization.section.accessibility")
+		_builder.bind_field_label(_get_language_label(), &"settings.localization.label.language")
+		_builder.bind_field_label(_get_dyslexia_label(), &"settings.localization.label.dyslexia_font")
+		_builder.bind_field_control(_get_language_option())
+		_builder.bind_field_control(_get_dyslexia_toggle())
 
 func _apply_theme_tokens() -> void:
 	if _builder != null:
 		_builder.apply_theme_tokens(U_UI_THEME_BUILDER.active_config)
-
 	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
-	if not (config_resource is RS_UI_THEME_CONFIG):
-		return
-	var config := config_resource as RS_UI_THEME_CONFIG
-
-	add_theme_constant_override(&"separation", config.separation_default)
-
-	if _get_language_row() != null:
-		_get_language_row().add_theme_constant_override(&"separation", config.separation_default)
-	if _get_dyslexia_row() != null:
-		_get_dyslexia_row().add_theme_constant_override(&"separation", config.separation_default)
-	if _get_button_row() != null:
-		_get_button_row().add_theme_constant_override(&"separation", config.separation_compact)
-
-	if _get_language_section_label() != null:
-		_get_language_section_label().add_theme_font_size_override(&"font_size", config.section_header)
-		_get_language_section_label().add_theme_color_override(&"font_color", config.section_header_color)
-	if _get_accessibility_section_label() != null:
-		_get_accessibility_section_label().add_theme_font_size_override(&"font_size", config.section_header)
-		_get_accessibility_section_label().add_theme_color_override(&"font_color", config.section_header_color)
-
-	var body_labels: Array[Label] = [
-		_get_language_label(),
-		_get_dyslexia_label(),
-	]
-	for body_label in body_labels:
-		if body_label != null:
-			body_label.add_theme_font_size_override(&"font_size", config.body_small)
-			body_label.add_theme_color_override(&"font_color", config.text_secondary)
-
-	if _get_language_option() != null:
-		_get_language_option().add_theme_font_size_override(&"font_size", config.section_header)
-	if _get_dyslexia_toggle() != null:
-		_get_dyslexia_toggle().add_theme_font_size_override(&"font_size", config.section_header)
+	if config_resource is RS_UI_THEME_CONFIG:
+		add_theme_constant_override(&"separation", (config_resource as RS_UI_THEME_CONFIG).separation_default)
 
 func _exit_tree() -> void:
 	_stop_language_confirm_timer()

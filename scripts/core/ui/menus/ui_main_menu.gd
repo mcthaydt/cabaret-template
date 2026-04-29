@@ -60,6 +60,7 @@ func _on_panel_ready() -> void:
 
 func _setup_menu_builder() -> void:
 	_menu_builder = U_UI_MENU_BUILDER.new(self)
+	_menu_builder.bind_background(_background)
 	_menu_builder.bind_title(_title_label, &"menu.main.title", "Main Menu")
 	_menu_builder.bind_button_group([
 		{"button": _continue_button, "key": &"menu.main.continue", "callback": _on_continue_pressed, "fallback": "Continue"},
@@ -76,6 +77,8 @@ func _setup_menu_builder() -> void:
 			_new_game_confirm_dialog.canceled.connect(_on_new_game_canceled)
 
 func _apply_theme_tokens() -> void:
+	if _menu_builder != null:
+		_menu_builder.apply_theme_tokens(U_UI_THEME_BUILDER.active_config)
 	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
 	if not (config_resource is RS_UI_THEME_CONFIG):
 		_theme_debug_log("apply_theme_tokens skipped: active_config type mismatch")
@@ -85,12 +88,6 @@ func _apply_theme_tokens() -> void:
 		_background.color = config.bg_base
 	if _title_label != null:
 		_title_label.add_theme_font_size_override(&"font_size", config.title)
-	_theme_debug_log(
-		"apply_theme_tokens applied: bg_base=%s title=%d" % [
-			str(config.bg_base),
-			config.title,
-		]
-	)
 
 func _discover_save_manager() -> void:
 	_save_manager = U_ServiceLocator.try_get_service(StringName("save_manager"))
