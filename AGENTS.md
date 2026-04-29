@@ -26,6 +26,7 @@
 ## System Docs
 
 - ECS: `docs/systems/ecs/ecs_architecture.md`
+- 2.5D Template Pivot: `docs/systems/2_5d/2_5d-template-pivot-plan.md`
 - QB Rule Engine v2: `docs/systems/qb_rule_manager/qb-v2-overview.md`
 - AI System: `docs/systems/ai_system/ai-system-overview.md`
 - Scene Director/Objectives: `docs/systems/scene_director/scene-director-overview.md`

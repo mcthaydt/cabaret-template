@@ -18,7 +18,7 @@ Eight phases bundled because they share an outcome: **make the template LLM-frie
 2. **Phase 2 — Debug/perf extraction.** Managers and ECS systems have accumulated in-line debug logging and perf probes (e.g., mobile camera perf probes documented in `DEV_PITFALLS.md`). Consolidate through the existing `U_DebugLogThrottle` / `U_PerfProbe` utilities so production code paths stop carrying inspection logic. `U_PerfProbe` already exists at `scripts/utils/debug/u_perf_probe.gd` and is in use; Phase 2 extends adoption and forbids bare `print()` in managers/systems.
 3. **Phase 3 — Docs split.** `AGENTS.md` has grown into a single mega-doc with overlap against `DEV_PITFALLS.md`. Split by audience and concern so LLMs (and humans) can load just the section they need.
 4. **Phase 4 — Template vs demo separation.** Forest AI (wolf/deer/rabbit), sentry/drone/prism agents, and any demo-only scenes are entangled with core template code under `scripts/` and `resources/`. Reorganize into `template/` (core) and `demo/` (examples) so consumers can delete the demo tree without breaking the template.
-5. **Phase 5 — Base scene reset.** Multiple temp / fake scenes exist under `scenes/`. Define one canonical base scene, migrate the real demo content to it, delete the rest.
+5. **Phase 5 — Builder-backed base scene + 2.5D demo entry cleanup.** Multiple temp / fake scenes exist under `scenes/`. Rebuild the canonical base/demo scene path around `scenes/core/templates/tmpl_base_scene.tscn`, use existing scene/prefab builders where practical, create a Xenogears-style demo entry path, and delete fake/temp scenes only after inventory and rebuild verification.
 6. **Phase 6 — LLM-first fluent builders.** All configuration is currently authored as `.tres` resource files via Godot's inspector — hostile to LLM co-pilots (multiple turns, hallucinated ExtResource IDs, unreadable git diffs). Introduce GDScript builder APIs for BT trees, scene registry, input profiles, and QB rules. Each builder provides a programmatic alternative that an LLM can write in a single 20-line script. Migrate all existing `.tres` configuration to builder scripts.
 7. **Phase 7 — EditorScript + PackedScene builders.** Hand-authored `.tscn` scene creation is hostile to LLM co-pilots for the same reasons as `.tres` resources: multi-file coordination, unreadable git diffs, and drag-and-drop NodePath requirements. Introduce `U_EditorPrefabBuilder` and `U_EditorBlockoutBuilder` fluent APIs. Migrate all demo prefab scenes to builder scripts.
 8. **Phase 8 — LLM-first UI menu builders.** UI settings screens and menu overlays are authored via `.tscn` scenes with dozens of `@onready` variables, 50+ line `_apply_theme_tokens()` / `_localize_labels()` / `_configure_focus_neighbors()` methods, and per-control null-guard boilerplate — exactly the LLM-hostile pattern that Phases 6–7 eliminated for data resources and scene authoring. Introduce `U_SettingsTabBuilder` and `U_UIMenuBuilder` fluent APIs that programmatically construct UI nodes, wire signals, apply theme tokens, localize labels, and configure focus chains in a single declarative chain. A `U_UISettingsCatalog` utility centralizes dropdown/slider option data. Migrate all settings tabs and menu screens to builder-driven implementations.
@@ -909,8 +909,8 @@ V7.2 F5 created `docs/architecture/adr/0001-channel-taxonomy.md`. V8 moves ADRs 
   - Decision: `scripts/core/` + `scripts/demo/` (same in `resources/`); enforced by import-boundary grep.
   - Alternatives: keep mixed; top-level `template/`/`game/`.
 - [x] **Commit 5** (tail of P5) — `docs/architecture/adr/0010-base-scene-and-demo-entry-split.md`:
-  - Decision: two scenes — existing `scenes/templates/tmpl_base_scene.tscn` (refactored in P5.2) + `scenes/demo/demo_entry.tscn`.
-  - Alternatives: single scene with embedded demo menu; minimal-only.
+  - Decision: `scenes/core/templates/tmpl_base_scene.tscn` remains the canonical base scene; the rebuilt demo entry lives under `scenes/demo/gameplay/` and is authored through builder-backed blockout scripts where practical.
+  - Alternatives: single scene with embedded demo menu; new base scene file; minimal-only.
 - [x] **Commit 6** (tail of P3 itself) — amend `docs/architecture/adr/0005-service-locator.md` in-place (not a new file):
   - Add V7.2 F6 scope isolation clause (`push_scope`/`pop_scope` per-test) to Decision + Consequences sections.
   - Add "no Godot autoloads" clause (empty autoload list; codifies `CLAUDE.md` rule) to Decision + Consequences sections.
@@ -1427,32 +1427,54 @@ resources/
 
 ---
 
-# Phase 5 — Base Scene + Temp Scene Cleanup
+# Phase 5 — Builder-Backed Base Scene + 2.5D Demo Entry Cleanup
 
-**Goal**: One canonical base scene; delete the rest.
+**Goal**: Keep one canonical builder-backed base scene and rebuild the demo entry path toward a Xenogears-style 2.5D direction: 2D directional sprites in 3D worlds, authored through existing builder tooling where practical. Phase 5 stays scene-first: base scene cleanup, temp scene inventory, demo-entry rebuild, and deletion of fake/temp scenes.
 
-**Starting state**: `scenes/templates/tmpl_base_scene.tscn` already exists with full managers + ECS systems wiring + camera template + scene-structure markers. P5 extends/refactors this file rather than creating a new `base_scene.tscn`. The `tmpl_` prefix is preserved per the template scene naming convention (see `tmpl_camera.tscn`, `tmpl_character.tscn`, `tmpl_character_ragdoll.tscn`).
+**Starting state**: `scenes/core/templates/tmpl_base_scene.tscn` already exists with full managers + ECS systems wiring + camera template + scene-structure markers. P5 extends/refactors this file rather than creating a new `base_scene.tscn`. The `tmpl_` prefix is preserved per the template scene naming convention (see `tmpl_camera.tscn`, `tmpl_character.tscn`, `tmpl_character_ragdoll.tscn`).
 
-## Milestone P5.1: Inventory
+**2.5D pivot scope**: The full runtime pivot is planned separately in `docs/systems/2_5d/2_5d-template-pivot-plan.md`. Phase 5 may prepare scenes, placeholder content, and builder scripts for that direction, but it should not introduce new runtime systems unless required to preserve existing behavior.
 
-- [ ] **Commit 1** — `docs/guides/cleanup_v8/scene_inventory.md`: list every `.tscn` with one-line purpose, classify as **keep (base)**, **keep (demo)**, **delete (temp/fake)**. Note that `tmpl_base_scene.tscn` is the base; no new base is needed.
+**Phase 5 Constraints**:
+- Do not create a new base scene; continue from `scenes/core/templates/tmpl_base_scene.tscn`.
+- Use `U_EditorBlockoutBuilder` for blockout/demo-entry reconstruction instead of hand-authoring large `.tscn` diffs.
+- Use `U_EditorPrefabBuilder` for prefab normalization needed during scene cleanup.
+- Keep new runtime systems out of Phase 5 unless they are required to preserve existing behavior.
+- Delete temp/fake scenes only after inventory, rebuild, registry, and boot verification agree.
+
+## Milestone P5.1: Scene Inventory
+
+- [ ] **Commit 1** — `docs/history/cleanup_v8/phase5-scene-inventory.md`: list every `.tscn` with one-line purpose, classify as **keep (base/template)**, **keep (core prefab/debug)**, **keep (demo)**, or **delete (temp/fake)**. Note that `scenes/core/templates/tmpl_base_scene.tscn` is the base; no new base scene is needed.
+- [ ] **Commit 2** — Add a scene-inventory consistency test that compares the `scenes/` tree to the inventory keep/delete classifications. The first test may be RED if temp/fake scenes still exist.
 
 ## Milestone P5.2: Canonical Base Scene
 
-- [ ] **Commit 1** (RED) — Integration test: `scenes/templates/tmpl_base_scene.tscn` loads without errors, instances `scenes/root.tscn` dependencies correctly, boots through service-locator registrations, exits cleanly without leaks.
-- [ ] **Commit 2** (GREEN) — Extend/refactor existing `scenes/templates/tmpl_base_scene.tscn` to match the base-scene contract: managers node tree, empty world node, camera rig, UI root layer. No demo-specific content. Any demo content that has crept into `tmpl_base_scene.tscn` migrates to demo scenes in P5.3. No new file is created.
+- [ ] **Commit 1** (RED) — Integration test: `scenes/core/templates/tmpl_base_scene.tscn` loads without errors, provides the canonical gameplay node groups, owns only scene-local managers/systems, and exits cleanly without leaks.
+- [ ] **Commit 2** (GREEN) — Extend/refactor existing `scenes/core/templates/tmpl_base_scene.tscn` to match the base-scene contract: managers node tree, empty world node, camera rig, scene object/environment containers, spawn point container, and no demo-specific content. No new base scene file is created.
+- [ ] **Commit 3** (GREEN) — Add or update an editor script that can rebuild or validate the canonical base/template structure from builder-backed primitives where practical.
 
-## Milestone P5.3: Demo Scene Migration
+## Milestone P5.3: Builder-Backed Demo Entry Rebuild
 
-- [ ] **Commit 1+** — Move/rebuild real demo scenes (forest, etc.) on top of `tmpl_base_scene.tscn` via `PackedScene` instancing or inheritance.
+- [ ] **Commit 1** (RED) — Demo-entry smoke test: the registry's primary demo path loads from the canonical base/template pattern, has a valid `sp_default`, has a camera, and contains no fake/temp scene dependencies.
+- [ ] **Commit 2+** (GREEN) — Use `U_EditorBlockoutBuilder` to rebuild real demo entry scenes on top of the canonical base/template pattern. The first pass should establish the 2.5D visual target with blockout geometry and placeholder sprite-oriented character placement, not the full runtime pivot.
+- [ ] **Commit 3** (GREEN) — Rewire scene registry/default startup paths to the rebuilt demo entry and document any remaining non-entry demo scenes that stay as examples.
 
-## Milestone P5.4: Deletion
+## Milestone P5.4: Prefab Normalization
 
-- [ ] **Commit 1** — Delete every scene classified "delete (temp/fake)". One commit so the removal is atomic and revertable.
+- [ ] **Commit 1+** — Use `U_EditorPrefabBuilder` for any prefab normalization uncovered by the scene inventory or demo-entry rebuild. Keep prefab changes scoped to scene cleanup and existing behavior parity.
+- [ ] **Commit 2** — Add builder smoke tests for any new or changed scene/prefab builder scripts.
+
+## Milestone P5.5: Temp/Fake Scene Deletion
+
+- [ ] **Commit 1** — Delete every scene classified **delete (temp/fake)** after the inventory, demo-entry rebuild, registry checks, and boot tests pass. Keep the removal atomic and revertable.
 
 **P5 Verification**:
-- [ ] Base scene test green (against `tmpl_base_scene.tscn`).
-- [ ] All real demo scenes boot from `tmpl_base_scene.tscn`.
+- [ ] Base scene test green against `scenes/core/templates/tmpl_base_scene.tscn`.
+- [ ] Rebuilt demo entry boots from the canonical base/template pattern.
+- [ ] Scene inventory consistency test green; `scenes/` tree matches the inventory keep/delete classifications.
+- [ ] Builder smoke tests green for any new or changed editor builder scripts.
+- [ ] Style/doc-structure guard green after docs-structure, scene naming, script/resource naming, or scene-structure changes.
+- [ ] `docs/systems/2_5d/2_5d-template-pivot-plan.md` remains a future runtime plan and does not claim Phase 5 implements directional sprite, camera, dialogue, cutscene, or encounter systems.
 - [ ] No orphaned `.tscn` files. `scenes/` tree matches the inventory's "keep" set exactly.
 
 ---
