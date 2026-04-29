@@ -63,9 +63,9 @@ func bind_action_button(button: Button, key: StringName, callback: Callable = Ca
 	_connect(button.pressed, callback)
 	return self
 
-func begin_section(key: StringName) -> U_SettingsTabBuilder:
+func begin_section(key: StringName, section_name: String = "Section") -> U_SettingsTabBuilder:
 	var section := VBoxContainer.new()
-	section.name = "Section"
+	section.name = section_name
 	_tab.add_child(section)
 	_current_parent = section
 	var label := _add_label(key, section)
@@ -77,12 +77,12 @@ func end_section() -> U_SettingsTabBuilder:
 	_current_parent = _tab
 	return self
 
-func add_dropdown(key: StringName, options: Array[Dictionary], callback: Callable, tooltip_key: StringName = &"", fallback: String = "") -> U_SettingsTabBuilder:
+func add_dropdown(key: StringName, options: Array[Dictionary], callback: Callable, tooltip_key: StringName = &"", fallback: String = "", custom_name: String = "") -> U_SettingsTabBuilder:
 	var row := _add_row()
 	var label := _add_label(key, row, fallback)
 	label.custom_minimum_size = Vector2(180, 0)
 	var dropdown := OptionButton.new()
-	dropdown.name = key.capitalize().replace(" ", "") + "Option"
+	dropdown.name = custom_name if custom_name != "" else key.capitalize().replace(" ", "") + "Option"
 	dropdown.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(dropdown)
 	for option in options:
@@ -92,12 +92,12 @@ func add_dropdown(key: StringName, options: Array[Dictionary], callback: Callabl
 	_apply_tooltip(dropdown, tooltip_key)
 	return self
 
-func add_toggle(key: StringName, callback: Callable, tooltip_key: StringName = &"", fallback: String = "") -> U_SettingsTabBuilder:
+func add_toggle(key: StringName, callback: Callable, tooltip_key: StringName = &"", fallback: String = "", custom_name: String = "") -> U_SettingsTabBuilder:
 	var row := _add_row()
 	var label := _add_label(key, row, fallback)
 	label.custom_minimum_size = Vector2(180, 0)
 	var toggle := CheckBox.new()
-	toggle.name = key.capitalize().replace(" ", "") + "Toggle"
+	toggle.name = custom_name if custom_name != "" else key.capitalize().replace(" ", "") + "Toggle"
 	toggle.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(toggle)
 	_connect(toggle.toggled, callback)
@@ -105,18 +105,18 @@ func add_toggle(key: StringName, callback: Callable, tooltip_key: StringName = &
 	_apply_tooltip(toggle, tooltip_key)
 	return self
 
-func add_slider(key: StringName, min_val: float, max_val: float, step: float, callback: Callable, value_label_key: StringName = &"", tooltip_key: StringName = &"", fallback: String = "") -> U_SettingsTabBuilder:
+func add_slider(key: StringName, min_val: float, max_val: float, step: float, callback: Callable, value_label_key: StringName = &"", tooltip_key: StringName = &"", fallback: String = "", custom_name: String = "") -> U_SettingsTabBuilder:
 	var row := _add_row()
 	var label := _add_label(key, row, fallback)
 	label.custom_minimum_size = Vector2(180, 0)
 	var slider := HSlider.new()
-	slider.name = key.capitalize().replace(" ", "") + "Slider"
+	slider.name = custom_name if custom_name != "" else key.capitalize().replace(" ", "") + "Slider"
 	slider.min_value = min_val
 	slider.max_value = max_val
 	slider.step = step
 	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(slider)
-	var value_label := _create_slider_value_label(key)
+	var value_label := _create_slider_value_label(key, custom_name)
 	row.add_child(value_label)
 	var update_label := func(value: float) -> void: value_label.text = str(value)
 	_connect(slider.value_changed, callback)
@@ -126,9 +126,10 @@ func add_slider(key: StringName, min_val: float, max_val: float, step: float, ca
 	_apply_tooltip(slider, tooltip_key)
 	return self
 
-func _create_slider_value_label(key: StringName) -> Label:
+func _create_slider_value_label(key: StringName, custom_name: String = "") -> Label:
 	var label := Label.new()
-	label.name = key.capitalize().replace(" ", "") + "Value"
+	var base_name := custom_name if custom_name != "" else key.capitalize().replace(" ", "")
+	label.name = base_name + "Value"
 	label.add_theme_color_override("font_color", Color(0.25, 0.5, 0.75, 1.0))
 	return label
 

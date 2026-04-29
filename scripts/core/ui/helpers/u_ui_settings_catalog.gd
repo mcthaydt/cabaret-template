@@ -102,3 +102,26 @@ static func _parse_window_size(id: String) -> Vector2i:
 	if parts.size() != 2:
 		return Vector2i.ZERO
 	return Vector2i(int(parts[0]), int(parts[1]))
+
+static func create_display_builder(
+	tab: Control,
+	window_size_cb: Callable,
+	window_mode_cb: Callable,
+	vsync_cb: Callable,
+	quality_cb: Callable,
+	post_processing_cb: Callable,
+	post_processing_preset_cb: Callable,
+	ui_scale_cb: Callable,
+	color_blind_cb: Callable,
+	high_contrast_cb: Callable,
+	apply_cb: Callable,
+	cancel_cb: Callable,
+	reset_cb: Callable
+):
+	var U_DISPLAY_TAB_BUILDER := preload("res://scripts/core/ui/helpers/u_display_tab_builder.gd")
+	var builder := U_DISPLAY_TAB_BUILDER.new(tab)
+	return builder.set_callbacks(
+		window_size_cb, window_mode_cb, vsync_cb, quality_cb,
+		post_processing_cb, post_processing_preset_cb, ui_scale_cb,
+		color_blind_cb, high_contrast_cb, apply_cb, cancel_cb, reset_cb
+	)
