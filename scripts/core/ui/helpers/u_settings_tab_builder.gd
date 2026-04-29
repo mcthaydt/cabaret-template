@@ -77,46 +77,64 @@ func end_section() -> U_SettingsTabBuilder:
 	_current_parent = _tab
 	return self
 
-func add_dropdown(key: StringName, options: Array[Dictionary], callback: Callable) -> U_SettingsTabBuilder:
+func add_dropdown(key: StringName, options: Array[Dictionary], callback: Callable, tooltip_key: StringName = &"", fallback: String = "") -> U_SettingsTabBuilder:
 	var row := _add_row()
-	var label := _add_label(key, row)
+	var label := _add_label(key, row, fallback)
+	label.custom_minimum_size = Vector2(180, 0)
 	var dropdown := OptionButton.new()
+	dropdown.name = key.capitalize().replace(" ", "") + "Option"
+	dropdown.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(dropdown)
 	for option in options:
 		dropdown.add_item(_localize(option.get("label_key", key), str(option.get("id", ""))))
 	_connect(dropdown.item_selected, callback)
 	_register_field(label, dropdown)
+	_apply_tooltip(dropdown, tooltip_key)
 	return self
 
-func add_toggle(key: StringName, callback: Callable) -> U_SettingsTabBuilder:
+func add_toggle(key: StringName, callback: Callable, tooltip_key: StringName = &"", fallback: String = "") -> U_SettingsTabBuilder:
 	var row := _add_row()
-	var label := _add_label(key, row)
+	var label := _add_label(key, row, fallback)
+	label.custom_minimum_size = Vector2(180, 0)
 	var toggle := CheckBox.new()
+	toggle.name = key.capitalize().replace(" ", "") + "Toggle"
+	toggle.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(toggle)
 	_connect(toggle.toggled, callback)
 	_register_field(label, toggle)
+	_apply_tooltip(toggle, tooltip_key)
 	return self
 
-func add_slider(
-	key: StringName,
-	min_val: float,
-	max_val: float,
-	step: float,
-	callback: Callable,
-	value_label_key: StringName = &""
-) -> U_SettingsTabBuilder:
+func add_slider(key: StringName, min_val: float, max_val: float, step: float, callback: Callable, value_label_key: StringName = &"", tooltip_key: StringName = &"", fallback: String = "") -> U_SettingsTabBuilder:
 	var row := _add_row()
-	var label := _add_label(key, row)
+	var label := _add_label(key, row, fallback)
+	label.custom_minimum_size = Vector2(180, 0)
 	var slider := HSlider.new()
+	slider.name = key.capitalize().replace(" ", "") + "Slider"
 	slider.min_value = min_val
 	slider.max_value = max_val
 	slider.step = step
+	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(slider)
-	var value_label := _add_label(value_label_key, row)
+	var value_label := _create_slider_value_label(key)
+	row.add_child(value_label)
+	var update_label := func(value: float) -> void: value_label.text = str(value)
 	_connect(slider.value_changed, callback)
+	slider.value_changed.connect(update_label)
 	_register_field(label, slider)
 	_theme_map.append({"control": value_label, "role": &"value_label"})
+	_apply_tooltip(slider, tooltip_key)
 	return self
+
+func _create_slider_value_label(key: StringName) -> Label:
+	var label := Label.new()
+	label.name = key.capitalize().replace(" ", "") + "Value"
+	label.add_theme_color_override("font_color", Color(0.25, 0.5, 0.75, 1.0))
+	return label
+
+func _apply_tooltip(control: Control, tooltip_key: StringName) -> void:
+	if tooltip_key != &"":
+		control.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(tooltip_key, str(tooltip_key))
 
 func add_action_buttons(
 	apply_callback: Callable,
@@ -133,6 +151,29 @@ func add_action_buttons(
 	_add_button(row, &"common.apply", apply_callback, apply_fallback)
 	_add_button(row, &"common.cancel", cancel_callback, cancel_fallback)
 	_add_button(row, &"common.reset", reset_callback, reset_fallback)
+	return self
+
+func add_button_row(
+	apply_callback: Callable,
+	cancel_callback: Callable,
+	reset_callback: Callable,
+	apply_key: StringName = &"common.apply",
+	cancel_key: StringName = &"common.cancel",
+	reset_key: StringName = &"common.reset",
+	apply_fallback: String = "Apply",
+	cancel_fallback: String = "Cancel",
+	reset_fallback: String = "Reset"
+) -> U_SettingsTabBuilder:
+	var row := HBoxContainer.new()
+	row.name = "ActionButtons"
+	_current_parent.add_child(row)
+	_theme_map.append({"control": row, "role": &"compact_row"})
+	var apply_btn := _add_button(row, apply_key, apply_callback, apply_fallback)
+	apply_btn.name = "ApplyButton"
+	var cancel_btn := _add_button(row, cancel_key, cancel_callback, cancel_fallback)
+	cancel_btn.name = "CancelButton"
+	var reset_btn := _add_button(row, reset_key, reset_callback, reset_fallback)
+	reset_btn.name = "ResetButton"
 	return self
 
 func build() -> Control:

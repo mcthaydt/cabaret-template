@@ -210,3 +210,185 @@ func _on_cancel_pressed() -> void:
 
 func _on_reset_pressed() -> void:
 	_pressed_buttons.append("reset")
+
+
+func test_add_dropdown_creates_fully_wired_control() -> void:
+	var builder_script := _get_builder_script()
+	if builder_script == null:
+		return
+	var tab := VBoxContainer.new()
+	add_child_autofree(tab)
+	
+	var options: Array[Dictionary] = [
+		{"id": &"low", "label_key": &"settings.display.option.quality.low", "value": &"low"},
+		{"id": &"high", "label_key": &"settings.display.option.quality.high", "value": &"high"},
+	]
+	
+	var builder = builder_script.new(tab)
+	var built_tab = builder.add_dropdown(&"settings.display.label.quality", options, _on_dropdown_selected).build()
+	
+	var dropdown := _find_first(tab, OptionButton) as OptionButton
+	assert_not_null(dropdown, "Dropdown should be created by add_dropdown")
+	assert_eq(dropdown.item_count, 2, "Dropdown should have 2 items")
+	assert_true(dropdown.get_parent() is HBoxContainer, "Dropdown should be in a row container")
+	
+	_dropdown_selected = -1
+	dropdown.item_selected.emit(0)
+	assert_eq(_dropdown_selected, 0, "Signal should be wired")
+
+
+func test_add_toggle_creates_fully_wired_control() -> void:
+	var builder_script := _get_builder_script()
+	if builder_script == null:
+		return
+	var tab := VBoxContainer.new()
+	add_child_autofree(tab)
+	
+	var builder = builder_script.new(tab)
+	var built_tab = builder.add_toggle(&"settings.display.label.vsync", _on_toggle_changed).build()
+	
+	var toggle := _find_first(tab, CheckBox) as CheckBox
+	assert_not_null(toggle, "Toggle should be created by add_toggle")
+	assert_true(toggle.get_parent() is HBoxContainer, "Toggle should be in a row container")
+	
+	_toggle_value = false
+	toggle.toggled.emit(true)
+	assert_true(_toggle_value, "Signal should be wired")
+
+
+func test_add_slider_creates_fully_wired_control_with_value_label() -> void:
+	var builder_script := _get_builder_script()
+	if builder_script == null:
+		return
+	var tab := VBoxContainer.new()
+	add_child_autofree(tab)
+	
+	var builder = builder_script.new(tab)
+	var built_tab = builder.add_slider(
+		&"settings.display.label.ui_scale",
+		0.8, 1.3, 0.1,
+		_on_slider_changed,
+		&"settings.display.value.percent"
+	).build()
+	
+	var slider := _find_first(tab, HSlider) as HSlider
+	var value_label := _find_first(tab, Label) as Label
+	assert_not_null(slider, "Slider should be created by add_slider")
+	assert_not_null(value_label, "Value label should be created by add_slider")
+	assert_true(slider.get_parent() is HBoxContainer, "Slider should be in a row container")
+	assert_eq(slider.min_value, 0.8, "Slider min should match builder input")
+	assert_eq(slider.max_value, 1.3, "Slider max should match builder input")
+	assert_eq(slider.step, 0.1, "Slider step should match builder input")
+	
+	_slider_value = -1.0
+	slider.value_changed.emit(1.1)
+	assert_eq(_slider_value, 1.1, "Signal should be wired")
+
+
+func test_add_dropdown_with_tooltip_sets_tooltip_text() -> void:
+	var builder_script := _get_builder_script()
+	if builder_script == null:
+		return
+	var tab := VBoxContainer.new()
+	add_child_autofree(tab)
+	
+	var options: Array[Dictionary] = [
+		{"id": &"low", "label_key": &"settings.display.option.quality.low", "value": &"low"},
+	]
+	
+	var builder = builder_script.new(tab)
+	builder.add_dropdown(
+		&"settings.display.label.quality",
+		options,
+		_on_dropdown_selected,
+		&"settings.display.tooltip.quality",
+		"Quality settings tooltip"
+	).build()
+	
+	var dropdown := _find_first(tab, OptionButton) as OptionButton
+	assert_not_null(dropdown, "Dropdown should be created")
+	assert_ne(dropdown.tooltip_text, "", "Tooltip should be set when tooltip_key provided")
+
+
+func test_add_toggle_with_tooltip_sets_tooltip_text() -> void:
+	var builder_script := _get_builder_script()
+	if builder_script == null:
+		return
+	var tab := VBoxContainer.new()
+	add_child_autofree(tab)
+	
+	var builder = builder_script.new(tab)
+	builder.add_toggle(
+		&"settings.display.label.vsync",
+		_on_toggle_changed,
+		&"settings.display.tooltip.vsync",
+		"VSync tooltip"
+	).build()
+	
+	var toggle := _find_first(tab, CheckBox) as CheckBox
+	assert_not_null(toggle, "Toggle should be created")
+	assert_ne(toggle.tooltip_text, "", "Tooltip should be set when tooltip_key provided")
+
+
+func test_add_slider_with_tooltip_sets_tooltip_text() -> void:
+	var builder_script := _get_builder_script()
+	if builder_script == null:
+		return
+	var tab := VBoxContainer.new()
+	add_child_autofree(tab)
+	
+	var builder = builder_script.new(tab)
+	builder.add_slider(
+		&"settings.display.label.ui_scale",
+		0.8, 1.3, 0.1,
+		_on_slider_changed,
+		&"",
+		&"settings.display.tooltip.ui_scale",
+		"UI Scale tooltip"
+	).build()
+	
+	var slider := _find_first(tab, HSlider) as HSlider
+	assert_not_null(slider, "Slider should be created")
+	assert_ne(slider.tooltip_text, "", "Tooltip should be set when tooltip_key provided")
+
+
+func test_add_button_row_creates_three_buttons() -> void:
+	var builder_script := _get_builder_script()
+	if builder_script == null:
+		return
+	var tab := VBoxContainer.new()
+	add_child_autofree(tab)
+	
+	var builder = builder_script.new(tab)
+	builder.add_button_row(
+		_on_apply_pressed,
+		_on_cancel_pressed,
+		_on_reset_pressed
+	).build()
+	
+	var buttons := _collect_buttons(tab)
+	assert_eq(buttons.size(), 3, "Should create 3 buttons")
+	
+	var apply_btn := _find_button_by_name(tab, "ApplyButton")
+	var cancel_btn := _find_button_by_name(tab, "CancelButton")
+	var reset_btn := _find_button_by_name(tab, "ResetButton")
+	
+	assert_not_null(apply_btn, "ApplyButton should exist")
+	assert_not_null(cancel_btn, "CancelButton should exist")
+	assert_not_null(reset_btn, "ResetButton should exist")
+	
+	_pressed_buttons.clear()
+	apply_btn.pressed.emit()
+	cancel_btn.pressed.emit()
+	reset_btn.pressed.emit()
+	assert_eq(_pressed_buttons, ["apply", "cancel", "reset"], "All buttons should be wired")
+
+
+func _find_button_by_name(node: Node, name: String) -> Button:
+	if node is Button and node.name == name:
+		return node as Button
+	for child in node.get_children():
+		var result := _find_button_by_name(child, name)
+		if result != null:
+			return result
+	return null
