@@ -74,10 +74,10 @@ func _on_panel_ready() -> void:
 func _setup_builder() -> void:
 	_builder = U_SETTINGS_TAB_BUILDER.new(self)
 	_builder.bind_heading(_title_label, TITLE_KEY)
-	_builder.bind_action_button(_cancel_button, &"common.cancel", _on_cancel_pressed)
-	_builder.bind_action_button(_reset_button, BUTTON_RESET_DEFAULTS_KEY, _on_reset_pressed)
-	_builder.bind_action_button(_rebind_button, BUTTON_REBIND_LOOK_KEY, _on_rebind_pressed)
-	_builder.bind_action_button(_apply_button, &"common.apply", _on_apply_pressed)
+	_builder.bind_action_button(_cancel_button, &"common.cancel", _on_cancel_pressed, "Cancel")
+	_builder.bind_action_button(_reset_button, BUTTON_RESET_DEFAULTS_KEY, _on_reset_pressed, "Reset to Defaults")
+	_builder.bind_action_button(_rebind_button, BUTTON_REBIND_LOOK_KEY, _on_rebind_pressed, "Rebind")
+	_builder.bind_action_button(_apply_button, &"common.apply", _on_apply_pressed, "Apply")
 	_builder.build()
 
 func _apply_theme_tokens() -> void:
@@ -178,17 +178,17 @@ func _connect_control_signals() -> void:
 
 func _configure_tooltips() -> void:
 	if _mouse_sensitivity_slider != null:
-		_mouse_sensitivity_slider.tooltip_text = _localize_with_fallback(
+		_mouse_sensitivity_slider.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			TOOLTIP_MOUSE_SENSITIVITY_KEY,
 			"Adjust camera rotation sensitivity for mouse look input."
 		)
 	if _keyboard_look_enabled_check != null:
-		_keyboard_look_enabled_check.tooltip_text = _localize_with_fallback(
+		_keyboard_look_enabled_check.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			TOOLTIP_KEYBOARD_LOOK_ENABLED_KEY,
 			"Allow keyboard keys to rotate the camera."
 		)
 	if _keyboard_look_speed_slider != null:
-		_keyboard_look_speed_slider.tooltip_text = _localize_with_fallback(
+		_keyboard_look_speed_slider.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			TOOLTIP_KEYBOARD_LOOK_SPEED_KEY,
 			"Adjust camera rotation speed for keyboard look input."
 		)
@@ -315,26 +315,20 @@ func _localize_labels() -> void:
 	if _builder != null:
 		_builder.localize_labels()
 	if _mouse_sensitivity_label != null:
-		_mouse_sensitivity_label.text = _localize_with_fallback(
+		_mouse_sensitivity_label.text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			LABEL_MOUSE_SENSITIVITY_KEY,
 			"Mouse Sensitivity"
 		)
 	if _keyboard_look_enabled_label != null:
-		_keyboard_look_enabled_label.text = _localize_with_fallback(
+		_keyboard_look_enabled_label.text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			LABEL_KEYBOARD_LOOK_ENABLED_KEY,
 			"Enable Keyboard Camera Rotation"
 		)
 	if _keyboard_look_speed_label != null:
-		_keyboard_look_speed_label.text = _localize_with_fallback(
+		_keyboard_look_speed_label.text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			LABEL_KEYBOARD_LOOK_SPEED_KEY,
 			"Keyboard Look Speed"
 		)
-
-func _localize_with_fallback(key: StringName, fallback: String) -> String:
-	var localized: String = U_LOCALIZATION_UTILS.localize(key)
-	if localized == String(key):
-		return fallback
-	return localized
 
 func _update_slider_label(label: Label, value: float) -> void:
 	if label == null:

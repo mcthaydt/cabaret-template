@@ -78,7 +78,7 @@ static func get_quality_option_entries() -> Array[Dictionary]:
 		if label.is_empty():
 			label = preset_name.capitalize()
 		var label_key: StringName = StringName("settings.display.option.quality.%s" % preset_name)
-		label = _localize_with_fallback(label_key, label)
+		label = U_LOCALIZATION_UTILS.localize_with_fallback(label_key, label)
 		entries.append({
 			"id": preset_name,
 			"label": label,
@@ -214,7 +214,7 @@ static func _duplicate_option_entries(options: Array) -> Array[Dictionary]:
 			elif key_value is String and not str(key_value).is_empty():
 				key = StringName(str(key_value))
 			if not key.is_empty():
-				option_copy["label"] = _localize_with_fallback(key, fallback_label)
+				option_copy["label"] = U_LOCALIZATION_UTILS.localize_with_fallback(key, fallback_label)
 			entries.append(option_copy)
 	return entries
 
@@ -224,9 +224,3 @@ static func _extract_option_ids(options: Array) -> Array[String]:
 		if option is Dictionary:
 			ids.append(str(option.get("id", "")))
 	return ids
-
-static func _localize_with_fallback(key: StringName, fallback: String) -> String:
-	var localized: String = U_LOCALIZATION_UTILS.localize(key)
-	if localized == str(key):
-		return fallback
-	return localized

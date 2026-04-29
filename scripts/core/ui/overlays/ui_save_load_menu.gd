@@ -167,11 +167,11 @@ func _update_mode_label() -> void:
 		return
 
 	if _mode == StringName("save"):
-		_mode_label.text = _localize_with_fallback(&"overlay.save_load.title_save", "Save Game")
+		_mode_label.text = U_LOCALIZATION_UTILS.localize_with_fallback(&"overlay.save_load.title_save", "Save Game")
 	elif _mode == StringName("load"):
-		_mode_label.text = _localize_with_fallback(&"overlay.save_load.title_load", "Load Game")
+		_mode_label.text = U_LOCALIZATION_UTILS.localize_with_fallback(&"overlay.save_load.title_load", "Load Game")
 	else:
-		_mode_label.text = _localize_with_fallback(&"overlay.save_load.title_default", "Save / Load")
+		_mode_label.text = U_LOCALIZATION_UTILS.localize_with_fallback(&"overlay.save_load.title_default", "Save / Load")
 
 func _refresh_slot_list() -> void:
 	if _save_manager == null or _slot_list_container == null:
@@ -235,7 +235,7 @@ func _create_slot_item(slot_meta: Dictionary) -> void:
 		var timestamp: String = slot_meta.get("timestamp", "")
 		var area_name: String = slot_meta.get(
 			"area_name",
-			_localize_with_fallback(UNKNOWN_AREA_KEY, "Unknown")
+			U_LOCALIZATION_UTILS.localize_with_fallback(UNKNOWN_AREA_KEY, "Unknown")
 		)
 		var playtime: int = slot_meta.get("playtime_seconds", 0)
 
@@ -257,12 +257,12 @@ func _create_slot_item(slot_meta: Dictionary) -> void:
 		if _mode == StringName("save"):
 			main_button.text = "%s\n%s" % [
 				slot_display_name,
-				_localize_with_fallback(&"overlay.save_load.new_save", "[New Save]")
+				U_LOCALIZATION_UTILS.localize_with_fallback(&"overlay.save_load.new_save", "[New Save]")
 			]
 		else:
 			main_button.text = "%s\n%s" % [
 				slot_display_name,
-				_localize_with_fallback(&"overlay.save_load.empty_slot", "[Empty]")
+				U_LOCALIZATION_UTILS.localize_with_fallback(&"overlay.save_load.empty_slot", "[Empty]")
 			]
 			main_button.disabled = true # Can't load empty slots
 
@@ -272,7 +272,7 @@ func _create_slot_item(slot_meta: Dictionary) -> void:
 	# Create delete button (only for populated slots, hidden for autosave)
 	var delete_button := Button.new()
 	delete_button.name = "DeleteButton"
-	delete_button.text = _localize_with_fallback(&"common.delete", "Delete")
+	delete_button.text = U_LOCALIZATION_UTILS.localize_with_fallback(&"common.delete", "Delete")
 	delete_button.custom_minimum_size = Vector2(80, 0)
 
 	# Show delete button only if slot is populated AND not autosave
@@ -295,7 +295,7 @@ func _create_slot_item(slot_meta: Dictionary) -> void:
 
 func _get_slot_display_name(slot_id: StringName, is_autosave: bool) -> String:
 	if is_autosave:
-		return _localize_with_fallback(AUTOSAVE_LABEL_KEY, "AUTOSAVE")
+		return U_LOCALIZATION_UTILS.localize_with_fallback(AUTOSAVE_LABEL_KEY, "AUTOSAVE")
 	return slot_id.to_upper()
 
 func _format_playtime(seconds: int) -> String:
@@ -533,7 +533,7 @@ func _on_slot_item_pressed(slot_id: StringName, exists: bool) -> void:
 		if exists:
 			# Show overwrite confirmation
 			_show_confirmation(
-				_localize_with_fallback(&"overlay.save_load.confirm_overwrite", "Overwrite existing save?"),
+				U_LOCALIZATION_UTILS.localize_with_fallback(&"overlay.save_load.confirm_overwrite", "Overwrite existing save?"),
 				{"action": "save", "slot_id": slot_id}
 			)
 		else:
@@ -549,7 +549,7 @@ func _on_delete_button_pressed(slot_id: StringName) -> void:
 	U_UISoundPlayer.play_confirm()
 	# Show delete confirmation
 	_show_confirmation(
-		_localize_with_fallback(&"overlay.save_load.confirm_delete", "Delete this save file?"),
+		U_LOCALIZATION_UTILS.localize_with_fallback(&"overlay.save_load.confirm_delete", "Delete this save file?"),
 		{"action": "delete", "slot_id": slot_id}
 	)
 
@@ -668,7 +668,7 @@ func _show_error_message(message: String) -> void:
 func _format_operation_error(operation: StringName, error_code: int) -> String:
 	var readable: String = error_string(error_code)
 	if readable.is_empty():
-		readable = _localize_with_fallback(ERROR_UNKNOWN_KEY, "Unknown error")
+		readable = U_LOCALIZATION_UTILS.localize_with_fallback(ERROR_UNKNOWN_KEY, "Unknown error")
 
 	var template_key: StringName = ERROR_LOAD_FAILED_KEY
 	var fallback: String = "Load failed: {error}"
@@ -680,7 +680,7 @@ func _format_operation_error(operation: StringName, error_code: int) -> String:
 			template_key = ERROR_DELETE_FAILED_KEY
 			fallback = "Delete failed: {error}"
 
-	var template: String = _localize_with_fallback(template_key, fallback)
+	var template: String = U_LOCALIZATION_UTILS.localize_with_fallback(template_key, fallback)
 	return template.format({"error": readable})
 
 ## Helper methods for spinner and button state
@@ -720,7 +720,7 @@ func _on_panel_ready() -> void:
 
 func _setup_builder() -> void:
 	_builder = U_UI_MENU_BUILDER.new(self)
-	_builder.bind_button(_back_button, &"common.back", _on_back_pressed_button)
+	_builder.bind_button(_back_button, &"common.back", _on_back_pressed_button, "Back")
 	_builder.build()
 
 func _connect_buttons() -> void:
@@ -748,21 +748,17 @@ func _localize_static_ui() -> void:
 	if _builder != null:
 		_builder.localize_labels()
 	if _loading_label != null:
-		_loading_label.text = _localize_with_fallback(LOADING_LABEL_KEY, "Loading...")
+		_loading_label.text = U_LOCALIZATION_UTILS.localize_with_fallback(LOADING_LABEL_KEY, "Loading...")
 	if _confirmation_dialog != null:
-		_confirmation_dialog.title = _localize_with_fallback(DIALOG_CONFIRM_TITLE_KEY, "Confirm")
+		_confirmation_dialog.title = U_LOCALIZATION_UTILS.localize_with_fallback(DIALOG_CONFIRM_TITLE_KEY, "Confirm")
 		var ok_button := _confirmation_dialog.get_ok_button()
 		if ok_button != null:
-			ok_button.text = _localize_with_fallback(&"common.confirm", "Confirm")
+			ok_button.text = U_LOCALIZATION_UTILS.localize_with_fallback(&"common.confirm", "Confirm")
 		var cancel_button := _confirmation_dialog.get_cancel_button()
 		if cancel_button != null:
-			cancel_button.text = _localize_with_fallback(&"common.cancel", "Cancel")
+			cancel_button.text = U_LOCALIZATION_UTILS.localize_with_fallback(&"common.cancel", "Cancel")
 
-func _localize_with_fallback(key: StringName, fallback: String) -> String:
-	var localized: String = U_LOCALIZATION_UTILS.localize(key)
-	if localized == String(key):
-		return fallback
-	return localized
+
 
 func _apply_theme_tokens() -> void:
 	if _builder != null:

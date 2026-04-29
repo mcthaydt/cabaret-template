@@ -100,6 +100,12 @@ const U_EDITOR_PREFAB_BUILDER_PATH := "res://scripts/core/utils/editors/u_editor
 const U_EDITOR_PREFAB_BUILDER_MAX_LINES := 200
 const U_EDITOR_BLOCKOUT_BUILDER_PATH := "res://scripts/core/utils/editors/u_editor_blockout_builder.gd"
 const U_EDITOR_BLOCKOUT_BUILDER_MAX_LINES := 200
+const U_SETTINGS_TAB_BUILDER_PATH := "res://scripts/core/ui/helpers/u_settings_tab_builder.gd"
+const U_SETTINGS_TAB_BUILDER_MAX_LINES := 300
+const U_UI_MENU_BUILDER_PATH := "res://scripts/core/ui/helpers/u_ui_menu_builder.gd"
+const U_UI_MENU_BUILDER_MAX_LINES := 200
+const U_UI_SETTINGS_CATALOG_PATH := "res://scripts/core/ui/helpers/u_ui_settings_catalog.gd"
+const U_UI_SETTINGS_CATALOG_MAX_LINES := 150
 const BT_GENERAL_FORBIDDEN_TOKENS := [
 	"U_AI",
 	"I_AIAction",
@@ -735,6 +741,30 @@ func test_u_editor_blockout_builder_stays_under_two_hundred_lines() -> void:
 	var violations: Array[String] = []
 	_collect_gd_single_file_line_limit_violation(U_EDITOR_BLOCKOUT_BUILDER_PATH, U_EDITOR_BLOCKOUT_BUILDER_MAX_LINES, violations)
 	var message := "U_EditorBlockoutBuilder must stay under 200 lines (core blockout API — keep focused)"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+	assert_eq(violations.size(), 0, message)
+
+func test_u_settings_tab_builder_stays_under_three_hundred_lines() -> void:
+	var violations: Array[String] = []
+	_collect_gd_single_file_line_limit_violation(U_SETTINGS_TAB_BUILDER_PATH, U_SETTINGS_TAB_BUILDER_MAX_LINES, violations)
+	var message := "U_SettingsTabBuilder must stay under 300 lines (fluent builder — delegate to helpers)"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+	assert_eq(violations.size(), 0, message)
+
+func test_u_ui_menu_builder_stays_under_two_hundred_lines() -> void:
+	var violations: Array[String] = []
+	_collect_gd_single_file_line_limit_violation(U_UI_MENU_BUILDER_PATH, U_UI_MENU_BUILDER_MAX_LINES, violations)
+	var message := "U_UIMenuBuilder must stay under 200 lines (fluent builder — keep focused)"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+	assert_eq(violations.size(), 0, message)
+
+func test_u_ui_settings_catalog_stays_under_one_hundred_fifty_lines() -> void:
+	var violations: Array[String] = []
+	_collect_gd_single_file_line_limit_violation(U_UI_SETTINGS_CATALOG_PATH, U_UI_SETTINGS_CATALOG_MAX_LINES, violations)
+	var message := "U_UISettingsCatalog must stay under 150 lines (static data utility — keep minimal)"
 	if violations.size() > 0:
 		message += ":\n" + "\n".join(violations)
 	assert_eq(violations.size(), 0, message)
@@ -2494,6 +2524,44 @@ func test_simple_settings_overlays_under_15_lines() -> void:
 		vfx_file.close()
 		assert_true(vfx_lines > 15, "VFX overlay should NOT be under 15 lines (explicitly excluded from dedup)")
 	assert_eq(violations.size(), 0, "Simple settings overlays must be under 15 lines: %s" % [violations])
+
+func test_no_localize_with_fallback_in_migrated_scripts() -> void:
+	var ui_dirs: Array[String] = [
+		"res://scripts/core/ui/settings",
+		"res://scripts/core/ui/overlays",
+		"res://scripts/core/ui/menus",
+		"res://scripts/core/ui/helpers",
+		"res://scripts/core/utils/display",
+	]
+	var violations: Array[String] = []
+	for dir_path in ui_dirs:
+		_collect_method_definition(violations, dir_path, "_localize_with_fallback")
+	var message := "Migrated UI scripts must not define _localize_with_fallback (use U_LOCALIZATION_UTILS.localize_with_fallback instead)"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+	assert_eq(violations.size(), 0, message)
+
+func _collect_method_definition(violations: Array[String], dir_path: String, method_name: String) -> void:
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return
+	var entry := dir.get_next()
+	while entry != "":
+		var path := "%s/%s" % [dir_path, entry]
+		if dir.current_is_dir():
+			if not entry.begins_with("."):
+				_collect_method_definition(violations, path, method_name)
+		elif entry.ends_with(".gd"):
+			var file := FileAccess.open(path, FileAccess.READ)
+			if file == null:
+				entry = dir.get_next()
+				continue
+			var file_text: String = file.get_as_text()
+			file.close()
+			if file_text.find("func %s(" % method_name) != -1:
+				violations.append(path)
+		entry = dir.get_next()
+	dir.list_dir_end()
 
 func test_managers_and_ecs_systems_have_no_bare_print_calls() -> void:
 	var roots: Array[String] = [

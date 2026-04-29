@@ -87,9 +87,9 @@ func _on_panel_ready() -> void:
 func _setup_builder() -> void:
 	_builder = U_SETTINGS_TAB_BUILDER.new(self)
 	_builder.bind_heading(_heading_label, OVERLAY_TITLE_KEY)
-	_builder.bind_action_button(_cancel_button, &"common.cancel", _on_cancel_pressed)
-	_builder.bind_action_button(_reset_button, OVERLAY_RESET_BUTTON_KEY, _on_reset_pressed)
-	_builder.bind_action_button(_apply_button, &"common.apply", _on_apply_pressed)
+	_builder.bind_action_button(_cancel_button, &"common.cancel", _on_cancel_pressed, "Cancel")
+	_builder.bind_action_button(_reset_button, OVERLAY_RESET_BUTTON_KEY, _on_reset_pressed, "Reset to Defaults")
+	_builder.bind_action_button(_apply_button, &"common.apply", _on_apply_pressed, "Apply")
 	_builder.build()
 
 func _resolve_input_profile_manager() -> Node:
@@ -354,13 +354,9 @@ func _localize_static_labels() -> void:
 	if _builder != null:
 		_builder.localize_labels()
 	if _profile_label != null:
-		_profile_label.text = _localize_with_fallback(OVERLAY_PROFILE_LABEL_KEY, OVERLAY_PROFILE_LABEL_FALLBACK)
+		_profile_label.text = U_LOCALIZATION_UTILS.localize_with_fallback(OVERLAY_PROFILE_LABEL_KEY, OVERLAY_PROFILE_LABEL_FALLBACK)
 
-func _localize_with_fallback(key: StringName, fallback: String) -> String:
-	var localized := U_LOCALIZATION_UTILS.localize(key)
-	if localized == String(key):
-		return fallback
-	return localized
+
 
 func _apply_theme_tokens() -> void:
 	if _builder != null:

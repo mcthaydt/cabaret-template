@@ -54,11 +54,11 @@ func _on_panel_ready() -> void:
 
 func _setup_menu_builder() -> void:
 	_menu_builder = U_UI_MENU_BUILDER.new(self)
-	_menu_builder.bind_title(_title_label, &"menu.victory.title")
+	_menu_builder.bind_title(_title_label, &"menu.victory.title", "Victory")
 	_menu_builder.bind_button_group([
-		{"button": _continue_button, "key": &"menu.victory.continue", "callback": _on_continue_pressed},
-		{"button": _credits_button, "key": &"menu.victory.credits", "callback": _on_credits_pressed},
-		{"button": _menu_button, "key": &"menu.victory.menu", "callback": _on_menu_pressed},
+		{"button": _continue_button, "key": &"menu.victory.continue", "callback": _on_continue_pressed, "fallback": "Continue"},
+		{"button": _credits_button, "key": &"menu.victory.credits", "callback": _on_credits_pressed, "fallback": "Credits"},
+		{"button": _menu_button, "key": &"menu.victory.menu", "callback": _on_menu_pressed, "fallback": "Menu"},
 	])
 	_menu_builder.build()
 

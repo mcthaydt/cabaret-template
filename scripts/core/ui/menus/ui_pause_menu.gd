@@ -118,13 +118,13 @@ func _on_panel_ready() -> void:
 
 func _setup_menu_builder() -> void:
 	_menu_builder = U_UI_MENU_BUILDER.new(self)
-	_menu_builder.bind_title(_title_label, &"menu.pause.title")
+	_menu_builder.bind_title(_title_label, &"menu.pause.title", "Paused")
 	_menu_builder.bind_button_group([
-		{"button": _resume_button, "key": &"menu.pause.resume", "callback": _on_resume_pressed},
-		{"button": _settings_button, "key": &"menu.pause.settings", "callback": _on_settings_pressed},
-		{"button": _save_button, "key": &"menu.pause.save", "callback": _on_save_pressed},
-		{"button": _load_button, "key": &"menu.pause.load", "callback": _on_load_pressed},
-		{"button": _quit_button, "key": &"menu.pause.quit", "callback": _on_quit_pressed},
+		{"button": _resume_button, "key": &"menu.pause.resume", "callback": _on_resume_pressed, "fallback": "Resume"},
+		{"button": _settings_button, "key": &"menu.pause.settings", "callback": _on_settings_pressed, "fallback": "Settings"},
+		{"button": _save_button, "key": &"menu.pause.save", "callback": _on_save_pressed, "fallback": "Save"},
+		{"button": _load_button, "key": &"menu.pause.load", "callback": _on_load_pressed, "fallback": "Load"},
+		{"button": _quit_button, "key": &"menu.pause.quit", "callback": _on_quit_pressed, "fallback": "Quit"},
 	])
 	_menu_builder.build()
 

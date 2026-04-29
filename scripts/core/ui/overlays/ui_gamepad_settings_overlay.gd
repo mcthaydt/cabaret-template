@@ -87,9 +87,9 @@ func _on_panel_ready() -> void:
 func _setup_builder() -> void:
 	_builder = U_SETTINGS_TAB_BUILDER.new(self)
 	_builder.bind_heading(_title_label, TITLE_KEY)
-	_builder.bind_action_button(_cancel_button, &"common.cancel", _on_cancel_pressed)
-	_builder.bind_action_button(_reset_button, BUTTON_RESET_DEFAULTS_KEY, _on_reset_pressed)
-	_builder.bind_action_button(_apply_button, &"common.apply", _on_apply_pressed)
+	_builder.bind_action_button(_cancel_button, &"common.cancel", _on_cancel_pressed, "Cancel")
+	_builder.bind_action_button(_reset_button, BUTTON_RESET_DEFAULTS_KEY, _on_reset_pressed, "Reset to Defaults")
+	_builder.bind_action_button(_apply_button, &"common.apply", _on_apply_pressed, "Apply")
 	_builder.build()
 
 func _apply_theme_tokens() -> void:
@@ -226,32 +226,32 @@ func _connect_control_signals() -> void:
 
 func _configure_tooltips() -> void:
 	if _left_slider != null:
-		_left_slider.tooltip_text = _localize_with_fallback(
+		_left_slider.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			TOOLTIP_LEFT_DEADZONE_KEY,
 			"Adjust deadzone for left stick movement."
 		)
 	if _right_slider != null:
-		_right_slider.tooltip_text = _localize_with_fallback(
+		_right_slider.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			TOOLTIP_RIGHT_DEADZONE_KEY,
 			"Adjust deadzone for right stick camera/look."
 		)
 	if _sensitivity_slider != null:
-		_sensitivity_slider.tooltip_text = _localize_with_fallback(
+		_sensitivity_slider.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			TOOLTIP_ROTATE_SENSITIVITY_KEY,
 			"Adjust right-stick camera rotation sensitivity."
 		)
 	if _vibration_checkbox != null:
-		_vibration_checkbox.tooltip_text = _localize_with_fallback(
+		_vibration_checkbox.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			TOOLTIP_VIBRATION_ENABLED_KEY,
 			"Enable or disable gamepad vibration feedback."
 		)
 	if _vibration_slider != null:
-		_vibration_slider.tooltip_text = _localize_with_fallback(
+		_vibration_slider.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			TOOLTIP_VIBRATION_INTENSITY_KEY,
 			"Adjust vibration strength."
 		)
 	if _preview != null:
-		_preview.tooltip_text = _localize_with_fallback(
+		_preview.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			TOOLTIP_PREVIEW_KEY,
 			"Focus and press confirm to test stick input."
 		)
@@ -260,12 +260,12 @@ func _localize_preview_prompts() -> void:
 	if _preview_enter_prompt != null:
 		_preview_enter_prompt.show_prompt(
 			StringName("ui_accept"),
-			_localize_with_fallback(PREVIEW_ENTER_PROMPT_KEY, "Press to test sticks")
+			U_LOCALIZATION_UTILS.localize_with_fallback(PREVIEW_ENTER_PROMPT_KEY, "Press to test sticks")
 		)
 	if _preview_exit_prompt != null:
 		_preview_exit_prompt.show_prompt(
 			StringName("ui_cancel"),
-			_localize_with_fallback(PREVIEW_EXIT_PROMPT_KEY, "Press to exit preview")
+			U_LOCALIZATION_UTILS.localize_with_fallback(PREVIEW_EXIT_PROMPT_KEY, "Press to exit preview")
 		)
 
 func _update_preview_prompt_visibility() -> void:
@@ -458,24 +458,20 @@ func _localize_labels() -> void:
 	if _builder != null:
 		_builder.localize_labels()
 	if _left_deadzone_label != null:
-		_left_deadzone_label.text = _localize_with_fallback(LABEL_LEFT_DEADZONE_KEY, "Left Deadzone")
+		_left_deadzone_label.text = U_LOCALIZATION_UTILS.localize_with_fallback(LABEL_LEFT_DEADZONE_KEY, "Left Deadzone")
 	if _right_deadzone_label != null:
-		_right_deadzone_label.text = _localize_with_fallback(LABEL_RIGHT_DEADZONE_KEY, "Right Deadzone")
+		_right_deadzone_label.text = U_LOCALIZATION_UTILS.localize_with_fallback(LABEL_RIGHT_DEADZONE_KEY, "Right Deadzone")
 	if _sensitivity_text_label != null:
-		_sensitivity_text_label.text = _localize_with_fallback(LABEL_ROTATE_SENSITIVITY_KEY, "Rotate Camera Sensitivity")
+		_sensitivity_text_label.text = U_LOCALIZATION_UTILS.localize_with_fallback(LABEL_ROTATE_SENSITIVITY_KEY, "Rotate Camera Sensitivity")
 	if _vibration_enabled_label != null:
-		_vibration_enabled_label.text = _localize_with_fallback(LABEL_VIBRATION_ENABLED_KEY, "Enable Vibration")
+		_vibration_enabled_label.text = U_LOCALIZATION_UTILS.localize_with_fallback(LABEL_VIBRATION_ENABLED_KEY, "Enable Vibration")
 	if _vibration_intensity_label != null:
-		_vibration_intensity_label.text = _localize_with_fallback(LABEL_VIBRATION_INTENSITY_KEY, "Vibration Intensity")
+		_vibration_intensity_label.text = U_LOCALIZATION_UTILS.localize_with_fallback(LABEL_VIBRATION_INTENSITY_KEY, "Vibration Intensity")
 
 	_localize_preview_prompts()
 	_update_preview_prompt_visibility()
 
-func _localize_with_fallback(key: StringName, fallback: String) -> String:
-	var localized: String = U_LOCALIZATION_UTILS.localize(key)
-	if localized == String(key):
-		return fallback
-	return localized
+
 
 func _exit_tree() -> void:
 	if _store_unsubscribe != Callable() and _store_unsubscribe.is_valid():

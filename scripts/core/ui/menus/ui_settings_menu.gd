@@ -72,17 +72,17 @@ func _on_panel_ready() -> void:
 
 func _setup_menu_builder() -> void:
 	_menu_builder = U_UI_MENU_BUILDER.new(self)
-	_menu_builder.bind_title(_title_label, &"menu.settings.title")
+	_menu_builder.bind_title(_title_label, &"menu.settings.title", "Settings")
 	_menu_builder.bind_button_group([
-		{"button": _input_profiles_button, "key": &"menu.settings.input_profiles", "callback": _on_input_profiles_pressed},
-		{"button": _gamepad_settings_button, "key": &"menu.settings.gamepad", "callback": _on_gamepad_settings_pressed},
-		{"button": _keyboard_mouse_settings_button, "key": &"menu.settings.keyboard_mouse", "callback": _on_keyboard_mouse_settings_pressed},
-		{"button": _touchscreen_settings_button, "key": &"menu.settings.touchscreen", "callback": _on_touchscreen_settings_pressed},
-		{"button": _vfx_settings_button, "key": &"menu.settings.vfx", "callback": _on_vfx_settings_pressed},
-		{"button": _display_settings_button, "key": &"menu.settings.display", "callback": _on_display_settings_pressed},
-		{"button": _audio_settings_button, "key": &"menu.settings.audio", "callback": _on_audio_settings_pressed},
-		{"button": _language_settings_button, "key": &"menu.settings.language", "callback": _on_language_settings_pressed},
-		{"button": _rebind_controls_button, "key": &"menu.settings.rebind", "callback": _on_rebind_controls_pressed},
+		{"button": _input_profiles_button, "key": &"menu.settings.input_profiles", "callback": _on_input_profiles_pressed, "fallback": "Input Profiles"},
+		{"button": _gamepad_settings_button, "key": &"menu.settings.gamepad", "callback": _on_gamepad_settings_pressed, "fallback": "Gamepad"},
+		{"button": _keyboard_mouse_settings_button, "key": &"menu.settings.keyboard_mouse", "callback": _on_keyboard_mouse_settings_pressed, "fallback": "Keyboard & Mouse"},
+		{"button": _touchscreen_settings_button, "key": &"menu.settings.touchscreen", "callback": _on_touchscreen_settings_pressed, "fallback": "Touchscreen"},
+		{"button": _vfx_settings_button, "key": &"menu.settings.vfx", "callback": _on_vfx_settings_pressed, "fallback": "VFX"},
+		{"button": _display_settings_button, "key": &"menu.settings.display", "callback": _on_display_settings_pressed, "fallback": "Display"},
+		{"button": _audio_settings_button, "key": &"menu.settings.audio", "callback": _on_audio_settings_pressed, "fallback": "Audio"},
+		{"button": _language_settings_button, "key": &"menu.settings.language", "callback": _on_language_settings_pressed, "fallback": "Language"},
+		{"button": _rebind_controls_button, "key": &"menu.settings.rebind", "callback": _on_rebind_controls_pressed, "fallback": "Rebind Controls"},
 	])
 	_menu_builder.build()
 

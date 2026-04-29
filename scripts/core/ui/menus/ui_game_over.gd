@@ -45,10 +45,10 @@ func _on_panel_ready() -> void:
 
 func _setup_menu_builder() -> void:
 	_menu_builder = U_UI_MENU_BUILDER.new(self)
-	_menu_builder.bind_title(_title_label, &"menu.game_over.title")
+	_menu_builder.bind_title(_title_label, &"menu.game_over.title", "Game Over")
 	_menu_builder.bind_button_group([
-		{"button": _retry_button, "key": &"menu.game_over.retry", "callback": _on_retry_pressed},
-		{"button": _menu_button, "key": &"menu.game_over.menu", "callback": _on_menu_pressed},
+		{"button": _retry_button, "key": &"menu.game_over.retry", "callback": _on_retry_pressed, "fallback": "Retry"},
+		{"button": _menu_button, "key": &"menu.game_over.menu", "callback": _on_menu_pressed, "fallback": "Menu"},
 	])
 	_menu_builder.build()
 

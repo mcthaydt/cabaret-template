@@ -181,7 +181,7 @@ func _find_first(node: Node, type: Variant) -> Node:
 
 func _collect_buttons(node: Node) -> Array[Button]:
 	var buttons: Array[Button] = []
-	if node is Button and str((node as Button).text).begins_with("common."):
+	if node is Button and not (node is OptionButton or node is CheckBox or node is LinkButton or node is MenuButton or node is TextureButton):
 		buttons.append(node as Button)
 	for child in node.get_children():
 		buttons.append_array(_collect_buttons(child))

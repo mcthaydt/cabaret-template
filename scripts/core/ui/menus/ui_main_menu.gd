@@ -60,13 +60,13 @@ func _on_panel_ready() -> void:
 
 func _setup_menu_builder() -> void:
 	_menu_builder = U_UI_MENU_BUILDER.new(self)
-	_menu_builder.bind_title(_title_label, &"menu.main.title")
+	_menu_builder.bind_title(_title_label, &"menu.main.title", "Main Menu")
 	_menu_builder.bind_button_group([
-		{"button": _continue_button, "key": &"menu.main.continue", "callback": _on_continue_pressed},
-		{"button": _new_game_button, "key": &"menu.main.new_game", "callback": _on_new_game_pressed},
-		{"button": _load_game_button, "key": &"menu.main.load_game", "callback": _on_load_game_pressed},
-		{"button": _settings_button, "key": &"menu.main.settings", "callback": _on_settings_pressed},
-		{"button": _quit_button, "key": &"menu.main.quit", "callback": _on_quit_pressed},
+		{"button": _continue_button, "key": &"menu.main.continue", "callback": _on_continue_pressed, "fallback": "Continue"},
+		{"button": _new_game_button, "key": &"menu.main.new_game", "callback": _on_new_game_pressed, "fallback": "New Game"},
+		{"button": _load_game_button, "key": &"menu.main.load_game", "callback": _on_load_game_pressed, "fallback": "Load Game"},
+		{"button": _settings_button, "key": &"menu.main.settings", "callback": _on_settings_pressed, "fallback": "Settings"},
+		{"button": _quit_button, "key": &"menu.main.quit", "callback": _on_quit_pressed, "fallback": "Quit"},
 	])
 	_menu_builder.build()
 	if _new_game_confirm_dialog != null:

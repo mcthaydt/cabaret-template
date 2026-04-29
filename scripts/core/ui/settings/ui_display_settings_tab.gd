@@ -135,9 +135,9 @@ func _setup_builder() -> void:
 	_builder.bind_field_control(_ui_scale_slider, _on_ui_scale_changed)
 	_builder.bind_field_control(_color_blind_mode_option, _on_color_blind_mode_selected)
 	_builder.bind_field_control(_high_contrast_toggle, _on_high_contrast_toggled)
-	_builder.bind_action_button(_cancel_button, &"common.cancel", _on_cancel_pressed)
-	_builder.bind_action_button(_reset_button, &"common.reset", _on_reset_pressed)
-	_builder.bind_action_button(_apply_button, &"common.apply", _on_apply_pressed)
+	_builder.bind_action_button(_cancel_button, &"common.cancel", _on_cancel_pressed, "Cancel")
+	_builder.bind_action_button(_reset_button, &"common.reset", _on_reset_pressed, "Reset")
+	_builder.bind_action_button(_apply_button, &"common.apply", _on_apply_pressed, "Apply")
 	_connect_window_confirm_signals()
 	_setup_option_button_popup_focus(_window_size_option)
 	_setup_option_button_popup_focus(_window_mode_option)
@@ -203,7 +203,8 @@ func _populate_option_button(button: OptionButton, options: Array, values: Array
 	for option in options:
 		if option is Dictionary:
 			var entry := option as Dictionary
-			var label := _localize_with_fallback(entry.get("label_key", &""), str(entry.get("id", "")))
+			var fallback: String = str(entry.get("label", str(entry.get("id", ""))))
+			var label := U_LOCALIZATION_UTILS.localize_with_fallback(entry.get("label_key", &""), fallback)
 			var value := str(entry.get("id", ""))
 			if label.is_empty():
 				label = value
@@ -212,22 +213,22 @@ func _populate_option_button(button: OptionButton, options: Array, values: Array
 
 func _configure_tooltips() -> void:
 	if _window_size_option != null:
-		_window_size_option.tooltip_text = _localize_with_fallback(
+		_window_size_option.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			TOOLTIP_WINDOW_SIZE_KEY,
 			"Available only in Windowed mode."
 		)
 	if _window_mode_option != null:
-		_window_mode_option.tooltip_text = _localize_with_fallback(
+		_window_mode_option.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			TOOLTIP_WINDOW_MODE_KEY,
 			"Borderless fills the screen without changing display mode."
 		)
 	if _post_processing_preset_option != null:
-		_post_processing_preset_option.tooltip_text = _localize_with_fallback(
+		_post_processing_preset_option.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			TOOLTIP_POST_PROCESSING_PRESET_KEY,
 			"Intensity level for post-processing effects (Film Grain, Dither)."
 		)
 	if _ui_scale_slider != null:
-		_ui_scale_slider.tooltip_text = _localize_with_fallback(
+		_ui_scale_slider.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			TOOLTIP_UI_SCALE_KEY,
 			"Scales the UI size."
 		)
@@ -529,7 +530,7 @@ func _stop_window_confirm_timer() -> void:
 func _update_window_confirm_text() -> void:
 	if _window_confirm_dialog == null:
 		return
-	var confirm_template := _localize_with_fallback(
+	var confirm_template := U_LOCALIZATION_UTILS.localize_with_fallback(
 		DIALOG_WINDOW_CONFIRM_TEXT_KEY,
 		"Keep these display changes? Reverting in %ds."
 	)
@@ -540,10 +541,10 @@ func _configure_window_confirm_dialog() -> void:
 		return
 	var ok_button := _get_window_confirm_ok_button()
 	if ok_button != null:
-		ok_button.text = _localize_with_fallback(&"common.keep", "Keep")
+		ok_button.text = U_LOCALIZATION_UTILS.localize_with_fallback(&"common.keep", "Keep")
 	var cancel_button := _get_window_confirm_cancel_button()
 	if cancel_button != null:
-		cancel_button.text = _localize_with_fallback(&"common.revert", "Revert")
+		cancel_button.text = U_LOCALIZATION_UTILS.localize_with_fallback(&"common.revert", "Revert")
 
 func _get_window_confirm_ok_button() -> Button:
 	if _window_confirm_dialog == null:
@@ -684,7 +685,7 @@ func _localize_labels() -> void:
 	if _builder != null:
 		_builder.localize_labels()
 
-	var enabled_text: String = _localize_with_fallback(LABEL_TOGGLE_ENABLED_KEY, "Enabled")
+	var enabled_text: String = U_LOCALIZATION_UTILS.localize_with_fallback(LABEL_TOGGLE_ENABLED_KEY, "Enabled")
 	if _vsync_toggle != null:
 		_vsync_toggle.text = enabled_text
 	if _post_processing_toggle != null:
@@ -693,14 +694,14 @@ func _localize_labels() -> void:
 		_high_contrast_toggle.text = enabled_text
 
 	if _cancel_button != null:
-		_cancel_button.text = _localize_with_fallback(&"common.cancel", "Cancel")
+		_cancel_button.text = U_LOCALIZATION_UTILS.localize_with_fallback(&"common.cancel", "Cancel")
 	if _reset_button != null:
-		_reset_button.text = _localize_with_fallback(&"common.reset", "Reset")
+		_reset_button.text = U_LOCALIZATION_UTILS.localize_with_fallback(&"common.reset", "Reset")
 	if _apply_button != null:
-		_apply_button.text = _localize_with_fallback(&"common.apply", "Apply")
+		_apply_button.text = U_LOCALIZATION_UTILS.localize_with_fallback(&"common.apply", "Apply")
 
 	if _window_confirm_dialog != null:
-		_window_confirm_dialog.title = _localize_with_fallback(DIALOG_WINDOW_CONFIRM_TITLE_KEY, "Confirm Display Changes")
+		_window_confirm_dialog.title = U_LOCALIZATION_UTILS.localize_with_fallback(DIALOG_WINDOW_CONFIRM_TITLE_KEY, "Confirm Display Changes")
 		_configure_window_confirm_dialog()
 		if _window_confirm_active:
 			_update_window_confirm_text()
@@ -739,12 +740,6 @@ func _relocalize_option_buttons() -> void:
 	_select_option_value(_quality_preset_option, _quality_preset_values, quality_value)
 	_select_option_value(_post_processing_preset_option, _post_processing_preset_values, post_processing_value)
 	_select_option_value(_color_blind_mode_option, _color_blind_mode_values, color_blind_value)
-
-func _localize_with_fallback(key: StringName, fallback: String) -> String:
-	var localized: String = U_LOCALIZATION_UTILS.localize(key)
-	if localized == str(key):
-		return fallback
-	return localized
 
 func _setup_option_button_popup_focus(option_button: OptionButton) -> void:
 	if option_button == null:

@@ -110,10 +110,10 @@ func _on_panel_ready() -> void:
 func _setup_builder() -> void:
 	_builder = U_SETTINGS_TAB_BUILDER.new(self)
 	_builder.bind_heading(_title_label, TITLE_KEY)
-	_builder.bind_action_button(_cancel_button, &"common.cancel", _on_cancel_pressed)
-	_builder.bind_action_button(_reset_button, BUTTON_RESET_DEFAULTS_KEY, _on_reset_pressed)
-	_builder.bind_action_button(_edit_layout_button, BUTTON_EDIT_LAYOUT_KEY, _on_edit_layout_pressed)
-	_builder.bind_action_button(_apply_button, &"common.apply", _on_apply_pressed)
+	_builder.bind_action_button(_cancel_button, &"common.cancel", _on_cancel_pressed, "Cancel")
+	_builder.bind_action_button(_reset_button, BUTTON_RESET_DEFAULTS_KEY, _on_reset_pressed, "Reset to Defaults")
+	_builder.bind_action_button(_edit_layout_button, BUTTON_EDIT_LAYOUT_KEY, _on_edit_layout_pressed, "Edit Layout")
+	_builder.bind_action_button(_apply_button, &"common.apply", _on_apply_pressed, "Apply")
 	_builder.build()
 
 func _refresh_preview_size_limits_deferred() -> void:
@@ -343,42 +343,42 @@ func _connect_signals() -> void:
 
 func _configure_tooltips() -> void:
 	if _joystick_size_slider != null:
-		_joystick_size_slider.tooltip_text = _localize_with_fallback(
+		_joystick_size_slider.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			TOOLTIP_JOYSTICK_SIZE_KEY,
 			"Adjust virtual joystick size."
 		)
 	if _button_size_slider != null:
-		_button_size_slider.tooltip_text = _localize_with_fallback(
+		_button_size_slider.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			TOOLTIP_BUTTON_SIZE_KEY,
 			"Adjust touch button size."
 		)
 	if _joystick_opacity_slider != null:
-		_joystick_opacity_slider.tooltip_text = _localize_with_fallback(
+		_joystick_opacity_slider.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			TOOLTIP_JOYSTICK_OPACITY_KEY,
 			"Adjust virtual joystick opacity."
 		)
 	if _button_opacity_slider != null:
-		_button_opacity_slider.tooltip_text = _localize_with_fallback(
+		_button_opacity_slider.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			TOOLTIP_BUTTON_OPACITY_KEY,
 			"Adjust touch button opacity."
 		)
 	if _joystick_deadzone_slider != null:
-		_joystick_deadzone_slider.tooltip_text = _localize_with_fallback(
+		_joystick_deadzone_slider.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			TOOLTIP_JOYSTICK_DEADZONE_KEY,
 			"Adjust joystick deadzone before input registers."
 		)
 	if _look_sensitivity_slider != null:
-		_look_sensitivity_slider.tooltip_text = _localize_with_fallback(
+		_look_sensitivity_slider.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			TOOLTIP_LOOK_SENSITIVITY_KEY,
 			"Adjust drag sensitivity for touchscreen camera look."
 		)
 	if _preview_container != null:
-		_preview_container.tooltip_text = _localize_with_fallback(
+		_preview_container.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			TOOLTIP_PREVIEW_KEY,
 			"Preview current touchscreen control settings."
 		)
 	if _edit_layout_button != null:
-		_edit_layout_button.tooltip_text = _localize_with_fallback(
+		_edit_layout_button.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			TOOLTIP_EDIT_LAYOUT_KEY,
 			"Open layout editor to reposition controls."
 		)
@@ -589,23 +589,19 @@ func _localize_labels() -> void:
 	if _builder != null:
 		_builder.localize_labels()
 	if _joystick_size_text_label != null:
-		_joystick_size_text_label.text = _localize_with_fallback(LABEL_JOYSTICK_SIZE_KEY, "Joystick Size")
+		_joystick_size_text_label.text = U_LOCALIZATION_UTILS.localize_with_fallback(LABEL_JOYSTICK_SIZE_KEY, "Joystick Size")
 	if _button_size_text_label != null:
-		_button_size_text_label.text = _localize_with_fallback(LABEL_BUTTON_SIZE_KEY, "Button Size")
+		_button_size_text_label.text = U_LOCALIZATION_UTILS.localize_with_fallback(LABEL_BUTTON_SIZE_KEY, "Button Size")
 	if _joystick_opacity_text_label != null:
-		_joystick_opacity_text_label.text = _localize_with_fallback(LABEL_JOYSTICK_OPACITY_KEY, "Joystick Opacity")
+		_joystick_opacity_text_label.text = U_LOCALIZATION_UTILS.localize_with_fallback(LABEL_JOYSTICK_OPACITY_KEY, "Joystick Opacity")
 	if _button_opacity_text_label != null:
-		_button_opacity_text_label.text = _localize_with_fallback(LABEL_BUTTON_OPACITY_KEY, "Button Opacity")
+		_button_opacity_text_label.text = U_LOCALIZATION_UTILS.localize_with_fallback(LABEL_BUTTON_OPACITY_KEY, "Button Opacity")
 	if _joystick_deadzone_text_label != null:
-		_joystick_deadzone_text_label.text = _localize_with_fallback(LABEL_JOYSTICK_DEADZONE_KEY, "Joystick Deadzone")
+		_joystick_deadzone_text_label.text = U_LOCALIZATION_UTILS.localize_with_fallback(LABEL_JOYSTICK_DEADZONE_KEY, "Joystick Deadzone")
 	if _look_sensitivity_text_label != null:
-		_look_sensitivity_text_label.text = _localize_with_fallback(LABEL_LOOK_SENSITIVITY_KEY, "Look Drag Sensitivity")
+		_look_sensitivity_text_label.text = U_LOCALIZATION_UTILS.localize_with_fallback(LABEL_LOOK_SENSITIVITY_KEY, "Look Drag Sensitivity")
 
-func _localize_with_fallback(key: StringName, fallback: String) -> String:
-	var localized: String = U_LOCALIZATION_UTILS.localize(key)
-	if localized == String(key):
-		return fallback
-	return localized
+
 
 func _log_local_slider_edit(_field: String, _value: float) -> void:
 	# Intentionally left blank (was diagnostic logging).

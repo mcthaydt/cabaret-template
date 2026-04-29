@@ -59,7 +59,7 @@ func test_base_has_shared_methods() -> void:
 	file.close()
 	assert_true("_on_panel_ready" in source, "Base should define _on_panel_ready")
 	assert_true("_on_back_pressed" in source, "Base should define _on_back_pressed")
-	assert_true("_apply_theme_tokens" in source, "Base should define _apply_theme_tokens")
+	assert_true("_apply_overlay_theme" in source, "Base should define _apply_overlay_theme")
 	assert_true("_close_overlay" in source, "Base should define _close_overlay")
 
 

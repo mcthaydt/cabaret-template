@@ -9,6 +9,7 @@ const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme
 var _tab: Control = null
 var _current_parent: Control = null
 var _label_keys: Dictionary = {}
+var _label_fallbacks: Dictionary = {}
 var _theme_map: Array[Dictionary] = []
 var _focusable_controls: Array[Control] = []
 
@@ -22,20 +23,20 @@ func set_heading(key: StringName) -> U_SettingsTabBuilder:
 	_theme_map.append({"control": label, "role": &"heading"})
 	return self
 
-func bind_heading(label: Label, key: StringName) -> U_SettingsTabBuilder:
-	_bind_label(label, key, &"heading")
+func bind_heading(label: Label, key: StringName, fallback: String = "") -> U_SettingsTabBuilder:
+	_bind_label(label, key, &"heading", fallback)
 	return self
 
-func bind_section_header(label: Label, key: StringName) -> U_SettingsTabBuilder:
-	_bind_label(label, key, &"section_header")
+func bind_section_header(label: Label, key: StringName, fallback: String = "") -> U_SettingsTabBuilder:
+	_bind_label(label, key, &"section_header", fallback)
 	return self
 
-func bind_field_label(label: Label, key: StringName) -> U_SettingsTabBuilder:
-	_bind_label(label, key, &"field_label")
+func bind_field_label(label: Label, key: StringName, fallback: String = "") -> U_SettingsTabBuilder:
+	_bind_label(label, key, &"field_label", fallback)
 	return self
 
-func bind_value_label(label: Label, key: StringName = &"") -> U_SettingsTabBuilder:
-	_bind_label(label, key, &"value_label")
+func bind_value_label(label: Label, key: StringName = &"", fallback: String = "") -> U_SettingsTabBuilder:
+	_bind_label(label, key, &"value_label", fallback)
 	return self
 
 func bind_row(row: Control, compact: bool = false) -> U_SettingsTabBuilder:
@@ -51,10 +52,12 @@ func bind_field_control(control: Control, callback: Callable = Callable()) -> U_
 	_wire_control_callback(control, callback)
 	return self
 
-func bind_action_button(button: Button, key: StringName, callback: Callable = Callable()) -> U_SettingsTabBuilder:
+func bind_action_button(button: Button, key: StringName, callback: Callable = Callable(), fallback: String = "") -> U_SettingsTabBuilder:
 	if button == null:
 		return self
 	_label_keys[button] = key
+	if fallback != "":
+		_label_fallbacks[button] = fallback
 	_theme_map.append({"control": button, "role": &"action"})
 	_focusable_controls.append(button)
 	_connect(button.pressed, callback)
@@ -118,15 +121,18 @@ func add_slider(
 func add_action_buttons(
 	apply_callback: Callable,
 	cancel_callback: Callable,
-	reset_callback: Callable
+	reset_callback: Callable,
+	apply_fallback: String = "Apply",
+	cancel_fallback: String = "Cancel",
+	reset_fallback: String = "Reset"
 ) -> U_SettingsTabBuilder:
 	var row := HBoxContainer.new()
 	row.name = "ActionButtons"
 	_current_parent.add_child(row)
 	_theme_map.append({"control": row, "role": &"compact_row"})
-	_add_button(row, &"common.apply", apply_callback)
-	_add_button(row, &"common.cancel", cancel_callback)
-	_add_button(row, &"common.reset", reset_callback)
+	_add_button(row, &"common.apply", apply_callback, apply_fallback)
+	_add_button(row, &"common.cancel", cancel_callback, cancel_fallback)
+	_add_button(row, &"common.reset", reset_callback, reset_fallback)
 	return self
 
 func build() -> Control:
@@ -138,10 +144,11 @@ func build() -> Control:
 
 func localize_labels() -> void:
 	for control in _label_keys.keys():
+		var fallback: String = _label_fallbacks.get(control, str(_label_keys[control]))
 		if control is Label:
-			(control as Label).text = _localize(_label_keys[control], str(_label_keys[control]))
+			(control as Label).text = _localize(_label_keys[control], fallback)
 		elif control is Button:
-			(control as Button).text = _localize(_label_keys[control], str(_label_keys[control]))
+			(control as Button).text = _localize(_label_keys[control], fallback)
 
 func apply_theme_tokens(config: Resource) -> void:
 	if not (config is RS_UI_THEME_CONFIG):
@@ -157,18 +164,24 @@ func _add_row() -> HBoxContainer:
 	_theme_map.append({"control": row, "role": &"default_row"})
 	return row
 
-func _add_label(key: StringName, parent: Control) -> Label:
+func _add_label(key: StringName, parent: Control, fallback: String = "") -> Label:
 	var label := Label.new()
-	label.text = _localize(key, str(key))
+	var fb: String = fallback if fallback != "" else str(key)
+	label.text = _localize(key, fb)
 	parent.add_child(label)
 	_label_keys[label] = key
+	if fallback != "":
+		_label_fallbacks[label] = fallback
 	return label
 
-func _add_button(parent: Control, key: StringName, callback: Callable) -> Button:
+func _add_button(parent: Control, key: StringName, callback: Callable, fallback: String = "") -> Button:
 	var button := Button.new()
-	button.text = _localize(key, str(key))
+	var fb: String = fallback if fallback != "" else str(key)
+	button.text = _localize(key, fb)
 	parent.add_child(button)
 	_label_keys[button] = key
+	if fallback != "":
+		_label_fallbacks[button] = fallback
 	_theme_map.append({"control": button, "role": &"action"})
 	_focusable_controls.append(button)
 	_connect(button.pressed, callback)
@@ -179,11 +192,20 @@ func _register_field(label: Label, control: Control) -> void:
 	_theme_map.append({"control": control, "role": &"field_control"})
 	_focusable_controls.append(control)
 
-func _bind_label(label: Label, key: StringName, role: StringName) -> void:
+func _bind_label(label: Label, key: StringName, role: StringName, fallback: String = "") -> void:
 	if label == null:
 		return
 	_label_keys[label] = key
+	if fallback != "":
+		_label_fallbacks[label] = fallback
 	_theme_map.append({"control": label, "role": role})
+
+func bind_panel(panel: PanelContainer, content_vbox: VBoxContainer) -> U_SettingsTabBuilder:
+	if panel != null:
+		_theme_map.append({"control": panel, "role": &"main_panel"})
+	if content_vbox != null:
+		_theme_map.append({"control": content_vbox, "role": &"content_vbox"})
+	return self
 
 func _wire_control_callback(control: Control, callback: Callable) -> void:
 	if callback == Callable():
@@ -201,8 +223,7 @@ func _connect(signal_ref: Signal, callback: Callable) -> void:
 
 func _localize(key: Variant, fallback: String) -> String:
 	if key is StringName:
-		var localized := U_LOCALIZATION_UTILS.localize(key)
-		return fallback if localized.is_empty() else localized
+		return U_LOCALIZATION_UTILS.localize_with_fallback(key, fallback)
 	return fallback
 
 func _apply_theme_entry(entry: Dictionary, config: RS_UI_THEME_CONFIG) -> void:
@@ -227,3 +248,8 @@ func _apply_theme_entry(entry: Dictionary, config: RS_UI_THEME_CONFIG) -> void:
 			control.add_theme_constant_override(&"separation", config.separation_default)
 		&"compact_row":
 			control.add_theme_constant_override(&"separation", config.separation_compact)
+		&"main_panel":
+			if config.panel_section != null:
+				control.add_theme_stylebox_override(&"panel", config.panel_section)
+		&"content_vbox":
+			control.add_theme_constant_override(&"separation", config.separation_default)

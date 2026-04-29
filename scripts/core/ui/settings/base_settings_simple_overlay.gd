@@ -2,15 +2,20 @@
 extends "res://scripts/core/ui/base/base_overlay.gd"
 class_name BaseSettingsSimpleOverlay
 
+const U_SETTINGS_TAB_BUILDER := preload("res://scripts/core/ui/helpers/u_settings_tab_builder.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 
 @onready var _main_panel: PanelContainer = $CenterContainer/Panel
 @onready var _main_panel_content: VBoxContainer = $CenterContainer/Panel/VBox
+var _builder: RefCounted = null
 
 
 func _on_panel_ready() -> void:
-	_apply_theme_tokens()
+	_setup_builder()
+	if _builder != null:
+		_builder.build()
+	_apply_overlay_theme()
 	play_enter_animation()
 
 
@@ -18,7 +23,11 @@ func _on_back_pressed() -> void:
 	U_UISoundPlayer.play_cancel()
 	_close_overlay()
 
-func _apply_theme_tokens() -> void:
+func _setup_builder() -> void:
+	_builder = U_SETTINGS_TAB_BUILDER.new(self)
+	_builder.bind_panel(_main_panel, _main_panel_content)
+
+func _apply_overlay_theme() -> void:
 	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
 	if not (config_resource is RS_UI_THEME_CONFIG):
 		return
@@ -30,11 +39,6 @@ func _apply_theme_tokens() -> void:
 	var overlay_background := get_node_or_null("OverlayBackground") as ColorRect
 	if overlay_background != null:
 		overlay_background.color = dim_color
-
-	if _main_panel != null and config.panel_section != null:
-		_main_panel.add_theme_stylebox_override(&"panel", config.panel_section)
-	if _main_panel_content != null:
-		_main_panel_content.add_theme_constant_override(&"separation", config.separation_default)
 
 func _close_overlay() -> void:
 	var store := get_store()

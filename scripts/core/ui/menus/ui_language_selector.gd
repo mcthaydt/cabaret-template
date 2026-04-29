@@ -73,13 +73,13 @@ func _setup_buttons() -> void:
 
 func _setup_menu_builder() -> void:
 	_menu_builder = U_UI_MENU_BUILDER.new(self)
-	_menu_builder.bind_title(_title_label, &"menu.language_selector.title")
+	_menu_builder.bind_title(_title_label, &"menu.language_selector.title", "Select Language")
 	_menu_builder.bind_button_group([
-		{"button": _en_button, "key": &"locale.name.en", "callback": _on_locale_selected.bind(&"en")},
-		{"button": _es_button, "key": &"locale.name.es", "callback": _on_locale_selected.bind(&"es")},
-		{"button": _pt_button, "key": &"locale.name.pt", "callback": _on_locale_selected.bind(&"pt")},
-		{"button": _zh_cn_button, "key": &"locale.name.zh_cn", "callback": _on_locale_selected.bind(&"zh_CN")},
-		{"button": _ja_button, "key": &"locale.name.ja", "callback": _on_locale_selected.bind(&"ja")},
+		{"button": _en_button, "key": &"locale.name.en", "callback": _on_locale_selected.bind(&"en"), "fallback": "English"},
+		{"button": _es_button, "key": &"locale.name.es", "callback": _on_locale_selected.bind(&"es"), "fallback": "Español"},
+		{"button": _pt_button, "key": &"locale.name.pt", "callback": _on_locale_selected.bind(&"pt"), "fallback": "Português"},
+		{"button": _zh_cn_button, "key": &"locale.name.zh_cn", "callback": _on_locale_selected.bind(&"zh_CN"), "fallback": "简体中文"},
+		{"button": _ja_button, "key": &"locale.name.ja", "callback": _on_locale_selected.bind(&"ja"), "fallback": "日本語"},
 	])
 	_menu_builder.build()
 

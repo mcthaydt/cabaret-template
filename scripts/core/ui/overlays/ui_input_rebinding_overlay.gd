@@ -103,9 +103,9 @@ func _on_panel_ready() -> void:
 
 func _setup_builder() -> void:
 	_builder = U_UI_MENU_BUILDER.new(self)
-	_builder.bind_title(_title_label, TITLE_KEY)
-	_builder.bind_button(_reset_button, RESET_BUTTON_KEY, _on_reset_pressed)
-	_builder.bind_button(_close_button, CLOSE_BUTTON_KEY, _on_close_pressed)
+	_builder.bind_title(_title_label, TITLE_KEY, "Rebind Controls")
+	_builder.bind_button(_reset_button, RESET_BUTTON_KEY, _on_reset_pressed, "Reset")
+	_builder.bind_button(_close_button, CLOSE_BUTTON_KEY, _on_close_pressed, "Close")
 	_builder.build()
 
 func _resolve_input_profile_manager() -> Node:
@@ -130,11 +130,11 @@ func _connect_profile_signals() -> void:
 
 func _on_profile_switched() -> void:
 	_build_action_rows()
-	_update_status(_localize_with_fallback(STATUS_PROFILE_SWITCHED_KEY, "Profile switched. Select an action to rebind."))
+	_update_status(U_LOCALIZATION_UTILS.localize_with_fallback(STATUS_PROFILE_SWITCHED_KEY, "Profile switched. Select an action to rebind."))
 
 func _on_bindings_reset() -> void:
 	_refresh_bindings()
-	_update_status(_localize_with_fallback(STATUS_BINDINGS_RESET_KEY, "Bindings reset to defaults."))
+	_update_status(U_LOCALIZATION_UTILS.localize_with_fallback(STATUS_BINDINGS_RESET_KEY, "Bindings reset to defaults."))
 
 func _build_action_rows() -> void:
 	U_RebindActionListHelper.build_action_rows(
@@ -341,7 +341,7 @@ func _on_reset_confirmed() -> void:
 		typed_manager.reset_to_defaults()
 		# Note: bindings_reset signal will trigger _refresh_bindings() automatically
 	else:
-		_show_error(_localize_with_fallback(ERROR_RESET_UNAVAILABLE_KEY, "Reset to defaults unavailable."))
+		_show_error(U_LOCALIZATION_UTILS.localize_with_fallback(ERROR_RESET_UNAVAILABLE_KEY, "Reset to defaults unavailable."))
 	_set_reset_button_enabled(_profile_manager != null and not _is_capturing)
 
 func _on_reset_canceled() -> void:
@@ -378,17 +378,17 @@ func _format_binding_label(binding_text: String) -> String:
 
 func _reset_single_action(action: StringName) -> void:
 	if _is_reserved(action):
-		_show_error(_localize_with_fallback(ERROR_RESET_RESERVED_KEY, "Cannot reset reserved action."))
+		_show_error(U_LOCALIZATION_UTILS.localize_with_fallback(ERROR_RESET_RESERVED_KEY, "Cannot reset reserved action."))
 		return
 	var typed_manager := _profile_manager as I_INPUT_PROFILE_MANAGER
 	if typed_manager != null:
 		typed_manager.reset_action(action)
 		_refresh_bindings()
-		_update_status(_localize_with_fallback(STATUS_ACTION_RESET_KEY, "Action '{action}' reset to default.").format({
+		_update_status(U_LOCALIZATION_UTILS.localize_with_fallback(STATUS_ACTION_RESET_KEY, "Action '{action}' reset to default.").format({
 			"action": U_RebindActionListHelper.get_action_display_name(action)
 		}))
 	else:
-		_show_error(_localize_with_fallback(ERROR_RESET_ACTION_UNAVAILABLE_KEY, "Reset action unavailable."))
+		_show_error(U_LOCALIZATION_UTILS.localize_with_fallback(ERROR_RESET_ACTION_UNAVAILABLE_KEY, "Reset action unavailable."))
 
 func _on_locale_changed(_locale: StringName) -> void:
 	_localize_static_labels()
@@ -400,29 +400,29 @@ func _localize_static_labels() -> void:
 	if _builder != null:
 		_builder.localize_labels()
 	if _search_box != null:
-		_search_box.placeholder_text = _localize_with_fallback(SEARCH_PLACEHOLDER_KEY, "Search actions...")
+		_search_box.placeholder_text = U_LOCALIZATION_UTILS.localize_with_fallback(SEARCH_PLACEHOLDER_KEY, "Search actions...")
 	if _conflict_dialog != null:
-		_conflict_dialog.title = _localize_with_fallback(CONFLICT_TITLE_KEY, "Conflict Detected")
+		_conflict_dialog.title = U_LOCALIZATION_UTILS.localize_with_fallback(CONFLICT_TITLE_KEY, "Conflict Detected")
 		var conflict_ok := _conflict_dialog.get_ok_button()
 		if conflict_ok != null:
 			conflict_ok.text = U_RebindActionListHelper.get_replace_button_text()
 		var conflict_cancel := _conflict_dialog.get_cancel_button()
 		if conflict_cancel != null:
-			conflict_cancel.text = _localize_with_fallback(&"common.cancel", "Cancel")
+			conflict_cancel.text = U_LOCALIZATION_UTILS.localize_with_fallback(&"common.cancel", "Cancel")
 	if _reset_confirm_dialog != null:
-		_reset_confirm_dialog.title = _localize_with_fallback(RESET_CONFIRM_TITLE_KEY, "Reset All Bindings")
-		_reset_confirm_dialog.dialog_text = _localize_with_fallback(
+		_reset_confirm_dialog.title = U_LOCALIZATION_UTILS.localize_with_fallback(RESET_CONFIRM_TITLE_KEY, "Reset All Bindings")
+		_reset_confirm_dialog.dialog_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			RESET_CONFIRM_TEXT_KEY,
 			"Reset all bindings to defaults? This cannot be undone."
 		)
 		var reset_ok := _reset_confirm_dialog.get_ok_button()
 		if reset_ok != null:
-			reset_ok.text = _localize_with_fallback(&"common.reset", "Reset")
+			reset_ok.text = U_LOCALIZATION_UTILS.localize_with_fallback(&"common.reset", "Reset")
 		var reset_cancel := _reset_confirm_dialog.get_cancel_button()
 		if reset_cancel != null:
-			reset_cancel.text = _localize_with_fallback(&"common.cancel", "Cancel")
+			reset_cancel.text = U_LOCALIZATION_UTILS.localize_with_fallback(&"common.cancel", "Cancel")
 	if _error_dialog != null:
-		_error_dialog.title = _localize_with_fallback(ERROR_TITLE_KEY, "Rebind Error")
+		_error_dialog.title = U_LOCALIZATION_UTILS.localize_with_fallback(ERROR_TITLE_KEY, "Rebind Error")
 
 func _apply_theme_tokens() -> void:
 	if _builder != null:
@@ -483,13 +483,9 @@ func _build_search_stylebox(bg_color: Color, border_color: Color, border_width: 
 	return style
 
 func _get_status_default_text() -> String:
-	return _localize_with_fallback(STATUS_DEFAULT_KEY, "Select an action to rebind.")
+	return U_LOCALIZATION_UTILS.localize_with_fallback(STATUS_DEFAULT_KEY, "Select an action to rebind.")
 
-func _localize_with_fallback(key: StringName, fallback: String) -> String:
-	var localized: String = U_LOCALIZATION_UTILS.localize(key)
-	if localized == String(key):
-		return fallback
-	return localized
+
 
 # Helper functions for UX improvements
 

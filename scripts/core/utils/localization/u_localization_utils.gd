@@ -18,6 +18,12 @@ static func localize(key: StringName) -> String:
 		return String(key)
 	return manager.translate(key)
 
+static func localize_with_fallback(key: StringName, fallback: String) -> String:
+	var localized: String = localize(key)
+	if localized == String(key):
+		return fallback
+	return localized
+
 ## Return translated string with positional arg substitution.
 ## Replaces {0}, {1}, {2}, etc. with args[0], args[1], args[2], etc.
 ## Missing args leave the placeholder unchanged.

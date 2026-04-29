@@ -156,17 +156,17 @@ func _exit_tree() -> void:
 
 func _configure_tooltips() -> void:
 	if _drag_mode_check != null:
-		_drag_mode_check.tooltip_text = _localize_with_fallback(
+		_drag_mode_check.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			TOOLTIP_DRAG_MODE_KEY,
 			"Enable drag mode to reposition controls."
 		)
 	if _reset_button != null:
-		_reset_button.tooltip_text = _localize_with_fallback(
+		_reset_button.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			TOOLTIP_RESET_KEY,
 			"Restore default touchscreen control positions."
 		)
 	if _save_button != null:
-		_save_button.tooltip_text = _localize_with_fallback(
+		_save_button.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			TOOLTIP_SAVE_KEY,
 			"Save the current touchscreen control positions."
 		)
@@ -340,24 +340,20 @@ func _on_locale_changed(_locale: StringName) -> void:
 
 func _localize_labels() -> void:
 	if _title_label != null:
-		_title_label.text = _localize_with_fallback(TITLE_KEY, "Edit Touch Controls")
+		_title_label.text = U_LOCALIZATION_UTILS.localize_with_fallback(TITLE_KEY, "Edit Touch Controls")
 	if _drag_mode_check != null:
-		_drag_mode_check.text = _localize_with_fallback(LABEL_DRAG_MODE_KEY, "Enable Drag Mode")
+		_drag_mode_check.text = U_LOCALIZATION_UTILS.localize_with_fallback(LABEL_DRAG_MODE_KEY, "Enable Drag Mode")
 	if _instructions_label != null:
-		_instructions_label.text = _localize_with_fallback(
+		_instructions_label.text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			INSTRUCTIONS_KEY,
 			"Drag controls to reposition. Tap 'Save' when done."
 		)
 
 	if _cancel_button != null:
-		_cancel_button.text = _localize_with_fallback(&"common.cancel", "Cancel")
+		_cancel_button.text = U_LOCALIZATION_UTILS.localize_with_fallback(&"common.cancel", "Cancel")
 	if _reset_button != null:
-		_reset_button.text = _localize_with_fallback(BUTTON_RESET_DEFAULTS_KEY, "Reset to Defaults")
+		_reset_button.text = U_LOCALIZATION_UTILS.localize_with_fallback(BUTTON_RESET_DEFAULTS_KEY, "Reset to Defaults")
 	if _save_button != null:
-		_save_button.text = _localize_with_fallback(BUTTON_SAVE_POSITIONS_KEY, "Save Positions")
+		_save_button.text = U_LOCALIZATION_UTILS.localize_with_fallback(BUTTON_SAVE_POSITIONS_KEY, "Save Positions")
 
-func _localize_with_fallback(key: StringName, fallback: String) -> String:
-	var localized: String = U_LOCALIZATION_UTILS.localize(key)
-	if localized == String(key):
-		return fallback
-	return localized
+

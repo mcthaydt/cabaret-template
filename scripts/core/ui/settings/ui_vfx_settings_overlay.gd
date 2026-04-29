@@ -101,9 +101,9 @@ func _setup_builder() -> void:
 	_builder.bind_field_control(_flash_enabled_toggle, _on_flash_enabled_toggled)
 	_builder.bind_field_control(_particles_enabled_toggle, _on_particles_enabled_toggled)
 	_builder.bind_field_control(_silhouette_enabled_toggle, _on_silhouette_enabled_toggled)
-	_builder.bind_action_button(_cancel_button, &"common.cancel", _on_cancel_pressed)
-	_builder.bind_action_button(_reset_button, BUTTON_RESET_DEFAULTS_KEY, _on_reset_pressed)
-	_builder.bind_action_button(_apply_button, &"common.apply", _on_apply_pressed)
+	_builder.bind_action_button(_cancel_button, &"common.cancel", _on_cancel_pressed, "Cancel")
+	_builder.bind_action_button(_reset_button, BUTTON_RESET_DEFAULTS_KEY, _on_reset_pressed, "Reset to Defaults")
+	_builder.bind_action_button(_apply_button, &"common.apply", _on_apply_pressed, "Apply")
 	_builder.build()
 
 func _apply_theme_tokens() -> void:
@@ -186,27 +186,27 @@ func _configure_focus_neighbors() -> void:
 
 func _configure_tooltips() -> void:
 	if _shake_enabled_toggle != null:
-		_shake_enabled_toggle.tooltip_text = _localize_with_fallback(
+		_shake_enabled_toggle.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			TOOLTIP_SCREEN_SHAKE_KEY,
 			"Enables camera shake feedback."
 		)
 	if _intensity_slider != null:
-		_intensity_slider.tooltip_text = _localize_with_fallback(
+		_intensity_slider.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			TOOLTIP_SHAKE_INTENSITY_KEY,
 			"Adjusts camera shake strength."
 		)
 	if _flash_enabled_toggle != null:
-		_flash_enabled_toggle.tooltip_text = _localize_with_fallback(
+		_flash_enabled_toggle.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			TOOLTIP_DAMAGE_FLASH_KEY,
 			"Flashes the screen when taking damage."
 		)
 	if _particles_enabled_toggle != null:
-		_particles_enabled_toggle.tooltip_text = _localize_with_fallback(
+		_particles_enabled_toggle.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			TOOLTIP_PARTICLES_KEY,
 			"Shows particle effects."
 		)
 	if _silhouette_enabled_toggle != null:
-		_silhouette_enabled_toggle.tooltip_text = _localize_with_fallback(
+		_silhouette_enabled_toggle.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			TOOLTIP_OCCLUSION_SILHOUETTE_KEY,
 			"Shows character silhouettes when occluded."
 		)
@@ -383,12 +383,6 @@ func _on_locale_changed(_locale: StringName) -> void:
 func _localize_labels() -> void:
 	if _builder != null:
 		_builder.localize_labels()
-
-func _localize_with_fallback(key: StringName, fallback: String) -> String:
-	var localized: String = U_LOCALIZATION_UTILS.localize(key)
-	if localized == String(key):
-		return fallback
-	return localized
 
 func _exit_tree() -> void:
 	_clear_vfx_settings_preview()

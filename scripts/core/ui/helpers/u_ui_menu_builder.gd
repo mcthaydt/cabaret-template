@@ -8,6 +8,7 @@ const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme
 
 var _menu: Control = null
 var _label_keys: Dictionary = {}
+var _label_fallbacks: Dictionary = {}
 var _theme_map: Array[Dictionary] = []
 var _focusable_controls: Array[Control] = []
 var _button_column: VBoxContainer = null
@@ -16,34 +17,38 @@ var _title_label: Label = null
 func _init(menu: Control) -> void:
 	_menu = menu
 
-func set_title(key: StringName) -> U_UIMenuBuilder:
+func set_title(key: StringName, fallback: String = "") -> U_UIMenuBuilder:
 	_title_label = Label.new()
 	_title_label.name = "TitleLabel"
 	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_menu.add_child(_title_label)
-	_bind_label(_title_label, key, &"heading")
+	_bind_label(_title_label, key, &"heading", fallback)
 	return self
 
-func bind_title(label: Label, key: StringName) -> U_UIMenuBuilder:
+func bind_title(label: Label, key: StringName, fallback: String = "") -> U_UIMenuBuilder:
 	_title_label = label
 	if label != null:
-		_bind_label(label, key, &"heading")
+		_bind_label(label, key, &"heading", fallback)
 	return self
 
-func add_button(key: StringName, callback: Callable) -> U_UIMenuBuilder:
+func add_button(key: StringName, callback: Callable, fallback: String = "") -> U_UIMenuBuilder:
 	var button := Button.new()
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_button_container().add_child(button)
 	_label_keys[button] = key
+	if fallback != "":
+		_label_fallbacks[button] = fallback
 	_theme_map.append({"control": button, "role": &"button"})
 	_focusable_controls.append(button)
 	_connect(button.pressed, callback)
 	return self
 
-func bind_button(button: Button, key: StringName, callback: Callable = Callable()) -> U_UIMenuBuilder:
+func bind_button(button: Button, key: StringName, callback: Callable = Callable(), fallback: String = "") -> U_UIMenuBuilder:
 	if button == null:
 		return self
 	_label_keys[button] = key
+	if fallback != "":
+		_label_fallbacks[button] = fallback
 	_theme_map.append({"control": button, "role": &"button"})
 	_focusable_controls.append(button)
 	_connect(button.pressed, callback)
@@ -53,7 +58,8 @@ func add_button_group(buttons: Array) -> U_UIMenuBuilder:
 	for entry in buttons:
 		var key := entry.get("key", &"") as StringName
 		var callback := entry.get("callback", Callable()) as Callable
-		add_button(key, callback)
+		var fallback := entry.get("fallback", "") as String
+		add_button(key, callback, fallback)
 	return self
 
 func bind_button_group(buttons: Array) -> U_UIMenuBuilder:
@@ -61,15 +67,18 @@ func bind_button_group(buttons: Array) -> U_UIMenuBuilder:
 		var button := entry.get("button", null) as Button
 		var key := entry.get("key", &"") as StringName
 		var callback := entry.get("callback", Callable()) as Callable
-		bind_button(button, key, callback)
+		var fallback := entry.get("fallback", "") as String
+		bind_button(button, key, callback, fallback)
 	return self
 
-func set_back_button(key: StringName, callback: Callable) -> U_UIMenuBuilder:
+func set_back_button(key: StringName, callback: Callable, fallback: String = "") -> U_UIMenuBuilder:
 	var button := Button.new()
 	button.name = "BackButton"
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_menu.add_child(button)
 	_label_keys[button] = key
+	if fallback != "":
+		_label_fallbacks[button] = fallback
 	_theme_map.append({"control": button, "role": &"button"})
 	_focusable_controls.append(button)
 	_connect(button.pressed, callback)
@@ -97,10 +106,11 @@ func build() -> Control:
 
 func localize_labels() -> void:
 	for control in _label_keys.keys():
+		var fallback: String = _label_fallbacks.get(control, str(_label_keys[control]))
 		if control is Label:
-			(control as Label).text = _localize(_label_keys[control], str(_label_keys[control]))
+			(control as Label).text = _localize(_label_keys[control], fallback)
 		elif control is Button:
-			(control as Button).text = _localize(_label_keys[control], str(_label_keys[control]))
+			(control as Button).text = _localize(_label_keys[control], fallback)
 
 func apply_theme_tokens(config: Resource) -> void:
 	if not (config is RS_UI_THEME_CONFIG):
@@ -118,8 +128,10 @@ func _button_container() -> VBoxContainer:
 	_theme_map.append({"control": _button_column, "role": &"button_column"})
 	return _button_column
 
-func _bind_label(label: Label, key: StringName, role: StringName) -> void:
+func _bind_label(label: Label, key: StringName, role: StringName, fallback: String = "") -> void:
 	_label_keys[label] = key
+	if fallback != "":
+		_label_fallbacks[label] = fallback
 	_theme_map.append({"control": label, "role": role})
 
 func _connect(signal_ref: Signal, callback: Callable) -> void:
@@ -128,8 +140,7 @@ func _connect(signal_ref: Signal, callback: Callable) -> void:
 
 func _localize(key: Variant, fallback: String) -> String:
 	if key is StringName:
-		var localized := U_LOCALIZATION_UTILS.localize(key)
-		return fallback if localized.is_empty() else localized
+		return U_LOCALIZATION_UTILS.localize_with_fallback(key, fallback)
 	return fallback
 
 func _apply_theme_entry(entry: Dictionary, config: RS_UI_THEME_CONFIG) -> void:

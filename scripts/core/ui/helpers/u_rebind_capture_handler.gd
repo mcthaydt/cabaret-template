@@ -22,7 +22,7 @@ static func begin_capture(overlay: Node, action: StringName, mode: String) -> vo
 	if overlay._is_capturing:
 		return
 	if overlay._is_reserved(action):
-		overlay._show_error(_localize_with_fallback(ERROR_RESERVED_ACTION_KEY, "Cannot rebind reserved action."))
+		overlay._show_error(U_LOCALIZATION_UTILS.localize_with_fallback(ERROR_RESERVED_ACTION_KEY, "Cannot rebind reserved action."))
 		return
 
 	overlay._is_capturing = true
@@ -150,7 +150,7 @@ static func apply_binding(overlay: Node, event: InputEvent, conflict_action: Str
 
 	overlay._ensure_store_reference()
 	if overlay._store == null:
-		overlay._show_error(_localize_with_fallback(ERROR_STATE_STORE_UNAVAILABLE_KEY, "State store not available."))
+		overlay._show_error(U_LOCALIZATION_UTILS.localize_with_fallback(ERROR_STATE_STORE_UNAVAILABLE_KEY, "State store not available."))
 		cancel_capture(overlay, get_rebind_failed_status())
 		return
 
@@ -248,7 +248,7 @@ static func events_match(a: InputEvent, b: InputEvent) -> bool:
 	return a.is_match(b) and b.is_match(a)
 
 static func get_capture_prompt(action: StringName) -> String:
-	return _localize_with_fallback(
+	return U_LOCALIZATION_UTILS.localize_with_fallback(
 		STATUS_CAPTURE_PROMPT_KEY,
 		"Press new input for {action} (Esc to cancel)."
 	).format({
@@ -256,13 +256,13 @@ static func get_capture_prompt(action: StringName) -> String:
 	})
 
 static func get_rebind_cancelled_status() -> String:
-	return _localize_with_fallback(STATUS_REBIND_CANCELLED_KEY, "Rebind cancelled.")
+	return U_LOCALIZATION_UTILS.localize_with_fallback(STATUS_REBIND_CANCELLED_KEY, "Rebind cancelled.")
 
 static func get_rebind_failed_status() -> String:
-	return _localize_with_fallback(ERROR_REBIND_FAILED_KEY, "Rebind failed.")
+	return U_LOCALIZATION_UTILS.localize_with_fallback(ERROR_REBIND_FAILED_KEY, "Rebind failed.")
 
 static func get_rebind_success_status(action: StringName, binding: String) -> String:
-	return _localize_with_fallback(
+	return U_LOCALIZATION_UTILS.localize_with_fallback(
 		STATUS_REBIND_SUCCESS_KEY,
 		"{action} bound to {binding}."
 	).format({
@@ -271,7 +271,7 @@ static func get_rebind_success_status(action: StringName, binding: String) -> St
 	})
 
 static func get_conflict_dialog_text(binding: String, action_name: String) -> String:
-	return _localize_with_fallback(
+	return U_LOCALIZATION_UTILS.localize_with_fallback(
 		DIALOG_CONFLICT_TEXT_KEY,
 		"{binding} is already bound to {action}. Replace binding?"
 	).format({
@@ -284,15 +284,15 @@ static func _localize_validation_error(validation_error: String) -> String:
 		return get_rebind_failed_status()
 
 	if validation_error == "Action name is required.":
-		return _localize_with_fallback(ERROR_ACTION_REQUIRED_KEY, "Action name is required.")
+		return U_LOCALIZATION_UTILS.localize_with_fallback(ERROR_ACTION_REQUIRED_KEY, "Action name is required.")
 	if validation_error == "Input event is required.":
-		return _localize_with_fallback(ERROR_INPUT_REQUIRED_KEY, "Input event is required.")
+		return U_LOCALIZATION_UTILS.localize_with_fallback(ERROR_INPUT_REQUIRED_KEY, "Input event is required.")
 	if validation_error == "Cannot rebind reserved action.":
-		return _localize_with_fallback(ERROR_RESERVED_ACTION_KEY, "Cannot rebind reserved action.")
+		return U_LOCALIZATION_UTILS.localize_with_fallback(ERROR_RESERVED_ACTION_KEY, "Cannot rebind reserved action.")
 	if validation_error == "Cannot reassign input from reserved action.":
-		return _localize_with_fallback(ERROR_RESERVED_CONFLICT_KEY, "Cannot reassign input from reserved action.")
+		return U_LOCALIZATION_UTILS.localize_with_fallback(ERROR_RESERVED_CONFLICT_KEY, "Cannot reassign input from reserved action.")
 	if validation_error == "Maximum bindings reached for action.":
-		return _localize_with_fallback(ERROR_MAX_BINDINGS_KEY, "Maximum bindings reached for action.")
+		return U_LOCALIZATION_UTILS.localize_with_fallback(ERROR_MAX_BINDINGS_KEY, "Maximum bindings reached for action.")
 
 	var conflict_prefix := "Input already bound to "
 	if validation_error.begins_with(conflict_prefix):
@@ -300,7 +300,7 @@ static func _localize_validation_error(validation_error: String) -> String:
 		if action_token.ends_with("."):
 			action_token = action_token.substr(0, action_token.length() - 1)
 		var action_name := U_RebindActionListHelper.get_action_display_name(StringName(action_token))
-		return _localize_with_fallback(
+		return U_LOCALIZATION_UTILS.localize_with_fallback(
 			ERROR_INPUT_ALREADY_BOUND_KEY,
 			"Input already bound to {action}."
 		).format({
@@ -308,9 +308,3 @@ static func _localize_validation_error(validation_error: String) -> String:
 		})
 
 	return validation_error
-
-static func _localize_with_fallback(key: StringName, fallback: String) -> String:
-	var localized: String = U_LOCALIZATION_UTILS.localize(key)
-	if localized == String(key):
-		return fallback
-	return localized

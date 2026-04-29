@@ -54,7 +54,7 @@ func _on_panel_ready() -> void:
 
 func _setup_menu_builder() -> void:
 	_menu_builder = U_UI_MENU_BUILDER.new(self)
-	_menu_builder.bind_button(_skip_button, &"common.skip", _on_skip_pressed)
+	_menu_builder.bind_button(_skip_button, &"common.skip", _on_skip_pressed, "Skip")
 	_menu_builder.build()
 
 func _apply_theme_tokens() -> void:

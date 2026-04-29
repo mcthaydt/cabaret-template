@@ -118,9 +118,9 @@ func _setup_builder() -> void:
 	_builder.bind_field_control(_ambient_volume_slider, _on_ambient_volume_changed)
 	_builder.bind_field_control(_ambient_mute_toggle, _on_ambient_mute_toggled)
 	_builder.bind_field_control(_spatial_audio_toggle, _on_spatial_audio_toggled)
-	_builder.bind_action_button(_cancel_button, &"common.cancel", _on_cancel_pressed)
-	_builder.bind_action_button(_reset_button, BUTTON_RESET_DEFAULTS_KEY, _on_reset_pressed)
-	_builder.bind_action_button(_apply_button, &"common.apply", _on_apply_pressed)
+	_builder.bind_action_button(_cancel_button, &"common.cancel", _on_cancel_pressed, "Cancel")
+	_builder.bind_action_button(_reset_button, BUTTON_RESET_DEFAULTS_KEY, _on_reset_pressed, "Reset to Defaults")
+	_builder.bind_action_button(_apply_button, &"common.apply", _on_apply_pressed, "Apply")
 
 func _apply_theme_tokens() -> void:
 	if _builder != null:
@@ -167,27 +167,27 @@ func _exit_tree() -> void:
 
 func _configure_tooltips() -> void:
 	if _master_volume_slider != null:
-		_master_volume_slider.tooltip_text = _localize_with_fallback(
+		_master_volume_slider.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			TOOLTIP_MASTER_VOLUME_KEY,
 			"Controls overall game audio volume."
 		)
 	if _music_volume_slider != null:
-		_music_volume_slider.tooltip_text = _localize_with_fallback(
+		_music_volume_slider.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			TOOLTIP_MUSIC_VOLUME_KEY,
 			"Controls music playback volume."
 		)
 	if _sfx_volume_slider != null:
-		_sfx_volume_slider.tooltip_text = _localize_with_fallback(
+		_sfx_volume_slider.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			TOOLTIP_SFX_VOLUME_KEY,
 			"Controls sound effects volume."
 		)
 	if _ambient_volume_slider != null:
-		_ambient_volume_slider.tooltip_text = _localize_with_fallback(
+		_ambient_volume_slider.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			TOOLTIP_AMBIENT_VOLUME_KEY,
 			"Controls ambient/environment audio volume."
 		)
 	if _spatial_audio_toggle != null:
-		_spatial_audio_toggle.tooltip_text = _localize_with_fallback(
+		_spatial_audio_toggle.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 			TOOLTIP_SPATIAL_AUDIO_KEY,
 			"Enables 3D positional audio effects."
 		)
@@ -584,7 +584,7 @@ func _localize_labels() -> void:
 	if _builder != null:
 		_builder.localize_labels()
 
-	var mute_text: String = _localize_with_fallback(LABEL_MUTE_KEY, "Mute")
+	var mute_text: String = U_LOCALIZATION_UTILS.localize_with_fallback(LABEL_MUTE_KEY, "Mute")
 	if _master_mute_toggle != null:
 		_master_mute_toggle.text = mute_text
 	if _music_mute_toggle != null:
@@ -594,8 +594,4 @@ func _localize_labels() -> void:
 	if _ambient_mute_toggle != null:
 		_ambient_mute_toggle.text = mute_text
 
-func _localize_with_fallback(key: StringName, fallback: String) -> String:
-	var localized: String = U_LOCALIZATION_UTILS.localize(key)
-	if localized == String(key):
-		return fallback
-	return localized
+

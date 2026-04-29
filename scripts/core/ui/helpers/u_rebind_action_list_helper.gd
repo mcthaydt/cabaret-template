@@ -150,7 +150,7 @@ static func build_action_rows(
 			var add_button := Button.new()
 			add_button.text = get_add_button_text()
 			add_button.custom_minimum_size = Vector2(100, 32)
-			add_button.tooltip_text = _localize_with_fallback(
+			add_button.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 				TOOLTIP_ADD_KEY,
 				"Add an additional binding for this action"
 			)
@@ -163,7 +163,7 @@ static func build_action_rows(
 			var replace_button := Button.new()
 			replace_button.text = get_replace_button_text()
 			replace_button.custom_minimum_size = Vector2(80, 32)
-			replace_button.tooltip_text = _localize_with_fallback(
+			replace_button.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 				TOOLTIP_REPLACE_KEY,
 				"Replace all bindings for this action"
 			)
@@ -176,7 +176,7 @@ static func build_action_rows(
 			var reset_button := Button.new()
 			reset_button.text = get_reset_button_text()
 			reset_button.custom_minimum_size = Vector2(60, 32)
-			reset_button.tooltip_text = _localize_with_fallback(
+			reset_button.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
 				TOOLTIP_RESET_KEY,
 				"Reset this action to default binding"
 			)
@@ -503,31 +503,27 @@ static func _populate_binding_visuals(
 			container.add_child(separator)
 
 static func get_add_button_text() -> String:
-	return _localize_with_fallback(ADD_BUTTON_KEY, ADD_BUTTON_TEXT)
+	return U_LOCALIZATION_UTILS.localize_with_fallback(ADD_BUTTON_KEY, ADD_BUTTON_TEXT)
 
 static func get_replace_button_text() -> String:
-	return _localize_with_fallback(REPLACE_BUTTON_KEY, REPLACE_BUTTON_TEXT)
+	return U_LOCALIZATION_UTILS.localize_with_fallback(REPLACE_BUTTON_KEY, REPLACE_BUTTON_TEXT)
 
 static func get_reset_button_text() -> String:
-	return _localize_with_fallback(RESET_BUTTON_KEY, RESET_BUTTON_TEXT)
+	return U_LOCALIZATION_UTILS.localize_with_fallback(RESET_BUTTON_KEY, RESET_BUTTON_TEXT)
 
 static func get_reserved_button_text() -> String:
-	return _localize_with_fallback(RESERVED_BUTTON_KEY, "Reserved")
+	return U_LOCALIZATION_UTILS.localize_with_fallback(RESERVED_BUTTON_KEY, "Reserved")
 
 static func get_listening_button_text() -> String:
-	return _localize_with_fallback(LISTENING_BUTTON_KEY, "Listening...")
+	return U_LOCALIZATION_UTILS.localize_with_fallback(LISTENING_BUTTON_KEY, "Listening...")
 
 static func get_unbound_label_text() -> String:
-	return _localize_with_fallback(UNBOUND_LABEL_KEY, "Unbound")
+	return U_LOCALIZATION_UTILS.localize_with_fallback(UNBOUND_LABEL_KEY, "Unbound")
 
 static func _get_localized_category_label(category: String) -> String:
 	var key: StringName = CATEGORY_LABEL_KEYS.get(category, StringName())
 	if key == StringName():
 		return category.capitalize()
-	return _localize_with_fallback(key, category.capitalize())
+	return U_LOCALIZATION_UTILS.localize_with_fallback(key, category.capitalize())
 
-static func _localize_with_fallback(key: StringName, fallback: String) -> String:
-	var localized: String = U_LOCALIZATION_UTILS.localize(key)
-	if localized == String(key):
-		return fallback
-	return localized
+
