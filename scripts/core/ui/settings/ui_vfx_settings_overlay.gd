@@ -127,22 +127,6 @@ func _apply_theme_tokens() -> void:
 	if _main_panel_content != null:
 		_main_panel_content.add_theme_constant_override(&"separation", config.separation_default)
 
-	var compact_rows: Array[HBoxContainer] = [
-		_shake_enabled_row,
-		_shake_intensity_row,
-		_flash_enabled_row,
-		_particles_enabled_row,
-		_silhouette_enabled_row,
-		_button_row,
-	]
-	for row in compact_rows:
-		if row != null:
-			row.add_theme_constant_override(&"separation", config.separation_compact)
-
-	if _intensity_percentage != null:
-		_intensity_percentage.add_theme_font_size_override(&"font_size", config.body_small)
-		_intensity_percentage.add_theme_color_override(&"font_color", config.text_secondary)
-
 func _configure_focus_neighbors() -> void:
 	var vertical_controls: Array[Control] = []
 	if _shake_enabled_toggle != null:

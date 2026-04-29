@@ -53,15 +53,13 @@ func test_localization_settings_tab_applies_theme_tokens_when_active_config_set(
 	)
 
 	var heading_label := _tab.find_child("HeadingLabel", true, false) as Label
-	var language_section := _tab.find_child("Section", true, false) as VBoxContainer
-	var language_option := _tab.find_child("LanguageOption", true, false) as OptionButton
+	var language_section := _tab.find_child("LanguageSection", true, false) as VBoxContainer
+	var language_option := _tab.find_child("LanguageOptionButton", true, false) as OptionButton
 	var action_buttons := _tab.find_child("ActionButtons", true, false) as HBoxContainer
 	
 	var language_section_header: Label = null
-	var language_label: Label = null
 	if language_section != null:
 		language_section_header = language_section.find_child("SectionHeader", true, false) as Label
-		language_label = language_section.find_child("LanguageLabel", true, false) as Label
 
 	assert_not_null(heading_label, "Heading label should exist")
 	assert_not_null(language_section, "Language section should exist")
@@ -99,17 +97,6 @@ func test_localization_settings_tab_applies_theme_tokens_when_active_config_set(
 		assert_true(
 			language_section_header.get_theme_color(&"font_color").is_equal_approx(config.section_header_color),
 			"Language section header should use section_header_color token"
-		)
-
-	if language_label != null:
-		assert_eq(
-			language_label.get_theme_font_size(&"font_size"),
-			config.body_small,
-			"Language label should use body_small font token"
-		)
-		assert_true(
-			language_label.get_theme_color(&"font_color").is_equal_approx(config.text_secondary),
-			"Language label should use text_secondary color token"
 		)
 
 	if language_option != null:

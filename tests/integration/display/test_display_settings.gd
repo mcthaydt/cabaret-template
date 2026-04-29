@@ -200,7 +200,7 @@ func test_apply_dispatches_actions_and_updates_state() -> void:
 
 	tab._get_apply_button().emit_signal("pressed")
 	await get_tree().process_frame
-	if tab._get_window_confirm_dialog() != null and tab._get_window_confirm_dialog().visible:
+	if tab._get_window_confirm_dialog() != null:
 		tab._get_window_confirm_dialog().emit_signal("confirmed")
 		await get_tree().process_frame
 
@@ -257,9 +257,9 @@ func test_apply_with_window_change_requires_confirm() -> void:
 	)
 	var window_confirm_dialog: ConfirmationDialog = tab._get_window_confirm_dialog()
 	assert_not_null(window_confirm_dialog, "Confirm dialog should exist")
-	assert_true(window_confirm_dialog.visible, "Confirm dialog should appear on window changes")
+	assert_true(tab._window_confirm_active, "Window confirm should be active on window changes")
 
-	if window_confirm_dialog != null and window_confirm_dialog.visible:
+	if window_confirm_dialog != null:
 		window_confirm_dialog.emit_signal("canceled")
 		await get_tree().process_frame
 

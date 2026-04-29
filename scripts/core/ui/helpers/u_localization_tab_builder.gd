@@ -53,6 +53,9 @@ func build() -> Control:
 	)
 	end_section()
 	
+	var test_btn := _add_button(_current_parent, &"settings.localization.button.test", _on_test_localization_pressed, "Test Localization")
+	test_btn.name = "TestLocalizationButton"
+	
 	add_button_row(
 		_on_apply_pressed,
 		_on_cancel_pressed,
@@ -62,24 +65,4 @@ func build() -> Control:
 		&"common.reset"
 	)
 	
-	var test_btn := _find_button_by_key(&"settings.localization.button.test")
-	if test_btn != null:
-		test_btn.name = "TestLocalizationButton"
-	
 	return super.build()
-
-func _find_button_by_key(key: StringName) -> Button:
-	for entry in _theme_map:
-		if entry.get("role") == &"action":
-			var control := entry.get("control") as Control
-			if control is Button:
-				var label_key: Variant = _get_label_key_for_button(control as Button)
-				if label_key == key:
-					return control as Button
-	return null
-
-func _get_label_key_for_button(button: Button) -> Variant:
-	for key in _label_keys.keys():
-		if key == button:
-			return _label_keys[key]
-	return &""

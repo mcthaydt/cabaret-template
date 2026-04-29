@@ -81,7 +81,7 @@ func _get_ui_scale_slider() -> HSlider:
 	return _get_control_by_name("UIScaleSlider") as HSlider
 
 func _get_ui_scale_value() -> Label:
-	return _get_control_by_name("UIScaleValue") as Label
+	return _get_control_by_name("UIScaleSliderValue") as Label
 
 func _get_color_blind_mode_option() -> OptionButton:
 	return _get_control_by_name("ColorBlindModeOption") as OptionButton
@@ -141,6 +141,7 @@ func _ready() -> void:
 
 	_unsubscribe = _state_store.subscribe(_on_state_changed)
 	_on_state_changed({}, _state_store.get_state())
+	_connect_window_confirm_signals()
 
 func _setup_builder() -> void:
 	_display_manager = U_DisplayUtils.get_display_manager()
