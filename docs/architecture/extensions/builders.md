@@ -14,6 +14,7 @@ This recipe covers:
 - Script-backed brain settings (`RS_AIBrainScriptSettings`)
 - Scene-registry, input-profile, and QB-rule builders
 - Editor prefab / blockout builders (Phase 7)
+- UI settings tab / menu screen builders (Phase 8)
 
 This recipe does **not** cover:
 
@@ -37,6 +38,9 @@ This recipe does **not** cover:
 | BT behavior script | `scripts/demo/ai/trees/wolf_behavior.gd` | Script-backed brain: `build() -> RS_BTNode` |
 | Editor prefab | `scripts/core/utils/editors/u_editor_prefab_builder.gd` (Phase 7) | `U_EditorPrefabBuilder.create_root(...)` |
 | Editor blockout | `scripts/core/utils/editors/u_editor_blockout_builder.gd` (Phase 7) | `U_EditorBlockoutBuilder.create_root(...)` |
+| Settings tab | `scripts/core/ui/helpers/u_settings_tab_builder.gd` (Phase 8) | `U_SettingsTabBuilder.new(tab).bind_heading(...)` |
+| UI menu | `scripts/core/ui/helpers/u_ui_menu_builder.gd` (Phase 8) | `U_UIMenuBuilder.new(menu).bind_title(...)` |
+| Settings catalog | `scripts/core/ui/helpers/u_ui_settings_catalog.gd` (Phase 8) | `U_UISettingsCatalog.get_quality_presets()` |
 
 ## Vocabulary
 
@@ -163,6 +167,33 @@ This recipe does **not** cover:
    ```
 3. `U_EditorPrefabBuilder` and `U_EditorBlockoutBuilder` are `RefCounted`; no `EditorScript` base. This lets GUT unit-test them headlessly.
 
+### Using UI settings tab / menu builders (Phase 8)
+
+1. Builder infrastructure lives in `scripts/core/ui/helpers/`.
+2. In your settings overlay `_setup_builder()`:
+   ```gdscript
+   _builder = U_SettingsTabBuilder.new(self)
+   _builder.bind_heading(heading_label, &"settings.audio.title") \
+          .bind_field_label(master_label, &"settings.audio.label.master") \
+          .bind_field_control(master_slider, _on_master_changed) \
+          .bind_action_button(cancel_button, &"common.cancel", _on_cancel_pressed, "Cancel") \
+          .build()
+   ```
+3. In your menu screen `_setup_menu_builder()`:
+   ```gdscript
+   _menu_builder = U_UIMenuBuilder.new(self)
+   _menu_builder.bind_title(title_label, &"menu.main.title", "Main Menu") \
+                 .bind_button_group([
+                     {"button": play_button, "key": &"menu.main.play", "callback": _on_play_pressed, "fallback": "Play"},
+                     {"button": settings_button, "key": &"menu.main.settings", "callback": _on_settings_pressed, "fallback": "Settings"},
+                 ]) \
+                 .build()
+   ```
+4. `bind_*` methods take existing `@onready` nodes and register them for theming, localization, and focus.
+5. Always pass a `fallback` string to `bind_action_button`, `bind_button`, `bind_title`, and `bind_heading` for headless test localization.
+6. `BaseSettingsSimpleOverlay` uses `bind_panel()` to delegate panel/content theming; subclasses call `super._on_panel_ready()`.
+7. LOC caps: `U_SettingsTabBuilder` ≤300, `U_UIMenuBuilder` ≤200, `U_UISettingsCatalog` ≤150.
+
 ## Anti-patterns
 
 - **Hand-authoring `.tres` after a builder exists**: Once a builder is wired and tested, the `.tres` is dead code. Keep it around only during the migration window.
@@ -182,9 +213,11 @@ This recipe does **not** cover:
 ## References
 
 - [ADR 0011: Builder Pattern Taxonomy](../../adr/0011-builder-pattern-taxonomy.md)
+- [ADR 0013: UI Menu/Settings Builder Pattern](../../adr/0013-ui-menu-settings-builder-pattern.md)
 - `scripts/core/utils/bt/u_bt_builder.gd`
 - `scripts/core/utils/ai/u_ai_bt_factory.gd`
 - `scripts/core/utils/scene/u_scene_registry_builder.gd`
 - `scripts/core/utils/input/u_input_profile_builder.gd`
 - `scripts/core/utils/qb/u_qb_rule_builder.gd`
 - `scripts/core/utils/editors/` (Phase 7: prefab + blockout builders)
+- `scripts/core/ui/helpers/` (Phase 8: settings tab + menu builders)

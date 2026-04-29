@@ -65,11 +65,33 @@ Same `.tres` pattern with `kind = PANEL`, no `scene_id`. Panels use `panel_id` f
 
 Extend plain `Control` (not `BaseMenuScreen`), live under a `SettingsPanel` that extends `BaseMenuScreen`, use `ButtonGroup` for tab radio. Changes auto-save via immediate Redux dispatch.
 
+Use `U_SettingsTabBuilder` in `_setup_builder()` to wire theming, localization, and focus:
+```gdscript
+func _setup_builder() -> void:
+    _builder = U_SettingsTabBuilder.new(self)
+    _builder.bind_heading(heading_label, &"settings.audio.title", "Audio") \
+           .bind_action_button(cancel_button, &"common.cancel", _on_cancel_pressed, "Cancel") \
+           .build()
+```
+
+### Adding a new menu screen with U_UIMenuBuilder
+
+Use `U_UIMenuBuilder` in `_setup_menu_builder()` to wire theming, localization, and focus:
+```gdscript
+func _setup_menu_builder() -> void:
+    _menu_builder = U_UIMenuBuilder.new(self)
+    _menu_builder.bind_title(title_label, &"menu.main.title", "Main Menu") \
+                  .bind_button_group([...]) \
+                  .build()
+```
+
 ## Anti-patterns
 
 - **Calling `M_SceneManager.push_overlay()` from UI controllers**: Dispatch navigation actions instead.
 - **Tab panels extending `BaseMenuScreen`**: Causes nested `U_AnalogStickRepeater` conflicts.
 - **Inline `theme_override_*` in `.tscn` files**: Use `U_UIThemeBuilder` tokens in script.
+- **Defining `_localize_with_fallback` in UI scripts**: Use `U_LOCALIZATION_UTILS.localize_with_fallback(key, fallback)` instead.
+- **Manual focus neighbor wiring**: Use `U_FocusConfigurator` or builder `bind_*` methods.
 - **Apply/Cancel buttons for simple settings**: Auto-save via immediate Redux dispatch.
 - **Checking `Input.is_action_pressed("ui_cancel")` in UI scripts**: Use the action dispatch flow.
 - **Overriding `PROCESS_MODE_ALWAYS`** on overlays: `BaseOverlay` sets this automatically.
@@ -82,5 +104,6 @@ Extend plain `Control` (not `BaseMenuScreen`), live under a `SettingsPanel` that
 
 ## References
 
+- [ADR 0013: UI Menu/Settings Builder Pattern](../adr/0013-ui-menu-settings-builder-pattern.md)
 - [UI Manager Overview](../../systems/ui_manager/ui-manager-overview.md)
 - [UI Pitfalls](../../systems/ui_manager/ui-pitfalls.md)
