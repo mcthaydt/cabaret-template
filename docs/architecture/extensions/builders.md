@@ -191,8 +191,55 @@ This recipe does **not** cover:
    ```
 4. `bind_*` methods take existing `@onready` nodes and register them for theming, localization, and focus.
 5. Always pass a `fallback` string to `bind_action_button`, `bind_button`, `bind_title`, and `bind_heading` for headless test localization.
-6. `BaseSettingsSimpleOverlay` uses `bind_panel()` to delegate panel/content theming; subclasses call `super._on_panel_ready()`.
+6. `BaseSettingsSimpleOverlay` uses `bind_panel()` to delegate panel theming; subclasses call `super._on_panel_ready()`.
 7. LOC caps: `U_SettingsTabBuilder` ≤300, `U_UIMenuBuilder` ≤200, `U_UISettingsCatalog` ≤150.
+
+### UI Settings Tab Builder Example
+
+```gdscript
+# scripts/core/ui/helpers/u_display_tab_builder.gd
+extends "res://scripts/core/ui/helpers/u_settings_tab_builder.gd"
+class_name U_DisplayTabBuilder
+
+func build() -> Control:
+    set_heading(&"settings.display.title")
+    
+    begin_section(&"settings.display.section.graphics")
+    add_dropdown(
+        &"settings.display.label.window_size",
+        U_UI_SETTINGS_CATALOG.get_window_sizes(),
+        _on_window_size_selected,
+        &"settings.display.tooltip.window_size"
+    )
+    add_toggle(&"settings.display.label.vsync", _on_vsync_toggled)
+    end_section()
+    
+    add_button_row(_on_apply_pressed, _on_cancel_pressed, _on_reset_pressed)
+    
+    return super.build()
+```
+
+Consumer script pattern:
+
+```gdscript
+# scripts/core/ui/settings/ui_display_settings_tab.gd
+func _setup_builder() -> void:
+    _builder = U_UI_SETTINGS_CATALOG.create_display_builder(
+        self,
+        _on_window_size_selected,
+        _on_window_mode_selected,
+        # ... all callbacks
+    )
+```
+
+Scene file is minimal - only root + LocalizationRoot:
+
+```gdscript
+[gd_scene format=3]
+[node name="DisplaySettingsTab" type="VBoxContainer"]
+script = ExtResource("1")
+[node name="LocalizationRoot" type="Node" parent="."]
+```
 
 ## Anti-patterns
 

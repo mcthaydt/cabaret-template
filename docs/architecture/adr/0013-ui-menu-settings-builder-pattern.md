@@ -37,16 +37,15 @@ All 13 copies of `_localize_with_fallback(key, fallback)` were extracted into `U
 |---|---|
 | Keep `@onready` + manual wiring | Duplicated localization, no headless test coverage, LLM-unfriendly |
 | Use `U_UIThemeBuilder` directly in every script | No focus or localization wiring; builder provides all three in one call |
-| Create nodes entirely in builder (no `.tscn`) | Premature; `bind` pattern allows incremental migration |
+| Create nodes entirely in builder (no `.tscn`) | **Accepted** - Implemented in Phase 8 |
 | Put `_localize_with_fallback` on each script | 13 copies violated DRY; shared utility ensures consistent fallback behavior |
 
 ## Consequences
 
-- **Positive**: 13 copies of `_localize_with_fallback` eliminated. All UI scripts use `U_LOCALIZATION_UTILS.localize_with_fallback`.
-- **Positive**: Builder LOC caps enforce modularity (SettingsTabBuilder ≤300, UIMenuBuilder ≤200, SettingsCatalog ≤150).
+- **Positive**: All @onready variables eliminated from migrated settings tabs (Display: 36, Audio: 27, Localization: 13).
+- **Positive**: 13 copies of `_localize_with_fallback` eliminated via `U_LOCALIZATION_UTILS.localize_with_fallback`.
+- **Positive**: Builder LOC caps enforce modularity.
 - **Positive**: `bind_panel()` allows `BaseSettingsSimpleOverlay` to delegate panel theming to the builder.
-- **Tradeoff**: `bind` approach retains `@onready` vars in scripts; full node creation by the builder would eliminate them but requires more extensive scene restructuring.
-- **Tradeoff**: Builders store `_label_fallbacks` dict alongside `_label_keys` for localization fallback; memory impact is negligible.
 
 ## References
 
