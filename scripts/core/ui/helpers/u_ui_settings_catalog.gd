@@ -163,8 +163,12 @@ static func create_audio_builder(
 static func create_localization_builder(
 	tab: Control,
 	language_cb: Callable,
-	test_cb: Callable
+	test_cb: Callable,
+	dyslexia_cb: Callable = Callable(),
+	apply_cb: Callable = Callable(),
+	cancel_cb: Callable = Callable(),
+	reset_cb: Callable = Callable()
 ):
 	var U_LOCALIZATION_TAB_BUILDER := preload("res://scripts/core/ui/helpers/u_localization_tab_builder.gd")
 	var builder := U_LOCALIZATION_TAB_BUILDER.new(tab)
-	return builder.set_callbacks(language_cb, test_cb)
+	return builder.set_callbacks(language_cb, test_cb, dyslexia_cb, apply_cb, cancel_cb, reset_cb)

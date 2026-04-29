@@ -123,24 +123,24 @@ func test_controls_initialize_from_redux_state() -> void:
 	assert_not_null(tab, "DisplaySettingsTab should exist")
 
 	assert_eq(
-		tab._window_mode_option.selected,
+		tab._get_window_mode_option().selected,
 		tab._window_mode_values.find("borderless"),
 		"Window mode should init from state"
 	)
-	assert_false(tab._vsync_toggle.button_pressed, "VSync toggle should init from state")
-	assert_true(tab._post_processing_toggle.button_pressed, "Post-processing toggle should init from state")
+	assert_false(tab._get_vsync_toggle().button_pressed, "VSync toggle should init from state")
+	assert_true(tab._get_post_processing_toggle().button_pressed, "Post-processing toggle should init from state")
 	assert_eq(
-		tab._post_processing_preset_option.selected,
+		tab._get_post_processing_preset_option().selected,
 		tab._post_processing_preset_values.find("heavy"),
 		"Post-processing preset should init from state"
 	)
-	assert_almost_eq(tab._ui_scale_slider.value, 1.2, 0.001, "UI scale should init from state")
+	assert_almost_eq(tab._get_ui_scale_slider().value, 1.2, 0.001, "UI scale should init from state")
 	assert_eq(
-		tab._color_blind_mode_option.selected,
+		tab._get_color_blind_mode_option().selected,
 		tab._color_blind_mode_values.find("tritanopia"),
 		"Color blind mode should init from state"
 	)
-	assert_true(tab._high_contrast_toggle.button_pressed, "High contrast toggle should init from state")
+	assert_true(tab._get_high_contrast_toggle().button_pressed, "High contrast toggle should init from state")
 
 func test_changes_do_not_dispatch_until_apply() -> void:
 	var overlay := await _instantiate_overlay()
@@ -151,10 +151,10 @@ func test_changes_do_not_dispatch_until_apply() -> void:
 		dispatched.append(action)
 	)
 
-	tab._vsync_toggle.button_pressed = false
-	tab._post_processing_toggle.button_pressed = true
+	tab._get_vsync_toggle().button_pressed = false
+	tab._get_post_processing_toggle().button_pressed = true
 	var mode_idx := tab._window_mode_values.find("fullscreen")
-	tab._window_mode_option.select(mode_idx)
+	tab._get_window_mode_option().select(mode_idx)
 	await get_tree().process_frame
 
 	assert_eq(
@@ -167,7 +167,7 @@ func test_preview_updates_display_manager_on_edit() -> void:
 	var overlay := await _instantiate_overlay()
 	var tab := _get_tab(overlay)
 
-	tab._ui_scale_slider.value = 1.2
+	tab._get_ui_scale_slider().value = 1.2
 	await get_tree().process_frame
 
 	assert_true(bool(_display_manager.get("_display_settings_preview_active")), "Preview should be active after edits")
@@ -184,21 +184,21 @@ func test_apply_dispatches_actions_and_updates_state() -> void:
 	)
 
 	var mode_idx := tab._window_mode_values.find("fullscreen")
-	tab._window_mode_option.select(mode_idx)
-	tab._vsync_toggle.button_pressed = false
-	tab._post_processing_toggle.button_pressed = true
+	tab._get_window_mode_option().select(mode_idx)
+	tab._get_vsync_toggle().button_pressed = false
+	tab._get_post_processing_toggle().button_pressed = true
 	var pp_idx := tab._post_processing_preset_values.find("heavy")
-	tab._post_processing_preset_option.select(pp_idx)
-	tab._ui_scale_slider.value = 1.2
+	tab._get_post_processing_preset_option().select(pp_idx)
+	tab._get_ui_scale_slider().value = 1.2
 	var cb_idx := tab._color_blind_mode_values.find("protanopia")
-	tab._color_blind_mode_option.select(cb_idx)
-	tab._high_contrast_toggle.button_pressed = true
+	tab._get_color_blind_mode_option().select(cb_idx)
+	tab._get_high_contrast_toggle().button_pressed = true
 	await get_tree().process_frame
 
-	tab._apply_button.emit_signal("pressed")
+	tab._get_apply_button().emit_signal("pressed")
 	await get_tree().process_frame
-	if tab._window_confirm_dialog != null and tab._window_confirm_dialog.visible:
-		tab._window_confirm_dialog.emit_signal("confirmed")
+	if tab._get_window_confirm_dialog() != null and tab._get_window_confirm_dialog().visible:
+		tab._get_window_confirm_dialog().emit_signal("confirmed")
 		await get_tree().process_frame
 
 	var display_actions := _collect_display_action_types(dispatched)
@@ -218,11 +218,11 @@ func test_apply_clears_preview_flag() -> void:
 	var overlay := await _instantiate_overlay()
 	var tab := _get_tab(overlay)
 
-	tab._ui_scale_slider.value = 1.2
+	tab._get_ui_scale_slider().value = 1.2
 	await get_tree().process_frame
-	assert_true(bool(_display_manager.get("_display_settings_preview_active")), "Preview should activate on edit")
+	assert_true(bool(_display_manager.get("_display_settings_preview_active")), "Preview should be active after edits")
 
-	tab._apply_button.emit_signal("pressed")
+	tab._get_apply_button().emit_signal("pressed")
 	await get_tree().process_frame
 
 	assert_false(bool(_display_manager.get("_display_settings_preview_active")), "Apply should clear preview mode")
@@ -237,10 +237,10 @@ func test_apply_with_window_change_requires_confirm() -> void:
 	)
 
 	var mode_idx := tab._window_mode_values.find("fullscreen")
-	tab._window_mode_option.select(mode_idx)
+	tab._get_window_mode_option().select(mode_idx)
 	await get_tree().process_frame
 
-	tab._apply_button.emit_signal("pressed")
+	tab._get_apply_button().emit_signal("pressed")
 	await get_tree().process_frame
 
 	var display_actions := _collect_display_action_types(dispatched)
@@ -252,10 +252,12 @@ func test_apply_with_window_change_requires_confirm() -> void:
 		display_actions.has(U_DISPLAY_ACTIONS.ACTION_SET_WINDOW_SIZE_PRESET),
 		"Window size should not dispatch until confirmed"
 	)
-	assert_true(tab._window_confirm_dialog.visible, "Confirm dialog should appear on window changes")
+	var window_confirm_dialog: ConfirmationDialog = tab._get_window_confirm_dialog()
+	assert_not_null(window_confirm_dialog, "Confirm dialog should exist")
+	assert_true(window_confirm_dialog.visible, "Confirm dialog should appear on window changes")
 
-	if tab._window_confirm_dialog != null and tab._window_confirm_dialog.visible:
-		tab._window_confirm_dialog.emit_signal("canceled")
+	if window_confirm_dialog != null and window_confirm_dialog.visible:
+		window_confirm_dialog.emit_signal("canceled")
 		await get_tree().process_frame
 
 func test_window_confirm_revert_restores_window_ops() -> void:
@@ -266,17 +268,17 @@ func test_window_confirm_revert_restores_window_ops() -> void:
 	var tab := _get_tab(overlay)
 
 	var mode_idx := tab._window_mode_values.find("fullscreen")
-	tab._window_mode_option.select(mode_idx)
-	tab._window_mode_option.emit_signal("item_selected", mode_idx)
+	tab._get_window_mode_option().select(mode_idx)
+	tab._get_window_mode_option().emit_signal("item_selected", mode_idx)
 	await _await_deferred()
 
-	tab._apply_button.emit_signal("pressed")
+	tab._get_apply_button().emit_signal("pressed")
 	await _await_deferred()
 
 	assert_eq(_window_ops.window_mode, DisplayServer.WINDOW_MODE_FULLSCREEN, "Preview should apply fullscreen mode")
 
-	if tab._window_confirm_dialog != null:
-		tab._window_confirm_dialog.emit_signal("canceled")
+	if tab._get_window_confirm_dialog() != null:
+		tab._get_window_confirm_dialog().emit_signal("canceled")
 		await _await_deferred()
 
 	assert_eq(_window_ops.window_mode, DisplayServer.WINDOW_MODE_WINDOWED, "Revert should restore prior window mode")
@@ -292,10 +294,10 @@ func test_cancel_discards_changes_and_clears_preview() -> void:
 		dispatched.append(action)
 	)
 
-	tab._ui_scale_slider.value = 1.3
+	tab._get_ui_scale_slider().value = 1.3
 	await get_tree().process_frame
 
-	tab._cancel_button.emit_signal("pressed")
+	tab._get_cancel_button().emit_signal("pressed")
 	await get_tree().process_frame
 
 	assert_eq(_collect_display_action_types(dispatched).size(), 0, "Cancel should not dispatch display actions")
@@ -318,7 +320,7 @@ func test_reset_restores_defaults_and_persists_immediately() -> void:
 		dispatched.append(action)
 	)
 
-	tab._reset_button.emit_signal("pressed")
+	tab._get_reset_button().emit_signal("pressed")
 	await get_tree().process_frame
 
 	assert_eq(_collect_display_action_types(dispatched).size(), 9, "Reset should dispatch all display actions")
@@ -340,21 +342,23 @@ func test_state_changes_refresh_ui_when_not_editing() -> void:
 	_store.dispatch(U_DISPLAY_ACTIONS.set_ui_scale(1.1))
 	await get_tree().process_frame
 
-	assert_almost_eq(tab._ui_scale_slider.value, 1.1, 0.001, "UI should update slider from state")
-	assert_eq(tab._ui_scale_value.text, "110%", "UI should update percentage label from state")
+	assert_almost_eq(tab._get_ui_scale_slider().value, 1.1, 0.001, "UI should update slider from state")
+	var ui_scale_value := tab._get_ui_scale_value()
+	assert_not_null(ui_scale_value, "UI scale value label should exist")
+	assert_eq(ui_scale_value.text, "110%", "UI should update percentage label from state")
 
 func test_state_changes_do_not_override_local_edits() -> void:
 	var overlay := await _instantiate_overlay()
 	var tab := _get_tab(overlay)
 
-	tab._ui_scale_slider.value = 1.1
+	tab._get_ui_scale_slider().value = 1.1
 	await get_tree().process_frame
 
 	_store.dispatch(U_DISPLAY_ACTIONS.set_ui_scale(1.3))
 	await get_tree().physics_frame
 	await get_tree().process_frame
 
-	assert_almost_eq(tab._ui_scale_slider.value, 1.1, 0.001, "Local edits should not be overridden")
+	assert_almost_eq(tab._get_ui_scale_slider().value, 1.1, 0.001, "Local edits should not be overridden")
 
 func test_window_mode_change_applies_to_display_server() -> void:
 	_store.dispatch(U_DISPLAY_ACTIONS.set_window_mode("fullscreen"))

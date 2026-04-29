@@ -67,8 +67,8 @@ func _get_button_row() -> HBoxContainer:
 func _get_language_option() -> OptionButton:
 	return _get_control_by_name("LanguageOptionButton") as OptionButton
 
-func _get_dyslexia_toggle() -> CheckButton:
-	return _get_control_by_name("DyslexiaCheckButton") as CheckButton
+func _get_dyslexia_toggle() -> CheckBox:
+	return _get_control_by_name("DyslexiaCheckButton") as CheckBox
 
 func _get_apply_button() -> Button:
 	return _get_control_by_name("ApplyButton") as Button
@@ -109,7 +109,11 @@ func _setup_builder() -> void:
 	_builder = U_UI_SETTINGS_CATALOG.create_localization_builder(
 		self,
 		_on_language_selected,
-		_on_test_localization_pressed
+		_on_test_localization_pressed,
+		_on_dyslexia_toggled,
+		_on_apply_pressed,
+		_on_cancel_pressed,
+		_on_reset_pressed
 	)
 
 func _apply_theme_tokens() -> void:

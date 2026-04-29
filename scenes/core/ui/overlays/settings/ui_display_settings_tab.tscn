@@ -8,3 +8,9 @@ script = ExtResource("1")
 
 [node name="LocalizationRoot" type="Node" parent="." unique_id=922650441]
 script = ExtResource("localization_root")
+
+[node name="WindowConfirmDialog" type="ConfirmationDialog" parent="." unique_id=1945241129]
+unique_name_in_owner = true
+
+[node name="WindowConfirmTimer" type="Timer" parent="." unique_id=1211071376]
+unique_name_in_owner = true
