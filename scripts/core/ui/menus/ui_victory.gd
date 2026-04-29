@@ -13,6 +13,7 @@ class_name UI_Victory
 const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_localization_utils.gd")
 const U_RUN_ACTIONS := preload("res://scripts/core/state/actions/u_run_actions.gd")
 const U_TRANSITION_OVERLAY_SNAP := preload("res://scripts/core/scene_management/helpers/u_transition_overlay_snap.gd")
+const U_UI_MENU_BUILDER := preload("res://scripts/core/ui/helpers/u_ui_menu_builder.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 const RS_UI_MOTION_PRESET := preload("res://scripts/core/resources/ui/rs_ui_motion_preset.gd")
@@ -28,6 +29,7 @@ const DEBUG_VICTORY_TRACE := false
 @onready var _menu_button: Button = %MenuButton
 
 var _store_unsubscribe: Callable = Callable()
+var _menu_builder: RefCounted = null
 
 func _debug_log(message: String) -> void:
 	if not DEBUG_VICTORY_TRACE:
@@ -43,12 +45,22 @@ func _on_store_ready(store: M_StateStore) -> void:
 		_update_display(store.get_state())
 
 func _on_panel_ready() -> void:
+	_setup_menu_builder()
 	_apply_theme_tokens()
-	_connect_buttons()
 	_localize_labels()
 	_configure_focus_neighbors()
 	play_enter_animation()
 	_play_title_enter_motion()
+
+func _setup_menu_builder() -> void:
+	_menu_builder = U_UI_MENU_BUILDER.new(self)
+	_menu_builder.bind_title(_title_label, &"menu.victory.title")
+	_menu_builder.bind_button_group([
+		{"button": _continue_button, "key": &"menu.victory.continue", "callback": _on_continue_pressed},
+		{"button": _credits_button, "key": &"menu.victory.credits", "callback": _on_credits_pressed},
+		{"button": _menu_button, "key": &"menu.victory.menu", "callback": _on_menu_pressed},
+	])
+	_menu_builder.build()
 
 func _apply_theme_tokens() -> void:
 	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
@@ -98,14 +110,6 @@ func _exit_tree() -> void:
 		_store_unsubscribe.call()
 	_store_unsubscribe = Callable()
 
-func _connect_buttons() -> void:
-	if _continue_button != null and not _continue_button.pressed.is_connected(_on_continue_pressed):
-		_continue_button.pressed.connect(_on_continue_pressed)
-	if _credits_button != null and not _credits_button.pressed.is_connected(_on_credits_pressed):
-		_credits_button.pressed.connect(_on_credits_pressed)
-	if _menu_button != null and not _menu_button.pressed.is_connected(_on_menu_pressed):
-		_menu_button.pressed.connect(_on_menu_pressed)
-
 func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
 	_update_display(state)
 
@@ -135,14 +139,8 @@ func _on_locale_changed(_locale: StringName) -> void:
 	_localize_labels()
 
 func _localize_labels() -> void:
-	if _title_label != null:
-		_title_label.text = U_LOCALIZATION_UTILS.localize(&"menu.victory.title")
-	if _continue_button != null:
-		_continue_button.text = U_LOCALIZATION_UTILS.localize(&"menu.victory.continue")
-	if _credits_button != null:
-		_credits_button.text = U_LOCALIZATION_UTILS.localize(&"menu.victory.credits")
-	if _menu_button != null:
-		_menu_button.text = U_LOCALIZATION_UTILS.localize(&"menu.victory.menu")
+	if _menu_builder != null:
+		_menu_builder.localize_labels()
 	_update_display()
 
 func _on_continue_pressed() -> void:
