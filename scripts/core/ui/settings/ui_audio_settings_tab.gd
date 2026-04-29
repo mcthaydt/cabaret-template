@@ -4,6 +4,7 @@ class_name UI_AudioSettingsTab
 
 const I_AUDIO_MANAGER := preload("res://scripts/core/interfaces/i_audio_manager.gd")
 const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_localization_utils.gd")
+const U_SETTINGS_TAB_BUILDER := preload("res://scripts/core/ui/helpers/u_settings_tab_builder.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 
@@ -27,6 +28,7 @@ var _audio_manager: Node = null
 var _unsubscribe: Callable = Callable()
 var _updating_from_state: bool = false
 var _has_local_edits: bool = false
+var _builder: RefCounted = null
 
 # Row containers (for mute dimming)
 @onready var _master_row: HBoxContainer = $MasterRow
@@ -72,8 +74,10 @@ var _has_local_edits: bool = false
 @onready var _reset_button: Button = %ResetButton
 
 func _ready() -> void:
-	_apply_theme_tokens()
-	_connect_signals()
+	_setup_builder()
+	if _builder != null:
+		_builder.build()
+	set_meta(&"settings_builder", true)
 	_configure_focus_neighbors()
 	_localize_labels()
 	_configure_tooltips()
@@ -88,7 +92,40 @@ func _ready() -> void:
 	_unsubscribe = _state_store.subscribe(_on_state_changed)
 	_on_state_changed({}, _state_store.get_state())
 
+func _setup_builder() -> void:
+	_builder = U_SETTINGS_TAB_BUILDER.new(self)
+	_builder.bind_heading(_heading_label, TITLE_KEY)
+	_builder.bind_row(_master_row)
+	_builder.bind_row(_music_row)
+	_builder.bind_row(_sfx_row)
+	_builder.bind_row(_ambient_row)
+	_builder.bind_row(_button_row, true)
+	_builder.bind_field_label(_master_label, LABEL_MASTER_VOLUME_KEY)
+	_builder.bind_field_label(_music_label, LABEL_MUSIC_VOLUME_KEY)
+	_builder.bind_field_label(_sfx_label, LABEL_SFX_VOLUME_KEY)
+	_builder.bind_field_label(_ambient_label, LABEL_AMBIENT_VOLUME_KEY)
+	_builder.bind_field_label(_spatial_audio_label, LABEL_SPATIAL_AUDIO_KEY)
+	_builder.bind_value_label(_master_percentage, &"")
+	_builder.bind_value_label(_music_percentage, &"")
+	_builder.bind_value_label(_sfx_percentage, &"")
+	_builder.bind_value_label(_ambient_percentage, &"")
+	_builder.bind_field_control(_master_volume_slider, _on_master_volume_changed)
+	_builder.bind_field_control(_master_mute_toggle, _on_master_mute_toggled)
+	_builder.bind_field_control(_music_volume_slider, _on_music_volume_changed)
+	_builder.bind_field_control(_music_mute_toggle, _on_music_mute_toggled)
+	_builder.bind_field_control(_sfx_volume_slider, _on_sfx_volume_changed)
+	_builder.bind_field_control(_sfx_mute_toggle, _on_sfx_mute_toggled)
+	_builder.bind_field_control(_ambient_volume_slider, _on_ambient_volume_changed)
+	_builder.bind_field_control(_ambient_mute_toggle, _on_ambient_mute_toggled)
+	_builder.bind_field_control(_spatial_audio_toggle, _on_spatial_audio_toggled)
+	_builder.bind_action_button(_cancel_button, &"common.cancel", _on_cancel_pressed)
+	_builder.bind_action_button(_reset_button, BUTTON_RESET_DEFAULTS_KEY, _on_reset_pressed)
+	_builder.bind_action_button(_apply_button, &"common.apply", _on_apply_pressed)
+
 func _apply_theme_tokens() -> void:
+	if _builder != null:
+		_builder.apply_theme_tokens(U_UI_THEME_BUILDER.active_config)
+
 	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
 	if not (config_resource is RS_UI_THEME_CONFIG):
 		return
@@ -112,18 +149,6 @@ func _apply_theme_tokens() -> void:
 	if _heading_label != null:
 		_heading_label.add_theme_font_size_override(&"font_size", config.heading)
 
-	var field_labels: Array[Label] = [
-		_master_label,
-		_music_label,
-		_sfx_label,
-		_ambient_label,
-		_spatial_audio_label,
-	]
-	for field_label in field_labels:
-		if field_label != null:
-			field_label.add_theme_font_size_override(&"font_size", config.body_small)
-			field_label.add_theme_color_override(&"font_color", config.text_secondary)
-
 	var percent_labels: Array[Label] = [
 		_master_percentage,
 		_music_percentage,
@@ -134,62 +159,11 @@ func _apply_theme_tokens() -> void:
 		if percent_label != null:
 			percent_label.add_theme_font_size_override(&"font_size", config.section_header)
 
-	var toggles: Array[CheckBox] = [
-		_master_mute_toggle,
-		_music_mute_toggle,
-		_sfx_mute_toggle,
-		_ambient_mute_toggle,
-		_spatial_audio_toggle,
-	]
-	for toggle in toggles:
-		if toggle != null:
-			toggle.add_theme_font_size_override(&"font_size", config.section_header)
-
-	var action_buttons: Array[Button] = [
-		_cancel_button,
-		_reset_button,
-		_apply_button,
-	]
-	for action_button in action_buttons:
-		if action_button != null:
-			action_button.add_theme_font_size_override(&"font_size", config.section_header)
-
 func _exit_tree() -> void:
 	_clear_audio_settings_preview()
 	if _unsubscribe != Callable() and _unsubscribe.is_valid():
 		_unsubscribe.call()
 		_unsubscribe = Callable()
-
-func _connect_signals() -> void:
-	if _master_volume_slider != null and not _master_volume_slider.value_changed.is_connected(_on_master_volume_changed):
-		_master_volume_slider.value_changed.connect(_on_master_volume_changed)
-	if _master_mute_toggle != null and not _master_mute_toggle.toggled.is_connected(_on_master_mute_toggled):
-		_master_mute_toggle.toggled.connect(_on_master_mute_toggled)
-
-	if _music_volume_slider != null and not _music_volume_slider.value_changed.is_connected(_on_music_volume_changed):
-		_music_volume_slider.value_changed.connect(_on_music_volume_changed)
-	if _music_mute_toggle != null and not _music_mute_toggle.toggled.is_connected(_on_music_mute_toggled):
-		_music_mute_toggle.toggled.connect(_on_music_mute_toggled)
-
-	if _sfx_volume_slider != null and not _sfx_volume_slider.value_changed.is_connected(_on_sfx_volume_changed):
-		_sfx_volume_slider.value_changed.connect(_on_sfx_volume_changed)
-	if _sfx_mute_toggle != null and not _sfx_mute_toggle.toggled.is_connected(_on_sfx_mute_toggled):
-		_sfx_mute_toggle.toggled.connect(_on_sfx_mute_toggled)
-
-	if _ambient_volume_slider != null and not _ambient_volume_slider.value_changed.is_connected(_on_ambient_volume_changed):
-		_ambient_volume_slider.value_changed.connect(_on_ambient_volume_changed)
-	if _ambient_mute_toggle != null and not _ambient_mute_toggle.toggled.is_connected(_on_ambient_mute_toggled):
-		_ambient_mute_toggle.toggled.connect(_on_ambient_mute_toggled)
-
-	if _spatial_audio_toggle != null and not _spatial_audio_toggle.toggled.is_connected(_on_spatial_audio_toggled):
-		_spatial_audio_toggle.toggled.connect(_on_spatial_audio_toggled)
-
-	if _apply_button != null and not _apply_button.pressed.is_connected(_on_apply_pressed):
-		_apply_button.pressed.connect(_on_apply_pressed)
-	if _cancel_button != null and not _cancel_button.pressed.is_connected(_on_cancel_pressed):
-		_cancel_button.pressed.connect(_on_cancel_pressed)
-	if _reset_button != null and not _reset_button.pressed.is_connected(_on_reset_pressed):
-		_reset_button.pressed.connect(_on_reset_pressed)
 
 func _configure_tooltips() -> void:
 	if _master_volume_slider != null:
@@ -607,18 +581,8 @@ func _on_locale_changed(_locale: StringName) -> void:
 	_configure_tooltips()
 
 func _localize_labels() -> void:
-	if _heading_label != null:
-		_heading_label.text = _localize_with_fallback(TITLE_KEY, "Audio Settings")
-	if _master_label != null:
-		_master_label.text = _localize_with_fallback(LABEL_MASTER_VOLUME_KEY, "Master Volume")
-	if _music_label != null:
-		_music_label.text = _localize_with_fallback(LABEL_MUSIC_VOLUME_KEY, "Music Volume")
-	if _sfx_label != null:
-		_sfx_label.text = _localize_with_fallback(LABEL_SFX_VOLUME_KEY, "SFX Volume")
-	if _ambient_label != null:
-		_ambient_label.text = _localize_with_fallback(LABEL_AMBIENT_VOLUME_KEY, "Ambient Volume")
-	if _spatial_audio_label != null:
-		_spatial_audio_label.text = _localize_with_fallback(LABEL_SPATIAL_AUDIO_KEY, "Spatial Audio (3D positioning)")
+	if _builder != null:
+		_builder.localize_labels()
 
 	var mute_text: String = _localize_with_fallback(LABEL_MUTE_KEY, "Mute")
 	if _master_mute_toggle != null:
@@ -629,13 +593,6 @@ func _localize_labels() -> void:
 		_sfx_mute_toggle.text = mute_text
 	if _ambient_mute_toggle != null:
 		_ambient_mute_toggle.text = mute_text
-
-	if _apply_button != null:
-		_apply_button.text = _localize_with_fallback(&"common.apply", "Apply")
-	if _cancel_button != null:
-		_cancel_button.text = _localize_with_fallback(&"common.cancel", "Cancel")
-	if _reset_button != null:
-		_reset_button.text = _localize_with_fallback(BUTTON_RESET_DEFAULTS_KEY, "Reset to Defaults")
 
 func _localize_with_fallback(key: StringName, fallback: String) -> String:
 	var localized: String = U_LOCALIZATION_UTILS.localize(key)

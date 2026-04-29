@@ -8,6 +8,7 @@ class_name UI_VFXSettingsOverlay
 ## Changes are applied only when user clicks Apply button.
 
 const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_localization_utils.gd")
+const U_SETTINGS_TAB_BUILDER := preload("res://scripts/core/ui/helpers/u_settings_tab_builder.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 
@@ -53,6 +54,7 @@ var _store_unsubscribe: Callable = Callable()
 var _updating_from_state: bool = false
 var _has_local_edits: bool = false
 var _vfx_manager: M_VFXManager = null
+var _builder: RefCounted = null
 
 func _ready() -> void:
 	super._ready()
@@ -67,18 +69,47 @@ func _on_store_ready(store: M_StateStore) -> void:
 		_on_state_changed({}, store.get_state())
 
 func _on_panel_ready() -> void:
+	_setup_builder()
 	_apply_theme_tokens()
 	_configure_focus_neighbors()
-	_connect_control_signals()
 	_localize_labels()
 	_configure_tooltips()
+	set_meta(&"settings_builder", true)
 	# Initialize UI from state
 	var store := get_store()
 	if store != null:
 		_on_state_changed({}, store.get_state())
 	play_enter_animation()
 
+func _setup_builder() -> void:
+	_builder = U_SETTINGS_TAB_BUILDER.new(self)
+	_builder.bind_heading(_title_label, TITLE_KEY)
+	_builder.bind_row(_shake_enabled_row, true)
+	_builder.bind_row(_shake_intensity_row, true)
+	_builder.bind_row(_flash_enabled_row, true)
+	_builder.bind_row(_particles_enabled_row, true)
+	_builder.bind_row(_silhouette_enabled_row, true)
+	_builder.bind_row(_button_row, true)
+	_builder.bind_field_label(_shake_enabled_label, LABEL_SCREEN_SHAKE_KEY)
+	_builder.bind_field_label(_intensity_label, LABEL_SHAKE_INTENSITY_KEY)
+	_builder.bind_field_label(_flash_enabled_label, LABEL_DAMAGE_FLASH_KEY)
+	_builder.bind_field_label(_particles_enabled_label, LABEL_PARTICLES_KEY)
+	_builder.bind_field_label(_silhouette_enabled_label, LABEL_OCCLUSION_SILHOUETTE_KEY)
+	_builder.bind_value_label(_intensity_percentage, &"")
+	_builder.bind_field_control(_shake_enabled_toggle, _on_shake_enabled_toggled)
+	_builder.bind_field_control(_intensity_slider, _on_intensity_changed)
+	_builder.bind_field_control(_flash_enabled_toggle, _on_flash_enabled_toggled)
+	_builder.bind_field_control(_particles_enabled_toggle, _on_particles_enabled_toggled)
+	_builder.bind_field_control(_silhouette_enabled_toggle, _on_silhouette_enabled_toggled)
+	_builder.bind_action_button(_cancel_button, &"common.cancel", _on_cancel_pressed)
+	_builder.bind_action_button(_reset_button, BUTTON_RESET_DEFAULTS_KEY, _on_reset_pressed)
+	_builder.bind_action_button(_apply_button, &"common.apply", _on_apply_pressed)
+	_builder.build()
+
 func _apply_theme_tokens() -> void:
+	if _builder != null:
+		_builder.apply_theme_tokens(U_UI_THEME_BUILDER.active_config)
+
 	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
 	if not (config_resource is RS_UI_THEME_CONFIG):
 		return
@@ -108,35 +139,9 @@ func _apply_theme_tokens() -> void:
 		if row != null:
 			row.add_theme_constant_override(&"separation", config.separation_compact)
 
-	if _title_label != null:
-		_title_label.add_theme_font_size_override(&"font_size", config.heading)
-	if _shake_enabled_label != null:
-		_shake_enabled_label.add_theme_font_size_override(&"font_size", config.section_header)
-	if _intensity_label != null:
-		_intensity_label.add_theme_font_size_override(&"font_size", config.section_header)
-	if _flash_enabled_label != null:
-		_flash_enabled_label.add_theme_font_size_override(&"font_size", config.section_header)
-	if _particles_enabled_label != null:
-		_particles_enabled_label.add_theme_font_size_override(&"font_size", config.section_header)
-	if _silhouette_enabled_label != null:
-		_silhouette_enabled_label.add_theme_font_size_override(&"font_size", config.section_header)
-	if _shake_enabled_toggle != null:
-		_shake_enabled_toggle.add_theme_font_size_override(&"font_size", config.section_header)
-	if _flash_enabled_toggle != null:
-		_flash_enabled_toggle.add_theme_font_size_override(&"font_size", config.section_header)
-	if _particles_enabled_toggle != null:
-		_particles_enabled_toggle.add_theme_font_size_override(&"font_size", config.section_header)
-	if _silhouette_enabled_toggle != null:
-		_silhouette_enabled_toggle.add_theme_font_size_override(&"font_size", config.section_header)
 	if _intensity_percentage != null:
 		_intensity_percentage.add_theme_font_size_override(&"font_size", config.body_small)
 		_intensity_percentage.add_theme_color_override(&"font_color", config.text_secondary)
-	if _cancel_button != null:
-		_cancel_button.add_theme_font_size_override(&"font_size", config.section_header)
-	if _reset_button != null:
-		_reset_button.add_theme_font_size_override(&"font_size", config.section_header)
-	if _apply_button != null:
-		_apply_button.add_theme_font_size_override(&"font_size", config.section_header)
 
 func _configure_focus_neighbors() -> void:
 	var vertical_controls: Array[Control] = []
@@ -178,24 +183,6 @@ func _configure_focus_neighbors() -> void:
 		# Connect last vertical control to first button
 		if last_vertical_control != null:
 			last_vertical_control.focus_neighbor_bottom = last_vertical_control.get_path_to(first_button)
-
-func _connect_control_signals() -> void:
-	if _shake_enabled_toggle != null and not _shake_enabled_toggle.toggled.is_connected(_on_shake_enabled_toggled):
-		_shake_enabled_toggle.toggled.connect(_on_shake_enabled_toggled)
-	if _intensity_slider != null and not _intensity_slider.value_changed.is_connected(_on_intensity_changed):
-		_intensity_slider.value_changed.connect(_on_intensity_changed)
-	if _flash_enabled_toggle != null and not _flash_enabled_toggle.toggled.is_connected(_on_flash_enabled_toggled):
-		_flash_enabled_toggle.toggled.connect(_on_flash_enabled_toggled)
-	if _particles_enabled_toggle != null and not _particles_enabled_toggle.toggled.is_connected(_on_particles_enabled_toggled):
-		_particles_enabled_toggle.toggled.connect(_on_particles_enabled_toggled)
-	if _silhouette_enabled_toggle != null and not _silhouette_enabled_toggle.toggled.is_connected(_on_silhouette_enabled_toggled):
-		_silhouette_enabled_toggle.toggled.connect(_on_silhouette_enabled_toggled)
-	if _apply_button != null and not _apply_button.pressed.is_connected(_on_apply_pressed):
-		_apply_button.pressed.connect(_on_apply_pressed)
-	if _cancel_button != null and not _cancel_button.pressed.is_connected(_on_cancel_pressed):
-		_cancel_button.pressed.connect(_on_cancel_pressed)
-	if _reset_button != null and not _reset_button.pressed.is_connected(_on_reset_pressed):
-		_reset_button.pressed.connect(_on_reset_pressed)
 
 func _configure_tooltips() -> void:
 	if _shake_enabled_toggle != null:
@@ -394,28 +381,8 @@ func _on_locale_changed(_locale: StringName) -> void:
 	_configure_tooltips()
 
 func _localize_labels() -> void:
-	if _title_label != null:
-		_title_label.text = _localize_with_fallback(TITLE_KEY, "Visual Effects Settings")
-	if _shake_enabled_label != null:
-		_shake_enabled_label.text = _localize_with_fallback(LABEL_SCREEN_SHAKE_KEY, "Screen Shake")
-	if _intensity_label != null:
-		_intensity_label.text = _localize_with_fallback(LABEL_SHAKE_INTENSITY_KEY, "Shake Intensity")
-	if _flash_enabled_label != null:
-		_flash_enabled_label.text = _localize_with_fallback(LABEL_DAMAGE_FLASH_KEY, "Damage Flash")
-	if _particles_enabled_label != null:
-		_particles_enabled_label.text = _localize_with_fallback(LABEL_PARTICLES_KEY, "Particles")
-	if _silhouette_enabled_label != null:
-		_silhouette_enabled_label.text = _localize_with_fallback(
-			LABEL_OCCLUSION_SILHOUETTE_KEY,
-			"Occlusion Silhouette"
-		)
-
-	if _apply_button != null:
-		_apply_button.text = _localize_with_fallback(&"common.apply", "Apply")
-	if _cancel_button != null:
-		_cancel_button.text = _localize_with_fallback(&"common.cancel", "Cancel")
-	if _reset_button != null:
-		_reset_button.text = _localize_with_fallback(BUTTON_RESET_DEFAULTS_KEY, "Reset to Defaults")
+	if _builder != null:
+		_builder.localize_labels()
 
 func _localize_with_fallback(key: StringName, fallback: String) -> String:
 	var localized: String = U_LOCALIZATION_UTILS.localize(key)
