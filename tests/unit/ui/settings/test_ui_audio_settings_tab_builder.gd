@@ -70,13 +70,25 @@ func test_audio_builder_applies_theme_tokens() -> void:
 	U_UI_THEME_BUILDER.active_config = config
 	_instantiate_tab()
 
-	assert_eq(_tab._heading_label.get_theme_font_size(&"font_size"), config.heading, "Heading should use builder token")
-	assert_eq(_tab._master_label.get_theme_font_size(&"font_size"), config.body_small, "Label should use builder token")
+	var heading_label := _find_child_by_name(_tab, "HeadingLabel") as Label
+	var master_label := _find_child_by_name(_tab, "MasterVolumeSlider").get_parent().get_child(0) as Label
+	
+	assert_eq(heading_label.get_theme_font_size(&"font_size"), config.heading, "Heading should use builder token")
+	assert_eq(master_label.get_theme_font_size(&"font_size"), config.body_small, "Label should use builder token")
 	assert_true(
-		_tab._master_label.get_theme_color(&"font_color").is_equal_approx(config.text_secondary),
+		master_label.get_theme_color(&"font_color").is_equal_approx(config.text_secondary),
 		"Field label should use secondary color token"
 	)
 	assert_eq(_tab._apply_button.get_theme_font_size(&"font_size"), config.section_header, "Action should use builder token")
+
+func _find_child_by_name(parent: Node, name: String) -> Node:
+	for child in parent.get_children():
+		if child.name == name:
+			return child
+		var result := _find_child_by_name(child, name)
+		if result != null:
+			return result
+	return null
 
 
 func _instantiate_tab() -> void:

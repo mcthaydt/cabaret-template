@@ -45,11 +45,16 @@ func after_each() -> void:
 	_localization_manager = null
 
 func test_locale_change_relocalizes_audio_labels_and_tooltips() -> void:
-	assert_eq(_tab._heading_label.text, "Audio EN")
-	assert_eq(_tab._master_label.text, "Master EN")
+	var heading_label := _find_child_by_name(_tab, "HeadingLabel") as Label
+	var master_label := _find_child_by_name(_tab, "MasterVolumeSlider").get_parent().get_child(0) as Label
+	var master_slider := _tab._master_volume_slider
+	var apply_button := _tab._apply_button
+	
+	assert_eq(heading_label.text, "Audio EN")
+	assert_eq(master_label.text, "Master EN")
 	assert_eq(_tab._master_mute_toggle.text, "Mute EN")
-	assert_eq(_tab._apply_button.text, "Apply EN")
-	assert_eq(_tab._master_volume_slider.tooltip_text, "Master tooltip EN")
+	assert_eq(apply_button.text, "Apply EN")
+	assert_eq(master_slider.tooltip_text, "Master tooltip EN")
 
 	_localization_manager.translations[&"settings.audio.title"] = "Audio ES"
 	_localization_manager.translations[&"settings.audio.label.master_volume"] = "Maestro"
@@ -60,11 +65,20 @@ func test_locale_change_relocalizes_audio_labels_and_tooltips() -> void:
 	_tab._on_locale_changed(&"es")
 	await get_tree().process_frame
 
-	assert_eq(_tab._heading_label.text, "Audio ES")
-	assert_eq(_tab._master_label.text, "Maestro")
+	assert_eq(heading_label.text, "Audio ES")
+	assert_eq(master_label.text, "Maestro")
 	assert_eq(_tab._master_mute_toggle.text, "Silenciar")
-	assert_eq(_tab._apply_button.text, "Aplicar")
-	assert_eq(_tab._master_volume_slider.tooltip_text, "Tooltip maestro")
+	assert_eq(apply_button.text, "Aplicar")
+	assert_eq(master_slider.tooltip_text, "Tooltip maestro")
+
+func _find_child_by_name(parent: Node, name: String) -> Node:
+	for child in parent.get_children():
+		if child.name == name:
+			return child
+		var result := _find_child_by_name(child, name)
+		if result != null:
+			return result
+	return null
 
 class MockLocalizationManager extends Node:
 	var translations: Dictionary = {}

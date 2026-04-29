@@ -4,24 +4,10 @@ class_name UI_AudioSettingsTab
 
 const I_AUDIO_MANAGER := preload("res://scripts/core/interfaces/i_audio_manager.gd")
 const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_localization_utils.gd")
-const U_SETTINGS_TAB_BUILDER := preload("res://scripts/core/ui/helpers/u_settings_tab_builder.gd")
+const U_UI_SETTINGS_CATALOG := preload("res://scripts/core/ui/helpers/u_ui_settings_catalog.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
-const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 
-const TITLE_KEY := &"settings.audio.title"
-const LABEL_MASTER_VOLUME_KEY := &"settings.audio.label.master_volume"
-const LABEL_MUSIC_VOLUME_KEY := &"settings.audio.label.music_volume"
-const LABEL_SFX_VOLUME_KEY := &"settings.audio.label.sfx_volume"
-const LABEL_AMBIENT_VOLUME_KEY := &"settings.audio.label.ambient_volume"
 const LABEL_MUTE_KEY := &"settings.audio.label.mute"
-const LABEL_SPATIAL_AUDIO_KEY := &"settings.audio.label.spatial_audio"
-const BUTTON_RESET_DEFAULTS_KEY := &"settings.audio.button.reset_defaults"
-
-const TOOLTIP_MASTER_VOLUME_KEY := &"settings.audio.tooltip.master_volume"
-const TOOLTIP_MUSIC_VOLUME_KEY := &"settings.audio.tooltip.music_volume"
-const TOOLTIP_SFX_VOLUME_KEY := &"settings.audio.tooltip.sfx_volume"
-const TOOLTIP_AMBIENT_VOLUME_KEY := &"settings.audio.tooltip.ambient_volume"
-const TOOLTIP_SPATIAL_AUDIO_KEY := &"settings.audio.tooltip.spatial_audio"
 
 var _state_store: I_StateStore = null
 var _audio_manager: Node = null
@@ -30,53 +16,35 @@ var _updating_from_state: bool = false
 var _has_local_edits: bool = false
 var _builder: RefCounted = null
 
-# Row containers (for mute dimming)
-@onready var _master_row: HBoxContainer = $MasterRow
-@onready var _music_row: HBoxContainer = $MusicRow
-@onready var _sfx_row: HBoxContainer = $SFXRow
-@onready var _ambient_row: HBoxContainer = $AmbientRow
-@onready var _button_row: HBoxContainer = $ButtonRow
+var _master_row: HBoxContainer
+var _music_row: HBoxContainer
+var _sfx_row: HBoxContainer
+var _ambient_row: HBoxContainer
+var _button_row: HBoxContainer
 
-# Static labels
-@onready var _heading_label: Label = $HeadingLabel
-@onready var _master_label: Label = $MasterRow/MasterLabel
-@onready var _music_label: Label = $MusicRow/MusicLabel
-@onready var _sfx_label: Label = $SFXRow/SFXLabel
-@onready var _ambient_label: Label = $AmbientRow/AmbientLabel
-@onready var _spatial_audio_label: Label = $SpatialAudioRow/SpatialAudioLabel
+var _master_volume_slider: HSlider
+var _master_percentage: Label
+var _master_mute_toggle: CheckBox
+var _music_volume_slider: HSlider
+var _music_percentage: Label
+var _music_mute_toggle: CheckBox
+var _sfx_volume_slider: HSlider
+var _sfx_percentage: Label
+var _sfx_mute_toggle: CheckBox
+var _ambient_volume_slider: HSlider
+var _ambient_percentage: Label
+var _ambient_mute_toggle: CheckBox
+var _spatial_audio_toggle: CheckBox
 
-# Master
-@onready var _master_volume_slider: HSlider = %MasterVolumeSlider
-@onready var _master_percentage: Label = %MasterPercentage
-@onready var _master_mute_toggle: CheckBox = %MasterMuteToggle
-
-# Music
-@onready var _music_volume_slider: HSlider = %MusicVolumeSlider
-@onready var _music_percentage: Label = %MusicPercentage
-@onready var _music_mute_toggle: CheckBox = %MusicMuteToggle
-
-# SFX
-@onready var _sfx_volume_slider: HSlider = %SFXVolumeSlider
-@onready var _sfx_percentage: Label = %SFXPercentage
-@onready var _sfx_mute_toggle: CheckBox = %SFXMuteToggle
-
-# Ambient
-@onready var _ambient_volume_slider: HSlider = %AmbientVolumeSlider
-@onready var _ambient_percentage: Label = %AmbientPercentage
-@onready var _ambient_mute_toggle: CheckBox = %AmbientMuteToggle
-
-# Spatial
-@onready var _spatial_audio_toggle: CheckBox = %SpatialAudioToggle
-
-# Buttons
-@onready var _apply_button: Button = %ApplyButton
-@onready var _cancel_button: Button = %CancelButton
-@onready var _reset_button: Button = %ResetButton
+var _apply_button: Button
+var _cancel_button: Button
+var _reset_button: Button
 
 func _ready() -> void:
 	_setup_builder()
 	if _builder != null:
 		_builder.build()
+	_capture_control_references()
 	set_meta(&"settings_builder", true)
 	_configure_focus_neighbors()
 	_localize_labels()
@@ -93,71 +61,65 @@ func _ready() -> void:
 	_on_state_changed({}, _state_store.get_state())
 
 func _setup_builder() -> void:
-	_builder = U_SETTINGS_TAB_BUILDER.new(self)
-	_builder.bind_heading(_heading_label, TITLE_KEY)
-	_builder.bind_row(_master_row)
-	_builder.bind_row(_music_row)
-	_builder.bind_row(_sfx_row)
-	_builder.bind_row(_ambient_row)
-	_builder.bind_row(_button_row, true)
-	_builder.bind_field_label(_master_label, LABEL_MASTER_VOLUME_KEY)
-	_builder.bind_field_label(_music_label, LABEL_MUSIC_VOLUME_KEY)
-	_builder.bind_field_label(_sfx_label, LABEL_SFX_VOLUME_KEY)
-	_builder.bind_field_label(_ambient_label, LABEL_AMBIENT_VOLUME_KEY)
-	_builder.bind_field_label(_spatial_audio_label, LABEL_SPATIAL_AUDIO_KEY)
-	_builder.bind_value_label(_master_percentage, &"")
-	_builder.bind_value_label(_music_percentage, &"")
-	_builder.bind_value_label(_sfx_percentage, &"")
-	_builder.bind_value_label(_ambient_percentage, &"")
-	_builder.bind_field_control(_master_volume_slider, _on_master_volume_changed)
-	_builder.bind_field_control(_master_mute_toggle, _on_master_mute_toggled)
-	_builder.bind_field_control(_music_volume_slider, _on_music_volume_changed)
-	_builder.bind_field_control(_music_mute_toggle, _on_music_mute_toggled)
-	_builder.bind_field_control(_sfx_volume_slider, _on_sfx_volume_changed)
-	_builder.bind_field_control(_sfx_mute_toggle, _on_sfx_mute_toggled)
-	_builder.bind_field_control(_ambient_volume_slider, _on_ambient_volume_changed)
-	_builder.bind_field_control(_ambient_mute_toggle, _on_ambient_mute_toggled)
-	_builder.bind_field_control(_spatial_audio_toggle, _on_spatial_audio_toggled)
-	_builder.bind_action_button(_cancel_button, &"common.cancel", _on_cancel_pressed, "Cancel")
-	_builder.bind_action_button(_reset_button, BUTTON_RESET_DEFAULTS_KEY, _on_reset_pressed, "Reset to Defaults")
-	_builder.bind_action_button(_apply_button, &"common.apply", _on_apply_pressed, "Apply")
+	_audio_manager = U_AudioUtils.get_audio_manager()
+	
+	_builder = U_UI_SETTINGS_CATALOG.create_audio_builder(
+		self,
+		_on_master_volume_changed,
+		_on_music_volume_changed,
+		_on_sfx_volume_changed,
+		_on_ambient_volume_changed,
+		_on_master_mute_toggled,
+		_on_music_mute_toggled,
+		_on_sfx_mute_toggled,
+		_on_ambient_mute_toggled,
+		_on_spatial_audio_toggled,
+		_on_apply_pressed,
+		_on_cancel_pressed,
+		_on_reset_pressed
+	)
+
+func _capture_control_references() -> void:
+	_master_row = _find_child_by_name(self, "MasterVolumeSlider").get_parent() as HBoxContainer
+	_music_row = _find_child_by_name(self, "MusicVolumeSlider").get_parent() as HBoxContainer
+	_sfx_row = _find_child_by_name(self, "SFXVolumeSlider").get_parent() as HBoxContainer
+	_ambient_row = _find_child_by_name(self, "AmbientVolumeSlider").get_parent() as HBoxContainer
+	_button_row = _find_child_by_name(self, "ActionButtons") as HBoxContainer
+	
+	_master_volume_slider = _find_child_by_name(self, "MasterVolumeSlider") as HSlider
+	_master_percentage = _find_child_by_name(self, "MasterVolumeSliderValue") as Label
+	_master_mute_toggle = _find_child_by_name(self, "MasterMuteToggle") as CheckBox
+	
+	_music_volume_slider = _find_child_by_name(self, "MusicVolumeSlider") as HSlider
+	_music_percentage = _find_child_by_name(self, "MusicVolumeSliderValue") as Label
+	_music_mute_toggle = _find_child_by_name(self, "MusicMuteToggle") as CheckBox
+	
+	_sfx_volume_slider = _find_child_by_name(self, "SFXVolumeSlider") as HSlider
+	_sfx_percentage = _find_child_by_name(self, "SFXVolumeSliderValue") as Label
+	_sfx_mute_toggle = _find_child_by_name(self, "SFXMuteToggle") as CheckBox
+	
+	_ambient_volume_slider = _find_child_by_name(self, "AmbientVolumeSlider") as HSlider
+	_ambient_percentage = _find_child_by_name(self, "AmbientVolumeSliderValue") as Label
+	_ambient_mute_toggle = _find_child_by_name(self, "AmbientMuteToggle") as CheckBox
+	
+	_spatial_audio_toggle = _find_child_by_name(self, "SpatialAudioToggle") as CheckBox
+	
+	_apply_button = _find_child_by_name(self, "ApplyButton") as Button
+	_cancel_button = _find_child_by_name(self, "CancelButton") as Button
+	_reset_button = _find_child_by_name(self, "ResetButton") as Button
+
+func _find_child_by_name(parent: Node, name: String) -> Node:
+	for child in parent.get_children():
+		if child.name == name:
+			return child
+		var result := _find_child_by_name(child, name)
+		if result != null:
+			return result
+	return null
 
 func _apply_theme_tokens() -> void:
 	if _builder != null:
 		_builder.apply_theme_tokens(U_UI_THEME_BUILDER.active_config)
-
-	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
-	if not (config_resource is RS_UI_THEME_CONFIG):
-		return
-	var config := config_resource as RS_UI_THEME_CONFIG
-
-	add_theme_constant_override(&"separation", config.separation_default)
-
-	var volume_rows: Array[HBoxContainer] = [
-		_master_row,
-		_music_row,
-		_sfx_row,
-		_ambient_row,
-	]
-	for row in volume_rows:
-		if row != null:
-			row.add_theme_constant_override(&"separation", config.separation_default)
-
-	if _button_row != null:
-		_button_row.add_theme_constant_override(&"separation", config.separation_compact)
-
-	if _heading_label != null:
-		_heading_label.add_theme_font_size_override(&"font_size", config.heading)
-
-	var percent_labels: Array[Label] = [
-		_master_percentage,
-		_music_percentage,
-		_sfx_percentage,
-		_ambient_percentage,
-	]
-	for percent_label in percent_labels:
-		if percent_label != null:
-			percent_label.add_theme_font_size_override(&"font_size", config.section_header)
 
 func _exit_tree() -> void:
 	_clear_audio_settings_preview()
@@ -168,27 +130,27 @@ func _exit_tree() -> void:
 func _configure_tooltips() -> void:
 	if _master_volume_slider != null:
 		_master_volume_slider.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
-			TOOLTIP_MASTER_VOLUME_KEY,
+			&"settings.audio.tooltip.master_volume",
 			"Controls overall game audio volume."
 		)
 	if _music_volume_slider != null:
 		_music_volume_slider.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
-			TOOLTIP_MUSIC_VOLUME_KEY,
+			&"settings.audio.tooltip.music_volume",
 			"Controls music playback volume."
 		)
 	if _sfx_volume_slider != null:
 		_sfx_volume_slider.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
-			TOOLTIP_SFX_VOLUME_KEY,
+			&"settings.audio.tooltip.sfx_volume",
 			"Controls sound effects volume."
 		)
 	if _ambient_volume_slider != null:
 		_ambient_volume_slider.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
-			TOOLTIP_AMBIENT_VOLUME_KEY,
+			&"settings.audio.tooltip.ambient_volume",
 			"Controls ambient/environment audio volume."
 		)
 	if _spatial_audio_toggle != null:
 		_spatial_audio_toggle.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(
-			TOOLTIP_SPATIAL_AUDIO_KEY,
+			&"settings.audio.tooltip.spatial_audio",
 			"Enables 3D positional audio effects."
 		)
 
