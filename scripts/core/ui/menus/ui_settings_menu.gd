@@ -9,6 +9,7 @@ class_name UI_SettingsMenu
 
 
 const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_localization_utils.gd")
+const U_UI_MENU_BUILDER := preload("res://scripts/core/ui/helpers/u_ui_menu_builder.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 
@@ -44,6 +45,7 @@ const SETTINGS_SCENE_ID := StringName("settings_menu")
 
 var _last_device_type: int = -1
 var _consume_next_nav: bool = false
+var _menu_builder: RefCounted = null
 
 func _on_store_ready(store: M_StateStore) -> void:
 	if store != null and not store.slice_updated.is_connected(_on_slice_updated):
@@ -56,27 +58,10 @@ func _exit_tree() -> void:
 		store.slice_updated.disconnect(_on_slice_updated)
 
 func _on_panel_ready() -> void:
+	_setup_menu_builder()
 	_apply_theme_tokens()
 	if _back_button != null and not _back_button.pressed.is_connected(_on_back_pressed):
 		_back_button.pressed.connect(_on_back_pressed)
-	if _input_profiles_button != null and not _input_profiles_button.pressed.is_connected(_on_input_profiles_pressed):
-		_input_profiles_button.pressed.connect(_on_input_profiles_pressed)
-	if _gamepad_settings_button != null and not _gamepad_settings_button.pressed.is_connected(_on_gamepad_settings_pressed):
-		_gamepad_settings_button.pressed.connect(_on_gamepad_settings_pressed)
-	if _keyboard_mouse_settings_button != null and not _keyboard_mouse_settings_button.pressed.is_connected(_on_keyboard_mouse_settings_pressed):
-		_keyboard_mouse_settings_button.pressed.connect(_on_keyboard_mouse_settings_pressed)
-	if _touchscreen_settings_button != null and not _touchscreen_settings_button.pressed.is_connected(_on_touchscreen_settings_pressed):
-		_touchscreen_settings_button.pressed.connect(_on_touchscreen_settings_pressed)
-	if _vfx_settings_button != null and not _vfx_settings_button.pressed.is_connected(_on_vfx_settings_pressed):
-		_vfx_settings_button.pressed.connect(_on_vfx_settings_pressed)
-	if _display_settings_button != null and not _display_settings_button.pressed.is_connected(_on_display_settings_pressed):
-		_display_settings_button.pressed.connect(_on_display_settings_pressed)
-	if _audio_settings_button != null and not _audio_settings_button.pressed.is_connected(_on_audio_settings_pressed):
-		_audio_settings_button.pressed.connect(_on_audio_settings_pressed)
-	if _language_settings_button != null and not _language_settings_button.pressed.is_connected(_on_language_settings_pressed):
-		_language_settings_button.pressed.connect(_on_language_settings_pressed)
-	if _rebind_controls_button != null and not _rebind_controls_button.pressed.is_connected(_on_rebind_controls_pressed):
-		_rebind_controls_button.pressed.connect(_on_rebind_controls_pressed)
 	_configure_focus_neighbors()
 	_update_back_button_label()
 	_localize_labels()
@@ -84,6 +69,22 @@ func _on_panel_ready() -> void:
 	if store != null:
 		_update_button_visibility(store.get_state())
 	play_enter_animation()
+
+func _setup_menu_builder() -> void:
+	_menu_builder = U_UI_MENU_BUILDER.new(self)
+	_menu_builder.bind_title(_title_label, &"menu.settings.title")
+	_menu_builder.bind_button_group([
+		{"button": _input_profiles_button, "key": &"menu.settings.input_profiles", "callback": _on_input_profiles_pressed},
+		{"button": _gamepad_settings_button, "key": &"menu.settings.gamepad", "callback": _on_gamepad_settings_pressed},
+		{"button": _keyboard_mouse_settings_button, "key": &"menu.settings.keyboard_mouse", "callback": _on_keyboard_mouse_settings_pressed},
+		{"button": _touchscreen_settings_button, "key": &"menu.settings.touchscreen", "callback": _on_touchscreen_settings_pressed},
+		{"button": _vfx_settings_button, "key": &"menu.settings.vfx", "callback": _on_vfx_settings_pressed},
+		{"button": _display_settings_button, "key": &"menu.settings.display", "callback": _on_display_settings_pressed},
+		{"button": _audio_settings_button, "key": &"menu.settings.audio", "callback": _on_audio_settings_pressed},
+		{"button": _language_settings_button, "key": &"menu.settings.language", "callback": _on_language_settings_pressed},
+		{"button": _rebind_controls_button, "key": &"menu.settings.rebind", "callback": _on_rebind_controls_pressed},
+	])
+	_menu_builder.build()
 
 func _on_slice_updated(__slice_name: StringName, _slice_state: Dictionary) -> void:
 	var store := get_store()
@@ -313,26 +314,8 @@ func _is_standalone_settings_scene() -> bool:
 	return current_scene_id == SETTINGS_SCENE_ID
 
 func _localize_labels() -> void:
-	if _title_label != null:
-		_title_label.text = U_LOCALIZATION_UTILS.localize(&"menu.settings.title")
-	if _input_profiles_button != null:
-		_input_profiles_button.text = U_LOCALIZATION_UTILS.localize(&"menu.settings.input_profiles")
-	if _gamepad_settings_button != null:
-		_gamepad_settings_button.text = U_LOCALIZATION_UTILS.localize(&"menu.settings.gamepad")
-	if _keyboard_mouse_settings_button != null:
-		_keyboard_mouse_settings_button.text = U_LOCALIZATION_UTILS.localize(&"menu.settings.keyboard_mouse")
-	if _touchscreen_settings_button != null:
-		_touchscreen_settings_button.text = U_LOCALIZATION_UTILS.localize(&"menu.settings.touchscreen")
-	if _vfx_settings_button != null:
-		_vfx_settings_button.text = U_LOCALIZATION_UTILS.localize(&"menu.settings.vfx")
-	if _display_settings_button != null:
-		_display_settings_button.text = U_LOCALIZATION_UTILS.localize(&"menu.settings.display")
-	if _audio_settings_button != null:
-		_audio_settings_button.text = U_LOCALIZATION_UTILS.localize(&"menu.settings.audio")
-	if _language_settings_button != null:
-		_language_settings_button.text = U_LOCALIZATION_UTILS.localize(&"menu.settings.language")
-	if _rebind_controls_button != null:
-		_rebind_controls_button.text = U_LOCALIZATION_UTILS.localize(&"menu.settings.rebind")
+	if _menu_builder != null:
+		_menu_builder.localize_labels()
 	_update_back_button_label()
 
 func _on_locale_changed(_locale: StringName) -> void:

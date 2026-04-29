@@ -2235,10 +2235,10 @@ These ~780 lines of boilerplate collapse to ~80 lines of declarative builder cha
 - [x] **Commit 2** (GREEN) — Refactor `ui_credits.gd` (12 @onready → builder). Auto-scroll behavior preserved.
 - [x] **Commit 3** (GREEN) — Refactor `ui_game_over.gd` (7 @onready → builder).
 - [x] **Commit 4** (GREEN) — Refactor `ui_victory.gd` (8 @onready → builder).
-- [ ] **Commit 5** (GREEN) — Refactor `ui_settings_menu.gd` (15 @onready → builder).
+- [x] **Commit 5** (GREEN) — Refactor `ui_settings_menu.gd` (15 @onready → builder).
 
 **P8.8 Verification**:
-- [ ] All menu screen parity
+- [x] All menu screen parity (targeted menu/endgame/settings suites green)
 - [ ] Full suite green
 
 ---
