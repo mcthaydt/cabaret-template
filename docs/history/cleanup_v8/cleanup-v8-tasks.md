@@ -2187,7 +2187,7 @@ These ~780 lines of boilerplate collapse to ~80 lines of declarative builder cha
 
 **Goal**: Fluent builder for general menu screens (main menu, pause menu, language selector, credits, game over, victory). Creates title, button grid, back button, with automatic theme, localization, and focus configuration.
 
-- [ ] **Commit 1** (RED) — `tests/unit/ui/helpers/test_u_ui_menu_builder.gd`:
+- [x] **Commit 1** (RED) — `tests/unit/ui/helpers/test_u_ui_menu_builder.gd`:
   - `U_UIMenuBuilder.new(menu)` initializes with parent menu Control.
   - `set_title(&"menu.main.title")` creates heading label with `config.heading`.
   - `.add_button(&"menu.main.continue", callback)` creates Button, connects `pressed`, applies `config.section_header` font_size.
@@ -2197,15 +2197,15 @@ These ~780 lines of boilerplate collapse to ~80 lines of declarative builder cha
   - `.build()` adds nodes, calls `U_FocusConfigurator.configure_vertical_focus()`, localizes labels, applies theme tokens, returns parent menu.
   - `localize_labels()` / `apply_theme_tokens(config)` refresh methods.
   - Fluent chaining throughout.
-- [ ] **Commit 2** (GREEN) — `scripts/core/ui/helpers/u_ui_menu_builder.gd`:
+- [x] **Commit 2** (GREEN) — `scripts/core/ui/helpers/u_ui_menu_builder.gd`:
   - `class_name U_UIMenuBuilder`, extends `RefCounted`
   - Instance-based fluent API
   - LOC cap 200 lines
 - [ ] **Commit 3** (GREEN) — Style enforcement for both builders.
 
 **P8.6 Verification**:
-- [ ] Menu builder tests green
-- [ ] Style enforcement green
+- [x] Menu builder tests green
+- [x] Style enforcement green
 
 ---
 

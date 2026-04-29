@@ -8,6 +8,7 @@ class_name UI_PauseMenu
 
 
 const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_localization_utils.gd")
+const U_UI_MENU_BUILDER := preload("res://scripts/core/ui/helpers/u_ui_menu_builder.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 
@@ -26,6 +27,7 @@ const OVERLAY_SAVE_LOAD := StringName("save_load_menu_overlay")
 
 var _last_device_type: int = M_InputDeviceManager.DeviceType.KEYBOARD_MOUSE
 var _consume_next_nav: bool = false
+var _menu_builder: RefCounted = null
 
 func _ready() -> void:
 	super._ready()
@@ -109,10 +111,22 @@ func _deferred_focus_resume() -> void:
 		_resume_button.grab_focus()
 
 func _on_panel_ready() -> void:
+	_setup_menu_builder()
 	_apply_theme_tokens()
-	_connect_buttons()
 	_localize_labels()
 	play_enter_animation()
+
+func _setup_menu_builder() -> void:
+	_menu_builder = U_UI_MENU_BUILDER.new(self)
+	_menu_builder.bind_title(_title_label, &"menu.pause.title")
+	_menu_builder.bind_button_group([
+		{"button": _resume_button, "key": &"menu.pause.resume", "callback": _on_resume_pressed},
+		{"button": _settings_button, "key": &"menu.pause.settings", "callback": _on_settings_pressed},
+		{"button": _save_button, "key": &"menu.pause.save", "callback": _on_save_pressed},
+		{"button": _load_button, "key": &"menu.pause.load", "callback": _on_load_pressed},
+		{"button": _quit_button, "key": &"menu.pause.quit", "callback": _on_quit_pressed},
+	])
+	_menu_builder.build()
 
 func _apply_theme_tokens() -> void:
 	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
@@ -138,18 +152,6 @@ func _apply_theme_tokens() -> void:
 		_main_panel_content.add_theme_constant_override(&"separation", config.separation_default)
 	if _title_label != null:
 		_title_label.add_theme_font_size_override(&"font_size", config.heading)
-
-func _connect_buttons() -> void:
-	if _resume_button != null and not _resume_button.pressed.is_connected(_on_resume_pressed):
-		_resume_button.pressed.connect(_on_resume_pressed)
-	if _settings_button != null and not _settings_button.pressed.is_connected(_on_settings_pressed):
-		_settings_button.pressed.connect(_on_settings_pressed)
-	if _save_button != null and not _save_button.pressed.is_connected(_on_save_pressed):
-		_save_button.pressed.connect(_on_save_pressed)
-	if _load_button != null and not _load_button.pressed.is_connected(_on_load_pressed):
-		_load_button.pressed.connect(_on_load_pressed)
-	if _quit_button != null and not _quit_button.pressed.is_connected(_on_quit_pressed):
-		_quit_button.pressed.connect(_on_quit_pressed)
 
 func _on_resume_pressed() -> void:
 	U_UISoundPlayer.play_confirm()
@@ -192,18 +194,11 @@ func _dispatch_navigation(action: Dictionary) -> void:
 	store.dispatch(action)
 
 func _localize_labels() -> void:
+	if _menu_builder != null:
+		_menu_builder.localize_labels()
+		return
 	if _title_label != null:
 		_title_label.text = U_LOCALIZATION_UTILS.localize(&"menu.pause.title")
-	if _resume_button != null:
-		_resume_button.text = U_LOCALIZATION_UTILS.localize(&"menu.pause.resume")
-	if _settings_button != null:
-		_settings_button.text = U_LOCALIZATION_UTILS.localize(&"menu.pause.settings")
-	if _save_button != null:
-		_save_button.text = U_LOCALIZATION_UTILS.localize(&"menu.pause.save")
-	if _load_button != null:
-		_load_button.text = U_LOCALIZATION_UTILS.localize(&"menu.pause.load")
-	if _quit_button != null:
-		_quit_button.text = U_LOCALIZATION_UTILS.localize(&"menu.pause.quit")
 
 func _on_locale_changed(_locale: StringName) -> void:
 	_localize_labels()

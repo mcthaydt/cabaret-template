@@ -1,0 +1,147 @@
+extends RefCounted
+class_name U_UIMenuBuilder
+
+const U_FOCUS_CONFIGURATOR := preload("res://scripts/core/ui/helpers/u_focus_configurator.gd")
+const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_localization_utils.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
+
+var _menu: Control = null
+var _label_keys: Dictionary = {}
+var _theme_map: Array[Dictionary] = []
+var _focusable_controls: Array[Control] = []
+var _button_column: VBoxContainer = null
+var _title_label: Label = null
+
+func _init(menu: Control) -> void:
+	_menu = menu
+
+func set_title(key: StringName) -> U_UIMenuBuilder:
+	_title_label = Label.new()
+	_title_label.name = "TitleLabel"
+	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_menu.add_child(_title_label)
+	_bind_label(_title_label, key, &"heading")
+	return self
+
+func bind_title(label: Label, key: StringName) -> U_UIMenuBuilder:
+	_title_label = label
+	if label != null:
+		_bind_label(label, key, &"heading")
+	return self
+
+func add_button(key: StringName, callback: Callable) -> U_UIMenuBuilder:
+	var button := Button.new()
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_button_container().add_child(button)
+	_label_keys[button] = key
+	_theme_map.append({"control": button, "role": &"button"})
+	_focusable_controls.append(button)
+	_connect(button.pressed, callback)
+	return self
+
+func bind_button(button: Button, key: StringName, callback: Callable = Callable()) -> U_UIMenuBuilder:
+	if button == null:
+		return self
+	_label_keys[button] = key
+	_theme_map.append({"control": button, "role": &"button"})
+	_focusable_controls.append(button)
+	_connect(button.pressed, callback)
+	return self
+
+func add_button_group(buttons: Array) -> U_UIMenuBuilder:
+	for entry in buttons:
+		var key := entry.get("key", &"") as StringName
+		var callback := entry.get("callback", Callable()) as Callable
+		add_button(key, callback)
+	return self
+
+func bind_button_group(buttons: Array) -> U_UIMenuBuilder:
+	for entry in buttons:
+		var button := entry.get("button", null) as Button
+		var key := entry.get("key", &"") as StringName
+		var callback := entry.get("callback", Callable()) as Callable
+		bind_button(button, key, callback)
+	return self
+
+func set_back_button(key: StringName, callback: Callable) -> U_UIMenuBuilder:
+	var button := Button.new()
+	button.name = "BackButton"
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_menu.add_child(button)
+	_label_keys[button] = key
+	_theme_map.append({"control": button, "role": &"button"})
+	_focusable_controls.append(button)
+	_connect(button.pressed, callback)
+	return self
+
+func set_background_dim(color: Color) -> U_UIMenuBuilder:
+	var bg := _menu.get_node_or_null("Background") as ColorRect
+	if bg == null:
+		bg = ColorRect.new()
+		bg.name = "Background"
+		bg.anchor_right = 1.0
+		bg.anchor_bottom = 1.0
+		_menu.add_child(bg)
+		_menu.move_child(bg, 0)
+	bg.color = color
+	_theme_map.append({"control": bg, "role": &"background"})
+	return self
+
+func build() -> Control:
+	apply_theme_tokens(U_UI_THEME_BUILDER.active_config)
+	localize_labels()
+	if not _focusable_controls.is_empty():
+		U_FOCUS_CONFIGURATOR.configure_vertical_focus(_focusable_controls, true)
+	return _menu
+
+func localize_labels() -> void:
+	for control in _label_keys.keys():
+		if control is Label:
+			(control as Label).text = _localize(_label_keys[control], str(_label_keys[control]))
+		elif control is Button:
+			(control as Button).text = _localize(_label_keys[control], str(_label_keys[control]))
+
+func apply_theme_tokens(config: Resource) -> void:
+	if not (config is RS_UI_THEME_CONFIG):
+		return
+	var theme_config := config as RS_UI_THEME_CONFIG
+	for entry in _theme_map:
+		_apply_theme_entry(entry, theme_config)
+
+func _button_container() -> VBoxContainer:
+	if _button_column != null:
+		return _button_column
+	_button_column = VBoxContainer.new()
+	_button_column.name = "MenuButtons"
+	_menu.add_child(_button_column)
+	_theme_map.append({"control": _button_column, "role": &"button_column"})
+	return _button_column
+
+func _bind_label(label: Label, key: StringName, role: StringName) -> void:
+	_label_keys[label] = key
+	_theme_map.append({"control": label, "role": role})
+
+func _connect(signal_ref: Signal, callback: Callable) -> void:
+	if callback.is_valid() and not signal_ref.is_connected(callback):
+		signal_ref.connect(callback)
+
+func _localize(key: Variant, fallback: String) -> String:
+	if key is StringName:
+		var localized := U_LOCALIZATION_UTILS.localize(key)
+		return fallback if localized.is_empty() else localized
+	return fallback
+
+func _apply_theme_entry(entry: Dictionary, config: RS_UI_THEME_CONFIG) -> void:
+	var control := entry.get("control") as Control
+	if control == null:
+		return
+	match entry.get("role", &""):
+		&"heading":
+			control.add_theme_font_size_override(&"font_size", config.heading)
+		&"button":
+			control.add_theme_font_size_override(&"font_size", config.section_header)
+		&"button_column":
+			control.add_theme_constant_override(&"separation", config.separation_default)
+		&"background":
+			pass
