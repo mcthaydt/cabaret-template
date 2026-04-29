@@ -6,6 +6,7 @@ const VirtualJoystickScene := preload("res://scenes/core/ui/widgets/ui_virtual_j
 const VirtualButtonScene := preload("res://scenes/core/ui/widgets/ui_virtual_button.tscn")
 const I_INPUT_PROFILE_MANAGER := preload("res://scripts/core/interfaces/i_input_profile_manager.gd")
 const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_localization_utils.gd")
+const U_SETTINGS_TAB_BUILDER := preload("res://scripts/core/ui/helpers/u_settings_tab_builder.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 
@@ -80,6 +81,7 @@ var _preview_builder := U_TouchscreenPreviewHelper.new()
 var _updating_from_state: bool = false
 var _has_local_edits: bool = false
 var _override_log_count: int = 0
+var _builder: RefCounted = null
 
 func _on_store_ready(store: M_StateStore) -> void:
 	if _store_unsubscribe != Callable() and _store_unsubscribe.is_valid():
@@ -90,6 +92,7 @@ func _on_store_ready(store: M_StateStore) -> void:
 		_on_state_changed({}, store.get_state())
 
 func _on_panel_ready() -> void:
+	_setup_builder()
 	_apply_theme_tokens()
 	_profile_manager = _resolve_input_profile_manager()
 
@@ -104,11 +107,23 @@ func _on_panel_ready() -> void:
 	_update_edit_layout_visibility()
 	play_enter_animation()
 
+func _setup_builder() -> void:
+	_builder = U_SETTINGS_TAB_BUILDER.new(self)
+	_builder.bind_heading(_title_label, TITLE_KEY)
+	_builder.bind_action_button(_cancel_button, &"common.cancel", _on_cancel_pressed)
+	_builder.bind_action_button(_reset_button, BUTTON_RESET_DEFAULTS_KEY, _on_reset_pressed)
+	_builder.bind_action_button(_edit_layout_button, BUTTON_EDIT_LAYOUT_KEY, _on_edit_layout_pressed)
+	_builder.bind_action_button(_apply_button, &"common.apply", _on_apply_pressed)
+	_builder.build()
+
 func _refresh_preview_size_limits_deferred() -> void:
 	_apply_preview_size_limits()
 	_update_preview_from_sliders()
 
 func _apply_theme_tokens() -> void:
+	if _builder != null:
+		_builder.apply_theme_tokens(U_UI_THEME_BUILDER.active_config)
+
 	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
 	if not (config_resource is RS_UI_THEME_CONFIG):
 		return
@@ -146,9 +161,6 @@ func _apply_theme_tokens() -> void:
 		if row != null:
 			row.add_theme_constant_override(&"separation", config.separation_compact)
 
-	if _title_label != null:
-		_title_label.add_theme_font_size_override(&"font_size", config.heading)
-
 	var row_labels: Array[Label] = [
 		_joystick_size_text_label,
 		_button_size_text_label,
@@ -174,15 +186,6 @@ func _apply_theme_tokens() -> void:
 			continue
 		value_label.add_theme_font_size_override(&"font_size", config.body_small)
 		value_label.add_theme_color_override(&"font_color", config.text_secondary)
-
-	if _cancel_button != null:
-		_cancel_button.add_theme_font_size_override(&"font_size", config.section_header)
-	if _reset_button != null:
-		_reset_button.add_theme_font_size_override(&"font_size", config.section_header)
-	if _edit_layout_button != null:
-		_edit_layout_button.add_theme_font_size_override(&"font_size", config.section_header)
-	if _apply_button != null:
-		_apply_button.add_theme_font_size_override(&"font_size", config.section_header)
 
 func _resolve_input_profile_manager() -> Node:
 	if input_profile_manager != null and is_instance_valid(input_profile_manager):
@@ -337,11 +340,6 @@ func _connect_signals() -> void:
 		if not _updating_from_state:
 			U_UISoundPlayer.play_slider_tick()
 	)
-
-	_apply_button.pressed.connect(_on_apply_pressed)
-	_cancel_button.pressed.connect(_on_cancel_pressed)
-	_reset_button.pressed.connect(_on_reset_pressed)
-	_edit_layout_button.pressed.connect(_on_edit_layout_pressed)
 
 func _configure_tooltips() -> void:
 	if _joystick_size_slider != null:
@@ -588,8 +586,8 @@ func _on_locale_changed(_locale: StringName) -> void:
 	_configure_tooltips()
 
 func _localize_labels() -> void:
-	if _title_label != null:
-		_title_label.text = _localize_with_fallback(TITLE_KEY, "Touchscreen Settings")
+	if _builder != null:
+		_builder.localize_labels()
 	if _joystick_size_text_label != null:
 		_joystick_size_text_label.text = _localize_with_fallback(LABEL_JOYSTICK_SIZE_KEY, "Joystick Size")
 	if _button_size_text_label != null:
@@ -602,15 +600,6 @@ func _localize_labels() -> void:
 		_joystick_deadzone_text_label.text = _localize_with_fallback(LABEL_JOYSTICK_DEADZONE_KEY, "Joystick Deadzone")
 	if _look_sensitivity_text_label != null:
 		_look_sensitivity_text_label.text = _localize_with_fallback(LABEL_LOOK_SENSITIVITY_KEY, "Look Drag Sensitivity")
-
-	if _cancel_button != null:
-		_cancel_button.text = _localize_with_fallback(&"common.cancel", "Cancel")
-	if _reset_button != null:
-		_reset_button.text = _localize_with_fallback(BUTTON_RESET_DEFAULTS_KEY, "Reset to Defaults")
-	if _edit_layout_button != null:
-		_edit_layout_button.text = _localize_with_fallback(BUTTON_EDIT_LAYOUT_KEY, "Edit Layout")
-	if _apply_button != null:
-		_apply_button.text = _localize_with_fallback(&"common.apply", "Apply")
 
 func _localize_with_fallback(key: StringName, fallback: String) -> String:
 	var localized: String = U_LOCALIZATION_UTILS.localize(key)

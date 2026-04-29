@@ -3,6 +3,7 @@ extends "res://scripts/core/ui/base/base_overlay.gd"
 class_name UI_GamepadSettingsOverlay
 
 const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_localization_utils.gd")
+const U_SETTINGS_TAB_BUILDER := preload("res://scripts/core/ui/helpers/u_settings_tab_builder.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 
@@ -64,6 +65,7 @@ var _left_stick_processed: Vector2 = Vector2.ZERO
 var _right_stick_processed: Vector2 = Vector2.ZERO
 var _updating_from_state: bool = false
 var _preview_active: bool = false
+var _builder: RefCounted = null
 
 func _on_store_ready(store: M_StateStore) -> void:
 	if _store_unsubscribe != Callable() and _store_unsubscribe.is_valid():
@@ -74,6 +76,7 @@ func _on_store_ready(store: M_StateStore) -> void:
 		_on_state_changed({}, store.get_state())
 
 func _on_panel_ready() -> void:
+	_setup_builder()
 	_apply_theme_tokens()
 	_configure_focus_neighbors()
 	_connect_control_signals()
@@ -81,7 +84,18 @@ func _on_panel_ready() -> void:
 	_configure_tooltips()
 	_configure_preview_prompts()
 
+func _setup_builder() -> void:
+	_builder = U_SETTINGS_TAB_BUILDER.new(self)
+	_builder.bind_heading(_title_label, TITLE_KEY)
+	_builder.bind_action_button(_cancel_button, &"common.cancel", _on_cancel_pressed)
+	_builder.bind_action_button(_reset_button, BUTTON_RESET_DEFAULTS_KEY, _on_reset_pressed)
+	_builder.bind_action_button(_apply_button, &"common.apply", _on_apply_pressed)
+	_builder.build()
+
 func _apply_theme_tokens() -> void:
+	if _builder != null:
+		_builder.apply_theme_tokens(U_UI_THEME_BUILDER.active_config)
+
 	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
 	if not (config_resource is RS_UI_THEME_CONFIG):
 		return
@@ -120,8 +134,6 @@ func _apply_theme_tokens() -> void:
 	if _preview_content != null:
 		_preview_content.add_theme_constant_override(&"separation", config.separation_compact)
 
-	if _title_label != null:
-		_title_label.add_theme_font_size_override(&"font_size", config.heading)
 	if _left_deadzone_label != null:
 		_left_deadzone_label.add_theme_font_size_override(&"font_size", config.section_header)
 	if _right_deadzone_label != null:
@@ -146,13 +158,6 @@ func _apply_theme_tokens() -> void:
 		_vibration_label.add_theme_color_override(&"font_color", config.text_secondary)
 	if _vibration_checkbox != null:
 		_vibration_checkbox.add_theme_font_size_override(&"font_size", config.section_header)
-	if _cancel_button != null:
-		_cancel_button.add_theme_font_size_override(&"font_size", config.section_header)
-	if _reset_button != null:
-		_reset_button.add_theme_font_size_override(&"font_size", config.section_header)
-	if _apply_button != null:
-		_apply_button.add_theme_font_size_override(&"font_size", config.section_header)
-
 func _configure_preview_prompts() -> void:
 	_preview_active = false
 	_localize_preview_prompts()
@@ -218,10 +223,6 @@ func _connect_control_signals() -> void:
 			U_UISoundPlayer.play_slider_tick()
 	)
 	_vibration_checkbox.toggled.connect(_on_vibration_toggled)
-	_apply_button.pressed.connect(_on_apply_pressed)
-	_cancel_button.pressed.connect(_on_cancel_pressed)
-	if _reset_button != null and not _reset_button.pressed.is_connected(_on_reset_pressed):
-		_reset_button.pressed.connect(_on_reset_pressed)
 
 func _configure_tooltips() -> void:
 	if _left_slider != null:
@@ -454,8 +455,8 @@ func _on_locale_changed(_locale: StringName) -> void:
 	_configure_tooltips()
 
 func _localize_labels() -> void:
-	if _title_label != null:
-		_title_label.text = _localize_with_fallback(TITLE_KEY, "Gamepad Settings")
+	if _builder != null:
+		_builder.localize_labels()
 	if _left_deadzone_label != null:
 		_left_deadzone_label.text = _localize_with_fallback(LABEL_LEFT_DEADZONE_KEY, "Left Deadzone")
 	if _right_deadzone_label != null:
@@ -469,13 +470,6 @@ func _localize_labels() -> void:
 
 	_localize_preview_prompts()
 	_update_preview_prompt_visibility()
-
-	if _cancel_button != null:
-		_cancel_button.text = _localize_with_fallback(&"common.cancel", "Cancel")
-	if _reset_button != null:
-		_reset_button.text = _localize_with_fallback(BUTTON_RESET_DEFAULTS_KEY, "Reset to Defaults")
-	if _apply_button != null:
-		_apply_button.text = _localize_with_fallback(&"common.apply", "Apply")
 
 func _localize_with_fallback(key: StringName, fallback: String) -> String:
 	var localized: String = U_LOCALIZATION_UTILS.localize(key)

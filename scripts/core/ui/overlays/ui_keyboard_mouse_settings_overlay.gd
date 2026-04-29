@@ -3,6 +3,7 @@ extends "res://scripts/core/ui/base/base_overlay.gd"
 class_name UI_KeyboardMouseSettingsOverlay
 
 const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_localization_utils.gd")
+const U_SETTINGS_TAB_BUILDER := preload("res://scripts/core/ui/helpers/u_settings_tab_builder.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 
@@ -46,6 +47,7 @@ const DEFAULT_KEYBOARD_LOOK_SPEED: float = 2.0
 
 var _store_unsubscribe: Callable = Callable()
 var _updating_from_state: bool = false
+var _builder: RefCounted = null
 
 func _on_store_ready(store: M_StateStore) -> void:
 	if _store_unsubscribe != Callable() and _store_unsubscribe.is_valid():
@@ -61,6 +63,7 @@ func _exit_tree() -> void:
 	_store_unsubscribe = Callable()
 
 func _on_panel_ready() -> void:
+	_setup_builder()
 	_apply_theme_tokens()
 	_configure_focus_neighbors()
 	_connect_control_signals()
@@ -68,7 +71,19 @@ func _on_panel_ready() -> void:
 	_configure_tooltips()
 	play_enter_animation()
 
+func _setup_builder() -> void:
+	_builder = U_SETTINGS_TAB_BUILDER.new(self)
+	_builder.bind_heading(_title_label, TITLE_KEY)
+	_builder.bind_action_button(_cancel_button, &"common.cancel", _on_cancel_pressed)
+	_builder.bind_action_button(_reset_button, BUTTON_RESET_DEFAULTS_KEY, _on_reset_pressed)
+	_builder.bind_action_button(_rebind_button, BUTTON_REBIND_LOOK_KEY, _on_rebind_pressed)
+	_builder.bind_action_button(_apply_button, &"common.apply", _on_apply_pressed)
+	_builder.build()
+
 func _apply_theme_tokens() -> void:
+	if _builder != null:
+		_builder.apply_theme_tokens(U_UI_THEME_BUILDER.active_config)
+
 	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
 	if not (config_resource is RS_UI_THEME_CONFIG):
 		return
@@ -101,8 +116,6 @@ func _apply_theme_tokens() -> void:
 		if row != null:
 			row.add_theme_constant_override(&"separation", config.separation_compact)
 
-	if _title_label != null:
-		_title_label.add_theme_font_size_override(&"font_size", config.heading)
 	if _mouse_sensitivity_label != null:
 		_mouse_sensitivity_label.add_theme_font_size_override(&"font_size", config.section_header)
 	if _keyboard_look_enabled_label != null:
@@ -117,15 +130,6 @@ func _apply_theme_tokens() -> void:
 		_keyboard_look_speed_value_label.add_theme_color_override(&"font_color", config.text_secondary)
 	if _keyboard_look_enabled_check != null:
 		_keyboard_look_enabled_check.add_theme_font_size_override(&"font_size", config.section_header)
-	if _cancel_button != null:
-		_cancel_button.add_theme_font_size_override(&"font_size", config.section_header)
-	if _reset_button != null:
-		_reset_button.add_theme_font_size_override(&"font_size", config.section_header)
-	if _rebind_button != null:
-		_rebind_button.add_theme_font_size_override(&"font_size", config.section_header)
-	if _apply_button != null:
-		_apply_button.add_theme_font_size_override(&"font_size", config.section_header)
-
 func _configure_focus_neighbors() -> void:
 	var vertical_controls: Array[Control] = []
 	if _mouse_sensitivity_slider != null:
@@ -171,14 +175,6 @@ func _connect_control_signals() -> void:
 		_keyboard_look_enabled_check.toggled.connect(_on_keyboard_look_enabled_toggled)
 	if not _keyboard_look_speed_slider.value_changed.is_connected(_on_keyboard_look_speed_changed):
 		_keyboard_look_speed_slider.value_changed.connect(_on_keyboard_look_speed_changed)
-	if not _apply_button.pressed.is_connected(_on_apply_pressed):
-		_apply_button.pressed.connect(_on_apply_pressed)
-	if not _cancel_button.pressed.is_connected(_on_cancel_pressed):
-		_cancel_button.pressed.connect(_on_cancel_pressed)
-	if not _reset_button.pressed.is_connected(_on_reset_pressed):
-		_reset_button.pressed.connect(_on_reset_pressed)
-	if not _rebind_button.pressed.is_connected(_on_rebind_pressed):
-		_rebind_button.pressed.connect(_on_rebind_pressed)
 
 func _configure_tooltips() -> void:
 	if _mouse_sensitivity_slider != null:
@@ -316,8 +312,8 @@ func _on_locale_changed(_locale: StringName) -> void:
 	_configure_tooltips()
 
 func _localize_labels() -> void:
-	if _title_label != null:
-		_title_label.text = _localize_with_fallback(TITLE_KEY, "Keyboard/Mouse Settings")
+	if _builder != null:
+		_builder.localize_labels()
 	if _mouse_sensitivity_label != null:
 		_mouse_sensitivity_label.text = _localize_with_fallback(
 			LABEL_MOUSE_SENSITIVITY_KEY,
@@ -333,15 +329,6 @@ func _localize_labels() -> void:
 			LABEL_KEYBOARD_LOOK_SPEED_KEY,
 			"Keyboard Look Speed"
 		)
-
-	if _cancel_button != null:
-		_cancel_button.text = _localize_with_fallback(&"common.cancel", "Cancel")
-	if _reset_button != null:
-		_reset_button.text = _localize_with_fallback(BUTTON_RESET_DEFAULTS_KEY, "Reset to Defaults")
-	if _rebind_button != null:
-		_rebind_button.text = _localize_with_fallback(BUTTON_REBIND_LOOK_KEY, "Rebind Look Keys")
-	if _apply_button != null:
-		_apply_button.text = _localize_with_fallback(&"common.apply", "Apply")
 
 func _localize_with_fallback(key: StringName, fallback: String) -> String:
 	var localized: String = U_LOCALIZATION_UTILS.localize(key)
