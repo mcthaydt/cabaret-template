@@ -7,7 +7,6 @@ const DEFAULT_REBIND_SETTINGS: Resource = preload("res://resources/core/input/re
 const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_localization_utils.gd")
 const U_UI_MENU_BUILDER := preload("res://scripts/core/ui/helpers/u_ui_menu_builder.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
-const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 
 const TITLE_KEY := &"menu.settings.rebind"
 const STATUS_DEFAULT_KEY := &"overlay.input_rebinding.status.default"
@@ -105,6 +104,13 @@ func _setup_builder() -> void:
 	_builder = U_UI_MENU_BUILDER.new(self)
 	_builder.bind_panel(_main_panel, _main_panel_padding, _main_panel_content)
 	_builder.bind_title(_title_label, TITLE_KEY, "Rebind Controls")
+	_builder.bind_theme_role(self, &"overlay_dim", {"alpha": 0.5, "apply_menu_background": true})
+	_builder.bind_theme_role(get_node_or_null("OverlayBackground") as ColorRect, &"overlay_dim", {"alpha": 0.5})
+	_builder.bind_theme_role(_status_label, &"section_header")
+	_builder.bind_theme_role(_status_label, &"text_secondary")
+	_builder.bind_theme_role(_search_box, &"line_edit_search")
+	_builder.bind_theme_role(_action_list, &"separation_compact")
+	_builder.bind_theme_role(_button_row, &"separation_default")
 	_builder.bind_button(_reset_button, RESET_BUTTON_KEY, _on_reset_pressed, "Reset")
 	_builder.bind_button(_close_button, CLOSE_BUTTON_KEY, _on_close_pressed, "Close")
 	_builder.build()
@@ -428,45 +434,6 @@ func _localize_static_labels() -> void:
 func _apply_theme_tokens() -> void:
 	if _builder != null:
 		_builder.apply_theme_tokens(U_UI_THEME_BUILDER.active_config)
-	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
-	if not (config_resource is RS_UI_THEME_CONFIG):
-		return
-	var config := config_resource as RS_UI_THEME_CONFIG
-	var dim_color := config.bg_base
-	dim_color.a = 0.5
-	background_color = dim_color
-	var overlay_background := get_node_or_null("OverlayBackground") as ColorRect
-	if overlay_background != null:
-		overlay_background.color = dim_color
-	if _status_label != null:
-		_status_label.add_theme_font_size_override(&"font_size", config.section_header)
-		_status_label.add_theme_color_override(&"font_color", config.text_secondary)
-	if _search_box != null:
-		_search_box.add_theme_font_size_override(&"font_size", config.body_small)
-		var search_normal := _build_search_stylebox(config.bg_surface, config.bg_panel_light, 1)
-		var search_focus := _build_search_stylebox(config.bg_surface, config.accent_focus, 2)
-		_search_box.add_theme_stylebox_override(&"normal", search_normal)
-		_search_box.add_theme_stylebox_override(&"focus", search_focus)
-		_search_box.add_theme_stylebox_override(&"read_only", search_normal.duplicate(true))
-		_search_box.add_theme_color_override(&"font_placeholder_color", config.text_secondary)
-	if _action_list != null:
-		_action_list.add_theme_constant_override(&"separation", config.separation_compact)
-	if _button_row != null:
-		_button_row.add_theme_constant_override(&"separation", config.separation_default)
-func _build_search_stylebox(bg_color: Color, border_color: Color, border_width: int) -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = bg_color
-	style.border_color = border_color
-	style.set_border_width_all(border_width)
-	style.corner_radius_top_left = 8
-	style.corner_radius_top_right = 8
-	style.corner_radius_bottom_left = 8
-	style.corner_radius_bottom_right = 8
-	style.content_margin_left = 10.0
-	style.content_margin_right = 10.0
-	style.content_margin_top = 8.0
-	style.content_margin_bottom = 8.0
-	return style
 
 func _get_status_default_text() -> String:
 	return U_LOCALIZATION_UTILS.localize_with_fallback(STATUS_DEFAULT_KEY, "Select an action to rebind.")

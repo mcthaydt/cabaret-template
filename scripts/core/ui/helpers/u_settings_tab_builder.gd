@@ -2,6 +2,7 @@ extends RefCounted
 class_name U_SettingsTabBuilder
 const U_FOCUS_CONFIGURATOR := preload("res://scripts/core/ui/helpers/u_focus_configurator.gd")
 const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_localization_utils.gd")
+const U_UI_THEME_ROLE_UTILS := preload("res://scripts/core/ui/helpers/u_ui_theme_role_utils.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 var _tab: Control = null
@@ -257,6 +258,15 @@ func bind_overlay_background(alpha: float, overlay_background: ColorRect = null)
 	_theme_map.append({"control": overlay_background, "role": &"overlay_dim", "alpha": alpha})
 	return self
 
+func bind_theme_role(control: Control, role: StringName, extras: Dictionary = {}) -> U_SettingsTabBuilder:
+	if control == null:
+		return self
+	var entry: Dictionary = {"control": control, "role": role}
+	for key in extras.keys():
+		entry[key] = extras[key]
+	_theme_map.append(entry)
+	return self
+
 func _wire_control_callback(control: Control, callback: Callable) -> void:
 	if callback == Callable():
 		return
@@ -278,42 +288,6 @@ func _localize(key: Variant, fallback: String) -> String:
 
 func _apply_theme_entry(entry: Dictionary, config: RS_UI_THEME_CONFIG) -> void:
 	var control := entry.get("control") as Control
-	var role: StringName = entry.get("role", &"")
-	if role == &"overlay_dim":
-		var dim_color := config.bg_base
-		dim_color.a = float(entry.get("alpha", 0.5))
-		if _tab != null:
-			_tab.set("background_color", dim_color)
-		if control is ColorRect:
-			(control as ColorRect).color = dim_color
-		return
 	if control == null:
 		return
-	match role:
-		&"heading":
-			control.add_theme_font_size_override(&"font_size", config.heading)
-		&"section_header":
-			control.add_theme_font_size_override(&"font_size", config.section_header)
-			control.add_theme_color_override(&"font_color", config.section_header_color)
-		&"field_label":
-			control.add_theme_font_size_override(&"font_size", config.body_small)
-			control.add_theme_color_override(&"font_color", config.text_secondary)
-		&"field_control", &"action":
-			control.add_theme_font_size_override(&"font_size", config.section_header)
-		&"value_label":
-			control.add_theme_font_size_override(&"font_size", config.body_small)
-			control.add_theme_color_override(&"font_color", config.text_secondary)
-		&"default_row":
-			control.add_theme_constant_override(&"separation", config.separation_default)
-		&"compact_row":
-			control.add_theme_constant_override(&"separation", config.separation_compact)
-		&"main_panel":
-			if config.panel_section != null:
-				control.add_theme_stylebox_override(&"panel", config.panel_section)
-		&"content_vbox":
-			control.add_theme_constant_override(&"separation", config.separation_default)
-		&"panel_padding":
-			control.add_theme_constant_override(&"margin_left", config.margin_section)
-			control.add_theme_constant_override(&"margin_top", config.margin_section)
-			control.add_theme_constant_override(&"margin_right", config.margin_section)
-			control.add_theme_constant_override(&"margin_bottom", config.margin_section)
+	U_UI_THEME_ROLE_UTILS.apply_settings_role(entry, control, config, _tab)

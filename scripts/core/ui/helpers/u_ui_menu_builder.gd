@@ -3,6 +3,7 @@ class_name U_UIMenuBuilder
 
 const U_FOCUS_CONFIGURATOR := preload("res://scripts/core/ui/helpers/u_focus_configurator.gd")
 const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_localization_utils.gd")
+const U_UI_THEME_ROLE_UTILS := preload("res://scripts/core/ui/helpers/u_ui_theme_role_utils.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 
@@ -43,6 +44,15 @@ func bind_panel(panel: PanelContainer, padding: MarginContainer = null, content:
 func bind_background(color_rect: ColorRect) -> U_UIMenuBuilder:
 	if color_rect != null:
 		_theme_map.append({"control": color_rect, "role": &"background_color"})
+	return self
+
+func bind_theme_role(control: Control, role: StringName, extras: Dictionary = {}) -> U_UIMenuBuilder:
+	if control == null:
+		return self
+	var entry: Dictionary = {"control": control, "role": role}
+	for key in extras.keys():
+		entry[key] = extras[key]
+	_theme_map.append(entry)
 	return self
 
 func add_button(key: StringName, callback: Callable, fallback: String = "") -> U_UIMenuBuilder:
@@ -161,24 +171,4 @@ func _apply_theme_entry(entry: Dictionary, config: RS_UI_THEME_CONFIG) -> void:
 	var control := entry.get("control") as Control
 	if control == null:
 		return
-	match entry.get("role", &""):
-		&"heading":
-			control.add_theme_font_size_override(&"font_size", config.heading)
-		&"button":
-			control.add_theme_font_size_override(&"font_size", config.section_header)
-		&"button_column":
-			control.add_theme_constant_override(&"separation", config.separation_default)
-		&"main_panel":
-			if config.panel_section != null:
-				control.add_theme_stylebox_override(&"panel", config.panel_section)
-		&"panel_padding":
-			control.add_theme_constant_override(&"margin_left", config.margin_section)
-			control.add_theme_constant_override(&"margin_top", config.margin_section)
-			control.add_theme_constant_override(&"margin_right", config.margin_section)
-			control.add_theme_constant_override(&"margin_bottom", config.margin_section)
-		&"content_vbox":
-			control.add_theme_constant_override(&"separation", config.separation_default)
-		&"background_color":
-			(control as ColorRect).color = config.bg_base
-		&"background":
-			pass
+	U_UI_THEME_ROLE_UTILS.apply_menu_role(entry, control, config, _menu)

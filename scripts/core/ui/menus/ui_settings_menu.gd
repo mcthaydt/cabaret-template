@@ -74,6 +74,7 @@ func _setup_menu_builder() -> void:
 	_menu_builder = U_UI_MENU_BUILDER.new(self)
 	_menu_builder.bind_panel(_main_panel, _main_panel_padding, _main_panel_content)
 	_menu_builder.bind_title(_title_label, &"menu.settings.title", "Settings")
+	_menu_builder.bind_theme_role(_buttons_vbox, &"separation_default")
 	_menu_builder.bind_button_group([
 		{"button": _input_profiles_button, "key": &"menu.settings.input_profiles", "callback": _on_input_profiles_pressed, "fallback": "Input Profiles"},
 		{"button": _gamepad_settings_button, "key": &"menu.settings.gamepad", "callback": _on_gamepad_settings_pressed, "fallback": "Gamepad"},
@@ -265,10 +266,6 @@ func _update_back_button_label() -> void:
 func _apply_theme_tokens() -> void:
 	if _menu_builder != null:
 		_menu_builder.apply_theme_tokens(U_UI_THEME_BUILDER.active_config)
-	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
-	if config_resource is RS_UI_THEME_CONFIG and _buttons_vbox != null:
-		var config := config_resource as RS_UI_THEME_CONFIG
-		_buttons_vbox.add_theme_constant_override(&"separation", config.separation_default)
 
 	_refresh_background_dim()
 

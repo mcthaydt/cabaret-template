@@ -15,7 +15,6 @@ const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_l
 const U_DEBUG_SELECTORS := preload("res://scripts/core/state/selectors/u_debug_selectors.gd")
 const U_UI_MENU_BUILDER := preload("res://scripts/core/ui/helpers/u_ui_menu_builder.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
-const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 
 @onready var _button_container: Control = %ButtonContainer
 @onready var _panel_container: PanelContainer = %PanelContainer
@@ -76,6 +75,8 @@ func _setup_menu_builder() -> void:
 	_menu_builder.bind_background(_background)
 	_menu_builder.bind_panel(_panel_container, _panel_padding, _content_vbox)
 	_menu_builder.bind_title(_title_label, &"menu.language_selector.title", "Select Language")
+	_menu_builder.bind_theme_role(_grid_container, &"h_separation_compact")
+	_menu_builder.bind_theme_role(_grid_container, &"v_separation_compact")
 	_menu_builder.bind_button_group([
 		{"button": _en_button, "key": &"locale.name.en", "callback": _on_locale_selected.bind(&"en"), "fallback": "English"},
 		{"button": _es_button, "key": &"locale.name.es", "callback": _on_locale_selected.bind(&"es"), "fallback": "Español"},
@@ -88,13 +89,6 @@ func _setup_menu_builder() -> void:
 func _apply_theme_tokens() -> void:
 	if _menu_builder != null:
 		_menu_builder.apply_theme_tokens(U_UI_THEME_BUILDER.active_config)
-	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
-	if not (config_resource is RS_UI_THEME_CONFIG):
-		return
-	var config := config_resource as RS_UI_THEME_CONFIG
-	if _grid_container != null:
-		_grid_container.add_theme_constant_override(&"h_separation", config.separation_compact)
-		_grid_container.add_theme_constant_override(&"v_separation", config.separation_compact)
 
 func _on_locale_changed(_locale: StringName) -> void:
 	_localize_labels()

@@ -10,7 +10,6 @@ class_name UI_PauseMenu
 const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_localization_utils.gd")
 const U_UI_MENU_BUILDER := preload("res://scripts/core/ui/helpers/u_ui_menu_builder.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
-const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 
 const OVERLAY_SETTINGS := StringName("settings_menu_overlay")
 const OVERLAY_SAVE_LOAD := StringName("save_load_menu_overlay")
@@ -120,6 +119,8 @@ func _setup_menu_builder() -> void:
 	_menu_builder = U_UI_MENU_BUILDER.new(self)
 	_menu_builder.bind_panel(_main_panel, _main_panel_padding, _main_panel_content)
 	_menu_builder.bind_title(_title_label, &"menu.pause.title", "Paused")
+	_menu_builder.bind_theme_role(self, &"overlay_dim", {"alpha": 0.7, "apply_menu_background": true})
+	_menu_builder.bind_theme_role(get_node_or_null("OverlayBackground") as ColorRect, &"overlay_dim", {"alpha": 0.7})
 	_menu_builder.bind_button_group([
 		{"button": _resume_button, "key": &"menu.pause.resume", "callback": _on_resume_pressed, "fallback": "Resume"},
 		{"button": _settings_button, "key": &"menu.pause.settings", "callback": _on_settings_pressed, "fallback": "Settings"},
@@ -132,16 +133,6 @@ func _setup_menu_builder() -> void:
 func _apply_theme_tokens() -> void:
 	if _menu_builder != null:
 		_menu_builder.apply_theme_tokens(U_UI_THEME_BUILDER.active_config)
-	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
-	if not (config_resource is RS_UI_THEME_CONFIG):
-		return
-	var config := config_resource as RS_UI_THEME_CONFIG
-	var dim_color := config.bg_base
-	dim_color.a = 0.7
-	background_color = dim_color
-	var overlay_background := get_node_or_null("OverlayBackground") as ColorRect
-	if overlay_background != null:
-		overlay_background.color = dim_color
 
 func _on_resume_pressed() -> void:
 	U_UISoundPlayer.play_confirm()

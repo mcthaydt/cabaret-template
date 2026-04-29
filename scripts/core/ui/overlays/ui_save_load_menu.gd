@@ -721,6 +721,13 @@ func _on_panel_ready() -> void:
 func _setup_builder() -> void:
 	_builder = U_UI_MENU_BUILDER.new(self)
 	_builder.bind_panel(_main_panel, _main_panel_padding, _main_panel_content)
+	_builder.bind_theme_role(self, &"overlay_dim", {"alpha": 0.7, "apply_menu_background": true})
+	_builder.bind_theme_role(get_node_or_null("OverlayBackground") as ColorRect, &"overlay_dim", {"alpha": 0.7})
+	_builder.bind_theme_role(_slot_list_container, &"separation_compact")
+	_builder.bind_theme_role(_mode_label, &"subheading")
+	_builder.bind_theme_role(_spinner_label, &"subheading")
+	_builder.bind_theme_role(_error_label, &"section_header")
+	_builder.bind_theme_role(_error_label, &"danger")
 	_builder.bind_button(_back_button, &"common.back", _on_back_pressed_button, "Back")
 	_builder.build()
 
@@ -764,25 +771,6 @@ func _localize_static_ui() -> void:
 func _apply_theme_tokens() -> void:
 	if _builder != null:
 		_builder.apply_theme_tokens(U_UI_THEME_BUILDER.active_config)
-	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
-	if not (config_resource is RS_UI_THEME_CONFIG):
-		return
-	var config := config_resource as RS_UI_THEME_CONFIG
-	var dim_color := config.bg_base
-	dim_color.a = 0.7
-	background_color = dim_color
-	var overlay_background := get_node_or_null("OverlayBackground") as ColorRect
-	if overlay_background != null:
-		overlay_background.color = dim_color
-	if _slot_list_container != null:
-		_slot_list_container.add_theme_constant_override(&"separation", config.separation_compact)
-	if _mode_label != null:
-		_mode_label.add_theme_font_size_override(&"font_size", config.subheading)
-	if _spinner_label != null:
-		_spinner_label.add_theme_font_size_override(&"font_size", config.subheading)
-	if _error_label != null:
-		_error_label.add_theme_font_size_override(&"font_size", config.section_header)
-		_error_label.add_theme_color_override(&"font_color", config.danger)
 
 func _apply_slot_item_theme(slot_container: HBoxContainer, main_button: Button, delete_button: Button, thumbnail_rect: TextureRect) -> void:
 	if slot_container == null:

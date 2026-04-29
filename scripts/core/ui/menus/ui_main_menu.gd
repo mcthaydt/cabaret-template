@@ -12,7 +12,6 @@ const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_l
 const U_UI_MENU_BUILDER := preload("res://scripts/core/ui/helpers/u_ui_menu_builder.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const U_UI_THEME_DEBUG := preload("res://scripts/core/ui/utils/u_ui_theme_debug.gd")
-const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 const U_DEBUG_SELECTORS := preload("res://scripts/core/state/selectors/u_debug_selectors.gd")
 const U_DEBUG_ACTIONS := preload("res://scripts/core/state/actions/u_debug_actions.gd")
 const CFG_GAME_CONFIG := preload("res://resources/core/cfg_game_config.tres")
@@ -62,6 +61,7 @@ func _setup_menu_builder() -> void:
 	_menu_builder = U_UI_MENU_BUILDER.new(self)
 	_menu_builder.bind_background(_background)
 	_menu_builder.bind_title(_title_label, &"menu.main.title", "Main Menu")
+	_menu_builder.bind_theme_role(_title_label, &"title")
 	_menu_builder.bind_button_group([
 		{"button": _continue_button, "key": &"menu.main.continue", "callback": _on_continue_pressed, "fallback": "Continue"},
 		{"button": _new_game_button, "key": &"menu.main.new_game", "callback": _on_new_game_pressed, "fallback": "New Game"},
@@ -79,15 +79,6 @@ func _setup_menu_builder() -> void:
 func _apply_theme_tokens() -> void:
 	if _menu_builder != null:
 		_menu_builder.apply_theme_tokens(U_UI_THEME_BUILDER.active_config)
-	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
-	if not (config_resource is RS_UI_THEME_CONFIG):
-		_theme_debug_log("apply_theme_tokens skipped: active_config type mismatch")
-		return
-	var config := config_resource as RS_UI_THEME_CONFIG
-	if _background != null:
-		_background.color = config.bg_base
-	if _title_label != null:
-		_title_label.add_theme_font_size_override(&"font_size", config.title)
 
 func _discover_save_manager() -> void:
 	_save_manager = U_ServiceLocator.try_get_service(StringName("save_manager"))

@@ -11,7 +11,6 @@ const U_FOCUS_CONFIGURATOR := preload("res://scripts/core/ui/helpers/u_focus_con
 const U_SETTINGS_TAB_BUILDER := preload("res://scripts/core/ui/helpers/u_settings_tab_builder.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const U_UI_SETTINGS_CATALOG := preload("res://scripts/core/ui/helpers/u_ui_settings_catalog.gd")
-const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 const DEFAULT_LOCALIZATION_INITIAL_STATE: Resource = preload("res://resources/core/base_settings/state/cfg_localization_initial_state.tres")
 
 const SUPPORTED_LOCALES: Array[StringName] = [&"en", &"es", &"pt", &"zh_CN", &"ja"]
@@ -128,13 +127,11 @@ func _setup_builder() -> void:
 		_builder.bind_field_label(_get_dyslexia_label(), &"settings.localization.label.dyslexia_font")
 		_builder.bind_field_control(_get_language_option())
 		_builder.bind_field_control(_get_dyslexia_toggle())
+		_builder.bind_theme_role(self, &"separation_default")
 
 func _apply_theme_tokens() -> void:
 	if _builder != null:
 		_builder.apply_theme_tokens(U_UI_THEME_BUILDER.active_config)
-	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
-	if config_resource is RS_UI_THEME_CONFIG:
-		add_theme_constant_override(&"separation", (config_resource as RS_UI_THEME_CONFIG).separation_default)
 
 func _exit_tree() -> void:
 	_stop_language_confirm_timer()

@@ -96,6 +96,7 @@ func _setup_builder() -> void:
 	_builder.bind_field_label(_profile_label, OVERLAY_PROFILE_LABEL_KEY)
 	_builder.bind_value_label(_header_label, &"")
 	_builder.bind_value_label(_description_label, &"")
+	_builder.bind_theme_role(_header_label, &"subheading")
 	_builder.bind_field_control(_profile_button)
 	_builder.bind_action_button(_cancel_button, &"common.cancel", _on_cancel_pressed, "Cancel")
 	_builder.bind_action_button(_reset_button, OVERLAY_RESET_BUTTON_KEY, _on_reset_pressed, "Reset to Defaults")
@@ -371,15 +372,7 @@ func _localize_static_labels() -> void:
 func _apply_theme_tokens() -> void:
 	if _builder != null:
 		_builder.apply_theme_tokens(U_UI_THEME_BUILDER.active_config)
-
-	_theme_config = null
-	var config_resource: Resource = U_UI_THEME_BUILDER.active_config
-	if not (config_resource is RS_UI_THEME_CONFIG):
-		return
-	var config := config_resource as RS_UI_THEME_CONFIG
-	_theme_config = config
-	if _header_label != null:
-		_header_label.add_theme_font_size_override(&"font_size", config.subheading)
+	_theme_config = U_UI_THEME_BUILDER.active_config as RS_UI_THEME_CONFIG
 
 func _transition_back_to_settings_scene() -> void:
 	var store := get_store()
