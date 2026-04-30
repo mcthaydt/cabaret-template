@@ -391,11 +391,11 @@ func test_uses_default_settings_when_component_settings_null() -> void:
 	component.fade_normal = Vector3(0.0, 0.0, -1.0)
 	component.current_alpha = 1.0
 
-	# Default fade_speed=4.0, fade_dot_threshold=0.3. Camera -Z, wall normal -Z → dot≈1.0 > 0.3 → fade
-	# fade_amount increases by 4.0 * 0.1 = 0.4, current_alpha = 1.0 - 0.4 = 0.6
+	# Default fade_speed=6.0, fade_dot_threshold=0.3. Camera -Z, wall normal -Z → dot≈1.0 > 0.3 → fade
+	# fade_amount increases by 6.0 * 0.1 = 0.6, current_alpha = 1.0 - 0.6 = 0.4
 	system.process_tick(0.1)
-	assert_almost_eq(component.current_alpha, 0.6, 0.0001,
-		"Should use default settings (fade_speed=4.0).")
+	assert_almost_eq(component.current_alpha, 0.4, 0.0001,
+		"Should use default settings (fade_speed=6.0).")
 
 
 # --- Fixture helpers ---

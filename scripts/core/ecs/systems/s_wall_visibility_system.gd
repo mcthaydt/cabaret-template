@@ -222,7 +222,7 @@ func _process_component_fade(component: Object, targets: Array, tick_data: Dicti
 		1.0
 	)
 	var fade_speed: float = maxf(
-		float(settings.get("fade_speed", wall_config.get("fade_speed", 4.0))),
+		float(settings.get("fade_speed", wall_config.get("fade_speed", 6.0))),
 		0.0
 	)
 	var min_alpha: float = clampf(
@@ -971,11 +971,11 @@ func _resolve_player_position_data_from_state(state: Dictionary) -> Dictionary:
 func _resolve_wall_visibility_config_values() -> Dictionary:
 	var default_values := {
 		"fade_dot_threshold": 0.3,
-		"fade_speed": 4.0,
-		"min_alpha": 0.05,
+		"fade_speed": 6.0,
+		"min_alpha": 0.0,
 		"clip_height_offset": 1.5,
 		"room_aabb_margin": 2.0,
-		"corridor_occlusion_margin": 2.0,
+		"corridor_occlusion_margin": 3.0,
 		"invalidate_interval": 30,
 		"mobile_tick_interval": 4,
 		"roof_normal_dot_min": 0.9,
