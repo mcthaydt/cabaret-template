@@ -54,7 +54,7 @@ func test_audio_settings_overlay_keeps_panel_vertically_centered_after_enter() -
 		"Audio wrapper should animate panel target instead of center container"
 	)
 
-	await _pump_frames(60)
+	await _wait_for_enter_motion_to_complete(overlay)
 
 	var panel := overlay.get_node_or_null("CenterContainer/Panel") as PanelContainer
 	assert_not_null(panel, "Audio wrapper panel should exist")
@@ -87,7 +87,7 @@ func test_display_settings_overlay_keeps_panel_vertically_centered_after_enter()
 		"Display wrapper should animate panel target instead of center container"
 	)
 
-	await _pump_frames(60)
+	await _wait_for_enter_motion_to_complete(overlay)
 
 	var panel := overlay.get_node_or_null("CenterContainer/Panel") as PanelContainer
 	assert_not_null(panel, "Display wrapper panel should exist")
@@ -120,7 +120,7 @@ func test_localization_settings_overlay_keeps_panel_vertically_centered_after_en
 		"Localization wrapper should animate panel target instead of center container"
 	)
 
-	await _pump_frames(60)
+	await _wait_for_enter_motion_to_complete(overlay)
 
 	var panel := overlay.get_node_or_null("CenterContainer/Panel") as PanelContainer
 	assert_not_null(panel, "Localization wrapper panel should exist")
@@ -152,7 +152,7 @@ func test_vfx_settings_overlay_keeps_panel_vertically_centered_after_enter() -> 
 		"VFX wrapper should animate panel target instead of center container"
 	)
 
-	await _pump_frames(60)
+	await _wait_for_enter_motion_to_complete(overlay)
 
 	var panel := overlay.get_node_or_null("CenterContainer/Panel") as PanelContainer
 	assert_not_null(panel, "VFX wrapper panel should exist")
@@ -179,6 +179,33 @@ func _spawn_overlay_with_theme(scene: PackedScene) -> Control:
 	add_child_autofree(overlay)
 	await _pump_frames(2)
 	return overlay
+
+
+func _wait_for_enter_motion_to_complete(overlay: Control) -> void:
+	var duration := _get_enter_motion_duration(overlay)
+	if duration > 0.0:
+		await wait_seconds(duration + 0.05)
+	await _pump_frames(2)
+
+
+func _get_enter_motion_duration(overlay: Control) -> float:
+	if overlay == null:
+		return 0.0
+
+	var motion_set: Variant = overlay.get("motion_set")
+	if motion_set == null or not ("enter" in motion_set):
+		return 0.0
+
+	var longest := 0.0
+	var enter_presets: Array = motion_set.enter
+	for preset: Resource in enter_presets:
+		if preset == null:
+			continue
+		var duration := float(preset.get("duration_sec"))
+		var delay := float(preset.get("delay_sec"))
+		var interval := float(preset.get("interval_sec"))
+		longest = maxf(longest, duration + delay + interval)
+	return longest
 
 
 func _assert_wrapper_theme_and_motion(
