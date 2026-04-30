@@ -52,19 +52,19 @@ script = ExtResource("2_ph0bl")
 
 [node name="SO_Floor" type="CSGBox3D" parent="SceneObjects" unique_id=16870775]
 use_collision = true
-size = Vector3(5, 0.2, 5)
+size = Vector3(5, 0.01, 5)
 material = SubResource("StandardMaterial3D_grid")
 
 [node name="SO_Ceiling" type="CSGBox3D" parent="SceneObjects" unique_id=200000001]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
 use_collision = true
-size = Vector3(5, 0.2, 5)
+size = Vector3(5, 0.01, 5)
 material = SubResource("StandardMaterial3D_grid")
 
 [node name="SO_Wall_West" type="CSGBox3D" parent="SceneObjects" unique_id=210348679]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 2.5, 0)
 use_collision = true
-size = Vector3(0.2, 5, 5)
+size = Vector3(0.01, 5, 5)
 material = SubResource("StandardMaterial3D_grid")
 script = ExtResource("29_base_ecs_entity")
 entity_id = &"wall_west"
@@ -78,7 +78,7 @@ fade_normal = Vector3(-1, 0, 0)
 [node name="SO_Wall_East" type="CSGBox3D" parent="SceneObjects" unique_id=215245920]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 2.5, 0)
 use_collision = true
-size = Vector3(0.2, 5, 5)
+size = Vector3(0.01, 5, 5)
 material = SubResource("StandardMaterial3D_grid")
 script = ExtResource("29_base_ecs_entity")
 entity_id = &"wall_east"
@@ -92,7 +92,7 @@ fade_normal = Vector3(1, 0, 0)
 [node name="SO_Wall_North" type="CSGBox3D" parent="SceneObjects" unique_id=1982655511]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, -2.5)
 use_collision = true
-size = Vector3(5, 5, 0.2)
+size = Vector3(5, 5, 0.01)
 material = SubResource("StandardMaterial3D_grid")
 script = ExtResource("29_base_ecs_entity")
 entity_id = &"wall_north"
@@ -106,7 +106,7 @@ fade_normal = Vector3(0, 0, -1)
 [node name="SO_Wall_South" type="CSGBox3D" parent="SceneObjects" unique_id=210000002]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 2.5)
 use_collision = true
-size = Vector3(5, 5, 0.2)
+size = Vector3(5, 5, 0.01)
 material = SubResource("StandardMaterial3D_grid")
 script = ExtResource("29_base_ecs_entity")
 entity_id = &"wall_south"

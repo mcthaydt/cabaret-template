@@ -1,6 +1,11 @@
 class_name U_EditorBlockoutBuilder
 extends RefCounted
 
+const THIN_THICKNESS := 0.01
+const ROOM_WIDTH := 5.0
+const ROOM_HEIGHT := 5.0
+const ROOM_DEPTH := 5.0
+
 var _root: Node3D = null
 
 func create_root(node_name: String) -> U_EditorBlockoutBuilder:

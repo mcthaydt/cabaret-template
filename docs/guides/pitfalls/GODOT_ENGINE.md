@@ -4,6 +4,10 @@ Engine-level quirks and platform-specific gotchas for Godot 4.6.
 
 ---
 
+## Template Scene Authoring
+
+- **Always edit builder scripts for geometry/material changes, not `.tscn` files directly**: `tmpl_base_scene.tscn` geometry (walls, floor, ceiling) must be modified through builder scripts (`U_EditorBlockoutBuilder`) that regenerate the `.tscn`, not by hand-editing the `.tscn` file. Hand-editing scene geometry leads to drift between the builder's intent and the serialized output, and changes will be lost on the next build-script run.
+
 ## Godot Scene UIDs
 
 - **Never manually specify UIDs in .tscn files**: When creating scene files programmatically or via text editing, do NOT include `uid://` lines in the scene file. Godot automatically generates and manages UIDs when you save scenes in the editor. Manually-specified UIDs will cause "Unrecognized UID" errors because Godot's UID registry doesn't know about them. **Solution**: Let Godot generate UIDs by either:
