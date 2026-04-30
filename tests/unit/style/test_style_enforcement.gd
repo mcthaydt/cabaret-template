@@ -143,15 +143,7 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/core": ["u_"],
 	"res://scripts/core/interfaces": ["i_"],
 	"res://scripts/core/managers": ["m_"],
-	"res://scripts/demo/ecs/components": ["c_"],
-	"res://scripts/demo/ecs/systems": ["s_"],
 	"res://scripts/demo/gameplay": ["inter_", "s_"],
-	"res://scripts/demo/debug": ["debug_"],
-	"res://scripts/demo/debug/utils": ["u_"],
-	"res://scripts/demo/resources/ai/actions": ["rs_"],
-	"res://scripts/demo/resources/ai/world": ["rs_"],
-	"res://scripts/demo/resources/lighting": ["rs_"], # Demo lighting resources
-	"res://scripts/demo/utils/ai": ["u_"],
 	"res://scripts/core/utils": ["u_"],
 	"res://scripts/core/input": ["u_", "i_"],
 	"res://scripts/core/input/sources": [""], # Wildcard: validated by suffix rule (see test_input_source_scripts_follow_suffix_rule)
@@ -340,21 +332,15 @@ func test_scenes_follow_naming_conventions() -> void:
 
 	# Check core gameplay scenes
 	_check_scene_directory("res://scenes/core/gameplay", "gameplay_", violations)
-	# Check demo gameplay scenes
-	_check_scene_directory("res://scenes/demo/gameplay", "gameplay_", violations)
 
 	# Check core UI scenes
 	_check_scene_directory("res://scenes/core/ui", "ui_", violations)
 
 	# Check core prefab scenes
 	_check_scene_directory("res://scenes/core/prefabs", "prefab_", violations)
-	# Check demo prefab scenes
-	_check_scene_directory("res://scenes/demo/prefabs", "prefab_", violations)
 
 	# Check core debug scenes
 	_check_scene_directory("res://scenes/core/debug", "debug_", violations)
-	# Check demo debug scenes
-	_check_scene_directory("res://scenes/demo/debug", "debug_", violations)
 
 	var message := "Scene files must follow documented naming patterns"
 	if violations.size() > 0:
@@ -632,11 +618,7 @@ func test_ai_move_target_magic_strings_not_used_in_ai_scripts() -> void:
 func test_ai_action_scripts_use_task_state_key_constants() -> void:
 	var violations: Array[String] = []
 	_collect_gd_literal_occurrences("res://scripts/core/resources/ai/actions", "task_state[\"", violations)
-	_collect_gd_literal_occurrences("res://scripts/demo/resources/ai/actions", "task_state[\"", violations)
 	_collect_gd_literal_occurrences("res://scripts/core/utils/ai", "task_state[\"", violations)
-	_collect_gd_literal_occurrences("res://scripts/demo/utils/ai", "task_state[\"", violations)
-	_collect_gd_literal_occurrences("res://scripts/demo/ecs/systems/s_ai_behavior_system.gd", "task_state[\"", violations)
-	_collect_gd_literal_occurrences("res://scripts/demo/ecs/systems/s_move_target_follower_system.gd", "task_state[\"", violations)
 
 	var message := "AI scripts should not use bare string keys for task_state access"
 	if violations.size() > 0:
@@ -778,63 +760,6 @@ func test_ecs_system_filenames_do_not_include_demo_marker() -> void:
 		message += ":\n" + "\n".join(violations)
 	assert_eq(violations.size(), 0, message)
 
-func test_ai_behavior_system_has_no_local_duck_typing_helpers() -> void:
-	var behavior_system_path := "res://scripts/demo/ecs/systems/s_ai_behavior_system.gd"
-	var forbidden_helpers: Array[String] = [
-		"_read_object_property",
-		"_read_int_property",
-		"_read_bool_property",
-		"_read_float_property",
-		"_variant_to_string_name",
-	]
-	var violations: Array[String] = []
-	var file := FileAccess.open(behavior_system_path, FileAccess.READ)
-	assert_not_null(file, "Unable to open %s" % behavior_system_path)
-	if file == null:
-		return
-	var file_text: String = file.get_as_text()
-	file.close()
-	for helper_name in forbidden_helpers:
-		if file_text.find("func %s(" % helper_name) != -1:
-			violations.append("%s defines %s" % [behavior_system_path, helper_name])
-
-	var message := "S_AIBehaviorSystem should not define AI-local duck-typing helper functions"
-	if violations.size() > 0:
-		message += ":\n" + "\n".join(violations)
-	assert_eq(violations.size(), 0, message)
-
-func test_ai_behavior_system_stays_under_two_hundred_lines() -> void:
-	var behavior_system_path := "res://scripts/demo/ecs/systems/s_ai_behavior_system.gd"
-	var file := FileAccess.open(behavior_system_path, FileAccess.READ)
-	assert_not_null(file, "Unable to open %s" % behavior_system_path)
-	if file == null:
-		return
-	var line_count: int = 0
-	while not file.eof_reached():
-		file.get_line()
-		line_count += 1
-	file.close()
-
-	assert_lte(
-		line_count,
-		199,
-		"S_AIBehaviorSystem should stay below 200 lines for orchestration-only scope (current=%d)." % line_count
-	)
-
-func test_ai_behavior_system_has_no_bare_print_calls() -> void:
-	var behavior_system_path := "res://scripts/demo/ecs/systems/s_ai_behavior_system.gd"
-	var file := FileAccess.open(behavior_system_path, FileAccess.READ)
-	assert_not_null(file, "Unable to open %s" % behavior_system_path)
-	if file == null:
-		return
-	var text: String = file.get_as_text()
-	file.close()
-
-	assert_false(
-		text.find("print(") != -1,
-		"s_ai_behavior_system.gd must not contain bare print() calls; route through U_DebugLogThrottle.log_message()"
-	)
-
 func test_save_manager_has_no_bare_print_calls() -> void:
 	var save_manager_path := "res://scripts/core/managers/m_save_manager.gd"
 	var file := FileAccess.open(save_manager_path, FileAccess.READ)
@@ -961,12 +886,6 @@ func test_gravity_system_has_no_bare_print_calls() -> void:
 		"s_gravity_system.gd must not contain bare print() calls; route debug output through print_verbose()/shared debug helpers"
 	)
 
-func test_detection_system_has_no_direct_print_calls() -> void:
-	_assert_file_has_no_direct_print_calls(
-		"res://scripts/demo/ecs/systems/s_ai_detection_system.gd",
-		"s_ai_detection_system.gd"
-	)
-
 func test_floating_system_has_no_direct_print_calls() -> void:
 	_assert_file_has_no_direct_print_calls(
 		"res://scripts/core/ecs/systems/s_floating_system.gd",
@@ -977,12 +896,6 @@ func test_input_system_has_no_direct_print_calls() -> void:
 	_assert_file_has_no_direct_print_calls(
 		"res://scripts/core/ecs/systems/s_input_system.gd",
 		"s_input_system.gd"
-	)
-
-func test_move_target_follower_system_has_no_direct_print_calls() -> void:
-	_assert_file_has_no_direct_print_calls(
-		"res://scripts/demo/ecs/systems/s_move_target_follower_system.gd",
-		"s_move_target_follower_system.gd"
 	)
 
 func test_movement_system_has_no_direct_print_calls() -> void:
@@ -1198,19 +1111,13 @@ func test_migrated_files_do_not_duplicate_dependency_resolution_pattern() -> voi
 		"res://scripts/core/ecs/systems/s_camera_state_system.gd",
 		"res://scripts/core/ecs/systems/s_character_state_system.gd",
 		"res://scripts/core/ecs/systems/s_game_event_system.gd",
-		"res://scripts/demo/ecs/systems/s_ai_detection_system.gd",
-		"res://scripts/demo/ecs/systems/s_ai_behavior_system.gd",
 		"res://scripts/core/ecs/systems/s_wall_visibility_system.gd",
 		"res://scripts/core/ecs/systems/s_region_visibility_system.gd",
-		"res://scripts/demo/gameplay/s_demo_alarm_relay_system.gd",
 		"res://scripts/core/managers/m_vcam_manager.gd",
 		"res://scripts/core/managers/m_character_lighting_manager.gd",
 		"res://scripts/core/managers/m_run_coordinator_manager.gd",
 		"res://scripts/core/gameplay/inter_victory_zone.gd",
-		"res://scripts/demo/gameplay/inter_ai_demo_guard_barrier.gd",
 		"res://scripts/core/ecs/systems/helpers/u_vcam_runtime_services.gd",
-		"res://scripts/demo/gameplay/inter_character_light_zone.gd",
-		"res://scripts/demo/gameplay/inter_ai_demo_flag_zone.gd",
 		"res://scripts/core/ecs/base_event_sfx_system.gd",
 		"res://scripts/core/ui/menus/ui_splash_screen.gd",
 		"res://scripts/core/ui/hud/ui_virtual_button.gd",
@@ -1255,7 +1162,6 @@ func test_ecs_systems_do_not_define_local_get_frame_state_snapshot() -> void:
 		"res://scripts/core/ecs/systems/s_character_state_system.gd",
 		"res://scripts/core/ecs/systems/s_vcam_system.gd",
 		"res://scripts/core/ecs/systems/s_wall_visibility_system.gd",
-		"res://scripts/demo/ecs/systems/s_ai_behavior_system.gd",
 	]
 	var forbidden_pattern: String = "func _get_frame_state_snapshot"
 	var snapshot_violations: Array[String] = []

@@ -62,7 +62,7 @@ script files as **keep** or **delete** for Phase 5.
 | `scenes/core/ui/hud/ui_mobile_controls.tscn` | Mobile touch controls |
 | `scenes/core/ui/hud/ui_button_prompt.tscn` | Button prompt widget |
 
-## Keep — Core UI Overlays (19)
+## Keep — Core UI Overlays (16)
 
 | File | Purpose |
 |---|---|
@@ -73,18 +73,15 @@ script files as **keep** or **delete** for Phase 5.
 | `scenes/core/ui/overlays/ui_edit_touch_controls_overlay.tscn` | Touch control editor |
 | `scenes/core/ui/overlays/ui_input_profile_selector.tscn` | Input profile selector |
 | `scenes/core/ui/overlays/ui_keyboard_mouse_settings_overlay.tscn` | Keyboard/mouse settings |
+| `scenes/core/ui/overlays/ui_post_process_overlay.tscn` | Post-process settings overlay |
+| `scenes/core/ui/overlays/ui_damage_flash_overlay.tscn` | Damage flash feedback overlay |
 | `scenes/core/ui/overlays/settings/ui_audio_settings_overlay.tscn` | Audio settings |
+| `scenes/core/ui/overlays/settings/ui_audio_settings_tab.tscn` | Audio settings tab |
 | `scenes/core/ui/overlays/settings/ui_display_settings_overlay.tscn` | Display settings |
+| `scenes/core/ui/overlays/settings/ui_display_settings_tab.tscn` | Display settings tab |
 | `scenes/core/ui/overlays/settings/ui_localization_settings_overlay.tscn` | Localization settings |
+| `scenes/core/ui/overlays/settings/ui_localization_settings_tab.tscn` | Localization settings tab |
 | `scenes/core/ui/overlays/settings/ui_vfx_settings_overlay.tscn` | VFX settings |
-| `scenes/core/ui/overlays/settings/ui_accessibility_settings_overlay.tscn` | Accessibility settings |
-| `scenes/core/ui/overlays/settings/ui_gameplay_settings_overlay.tscn` | Gameplay settings |
-| `scenes/core/ui/overlays/settings/ui_screen_reader_settings_overlay.tscn` | Screen reader settings |
-| `scenes/core/ui/overlays/settings/ui_shader_settings_overlay.tscn` | Shader settings |
-| `scenes/core/ui/overlays/settings/ui_subtitle_settings_overlay.tscn` | Subtitle settings |
-| `scenes/core/ui/overlays/settings/ui_ui_scale_settings_overlay.tscn` | UI scale settings |
-| `scenes/core/ui/overlays/settings/ui_vibration_settings_overlay.tscn` | Vibration settings |
-| `scenes/core/ui/overlays/settings/ui_volume_settings_overlay.tscn` | Volume settings |
 
 ## Keep — Core UI Widgets (3)
 
@@ -136,7 +133,6 @@ script files as **keep** or **delete** for Phase 5.
 | `scenes/demo/prefabs/prefab_woods_rabbit.tscn` | Served deleted ai_woods scene |
 | `scenes/demo/prefabs/prefab_woods_construction_site.tscn` | Served deleted ai_woods scene |
 | `scenes/demo/prefabs/prefab_bar.tscn` | Served deleted bar scene |
-| `scenes/demo/prefabs/prefab_alleyway.tscn` | Served deleted alleyway scene |
 
 ## Delete — Demo Debug (3)
 
@@ -204,7 +200,7 @@ Also delete their `.uid` files.
 
 | Classification | Count |
 |---|---|
-| Keep (core scenes) | ~52 `.tscn` |
+| Keep (core scenes) | 50 `.tscn` |
 | Keep (demo — new) | 1 `.tscn` + 1 builder `.gd` |
 | Delete (demo scenes) | 24 `.tscn` |
 | Delete (demo builder scripts) | 21 `.gd` + 21 `.uid` |
