@@ -24,6 +24,7 @@ script = ExtResource("9_rule_of_thirds_preview")
 
 [node name="C_CameraStateComponent" type="Node" parent="Components" unique_id=1323051184]
 script = ExtResource("2_camera_state")
+base_fov = 39.5978
 
 [node name="C_VCamComponent" type="Node" parent="Components" unique_id=1905097927]
 script = ExtResource("3_vcam_component")
