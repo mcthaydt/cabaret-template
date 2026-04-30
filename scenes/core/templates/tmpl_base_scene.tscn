@@ -29,7 +29,6 @@
 [ext_resource type="Script" uid="uid://bxuh4wr37jbss" path="res://scripts/core/scene_structure/marker_spawn_points_group.gd" id="21_spawnpoints"]
 [ext_resource type="Script" uid="uid://2teehl7y7n7w" path="res://scripts/core/ecs/systems/s_gamepad_vibration_system.gd" id="22_gamepad_vibration"]
 [ext_resource type="Script" uid="uid://cas8xr0c0ly7b" path="res://scripts/core/ecs/systems/s_vcam_system.gd" id="23_vcam_system"]
-
 [ext_resource type="Script" uid="uid://dmpersmvlqd8v" path="res://scripts/core/ecs/components/c_room_fade_group_component.gd" id="26_room_fade_group_component"]
 [ext_resource type="Script" uid="uid://cev2jaqejfcyx" path="res://scripts/core/ecs/systems/s_wall_visibility_system.gd" id="27_wall_visibility_system"]
 [ext_resource type="Script" uid="uid://b2huwk7mlhlvv" path="res://scripts/core/ecs/systems/s_spawn_recovery_system.gd" id="28_ai_spawn_recovery_system"]
