@@ -37,7 +37,7 @@
 [ext_resource type="Texture2D" uid="uid://bsfq5ykk8yynq" path="res://assets/core/textures/prototype_grids/tex_texture_01.png" id="31_grid_texture"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_grid"]
-shading_mode = 2
+shading_mode = 0
 albedo_texture = ExtResource("31_grid_texture")
 
 [sub_resource type="Environment" id="Environment_black"]
