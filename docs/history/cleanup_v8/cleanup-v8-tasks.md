@@ -1444,38 +1444,38 @@ resources/
 
 ## Milestone P5.1: Scene Inventory
 
-- [ ] **Commit 1** — `docs/history/cleanup_v8/phase5-scene-inventory.md`: list every `.tscn` with one-line purpose, classify as **keep (base/template)**, **keep (core prefab/debug)**, **keep (demo)**, or **delete (temp/fake)**. Note that `scenes/core/templates/tmpl_base_scene.tscn` is the base; no new base scene is needed.
-- [ ] **Commit 2** — Add a scene-inventory consistency test that compares the `scenes/` tree to the inventory keep/delete classifications. The first test may be RED if temp/fake scenes still exist.
+- [x] **Commit 1** — `docs/history/cleanup_v8/phase5-scene-inventory.md`: list every `.tscn` with one-line purpose, classify as **keep (base/template)**, **keep (core prefab/debug)**, **keep (demo)**, or **delete (temp/fake)**. Note that `scenes/core/templates/tmpl_base_scene.tscn` is the base; no new base scene is needed.
+- [x] **Commit 2** — Add a scene-inventory consistency test that compares the `scenes/` tree to the inventory keep/delete classifications. The first test may be RED if temp/fake scenes still exist.
 
 ## Milestone P5.2: Canonical Base Scene
 
-- [ ] **Commit 1** (RED) — Integration test: `scenes/core/templates/tmpl_base_scene.tscn` loads without errors, provides the canonical gameplay node groups, owns only scene-local managers/systems, and exits cleanly without leaks.
-- [ ] **Commit 2** (GREEN) — Extend/refactor existing `scenes/core/templates/tmpl_base_scene.tscn` to match the base-scene contract: managers node tree, empty world node, camera rig, scene object/environment containers, spawn point container, and no demo-specific content. No new base scene file is created.
-- [ ] **Commit 3** (GREEN) — Add or update an editor script that can rebuild or validate the canonical base/template structure from builder-backed primitives where practical.
+- [x] **Commit 1** (RED) — Integration test: `scenes/core/templates/tmpl_base_scene.tscn` loads without errors, provides the canonical gameplay node groups, owns only scene-local managers/systems, and exits cleanly without leaks.
+- [x] **Commit 2** (GREEN) — Extend/refactor existing `scenes/core/templates/tmpl_base_scene.tscn` to match the base-scene contract: managers node tree, empty world node, camera rig, scene object/environment containers, spawn point container, and no demo-specific content. No new base scene file is created.
+- [x] **Commit 3** (GREEN) — Add or update an editor script that can rebuild or validate the canonical base/template structure from builder-backed primitives where practical. *(Skipped — base scene changes were straightforward and needed no separate validator.)*
 
 ## Milestone P5.3: Builder-Backed Demo Entry Rebuild
 
-- [ ] **Commit 1** (RED) — Demo-entry smoke test: the registry's primary demo path loads from the canonical base/template pattern, has a valid `sp_default`, has a camera, and contains no fake/temp scene dependencies.
-- [ ] **Commit 2+** (GREEN) — Use `U_EditorBlockoutBuilder` to rebuild real demo entry scenes on top of the canonical base/template pattern. The first pass should establish the 2.5D visual target with blockout geometry and placeholder sprite-oriented character placement, not the full runtime pivot.
-- [ ] **Commit 3** (GREEN) — Rewire scene registry/default startup paths to the rebuilt demo entry and document any remaining non-entry demo scenes that stay as examples.
+- [x] **Commit 1** (RED) — Demo-entry smoke test: the registry's primary demo path loads from the canonical base/template pattern, has a valid `sp_default`, has a camera, and contains no fake/temp scene dependencies.
+- [x] **Commit 2+** (GREEN) — Use `U_EditorBlockoutBuilder` to rebuild real demo entry scenes on top of the canonical base/template pattern. The first pass should establish the 2.5D visual target with blockout geometry and placeholder sprite-oriented character placement, not the full runtime pivot.
+- [x] **Commit 3** (GREEN) — Rewire scene registry/default startup paths to the rebuilt demo entry and document any remaining non-entry demo scenes that stay as examples.
 
 ## Milestone P5.4: Prefab Normalization
 
-- [ ] **Commit 1+** — Use `U_EditorPrefabBuilder` for any prefab normalization uncovered by the scene inventory or demo-entry rebuild. Keep prefab changes scoped to scene cleanup and existing behavior parity.
-- [ ] **Commit 2** — Add builder smoke tests for any new or changed scene/prefab builder scripts.
+- [x] **Commit 1+** — Use `U_EditorPrefabBuilder` for any prefab normalization uncovered by the scene inventory or demo-entry rebuild. Keep prefab changes scoped to scene cleanup and existing behavior parity. *(No-op — core prefabs already 2.5D-compliant.)*
+- [x] **Commit 2** — Add builder smoke tests for any new or changed scene/prefab builder scripts.
 
 ## Milestone P5.5: Temp/Fake Scene Deletion
 
-- [ ] **Commit 1** — Delete every scene classified **delete (temp/fake)** after the inventory, demo-entry rebuild, registry checks, and boot tests pass. Keep the removal atomic and revertable.
+- [x] **Commit 1** — Delete every scene classified **delete (temp/fake)** after the inventory, demo-entry rebuild, registry checks, and boot tests pass. Keep the removal atomic and revertable.
 
 **P5 Verification**:
-- [ ] Base scene test green against `scenes/core/templates/tmpl_base_scene.tscn`.
-- [ ] Rebuilt demo entry boots from the canonical base/template pattern.
-- [ ] Scene inventory consistency test green; `scenes/` tree matches the inventory keep/delete classifications.
-- [ ] Builder smoke tests green for any new or changed editor builder scripts.
-- [ ] Style/doc-structure guard green after docs-structure, scene naming, script/resource naming, or scene-structure changes.
-- [ ] `docs/systems/2_5d/2_5d-template-pivot-plan.md` remains a future runtime plan and does not claim Phase 5 implements directional sprite, camera, dialogue, cutscene, or encounter systems.
-- [ ] No orphaned `.tscn` files. `scenes/` tree matches the inventory's "keep" set exactly.
+- [x] Base scene test green against `scenes/core/templates/tmpl_base_scene.tscn`.
+- [x] Rebuilt demo entry boots from the canonical base/template pattern.
+- [x] Scene inventory consistency test green; `scenes/` tree matches the inventory keep/delete classifications.
+- [x] Builder smoke tests green for any new or changed editor builder scripts.
+- [x] Style/doc-structure guard green after docs-structure, scene naming, script/resource naming, or scene-structure changes.
+- [x] `docs/systems/2_5d/2_5d-template-pivot-plan.md` remains a future runtime plan and does not claim Phase 5 implements directional sprite, camera, dialogue, cutscene, or encounter systems.
+- [x] No orphaned `.tscn` files. `scenes/` tree matches the inventory's "keep" set exactly.
 
 ---
 
