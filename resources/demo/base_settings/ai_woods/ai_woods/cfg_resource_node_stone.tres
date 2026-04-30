@@ -1,10 +1,3 @@
-[gd_resource type="Resource" script_class="RS_ResourceNodeSettings" format=3 uid="uid://77gej7er2umc"]
-
-[ext_resource type="Script" uid="uid://tcqaoefvajx2" path="res://scripts/demo/resources/ai/world/rs_resource_node_settings.gd" id="1_0"]
+[gd_resource type="Resource" format=3 uid="uid://77gej7er2umc"]
 
 [resource]
-script = ExtResource("1_0")
-resource_type = &"stone"
-initial_amount = 3
-regrow_seconds = 60.0
-harvest_tag = &"harvest_stone"

@@ -1,9 +1,11 @@
 [gd_resource type="Resource" script_class="RS_AIBrainScriptSettings" format=3 uid="uid://wt0i5xl6q7b4"]
 
 [ext_resource type="Script" uid="uid://cx16snmfm7di" path="res://scripts/core/resources/ai/brain/rs_ai_brain_script_settings.gd" id="1_script_settings"]
-[ext_resource type="Script" uid="uid://cjf20aowulq45" path="res://scripts/demo/ai/trees/guide_prism_behavior.gd" id="2_builder"]
+
+[sub_resource type="Resource" id="Resource_3nxfb"]
+metadata/__load_path__ = "res://scripts/demo/ai/trees/guide_prism_behavior.gd"
 
 [resource]
 script = ExtResource("1_script_settings")
-builder_script = ExtResource("2_builder")
+builder_script = SubResource("Resource_3nxfb")
 evaluation_interval = 0.2
