@@ -14,19 +14,8 @@ const END_GAME := U_SceneRegistry.SceneType.END_GAME
 func build() -> Dictionary:
 	var builder := BUILDER_SCRIPT.new()
 
-	# Core gameplay
-	builder.register(&"gameplay_base", "res://scenes/core/gameplay/gameplay_base.tscn").with_type(GAMEPLAY).with_transition("loading").with_preload(8)
-
-	# Demo gameplay scenes
-	builder.register(&"alleyway", "res://scenes/demo/gameplay/gameplay_alleyway.tscn").with_type(GAMEPLAY).with_preload(6)
-	builder.register(&"interior_house", "res://scenes/demo/gameplay/gameplay_interior_house.tscn").with_type(GAMEPLAY).with_preload(6)
-	builder.register(&"interior_a", "res://scenes/demo/gameplay/gameplay_interior_a.tscn").with_type(GAMEPLAY).with_preload(6)
-	builder.register(&"bar", "res://scenes/demo/gameplay/gameplay_bar.tscn").with_type(GAMEPLAY).with_preload(6)
-	builder.register(&"power_core", "res://scenes/demo/gameplay/gameplay_power_core.tscn").with_type(GAMEPLAY).with_transition("loading").with_preload(7)
-	builder.register(&"comms_array", "res://scenes/demo/gameplay/gameplay_comms_array.tscn").with_type(GAMEPLAY).with_transition("loading").with_preload(6)
-	builder.register(&"nav_nexus", "res://scenes/demo/gameplay/gameplay_nav_nexus.tscn").with_type(GAMEPLAY).with_transition("loading").with_preload(6)
-	builder.register(&"ai_showcase", "res://scenes/demo/gameplay/gameplay_ai_showcase.tscn").with_type(GAMEPLAY).with_transition("loading").with_preload(8)
-	builder.register(&"ai_woods", "res://scenes/demo/gameplay/gameplay_ai_woods.tscn").with_type(GAMEPLAY).with_transition("loading").with_preload(8)
+	# Demo gameplay scene
+	builder.register(&"demo_room", "res://scenes/demo/gameplay/gameplay_demo_room.tscn").with_type(GAMEPLAY).with_transition("loading").with_preload(8)
 
 	# Core UI overlays
 	builder.register(&"gamepad_settings", "res://scenes/core/ui/overlays/ui_gamepad_settings_overlay.tscn").with_type(UI).with_transition("instant").with_preload(5)

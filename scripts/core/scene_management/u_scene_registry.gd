@@ -186,32 +186,8 @@ static func _backfill_default_gameplay_scenes() -> void:
 
 ## Register door pairings for seamless area transitions
 static func _register_door_pairings() -> void:
-	# Alleyway → Interior Bar
-	_register_door_exit(
-		StringName("alleyway"),
-		StringName("door_to_bar"),
-		StringName("bar"),
-		StringName("sp_entrance_from_alleyway"),
-		"fade"
-	)
-
-	# Interior Bar → Alleyway
-	_register_door_exit(
-		StringName("bar"),
-		StringName("door_to_exterior"),
-		StringName("alleyway"),
-		StringName("sp_exit_from_bar"),
-		"fade"
-	)
-
-	# Interior House → Alleyway (kept for backward compatibility)
-	_register_door_exit(
-		StringName("interior_house"),
-		StringName("door_to_exterior"),
-		StringName("alleyway"),
-		StringName("sp_exit_from_house"),
-		"fade"
-	)
+	# No door pairings — single-room demo entry has no exits.
+	pass
 
 ## Register a single scene
 static func _register_scene(
