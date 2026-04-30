@@ -143,6 +143,59 @@ func test_add_world_environment_adds_environment() -> void:
 	if root is Node:
 		(root as Node).free()
 
+func test_add_csg_box_at_adds_box_at_position() -> void:
+	var builder: Object = _new_builder()
+	if builder == null:
+		return
+	builder.call("create_root", "TestBlockout")
+	builder.call("add_csg_box_at", "Wall", Vector3(0.2, 5, 5), Vector3(-2.5, 2.5, 0))
+	var root: Variant = builder.call("build")
+	assert_not_null(root, "build must return root")
+	var box: Node = (root as Node).get_node_or_null("Wall")
+	assert_not_null(box, "add_csg_box_at must add child named Wall")
+	assert_true(box is CSGBox3D, "Added child must be CSGBox3D")
+	assert_eq((box as CSGBox3D).size, Vector3(0.2, 5, 5), "add_csg_box_at must set size")
+	assert_eq((box as CSGBox3D).position, Vector3(-2.5, 2.5, 0), "add_csg_box_at must set position")
+	if root is Node:
+		(root as Node).free()
+
+func test_set_position_moves_node() -> void:
+	var builder: Object = _new_builder()
+	if builder == null:
+		return
+	builder.call("create_root", "TestBlockout")
+	builder.call("add_csg_box", "Floor", Vector3(1, 1, 1))
+	builder.call("set_position", "Floor", Vector3(0, 5, 0))
+	var root: Variant = builder.call("build")
+	assert_not_null(root, "build must return root")
+	var box: Node = (root as Node).get_node_or_null("Floor")
+	assert_true(box is CSGBox3D, "Floor must be CSGBox3D")
+	assert_eq((box as CSGBox3D).position, Vector3(0, 5, 0), "set_position must move node")
+	if root is Node:
+		(root as Node).free()
+
+func test_set_material_unshaded_texture_applies_texture() -> void:
+	var builder: Object = _new_builder()
+	if builder == null:
+		return
+	builder.call("create_root", "TestBlockout")
+	builder.call("add_csg_box", "Floor", Vector3(5, 1, 5))
+	var img: Image = Image.create(2, 2, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0.5, 0.5, 0.5, 1.0))
+	var tex: ImageTexture = ImageTexture.create_from_image(img)
+	builder.call("set_material_unshaded_texture", "Floor", tex)
+	var root: Variant = builder.call("build")
+	assert_not_null(root, "build must return root")
+	var box: Node = (root as Node).get_node_or_null("Floor")
+	assert_not_null(box, "Floor must exist")
+	assert_true(box is CSGBox3D, "Floor must be CSGBox3D")
+	var mat: Material = (box as CSGBox3D).material
+	assert_not_null(mat, "set_material_unshaded_texture must assign a material")
+	assert_true(mat is StandardMaterial3D, "Material must be StandardMaterial3D")
+	assert_eq((mat as StandardMaterial3D).shading_mode, BaseMaterial3D.SHADING_MODE_UNSHADED, "Material must be unshaded")
+	if root is Node:
+		(root as Node).free()
+
 func test_save_writes_tscn() -> void:
 	var builder: Object = _new_builder()
 	if builder == null:

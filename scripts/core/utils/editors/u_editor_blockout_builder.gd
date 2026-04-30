@@ -19,6 +19,29 @@ func add_csg_box(node_name: String, size: Vector3) -> U_EditorBlockoutBuilder:
 	_root.add_child(box)
 	return self
 
+func add_csg_box_at(node_name: String, size: Vector3, position: Vector3) -> U_EditorBlockoutBuilder:
+	if _root == null:
+		push_error("U_EditorBlockoutBuilder: add_csg_box_at called before create_root")
+		return self
+	var box: CSGBox3D = CSGBox3D.new()
+	box.name = node_name
+	box.size = size
+	box.position = position
+	_root.add_child(box)
+	return self
+
+func set_position(node_name: String, position: Vector3) -> U_EditorBlockoutBuilder:
+	if _root == null:
+		push_error("U_EditorBlockoutBuilder: set_position called before create_root")
+		return self
+	var target: Node = _root.get_node_or_null(node_name)
+	if target == null:
+		push_error("U_EditorBlockoutBuilder: set_position target '%s' not found" % node_name)
+		return self
+	if target is Node3D:
+		target.position = position
+	return self
+
 func add_csg_sphere(node_name: String, radius: float) -> U_EditorBlockoutBuilder:
 	if _root == null:
 		push_error("U_EditorBlockoutBuilder: add_csg_sphere called before create_root")
@@ -56,6 +79,20 @@ func set_material(node_name: String, color: Color) -> U_EditorBlockoutBuilder:
 		return self
 	var mat: StandardMaterial3D = StandardMaterial3D.new()
 	mat.albedo_color = color
+	target.set("material", mat)
+	return self
+
+func set_material_unshaded_texture(node_name: String, texture: Texture2D) -> U_EditorBlockoutBuilder:
+	if _root == null:
+		push_error("U_EditorBlockoutBuilder: set_material_unshaded_texture called before create_root")
+		return self
+	var target: Node = _root.get_node_or_null(node_name)
+	if target == null:
+		push_error("U_EditorBlockoutBuilder: set_material_unshaded_texture target '%s' not found" % node_name)
+		return self
+	var mat: StandardMaterial3D = StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.albedo_texture = texture
 	target.set("material", mat)
 	return self
 
