@@ -118,7 +118,7 @@ func test_scene_transition_completed_triggers_autosave_request() -> void:
 	# Dispatch scene transition completed action
 	_mock_store.dispatch({
 		"type": StringName("scene/transition_completed"),
-		"payload": {"scene_id": StringName("gameplay_base")}
+		"payload": {"scene_id": StringName("demo_room")}
 	})
 
 	await get_tree().process_frame
@@ -279,7 +279,7 @@ func test_coalescing_multiple_requests_into_one_write() -> void:
 	# Two transition_completed events to gameplay scenes
 	_mock_store.dispatch({
 		"type": StringName("scene/transition_completed"),
-		"payload": {"scene_id": StringName("alleyway")}
+		"payload": {"scene_id": StringName("demo_room")}
 	})
 	_mock_store.dispatch({
 		"type": StringName("scene/transition_completed"),

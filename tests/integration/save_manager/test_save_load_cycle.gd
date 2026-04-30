@@ -131,7 +131,7 @@ func test_save_creates_valid_file_structure() -> void:
 	await get_tree().process_frame
 
 	# Initialize scene state with a valid current_scene_id
-	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	# Wait for physics frame to flush state updates
 	await get_tree().physics_frame
 
@@ -176,7 +176,7 @@ func test_load_preserves_state_to_handoff() -> void:
 	await get_tree().process_frame
 
 	# Initialize scene state with a valid current_scene_id
-	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	# Wait for physics frame to flush state updates
 	await get_tree().physics_frame
 
@@ -207,7 +207,7 @@ func test_load_preserves_state_to_handoff() -> void:
 	# Verify state was restored via apply_loaded_state (not StateHandoff)
 	var state_after_load: Dictionary = _state_store.get_state()
 	var scene_after_load: Dictionary = state_after_load.get("scene", {})
-	assert_eq(scene_after_load.get("current_scene_id"), StringName("gameplay_base"), "State should be restored from save file")
+	assert_eq(scene_after_load.get("current_scene_id"), StringName("demo_room"), "State should be restored from save file")
 
 func test_load_lock_prevents_concurrent_operations() -> void:
 	# Create save manager
@@ -218,7 +218,7 @@ func test_load_lock_prevents_concurrent_operations() -> void:
 	await get_tree().process_frame
 
 	# Initialize scene state with a valid current_scene_id
-	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	# Wait for physics frame to flush state updates
 	await get_tree().physics_frame
 
@@ -246,11 +246,11 @@ func test_autosave_triggers_on_checkpoint() -> void:
 	await get_tree().process_frame
 
 	# Initialize scene state with a valid current_scene_id
-	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 
 	# Set navigation shell to "gameplay" (required for autosave to trigger)
 	const U_NAVIGATION_ACTIONS := preload("res://scripts/core/state/actions/u_navigation_actions.gd")
-	_state_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("gameplay"), StringName("gameplay_base")))
+	_state_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("gameplay"), StringName("demo_room")))
 
 	await get_tree().physics_frame
 
@@ -305,7 +305,7 @@ func test_manual_slots_independent_from_autosave() -> void:
 	await get_tree().process_frame
 
 	# Initialize scene state with a valid current_scene_id
-	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 
 	# Reset health to 100 (avoids pollution issues from previous tests)
 	const U_GAMEPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
@@ -376,7 +376,7 @@ func test_comprehensive_state_roundtrip() -> void:
 	await get_tree().process_frame
 
 	# Initialize comprehensive state
-	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	const U_GAMEPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
 	_state_store.dispatch(U_GAMEPLAY_ACTIONS.take_damage("", 25.0))  # Empty string for player damage
 	_state_store.dispatch(U_GAMEPLAY_ACTIONS.set_last_checkpoint(StringName("sp_checkpoint_1")))
@@ -430,7 +430,7 @@ func test_comprehensive_state_roundtrip() -> void:
 
 	# Verify scene ID (StateHandoff triggers scene transition, so this might not match exactly)
 	# We verify that current_scene_id matches what was saved in the header
-	assert_eq(scene_after.get("current_scene_id"), StringName("gameplay_base"), "Scene should be restored to saved scene")
+	assert_eq(scene_after.get("current_scene_id"), StringName("demo_room"), "Scene should be restored to saved scene")
 
 ## AT-05: Autosave cooldown prevents spam (rapid checkpoint triggers)
 func test_autosave_cooldown_prevents_spam() -> void:
@@ -442,11 +442,11 @@ func test_autosave_cooldown_prevents_spam() -> void:
 	await get_tree().process_frame
 
 	# Initialize scene state
-	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 
 	# Set navigation shell to "gameplay"
 	const U_NAVIGATION_ACTIONS := preload("res://scripts/core/state/actions/u_navigation_actions.gd")
-	_state_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("gameplay"), StringName("gameplay_base")))
+	_state_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("gameplay"), StringName("demo_room")))
 
 	await get_tree().physics_frame
 
@@ -528,11 +528,11 @@ func test_autosave_triggers_on_scene_transition() -> void:
 	await get_tree().process_frame
 
 	# Initialize scene state with a valid current_scene_id
-	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 
 	# Set navigation shell to "gameplay" (required for autosave to trigger)
 	const U_NAVIGATION_ACTIONS := preload("res://scripts/core/state/actions/u_navigation_actions.gd")
-	_state_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("gameplay"), StringName("gameplay_base")))
+	_state_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("gameplay"), StringName("demo_room")))
 
 	await get_tree().physics_frame
 
@@ -548,7 +548,7 @@ func test_autosave_triggers_on_scene_transition() -> void:
 	assert_false(FileAccess.file_exists(autosave_path), "Autosave should not exist after cleanup")
 
 	# Dispatch scene transition completed action (simulates transition to new scene)
-	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("interior_house")))
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 
 	# Wait for autosave scheduler to process action and trigger save
 	await get_tree().process_frame
@@ -571,7 +571,7 @@ func test_autosave_triggers_on_scene_transition() -> void:
 		var data: Dictionary = json.data as Dictionary
 		var header: Dictionary = data.get("header", {})
 		var current_scene_id: StringName = header.get("current_scene_id", StringName(""))
-		assert_eq(current_scene_id, StringName("interior_house"), "Autosave should contain new scene_id")
+		assert_eq(current_scene_id, StringName("demo_room"), "Autosave should contain new scene_id")
 
 ## AT-03: Area completion doesn't trigger autosave alone (waits for scene transition)
 func test_autosave_triggers_on_area_completion() -> void:
@@ -583,11 +583,11 @@ func test_autosave_triggers_on_area_completion() -> void:
 	await get_tree().process_frame
 
 	# Initialize scene state with a valid current_scene_id
-	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 
 	# Set navigation shell to "gameplay" (required for autosave to trigger)
 	const U_NAVIGATION_ACTIONS := preload("res://scripts/core/state/actions/u_navigation_actions.gd")
-	_state_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("gameplay"), StringName("gameplay_base")))
+	_state_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("gameplay"), StringName("demo_room")))
 
 	await get_tree().physics_frame
 
@@ -611,7 +611,7 @@ func test_autosave_triggers_on_area_completion() -> void:
 	_save_manager.get("_autosave_scheduler").set("_last_autosave_time", -1000.0)
 
 	# Now transition to a new gameplay scene (this SHOULD trigger autosave)
-	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	await get_tree().process_frame
 	await get_tree().physics_frame
 
@@ -647,7 +647,7 @@ func test_save_manager_allows_overwrites_without_confirmation() -> void:
 	await get_tree().process_frame
 
 	# Initialize scene state
-	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	await get_tree().physics_frame
 
 	# Save to slot_01 (initial save)
@@ -685,7 +685,7 @@ func test_manual_save_overwrites_with_timestamp_update() -> void:
 	await get_tree().process_frame
 
 	# Initialize scene state
-	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	await get_tree().physics_frame
 
 	# First save to slot_01
@@ -747,11 +747,11 @@ func test_load_restores_scene_id_from_header() -> void:
 
 	await get_tree().process_frame
 
-	# Initialize scene state with interior_house
-	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("interior_house")))
+	# Initialize scene state with demo_room
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	await get_tree().physics_frame
 
-	# Save to slot (should capture interior_house)
+	# Save to slot (should capture demo_room)
 	var save_result: Error = _save_manager.save_to_slot(StringName("slot_01"))
 	assert_eq(save_result, OK, "Save should succeed")
 
@@ -764,16 +764,16 @@ func test_load_restores_scene_id_from_header() -> void:
 	save_file.close()
 	var save_data: Dictionary = json.data as Dictionary
 	var header: Dictionary = save_data.get("header", {})
-	assert_eq(header.get("current_scene_id"), StringName("interior_house"), "Header should contain correct scene_id")
+	assert_eq(header.get("current_scene_id"), StringName("demo_room"), "Header should contain correct scene_id")
 
 	# Modify current scene to something different
-	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	await get_tree().physics_frame
 
 	# Verify scene was changed
 	var state_before_load: Dictionary = _state_store.get_state()
 	var scene_before: Dictionary = state_before_load.get("scene", {})
-	assert_eq(scene_before.get("current_scene_id"), StringName("alleyway"), "Scene should be changed before load")
+	assert_eq(scene_before.get("current_scene_id"), StringName("demo_room"), "Scene should be changed before load")
 
 	# Load the save
 	var load_result: Error = _save_manager.load_from_slot(StringName("slot_01"))
@@ -784,10 +784,10 @@ func test_load_restores_scene_id_from_header() -> void:
 	await get_tree().process_frame
 	await get_tree().physics_frame
 
-	# Verify scene was restored to interior_house (from header)
+	# Verify scene was restored to demo_room (from header)
 	var state_after_load: Dictionary = _state_store.get_state()
 	var scene_after: Dictionary = state_after_load.get("scene", {})
-	assert_eq(scene_after.get("current_scene_id"), StringName("interior_house"), "Scene should be restored from save file header")
+	assert_eq(scene_after.get("current_scene_id"), StringName("demo_room"), "Scene should be restored from save file header")
 
 ## AT-08: Load restores player health, death count, completed areas
 func test_load_restores_gameplay_state() -> void:
@@ -799,7 +799,7 @@ func test_load_restores_gameplay_state() -> void:
 	await get_tree().process_frame
 
 	# Initialize scene state
-	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 
 	# Reset gameplay state to ensure clean start (prevent pollution from previous tests)
 	const U_GAMEPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
@@ -875,7 +875,7 @@ func test_load_restores_playtime() -> void:
 	await get_tree().process_frame
 
 	# Initialize scene state
-	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 
 	# Get baseline playtime (may have accumulated from previous tests)
 	const U_GAMEPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
@@ -931,7 +931,7 @@ func test_load_during_transition_rejected() -> void:
 	await get_tree().process_frame
 
 	# Initialize scene state and save
-	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	await get_tree().physics_frame
 
 	var save_result: Error = _save_manager.save_to_slot(StringName("slot_01"))
@@ -954,7 +954,7 @@ func test_load_blocks_autosaves() -> void:
 	await get_tree().process_frame
 
 	# Initialize scene state and save
-	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	await get_tree().physics_frame
 
 	var save_result: Error = _save_manager.save_to_slot(StringName("slot_01"))
@@ -986,7 +986,7 @@ func test_rapid_save_load_save_maintains_integrity() -> void:
 	await get_tree().process_frame
 
 	# Initialize scene state
-	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	const U_GAMEPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
 	_state_store.dispatch(U_GAMEPLAY_ACTIONS.reset_progress())
 	await get_tree().physics_frame
@@ -1050,7 +1050,7 @@ func test_save_with_unicode_area_name() -> void:
 
 	# Initialize scene state with Unicode scene name
 	# Note: Scene IDs are typically ASCII, but area_name (derived from display_name) can be Unicode
-	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	await get_tree().physics_frame
 
 	# Save to slot (area_name will be derived from scene registry)
@@ -1084,11 +1084,11 @@ func test_autosave_blocked_during_death() -> void:
 	await get_tree().process_frame
 
 	# Initialize scene state
-	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 
 	# Set navigation shell to "gameplay"
 	const U_NAVIGATION_ACTIONS := preload("res://scripts/core/state/actions/u_navigation_actions.gd")
-	_state_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("gameplay"), StringName("gameplay_base")))
+	_state_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("gameplay"), StringName("demo_room")))
 
 	# Set death_in_progress to true (simulating death state)
 	const U_GAMEPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_gameplay_actions.gd")

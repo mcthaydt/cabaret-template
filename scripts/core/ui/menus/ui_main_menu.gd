@@ -18,7 +18,7 @@ const CFG_GAME_CONFIG := preload("res://resources/core/cfg_game_config.tres")
 
 const PANEL_MAIN := StringName("menu/main")
 const PANEL_SETTINGS := StringName("menu/settings")
-const FALLBACK_GAMEPLAY_SCENE := StringName("ai_showcase")
+const FALLBACK_GAMEPLAY_SCENE := StringName("demo_room")
 const OVERLAY_SAVE_LOAD := StringName("save_load_menu_overlay")
 
 @onready var _title_label: Label = %TitleLabel

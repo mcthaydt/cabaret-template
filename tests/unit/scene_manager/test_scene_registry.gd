@@ -18,7 +18,7 @@ func after_each() -> void:
 
 ## Test scene metadata structure
 func test_get_scene_returns_metadata() -> void:
-	var scene_data: Dictionary = U_SceneRegistry.get_scene(StringName("gameplay_base"))
+	var scene_data: Dictionary = U_SceneRegistry.get_scene(StringName("demo_room"))
 
 	assert_not_null(scene_data, "Should return scene data")
 	assert_true(scene_data.has("scene_id"), "Should have scene_id")
@@ -49,7 +49,7 @@ func test_get_scene_with_invalid_id() -> void:
 
 ## Test get_scene_path convenience method
 func test_get_scene_path() -> void:
-	var path: String = U_SceneRegistry.get_scene_path(StringName("gameplay_base"))
+	var path: String = U_SceneRegistry.get_scene_path(StringName("demo_room"))
 
 	assert_not_null(path, "Should return path for valid scene")
 	assert_true(path.begins_with("res://scenes/"), "Path should start with res://scenes/")
@@ -57,13 +57,13 @@ func test_get_scene_path() -> void:
 
 ## Test get_scene_type convenience method
 func test_get_scene_type() -> void:
-	var scene_type: int = U_SceneRegistry.get_scene_type(StringName("gameplay_base"))
+	var scene_type: int = U_SceneRegistry.get_scene_type(StringName("demo_room"))
 
 	assert_eq(scene_type, U_SceneRegistry.SceneType.GAMEPLAY, "Should return correct scene type")
 
 ## Test get_default_transition convenience method
 func test_get_default_transition() -> void:
-	var transition: String = U_SceneRegistry.get_default_transition(StringName("gameplay_base"))
+	var transition: String = U_SceneRegistry.get_default_transition(StringName("demo_room"))
 
 	assert_true(transition in ["instant", "fade", "loading"], "Should return valid transition type")
 
@@ -76,32 +76,26 @@ func test_get_door_exit_returns_metadata() -> void:
 	)
 	assert_true(exit_data is Dictionary, "get_door_exit should return a Dictionary")
 
-## Test door pairing - entering interior
-func test_door_pairing_alleyway_to_bar() -> void:
+## Test deleted legacy demo door pairings are not registered
+func test_legacy_demo_door_pairing_is_absent() -> void:
 	var exit_data: Dictionary = U_SceneRegistry.get_door_exit(
-		StringName("alleyway"),
+		StringName("demo_room"),
 		StringName("door_to_bar")
 	)
-	assert_false(exit_data.is_empty(), "Door exit metadata should exist for alleyway → bar")
-	assert_eq(exit_data.get("target_scene_id", StringName()), StringName("bar"))
-	assert_eq(exit_data.get("target_spawn_point", StringName()), StringName("sp_entrance_from_alleyway"))
-	assert_eq(exit_data.get("transition_type", ""), "fade")
+	assert_true(exit_data.is_empty(), "Deleted legacy demo door pairings should be absent")
 
-## Test door pairing - exiting interior
-func test_door_pairing_bar_to_alleyway() -> void:
+## Test the single-room demo has no authored exits
+func test_demo_room_has_no_door_pairings() -> void:
 	var exit_data: Dictionary = U_SceneRegistry.get_door_exit(
-		StringName("bar"),
-		StringName("door_to_exterior")
+		StringName("demo_room"),
+		StringName("door_to_anywhere")
 	)
-	assert_false(exit_data.is_empty(), "Door exit metadata should exist for bar → alleyway")
-	assert_eq(exit_data.get("target_scene_id", StringName()), StringName("alleyway"))
-	assert_eq(exit_data.get("target_spawn_point", StringName()), StringName("sp_exit_from_bar"))
-	assert_eq(exit_data.get("transition_type", ""), "fade")
+	assert_true(exit_data.is_empty(), "demo_room should not define door exits")
 
 ## Test invalid door ID returns empty dict
 func test_invalid_door_id_returns_empty() -> void:
 	var exit_data: Dictionary = U_SceneRegistry.get_door_exit(
-		StringName("alleyway"),
+		StringName("demo_room"),
 		StringName("nonexistent_door_id")
 	)
 	assert_true(exit_data.is_empty(), "Unknown door id should return empty exit data")
@@ -116,7 +110,7 @@ func test_validation_allows_one_way_pairings() -> void:
 	# a return pairing. Current validation only enforces target existence,
 	# so it should still return true and not emit errors.
 	U_SceneRegistry._register_door_exit(
-		StringName("alleyway"),
+		StringName("demo_room"),
 		StringName("door_one_way_test"),
 		StringName("main_menu"),
 		StringName("sp_none"),
@@ -124,7 +118,7 @@ func test_validation_allows_one_way_pairings() -> void:
 	)
 	assert_true(U_SceneRegistry.validate_door_pairings(), "Validation should pass when all targets exist (one-way is allowed)")
 	# Cleanup injected test data
-	var exits: Dictionary = U_SceneRegistry._door_exits.get(StringName("alleyway"), {})
+	var exits: Dictionary = U_SceneRegistry._door_exits.get(StringName("demo_room"), {})
 	if exits is Dictionary and exits.has(StringName("door_one_way_test")):
 		exits.erase(StringName("door_one_way_test"))
 
@@ -160,12 +154,12 @@ func test_main_menu_scene_registered() -> void:
 	assert_false(scene_data.is_empty(), "main_menu should be registered")
 	assert_eq(scene_data["scene_type"], U_SceneRegistry.SceneType.MENU, "main_menu should be MENU type")
 
-## Test gameplay_base scene exists
-func test_gameplay_base_scene_registered() -> void:
-	var scene_data: Dictionary = U_SceneRegistry.get_scene(StringName("gameplay_base"))
+## Test demo_room scene exists
+func test_demo_room_scene_registered() -> void:
+	var scene_data: Dictionary = U_SceneRegistry.get_scene(StringName("demo_room"))
 
-	assert_false(scene_data.is_empty(), "gameplay_base should be registered")
-	assert_eq(scene_data["scene_type"], U_SceneRegistry.SceneType.GAMEPLAY, "gameplay_base should be GAMEPLAY type")
+	assert_false(scene_data.is_empty(), "demo_room should be registered")
+	assert_eq(scene_data["scene_type"], U_SceneRegistry.SceneType.GAMEPLAY, "demo_room should be GAMEPLAY type")
 
 ## Test settings_menu scene exists
 func test_settings_menu_scene_registered() -> void:
@@ -208,15 +202,7 @@ func test_gameplay_scenes_have_valid_manifest_entries() -> void:
 	var scenes: Dictionary = manifest.call("build") as Dictionary
 
 	var gameplay_ids: Array[StringName] = [
-		StringName("gameplay_base"),
-		StringName("alleyway"),
-		StringName("interior_house"),
-		StringName("interior_a"),
-		StringName("bar"),
-		StringName("power_core"),
-		StringName("comms_array"),
-		StringName("nav_nexus"),
-		StringName("ai_showcase"),
+		StringName("demo_room"),
 	]
 
 	for scene_id: StringName in gameplay_ids:

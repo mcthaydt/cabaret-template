@@ -224,10 +224,10 @@ func _register_save_manager_with_saves() -> Node:
 
 func _get_expected_default_gameplay_scene() -> StringName:
 	if CFG_GAME_CONFIG == null:
-		return StringName("ai_showcase")
+		return StringName("demo_room")
 	var retry_scene_id: StringName = CFG_GAME_CONFIG.retry_scene_id
 	if retry_scene_id == StringName(""):
-		return StringName("ai_showcase")
+		return StringName("demo_room")
 	return retry_scene_id
 
 

@@ -401,7 +401,7 @@ func _load_initial_scene() -> void:
 
 ## Start background preload of the default gameplay scene (mirrors splash screen preload)
 func _start_background_gameplay_preload() -> void:
-	var scene_data: Dictionary = U_SCENE_REGISTRY.get_scene(StringName("ai_woods"))
+	var scene_data: Dictionary = U_SCENE_REGISTRY.get_scene(StringName("demo_room"))
 	if scene_data.is_empty():
 		return
 	var path: String = str(scene_data.get("path", ""))

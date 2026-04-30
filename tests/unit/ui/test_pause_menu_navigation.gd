@@ -15,7 +15,7 @@ func before_each() -> void:
 	await get_tree().process_frame
 
 	# Set shell to gameplay
-	_store.dispatch(U_NavigationActions.start_game(StringName("gameplay_base")))
+	_store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	await get_tree().physics_frame
 
 

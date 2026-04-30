@@ -59,7 +59,7 @@ func test_valid_config_no_error() -> void:
 
 	var coordinator := M_RunCoordinatorManager.new()
 	coordinator.game_config = RS_GameConfig.new()
-	# Default retry_scene_id is "power_core" which should exist in the scene registry.
+	# Default retry_scene_id is "demo_room" which should exist in the scene registry.
 	# Default default_objective_set_id is "default_progression" which the stub knows.
 	add_child_autofree(coordinator)
 	await wait_process_frames(2)

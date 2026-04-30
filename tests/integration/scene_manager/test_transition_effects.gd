@@ -113,7 +113,7 @@ func test_ui_to_ui_uses_instant_transition() -> void:
 ## Test fade transition for menu → gameplay (T138, T141)
 func test_fade_transition_for_menu_to_gameplay() -> void:
 	# Transition with fade effect
-	_manager.transition_to_scene(StringName("gameplay_base"), "fade")
+	_manager.transition_to_scene(StringName("demo_room"), "fade")
 
 	# Check transitioning flag is set
 	await get_tree().physics_frame
@@ -129,7 +129,7 @@ func test_fade_transition_for_menu_to_gameplay() -> void:
 	var state: Dictionary = _store.get_state()
 	var scene_state: Dictionary = state.get("scene", {})
 	assert_false(scene_state.get("is_transitioning", false), "Fade should complete")
-	assert_eq(scene_state.get("current_scene_id"), StringName("gameplay_base"), "Should reach gameplay scene")
+	assert_eq(scene_state.get("current_scene_id"), StringName("demo_room"), "Should reach gameplay scene")
 
 ## Test fade effect plays smoothly without jarring cuts (T141)
 func test_fade_effect_is_smooth() -> void:

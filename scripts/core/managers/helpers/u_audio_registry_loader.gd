@@ -44,18 +44,12 @@ static func _register_music_tracks() -> void:
 	# Load music track resources
 	var main_menu := preload("res://resources/core/audio/tracks/music_main_menu.tres") as RS_MusicTrackDefinition
 	var alleyway := preload("res://resources/demo/audio/tracks/music_alleyway.tres") as RS_MusicTrackDefinition
-	var bar := preload("res://resources/demo/audio/tracks/music_bar.tres") as RS_MusicTrackDefinition
-	var exterior := preload("res://resources/demo/audio/tracks/music_exterior.tres") as RS_MusicTrackDefinition
-	var interior := preload("res://resources/demo/audio/tracks/music_interior.tres") as RS_MusicTrackDefinition
 	var pause := preload("res://resources/core/audio/tracks/music_pause.tres") as RS_MusicTrackDefinition
 	var credits := preload("res://resources/demo/audio/tracks/music_credits.tres") as RS_MusicTrackDefinition
 
 	# Register in dictionary
 	_music_tracks[StringName("main_menu")] = main_menu
-	_music_tracks[StringName("alleyway")] = alleyway
-	_music_tracks[StringName("bar")] = bar
-	_music_tracks[StringName("exterior")] = exterior
-	_music_tracks[StringName("interior")] = interior
+	_music_tracks[StringName("demo_room")] = alleyway
 	_music_tracks[StringName("pause")] = pause
 	_music_tracks[StringName("credits")] = credits
 
@@ -65,11 +59,9 @@ static func _register_ambient_tracks() -> void:
 
 	# Load ambient track resources
 	var exterior := preload("res://resources/demo/audio/ambient/ambient_exterior.tres") as RS_AmbientTrackDefinition
-	var interior := preload("res://resources/demo/audio/ambient/ambient_interior.tres") as RS_AmbientTrackDefinition
 
 	# Register in dictionary
-	_ambient_tracks[StringName("exterior")] = exterior
-	_ambient_tracks[StringName("interior")] = interior
+	_ambient_tracks[StringName("demo_room")] = exterior
 
 ## Register all UI sounds from .tres resources
 static func _register_ui_sounds() -> void:
@@ -94,15 +86,11 @@ static func _register_scene_audio_mappings() -> void:
 	# Load scene mapping resources
 	var main_menu := preload("res://resources/demo/audio/scene_mappings/scene_main_menu.tres") as RS_SceneAudioMapping
 	var alleyway := preload("res://resources/demo/audio/scene_mappings/scene_alleyway.tres") as RS_SceneAudioMapping
-	var bar := preload("res://resources/demo/audio/scene_mappings/scene_bar.tres") as RS_SceneAudioMapping
-	var interior_house := preload("res://resources/demo/audio/scene_mappings/scene_interior_house.tres") as RS_SceneAudioMapping
 	var credits := preload("res://resources/demo/audio/scene_mappings/scene_credits.tres") as RS_SceneAudioMapping
 
 	# Register in dictionary
 	_scene_audio_map[StringName("main_menu")] = main_menu
-	_scene_audio_map[StringName("alleyway")] = alleyway
-	_scene_audio_map[StringName("bar")] = bar
-	_scene_audio_map[StringName("interior_house")] = interior_house
+	_scene_audio_map[StringName("demo_room")] = alleyway
 	_scene_audio_map[StringName("credits")] = credits
 
 ## Validate registrations and warn about issues

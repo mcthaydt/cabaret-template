@@ -486,7 +486,7 @@ func test_navigation_start_game_resets_objectives_for_new_run() -> void:
 	assert_eq(manager.get_objective_status(StringName("final_complete")), "active")
 	assert_true(_store.get_state().get("objectives", {}).get("event_log", []).size() > 0)
 
-	_store.dispatch(NAVIGATION_ACTIONS.start_game(StringName("alleyway")))
+	_store.dispatch(NAVIGATION_ACTIONS.start_game(StringName("demo_room")))
 
 	var objectives_slice: Dictionary = _store.get_state().get("objectives", {})
 	var statuses: Dictionary = objectives_slice.get("statuses", {})

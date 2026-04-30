@@ -1,7 +1,0 @@
-[gd_resource type="Resource" script_class="RS_SpawnRecoverySettings" format=3 uid="uid://caph8doutt1dg"]
-
-[ext_resource type="Script" uid="uid://mvl5jah0601v" path="res://scripts/core/resources/ecs/rs_spawn_recovery_settings.gd" id="1_spawn_recovery_settings"]
-
-[resource]
-script = ExtResource("1_spawn_recovery_settings")
-spawn_point_id = &"sp_ai_patrol_drone"

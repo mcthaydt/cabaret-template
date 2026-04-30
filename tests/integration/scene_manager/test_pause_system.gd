@@ -299,7 +299,7 @@ func test_gameplay_scenes_do_not_track_history() -> void:
 	# Given: Navigate main_menu → gameplay_base
 	_scene_manager.transition_to_scene(StringName("main_menu"), "instant", M_SCENE_MANAGER.Priority.HIGH)
 	await wait_physics_frames(5)
-	_scene_manager.transition_to_scene(StringName("gameplay_base"), "instant", M_SCENE_MANAGER.Priority.HIGH)
+	_scene_manager.transition_to_scene(StringName("demo_room"), "instant", M_SCENE_MANAGER.Priority.HIGH)
 	await wait_physics_frames(5)
 
 	# When: Check if can go back
@@ -314,7 +314,7 @@ func test_history_navigation_skips_gameplay_scenes() -> void:
 	await wait_physics_frames(5)
 	_scene_manager.transition_to_scene(StringName("settings_menu"), "instant", M_SCENE_MANAGER.Priority.HIGH)
 	await wait_physics_frames(5)
-	_scene_manager.transition_to_scene(StringName("gameplay_base"), "instant", M_SCENE_MANAGER.Priority.HIGH)
+	_scene_manager.transition_to_scene(StringName("demo_room"), "instant", M_SCENE_MANAGER.Priority.HIGH)
 	await wait_physics_frames(5)
 	_scene_manager.transition_to_scene(StringName("settings_menu"), "instant", M_SCENE_MANAGER.Priority.HIGH)
 	await wait_physics_frames(5)
@@ -336,8 +336,8 @@ func test_history_navigation_skips_gameplay_scenes() -> void:
 func test_navigation_action_triggers_pause_during_gameplay() -> void:
 	# T074: Updated to use navigation actions instead of direct ESC input
 	# Given: In gameplay shell with no overlays
-	_state_store.dispatch(U_NAVIGATION_ACTIONS.start_game(StringName("gameplay_base")))
-	_scene_manager.transition_to_scene(StringName("gameplay_base"), "instant", M_SCENE_MANAGER.Priority.HIGH)
+	_state_store.dispatch(U_NAVIGATION_ACTIONS.start_game(StringName("demo_room")))
+	_scene_manager.transition_to_scene(StringName("demo_room"), "instant", M_SCENE_MANAGER.Priority.HIGH)
 	await wait_physics_frames(5)
 	get_tree().paused = false
 	assert_eq(_ui_overlay_stack.get_child_count(), 0, "No overlays initially")

@@ -19,7 +19,7 @@ match_value_string = "final_goal"
 [resource]
 script = ExtResource("3_q7xsc")
 objective_id = &"final_complete"
-description = "Reach the alleyway endgame trigger to complete the game."
+description = "Reach the demo endgame trigger to complete the game."
 objective_type = 1
 conditions = Array[ExtResource("4_icond")]([SubResource("Resource_final_goal_triggered")])
 completion_effects = Array[ExtResource("5_ieffect")]([SubResource("Resource_7xq82")])

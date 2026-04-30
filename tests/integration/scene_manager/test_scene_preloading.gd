@@ -180,12 +180,12 @@ func test_on_demand_scene_loads_async() -> void:
 		return
 
 	# Load gameplay scene (should use async load)
-	_manager.transition_to_scene(StringName("alleyway"), "loading")
+	_manager.transition_to_scene(StringName("demo_room"), "loading")
 	await wait_seconds(2.0)  # Wait for loading transition
 
 	var state: Dictionary = _store.get_state()
 	var scene_state: Dictionary = state.get("scene", {})
-	assert_eq(scene_state.get("current_scene_id"), StringName("alleyway"), "Should load gameplay scene")
+	assert_eq(scene_state.get("current_scene_id"), StringName("demo_room"), "Should load gameplay scene")
 
 ## Test 6: Cache eviction when max count exceeded
 func test_cache_eviction_on_max_count() -> void:
@@ -198,7 +198,7 @@ func test_cache_eviction_on_max_count() -> void:
 		U_SceneRegistry.get_scene_path(StringName("main_menu")),
 		U_SceneRegistry.get_scene_path(StringName("settings_menu")),
 		U_SceneRegistry.get_scene_path(StringName("pause_menu")),
-		U_SceneRegistry.get_scene_path(StringName("alleyway"))
+		U_SceneRegistry.get_scene_path(StringName("demo_room"))
 	]
 
 	for path in scene_paths:
@@ -231,8 +231,8 @@ func test_automatic_preload_hint_near_door() -> void:
 		pending("Preload hints not implemented yet")
 		return
 
-	# Manually trigger hint
-	var scene_path: String = U_SceneRegistry.get_scene_path(StringName("interior_house"))
+	# Manually trigger hint for the active demo scene.
+	var scene_path: String = U_SceneRegistry.get_scene_path(StringName("demo_room"))
 	_manager.hint_preload_scene(scene_path)
 
 	await wait_seconds(0.5)  # Wait for background load to start
@@ -254,8 +254,8 @@ func test_background_load_completes_before_transition() -> void:
 		pending("Preload hints not implemented yet")
 		return
 
-	# Hint interior scene
-	var scene_path: String = U_SceneRegistry.get_scene_path(StringName("interior_house"))
+	# Hint the active demo scene.
+	var scene_path: String = U_SceneRegistry.get_scene_path(StringName("demo_room"))
 	_manager.hint_preload_scene(scene_path)
 
 	# Wait for background load
@@ -263,7 +263,7 @@ func test_background_load_completes_before_transition() -> void:
 
 	# Transition should be instant (scene cached)
 	var start_time := Time.get_ticks_msec() / 1000.0
-	_manager.transition_to_scene(StringName("interior_house"), "instant")
+	_manager.transition_to_scene(StringName("demo_room"), "instant")
 	await wait_physics_frames(5)
 	var end_time := Time.get_ticks_msec() / 1000.0
 
@@ -278,12 +278,12 @@ func test_real_progress_in_loading_transition() -> void:
 		return
 
 	# Load large scene with loading transition
-	_manager.transition_to_scene(StringName("alleyway"), "loading")
+	_manager.transition_to_scene(StringName("demo_room"), "loading")
 
 	# Wait for transition
 	await wait_seconds(2.0)
 
 	var state: Dictionary = _store.get_state()
 	var scene_state: Dictionary = state.get("scene", {})
-	assert_eq(scene_state.get("current_scene_id"), StringName("alleyway"), "Should complete transition")
+	assert_eq(scene_state.get("current_scene_id"), StringName("demo_room"), "Should complete transition")
 	assert_false(scene_state.get("is_transitioning", false), "Should not be transitioning after completion")

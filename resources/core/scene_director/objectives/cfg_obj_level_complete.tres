@@ -10,7 +10,7 @@
 script = ExtResource("3_dispatch_action")
 action_type = &"gameplay/trigger_victory_routing"
 payload = {
-"target_scene": &"alleyway"
+"target_scene": &"demo_room"
 }
 
 [sub_resource type="Resource" id="Resource_goal_bar_triggered"]
@@ -22,7 +22,7 @@ match_value_string = "goal_bar"
 [resource]
 script = ExtResource("2_8mdsu")
 objective_id = &"bar_complete"
-description = "Reach the bar goal trigger, then return to alleyway."
+description = "Reach the demo goal trigger, then return to the demo room."
 conditions = Array[ExtResource("4_icond")]([SubResource("Resource_goal_bar_triggered")])
 completion_effects = Array[ExtResource("5_ieffect")]([SubResource("Resource_to_alleyway")])
 auto_activate = true

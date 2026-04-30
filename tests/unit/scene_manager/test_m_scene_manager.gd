@@ -118,7 +118,7 @@ func test_transition_to_scene_dispatches_started_action() -> void:
 		actions_received.append(action)
 	)
 
-	_manager.transition_to_scene(StringName("gameplay_base"), "fade")
+	_manager.transition_to_scene(StringName("demo_room"), "fade")
 	await get_tree().physics_frame
 
 	var found_started_action: bool = false
@@ -192,7 +192,7 @@ func test_get_current_scene() -> void:
 func test_is_transitioning() -> void:
 	assert_false(_manager.is_transitioning(), "Should not be transitioning initially")
 
-	_manager.transition_to_scene(StringName("gameplay_base"), "fade")
+	_manager.transition_to_scene(StringName("demo_room"), "fade")
 	# During transition, is_transitioning should return true
 	# (this depends on implementation timing, may need adjustment)
 	await get_tree().process_frame
@@ -222,7 +222,7 @@ func test_suppress_pause_for_current_frame_expires_next_frame() -> void:
 
 ## Regression: queue_free during gameplay transition should not leave scene slice stuck transitioning
 func test_queue_free_during_gameplay_transition_clears_transition_state() -> void:
-	_manager.transition_to_scene(StringName("gameplay_base"), "instant")
+	_manager.transition_to_scene(StringName("demo_room"), "instant")
 	await get_tree().process_frame
 
 	if _manager != null and is_instance_valid(_manager):
@@ -342,7 +342,7 @@ func test_multiple_overlays_stack() -> void:
 func test_scene_loads_into_active_scene_container() -> void:
 	var initial_children: int = _active_scene_container.get_child_count()
 
-	_manager.transition_to_scene(StringName("gameplay_base"), "instant")
+	_manager.transition_to_scene(StringName("demo_room"), "instant")
 	await wait_physics_frames(3)
 
 	var final_children: int = _active_scene_container.get_child_count()

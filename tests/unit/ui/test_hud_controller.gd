@@ -47,7 +47,7 @@ func test_health_bar_hides_when_menus_open() -> void:
 	var store := _create_store()
 	await get_tree().process_frame
 	_ensure_hud_layer()
-	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	await wait_process_frames(1)
 
 	var hud := HUD_SCENE.instantiate()
@@ -90,7 +90,7 @@ func test_health_bar_hidden_when_transitioning_to_main_menu() -> void:
 
 	# Start in gameplay with pause menu open
 	_ensure_hud_layer()
-	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	await wait_process_frames(1)
 
 	var hud := HUD_SCENE.instantiate()
@@ -122,7 +122,7 @@ func test_hud_visibility_tracks_transition_state_and_shell() -> void:
 	var store := _create_store()
 	await get_tree().process_frame
 	_ensure_hud_layer()
-	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	await wait_process_frames(2)
 
 	var hud := HUD_SCENE.instantiate()
@@ -141,6 +141,6 @@ func test_hud_visibility_tracks_transition_state_and_shell() -> void:
 	await wait_process_frames(2)
 	assert_false(hud.visible, "HUD should stay hidden in non-gameplay shells")
 
-	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	await wait_process_frames(2)
 	assert_true(hud.visible, "HUD should reappear when gameplay shell resumes and transition is complete")

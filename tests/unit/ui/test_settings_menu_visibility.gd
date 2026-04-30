@@ -226,6 +226,6 @@ func _create_settings_menu() -> Control:
 	return settings_menu
 
 func _prepare_settings_overlay_context(store: M_StateStore) -> void:
-	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	store.dispatch(U_NavigationActions.open_pause())
 	store.dispatch(U_NavigationActions.open_overlay(StringName("settings_menu_overlay")))

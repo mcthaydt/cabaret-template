@@ -339,7 +339,7 @@ func test_set_world_time_speed_dispatches_speed_update_to_store() -> void:
 
 func test_world_clock_stops_when_paused() -> void:
 	var scene_state := {
-		"current_scene_id": StringName("gameplay_base"),
+		"current_scene_id": StringName("demo_room"),
 		"scene_stack": [],
 	}
 	await _setup_time_manager_with_store(scene_state)
@@ -374,7 +374,7 @@ func test_pause_state_dispatches_time_and_gameplay_mirror_actions() -> void:
 
 func test_world_clock_minute_tick_dispatches_world_time_snapshot() -> void:
 	var scene_state := {
-		"current_scene_id": StringName("gameplay_base"),
+		"current_scene_id": StringName("demo_room"),
 		"scene_stack": [],
 	}
 	await _setup_time_manager_with_store(scene_state)

@@ -17,7 +17,7 @@ class_name U_StateValidator
 ##   var valid_spawn := U_StateValidator.normalize_spawn_reference(value)
 
 
-const DEFAULT_SCENE_ID := StringName("gameplay_base")
+const DEFAULT_SCENE_ID := StringName("demo_room")
 const DEFAULT_SPAWN_POINT := StringName("sp_default")
 const SPAWN_PREFIX := "sp_"
 const CHECKPOINT_PREFIX := "cp_"

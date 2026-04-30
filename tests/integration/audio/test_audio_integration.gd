@@ -49,7 +49,6 @@ const STREAM_ALLEYWAY := preload("res://assets/demo/audio/music/mus_alleyway.mp3
 const STREAM_PAUSE := preload("res://assets/core/audio/music/mus_pause.mp3")
 
 const STREAM_AMBIENT_EXTERIOR := preload("res://tests/assets/audio/ambient/amb_placeholder_exterior.wav")
-const STREAM_AMBIENT_INTERIOR := preload("res://tests/assets/audio/ambient/amb_placeholder_interior.wav")
 
 var _store: M_StateStore
 var _audio_manager: M_AudioManager
@@ -265,13 +264,13 @@ func test_scene_transition_action_switches_to_main_menu_music() -> void:
 
 
 func test_scene_transition_action_switches_to_alleyway_music() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	await get_tree().process_frame
 	assert_true(_is_music_stream_playing(STREAM_ALLEYWAY))
 
 
 func test_open_pause_switches_to_pause_music() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	await get_tree().process_frame
 
 	_store.dispatch(U_NAVIGATION_ACTIONS.open_pause())
@@ -280,7 +279,7 @@ func test_open_pause_switches_to_pause_music() -> void:
 
 
 func test_close_pause_restores_previous_music() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	await get_tree().process_frame
 	_store.dispatch(U_NAVIGATION_ACTIONS.open_pause())
 	await get_tree().process_frame
@@ -301,21 +300,21 @@ func _is_ambient_stream_playing(stream: AudioStream) -> bool:
 
 
 func test_ambient_manager_starts_exterior_ambient_on_scene_transition() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	await get_tree().process_frame
 	assert_true(_is_ambient_stream_playing(STREAM_AMBIENT_EXTERIOR))
 
 
-func test_ambient_manager_switches_to_interior_ambient_on_scene_transition() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
+func test_ambient_manager_keeps_demo_room_ambient_on_repeated_scene_transition() -> void:
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	await get_tree().process_frame
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("interior_house")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	await get_tree().process_frame
-	assert_true(_is_ambient_stream_playing(STREAM_AMBIENT_INTERIOR))
+	assert_true(_is_ambient_stream_playing(STREAM_AMBIENT_EXTERIOR))
 
 
 func test_ambient_manager_stops_ambient_when_no_ambient_for_scene() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	await get_tree().process_frame
 	assert_true(_is_ambient_stream_playing(STREAM_AMBIENT_EXTERIOR))
 
@@ -323,7 +322,6 @@ func test_ambient_manager_stops_ambient_when_no_ambient_for_scene() -> void:
 	# Wait for fade out to complete (2.0s duration + buffer)
 	await get_tree().create_timer(2.1).timeout
 	assert_false(_is_ambient_stream_playing(STREAM_AMBIENT_EXTERIOR))
-	assert_false(_is_ambient_stream_playing(STREAM_AMBIENT_INTERIOR))
 
 
 func test_jump_sfx_system_spawns_sound_on_entity_jumped_event() -> void:

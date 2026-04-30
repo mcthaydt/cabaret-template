@@ -51,7 +51,7 @@ func after_each() -> void:
 
 func test_gameplay_no_overlays_opens_pause() -> void:
 	# Setup: gameplay shell, no overlays
-	_store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	_store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	await wait_process_frames(2)
 
 	# Action: press ui_pause (Start button)
@@ -67,7 +67,7 @@ func test_gameplay_no_overlays_opens_pause() -> void:
 
 func test_gameplay_no_overlays_cancel_does_nothing() -> void:
 	# Setup: gameplay shell, no overlays
-	_store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	_store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	await wait_process_frames(2)
 
 	# Action: press ui_cancel (B button)
@@ -82,7 +82,7 @@ func test_gameplay_no_overlays_cancel_does_nothing() -> void:
 
 func test_gameplay_with_pause_closes_pause() -> void:
 	# Setup: gameplay with pause overlay
-	_store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	_store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	_store.dispatch(U_NavigationActions.open_pause())
 	await wait_process_frames(2)
 
@@ -98,7 +98,7 @@ func test_gameplay_with_pause_closes_pause() -> void:
 
 func test_gameplay_with_settings_overlay_closes_settings() -> void:
 	# Setup: gameplay → pause → settings (return overlay)
-	_store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	_store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	_store.dispatch(U_NavigationActions.open_pause())
 	_store.dispatch(U_NavigationActions.open_overlay(StringName("settings_menu_overlay")))
 	await wait_process_frames(2)
@@ -116,7 +116,7 @@ func test_gameplay_with_settings_overlay_closes_settings() -> void:
 
 func test_gameplay_with_gamepad_settings_resumes_gameplay() -> void:
 	# Setup: gameplay → pause → gamepad_settings (resume overlay)
-	_store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	_store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	_store.dispatch(U_NavigationActions.open_pause())
 	_store.dispatch(U_NavigationActions.open_overlay(StringName("gamepad_settings")))
 	await wait_process_frames(2)
@@ -218,7 +218,7 @@ func test_credits_returns_to_main_menu() -> void:
 
 func test_ui_pause_identical_to_ui_cancel() -> void:
 	# Setup: gameplay shell, no overlays
-	_store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	_store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	await wait_process_frames(2)
 
 	# Action: press ui_pause instead of ui_cancel
@@ -233,7 +233,7 @@ func test_ui_pause_identical_to_ui_cancel() -> void:
 
 
 func test_ui_pause_is_ignored_when_scene_manager_suppresses_current_frame() -> void:
-	_store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	_store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	await wait_process_frames(2)
 
 	_scene_manager_stub.suppress_pause = true

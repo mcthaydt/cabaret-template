@@ -140,7 +140,7 @@ func test_is_transitioning_flag() -> void:
 ## Test overlay stack with pause menu
 func test_pause_menu_overlay_stack() -> void:
 	# Load gameplay scene
-	_manager.transition_to_scene(StringName("gameplay_base"), "instant")
+	_manager.transition_to_scene(StringName("demo_room"), "instant")
 	await wait_physics_frames(2)
 
 	# Push pause menu overlay
@@ -155,7 +155,7 @@ func test_pause_menu_overlay_stack() -> void:
 	assert_eq(scene_stack1[0], StringName("pause_menu"), "Should be pause_menu")
 
 	# Current scene should remain gameplay
-	assert_eq(scene_state1.get("current_scene_id"), StringName("gameplay_base"), "Current scene should still be gameplay")
+	assert_eq(scene_state1.get("current_scene_id"), StringName("demo_room"), "Current scene should still be gameplay")
 
 	# Pop pause menu
 	_manager.pop_overlay()
@@ -169,7 +169,7 @@ func test_pause_menu_overlay_stack() -> void:
 
 ## Test nested overlays (pause → settings → back through stack)
 func test_nested_overlays() -> void:
-	_manager.transition_to_scene(StringName("gameplay_base"), "instant")
+	_manager.transition_to_scene(StringName("demo_room"), "instant")
 	await wait_physics_frames(2)
 
 	# Push pause menu

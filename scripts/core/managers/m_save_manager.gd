@@ -730,7 +730,7 @@ func _get_area_name_from_scene(scene_id: String) -> String:
 		return scene_info["display_name"]
 
 	# Fallback: Format the scene_id into a readable name
-	# "gameplay_base" -> "Gameplay Base"
+	# "demo_room" -> "Demo Room"
 	var formatted := scene_id.replace("_", " ")
 	var words := formatted.split(" ")
 	var capitalized_words: Array[String] = []

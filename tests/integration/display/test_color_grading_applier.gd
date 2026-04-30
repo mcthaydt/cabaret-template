@@ -46,7 +46,7 @@ func before_each() -> void:
 	add_child_autofree(_display_manager)
 	await get_tree().process_frame
 
-	_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("gameplay"), StringName("gameplay_base")))
+	_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("gameplay"), StringName("demo_room")))
 	await get_tree().physics_frame
 
 
@@ -83,7 +83,7 @@ func _get_color_grading_param(param: StringName) -> Variant:
 
 
 func _get_expected_alleyway_grade_dict() -> Dictionary:
-	var grade := U_COLOR_GRADING_REGISTRY.get_color_grading_for_scene(StringName("alleyway"))
+	var grade := U_COLOR_GRADING_REGISTRY.get_color_grading_for_scene(StringName("demo_room"))
 	if grade == null:
 		return {}
 	return grade.to_dictionary()
@@ -106,7 +106,7 @@ func test_color_grading_rect_has_shader_material() -> void:
 # --- Known scene grade load (source-derived from alleyway grade resource) ---
 
 func test_scene_swap_loads_filter_mode_for_known_scene() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.scene_swapped(StringName("alleyway")))
+	_store.dispatch(U_SCENE_ACTIONS.scene_swapped(StringName("demo_room")))
 	await get_tree().process_frame
 
 	var expected_grade: Dictionary = _get_expected_alleyway_grade_dict()
@@ -120,7 +120,7 @@ func test_scene_swap_loads_filter_mode_for_known_scene() -> void:
 
 
 func test_scene_swap_loads_exposure_for_known_scene() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.scene_swapped(StringName("alleyway")))
+	_store.dispatch(U_SCENE_ACTIONS.scene_swapped(StringName("demo_room")))
 	await get_tree().process_frame
 
 	var expected_grade: Dictionary = _get_expected_alleyway_grade_dict()
@@ -135,7 +135,7 @@ func test_scene_swap_loads_exposure_for_known_scene() -> void:
 
 
 func test_scene_swap_loads_contrast_for_known_scene() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.scene_swapped(StringName("alleyway")))
+	_store.dispatch(U_SCENE_ACTIONS.scene_swapped(StringName("demo_room")))
 	await get_tree().process_frame
 
 	var expected_grade: Dictionary = _get_expected_alleyway_grade_dict()
@@ -150,7 +150,7 @@ func test_scene_swap_loads_contrast_for_known_scene() -> void:
 
 
 func test_scene_swap_populates_all_color_grading_keys_in_state() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.scene_swapped(StringName("alleyway")))
+	_store.dispatch(U_SCENE_ACTIONS.scene_swapped(StringName("demo_room")))
 	await get_tree().process_frame
 
 	var state := _store.get_state()
@@ -192,7 +192,7 @@ func test_scene_swap_unknown_scene_still_populates_color_grading_state() -> void
 # --- Shader uniform propagation ---
 
 func test_scene_swap_updates_shader_exposure_uniform() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.scene_swapped(StringName("alleyway")))
+	_store.dispatch(U_SCENE_ACTIONS.scene_swapped(StringName("demo_room")))
 	await get_tree().process_frame
 
 	var expected_grade: Dictionary = _get_expected_alleyway_grade_dict()
@@ -208,7 +208,7 @@ func test_scene_swap_updates_shader_exposure_uniform() -> void:
 
 
 func test_scene_swap_updates_shader_filter_mode_uniform() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.scene_swapped(StringName("alleyway")))
+	_store.dispatch(U_SCENE_ACTIONS.scene_swapped(StringName("demo_room")))
 	await get_tree().process_frame
 
 	var expected_grade: Dictionary = _get_expected_alleyway_grade_dict()

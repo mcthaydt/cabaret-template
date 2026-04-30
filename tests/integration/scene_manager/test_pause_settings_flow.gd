@@ -69,7 +69,7 @@ func after_each() -> void:
 
 func test_settings_with_return_to_pause_using_new_api() -> void:
 	# Given: In gameplay with pause overlay visible
-	_scene_manager.transition_to_scene(StringName("gameplay_base"), "instant", M_SCENE_MANAGER.Priority.HIGH)
+	_scene_manager.transition_to_scene(StringName("demo_room"), "instant", M_SCENE_MANAGER.Priority.HIGH)
 	await wait_physics_frames(5)
 	_scene_manager.push_overlay(StringName("pause_menu"))
 	await get_tree().process_frame

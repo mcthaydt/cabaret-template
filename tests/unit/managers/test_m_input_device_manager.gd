@@ -227,7 +227,7 @@ func test_touch_event_switches_to_touchscreen_without_gamepad_state() -> void:
 
 func test_touch_event_does_not_switch_device_on_gamepad_settings_overlay() -> void:
 	await _simulate_gamepad_input(6)
-	_store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	_store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	_store.dispatch(U_NavigationActions.open_pause())
 	_store.dispatch(U_NavigationActions.open_overlay(StringName("settings_menu_overlay")))
 	_store.dispatch(U_NavigationActions.open_overlay(StringName("gamepad_settings")))
@@ -272,7 +272,7 @@ func test_gamepad_disconnect_ignored_when_overlay_active() -> void:
 	_dispatched_actions.clear()
 	_device_events.clear()
 
-	_store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	_store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	_store.dispatch(U_NavigationActions.open_pause())
 	await get_tree().process_frame
 	var dispatched_before: int = _dispatched_actions.size()

@@ -44,7 +44,7 @@ func before_each() -> void:
 	add_child_autofree(_display_manager)
 	await get_tree().process_frame
 
-	_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("gameplay"), StringName("gameplay_base")))
+	_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("gameplay"), StringName("demo_room")))
 	await get_tree().physics_frame
 
 func after_each() -> void:
@@ -186,7 +186,7 @@ func test_overlay_visibility_respects_navigation_shell() -> void:
 	await get_tree().physics_frame
 	assert_false(grain_dither_layer.visible, "Overlay should hide when shell is not gameplay")
 
-	_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("gameplay"), StringName("gameplay_base")))
+	_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("gameplay"), StringName("demo_room")))
 	await get_tree().physics_frame
 	assert_true(grain_dither_layer.visible, "Overlay should show when shell is gameplay")
 

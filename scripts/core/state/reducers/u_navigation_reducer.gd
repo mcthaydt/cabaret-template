@@ -27,7 +27,7 @@ const OVERLAY_EDIT_TOUCH_CONTROLS := StringName("edit_touch_controls")
 
 const DEFAULT_MENU_PANEL := StringName("menu/main")
 const DEFAULT_PAUSE_PANEL := StringName("pause/root")
-const DEFAULT_RETRY_SCENE := StringName("alleyway")
+const DEFAULT_RETRY_SCENE := StringName("demo_room")
 
 static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 	var action_type: StringName = action.get("type", StringName())

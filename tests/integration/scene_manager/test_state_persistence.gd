@@ -80,7 +80,7 @@ func after_each() -> void:
 ## T071: Test gameplay state modification in gameplay scene
 func test_modify_gameplay_state_in_gameplay_scene() -> void:
 	# Load gameplay scene
-	_manager.transition_to_scene(StringName("gameplay_base"), "instant")
+	_manager.transition_to_scene(StringName("demo_room"), "instant")
 	await wait_physics_frames(2)
 
 	# Get initial gameplay state
@@ -103,7 +103,7 @@ func test_modify_gameplay_state_in_gameplay_scene() -> void:
 ## T072-T074: Test state persistence across scene transitions
 func test_gameplay_state_persists_across_scene_transitions() -> void:
 	# Load gameplay scene
-	_manager.transition_to_scene(StringName("gameplay_base"), "instant")
+	_manager.transition_to_scene(StringName("demo_room"), "instant")
 	await wait_physics_frames(2)
 
 	# Modify gameplay state with distinct values
@@ -134,7 +134,7 @@ func test_gameplay_state_persists_across_scene_transitions() -> void:
 	assert_eq(gameplay_in_menu.get("gravity_scale"), 1.5, "Should preserve gravity scale in menu")
 
 	# Transition back to gameplay scene (T073)
-	_manager.transition_to_scene(StringName("gameplay_base"), "instant")
+	_manager.transition_to_scene(StringName("demo_room"), "instant")
 	await wait_physics_frames(2)
 
 	# Verify gameplay state still persists (T074)
@@ -148,7 +148,7 @@ func test_gameplay_state_persists_across_scene_transitions() -> void:
 ## T075-T078: Test save/load cycle preserves gameplay state
 func test_save_and_load_preserves_gameplay_state() -> void:
 	# Load gameplay scene and modify state
-	_manager.transition_to_scene(StringName("gameplay_base"), "instant")
+	_manager.transition_to_scene(StringName("demo_room"), "instant")
 	await wait_physics_frames(2)
 
 	# Set distinct gameplay state values
@@ -203,7 +203,7 @@ func test_save_and_load_preserves_gameplay_state() -> void:
 ## This test simulates the full user journey: play → collect → transition → save → reload → verify
 func test_comprehensive_state_persistence_flow() -> void:
 	# Start gameplay
-	_manager.transition_to_scene(StringName("gameplay_base"), "instant")
+	_manager.transition_to_scene(StringName("demo_room"), "instant")
 	await wait_physics_frames(2)
 
 	# Simulate player actions (setting various state flags)
@@ -229,7 +229,7 @@ func test_comprehensive_state_persistence_flow() -> void:
 	assert_eq(gameplay2.get("jump_pressed"), true, "Jump state should persist")
 
 	# Return to gameplay
-	_manager.transition_to_scene(StringName("gameplay_base"), "instant")
+	_manager.transition_to_scene(StringName("demo_room"), "instant")
 	await wait_physics_frames(2)
 
 	# Modify state further
@@ -264,7 +264,7 @@ func test_comprehensive_state_persistence_flow() -> void:
 ## Test that transient scene fields are NOT saved
 func test_transient_scene_fields_excluded_from_save() -> void:
 	# Load scene and start transition
-	_manager.transition_to_scene(StringName("gameplay_base"), "fade")
+	_manager.transition_to_scene(StringName("demo_room"), "fade")
 	await get_tree().physics_frame
 
 	# Verify transient fields exist in state during transition
@@ -295,7 +295,7 @@ func test_transient_scene_fields_excluded_from_save() -> void:
 ## Test gameplay slice preservation across multiple transitions
 func test_gameplay_state_survives_multiple_transitions() -> void:
 	# Set initial state
-	_manager.transition_to_scene(StringName("gameplay_base"), "instant")
+	_manager.transition_to_scene(StringName("demo_room"), "instant")
 	await wait_physics_frames(2)
 
 	_store.dispatch(U_GameplayActions.update_move_input(Vector2(0.5, 0.5)))
@@ -312,7 +312,7 @@ func test_gameplay_state_survives_multiple_transitions() -> void:
 	_manager.transition_to_scene(StringName("main_menu"), "instant")
 	await wait_physics_frames(2)
 
-	_manager.transition_to_scene(StringName("gameplay_base"), "instant")
+	_manager.transition_to_scene(StringName("demo_room"), "instant")
 	await wait_physics_frames(2)
 
 	# Verify state survived all transitions
@@ -323,7 +323,7 @@ func test_gameplay_state_survives_multiple_transitions() -> void:
 
 ## Test particle settings persistence
 func test_particle_settings_persist() -> void:
-	_manager.transition_to_scene(StringName("gameplay_base"), "instant")
+	_manager.transition_to_scene(StringName("demo_room"), "instant")
 	await wait_physics_frames(2)
 
 	# Modify particle settings
@@ -346,7 +346,7 @@ func test_particle_settings_persist() -> void:
 
 ## Test audio settings persistence
 func test_audio_settings_persist() -> void:
-	_manager.transition_to_scene(StringName("gameplay_base"), "instant")
+	_manager.transition_to_scene(StringName("demo_room"), "instant")
 	await wait_physics_frames(2)
 
 	# Modify audio settings

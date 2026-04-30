@@ -103,7 +103,7 @@ func test_scene_transition_starts_directive_and_completes_beats_in_order() -> vo
 			signpost_messages.append(String(payload.get("message", "")))
 	)
 
-	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	await _wait_for_directive_completion(completed_directive_ids, 90)
 
 	assert_eq(started_directive_ids.size(), 1, "Expected one start_directive action")
@@ -179,7 +179,7 @@ func test_branching_and_parallel_directive_executes_expected_beats() -> void:
 			observed_events.append(EVENT_JOIN)
 	)
 
-	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	var frames: int = 0
 	while completed_directive_ids.is_empty() and frames < 120:
 		await wait_physics_frames(1)
@@ -248,7 +248,7 @@ func _build_branch_parallel_directive() -> Resource:
 
 	var directive: Resource = RS_SCENE_DIRECTIVE.new()
 	directive.directive_id = StringName("branch_parallel_directive")
-	directive.target_scene_id = StringName("gameplay_base")
+	directive.target_scene_id = StringName("demo_room")
 	directive.priority = 100
 	var selection_conditions: Array[I_Condition] = []
 	directive.selection_conditions = selection_conditions

@@ -7,11 +7,9 @@ const RS_SPAWN_RECOVERY_SETTINGS_PATH := "res://scripts/core/resources/ecs/rs_sp
 const BASE_ECS_SYSTEM := preload("res://scripts/core/ecs/base_ecs_system.gd")
 const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")
 const BASE_ECS_ENTITY := preload("res://scripts/core/ecs/base_ecs_entity.gd")
-const C_AI_BRAIN_COMPONENT := preload("res://scripts/demo/ecs/components/c_ai_brain_component.gd")
 const C_FLOATING_COMPONENT := preload("res://scripts/core/ecs/components/c_floating_component.gd")
 const C_INPUT_COMPONENT := preload("res://scripts/core/ecs/components/c_input_component.gd")
 const C_MOVEMENT_COMPONENT := preload("res://scripts/core/ecs/components/c_movement_component.gd")
-const RS_AI_BRAIN_SETTINGS := preload("res://scripts/core/resources/ai/brain/rs_ai_brain_settings.gd")
 const RS_FLOATING_SETTINGS := preload("res://scripts/core/resources/ecs/rs_floating_settings.gd")
 const RS_MOVEMENT_SETTINGS := preload("res://scripts/core/resources/ecs/rs_movement_settings.gd")
 const I_SPAWN_MANAGER := preload("res://scripts/core/interfaces/i_spawn_manager.gd")
@@ -65,8 +63,7 @@ func _load_script(path: String) -> Script:
 
 func _create_fixture(
 	entity_id: StringName,
-	spawn_point_id: StringName,
-	include_ai_brain: bool = true
+	spawn_point_id: StringName
 ) -> Dictionary:
 	var system_script: Script = _load_script(S_SPAWN_RECOVERY_SYSTEM_PATH)
 	var recovery_component_script: Script = _load_script(C_SPAWN_RECOVERY_COMPONENT_PATH)
@@ -144,17 +141,6 @@ func _create_fixture(
 	entity.add_child(floating)
 	autofree(floating)
 
-	var brain: C_AIBrainComponent = null
-	if include_ai_brain:
-		brain = C_AI_BRAIN_COMPONENT.new()
-		brain.brain_settings = RS_AI_BRAIN_SETTINGS.new()
-		brain.bt_state_bag = {
-			101: {"ai_move_target": Vector3(6.0, 1.0, -6.0)},
-		}
-		entity.add_child(brain)
-		autofree(brain)
-		ecs_manager.add_component_to_entity(entity, brain)
-
 	ecs_manager.add_component_to_entity(entity, recovery_component)
 	ecs_manager.add_component_to_entity(entity, floating)
 	ecs_manager.add_component_to_entity(entity, movement)
@@ -170,7 +156,6 @@ func _create_fixture(
 		"scene_root": scene_root,
 		"entity": entity,
 		"body": body,
-		"brain": brain,
 		"input": input,
 		"floating": floating,
 		"spawn_manager": spawn_manager,
@@ -242,7 +227,7 @@ func test_supported_entity_clears_unsupported_timer() -> void:
 	assert_eq(spawn_manager.spawn_entity_calls.size(), 0, "Support recovery should clear unsupported timer and prevent immediate respawn")
 
 func test_player_entity_respawned_via_shared_system() -> void:
-	var fixture: Dictionary = _create_fixture(&"player", StringName(""), false)
+	var fixture: Dictionary = _create_fixture(&"player", StringName(""))
 	autofree_context(fixture)
 	if fixture.is_empty():
 		return
@@ -256,14 +241,13 @@ func test_player_entity_respawned_via_shared_system() -> void:
 	assert_eq(spawn_manager.spawn_last_calls.size(), 1, "Player entity should respawn through shared player spawn flow")
 	assert_eq(spawn_manager.spawn_entity_calls.size(), 0, "Player recovery should not use entity spawn flow when spawn_point_id is empty")
 
-func test_npc_entity_respawned_via_shared_system() -> void:
-	var fixture: Dictionary = _create_fixture(&"patrol_drone", &"sp_ai_patrol_drone", true)
+func test_non_player_entity_respawned_via_shared_system() -> void:
+	var fixture: Dictionary = _create_fixture(&"patrol_drone", &"sp_ai_patrol_drone")
 	autofree_context(fixture)
 	if fixture.is_empty():
 		return
 
 	var body: FakeBody = fixture["body"] as FakeBody
-	var brain: C_AIBrainComponent = fixture["brain"] as C_AIBrainComponent
 	var input: C_InputComponent = fixture["input"] as C_InputComponent
 	var spawn_manager: SpawnManagerStub = fixture["spawn_manager"] as SpawnManagerStub
 	var system: BaseECSSystem = fixture["system"] as BaseECSSystem
@@ -277,4 +261,3 @@ func test_npc_entity_respawned_via_shared_system() -> void:
 	assert_eq(spawn_manager.spawn_entity_calls.size(), 1, "NPC entity should respawn via generic entity spawn flow")
 	assert_eq(input.move_vector, Vector2.ZERO, "Respawn should clear move vector")
 	assert_eq(body.velocity, Vector3.ZERO, "Respawn should clear body velocity")
-	assert_eq(brain.bt_state_bag, {}, "Respawn should clear AI BT runtime state for NPCs")

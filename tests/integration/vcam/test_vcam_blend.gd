@@ -191,7 +191,7 @@ func _create_store() -> M_StateStore:
 	store.menu_initial_state = RS_MENU_INITIAL_STATE.new()
 	var navigation_initial := RS_NAVIGATION_INITIAL_STATE.new()
 	navigation_initial.shell = StringName("gameplay")
-	navigation_initial.base_scene_id = StringName("alleyway")
+	navigation_initial.base_scene_id = StringName("demo_room")
 	store.navigation_initial_state = navigation_initial
 	var gameplay_initial := RS_GAMEPLAY_INITIAL_STATE.new()
 	gameplay_initial.player_entity_id = "player"

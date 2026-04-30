@@ -144,7 +144,7 @@ func test_touchscreen_settings_overlay_updates_drag_look_sensitivity() -> void:
 	await _await_frames(1)
 	if is_instance_valid(overlay):
 		overlay.queue_free()
-	store.dispatch(U_NAVIGATION_ACTIONS.start_game(StringName("alleyway")))
+	store.dispatch(U_NAVIGATION_ACTIONS.start_game(StringName("demo_room")))
 	store.dispatch(U_INPUT_ACTIONS.device_changed(M_InputDeviceManager.DeviceType.TOUCHSCREEN, -1))
 	await _await_frames(2)
 
@@ -191,7 +191,7 @@ func _setup_mobile_vcam_fixture(mode: Resource, include_input_system: bool) -> D
 	store.gameplay_initial_state = gameplay_initial
 	var navigation_initial := RS_NAVIGATION_INITIAL_STATE.new()
 	navigation_initial.shell = StringName("gameplay")
-	navigation_initial.base_scene_id = StringName("alleyway")
+	navigation_initial.base_scene_id = StringName("demo_room")
 	store.navigation_initial_state = navigation_initial
 	store.scene_initial_state = RS_SCENE_INITIAL_STATE.new()
 	store.settings_initial_state = RS_SETTINGS_INITIAL_STATE.new()
@@ -256,7 +256,7 @@ func _setup_mobile_vcam_fixture(mode: Resource, include_input_system: bool) -> D
 	add_child_autofree(controls)
 	await _await_frames(3)
 
-	store.dispatch(U_NAVIGATION_ACTIONS.start_game(StringName("alleyway")))
+	store.dispatch(U_NAVIGATION_ACTIONS.start_game(StringName("demo_room")))
 	store.dispatch(U_INPUT_ACTIONS.device_changed(M_InputDeviceManager.DeviceType.TOUCHSCREEN, -1))
 	await _await_frames(2)
 

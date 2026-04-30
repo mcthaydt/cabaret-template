@@ -29,13 +29,5 @@ static func _register_scene_grades() -> void:
 	_scene_grades.clear()
 
 	var gameplay_base := preload("res://resources/core/display/color_gradings/cfg_color_grading_gameplay_base.tres") as RS_SceneColorGrading
-	var alleyway := preload("res://resources/demo/display/color_gradings/cfg_color_grading_alleyway.tres") as RS_SceneColorGrading
-	var exterior := preload("res://resources/demo/display/color_gradings/cfg_color_grading_exterior.tres") as RS_SceneColorGrading
-	var bar := preload("res://resources/demo/display/color_gradings/cfg_color_grading_bar.tres") as RS_SceneColorGrading
-	var interior_house := preload("res://resources/demo/display/color_gradings/cfg_color_grading_interior_house.tres") as RS_SceneColorGrading
 
-	_scene_grades[StringName("gameplay_base")] = gameplay_base
-	_scene_grades[StringName("alleyway")] = alleyway
-	_scene_grades[StringName("exterior")] = exterior
-	_scene_grades[StringName("bar")] = bar
-	_scene_grades[StringName("interior_house")] = interior_house
+	_scene_grades[StringName("demo_room")] = gameplay_base

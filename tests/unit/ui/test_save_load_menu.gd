@@ -355,7 +355,7 @@ func _prepare_load_mode(store: M_StateStore) -> void:
 
 func _open_save_load_overlay_in_gameplay(store: M_StateStore) -> void:
 	if store != null:
-		store.dispatch(U_NavigationActions.set_shell(StringName("gameplay"), StringName("alleyway")))
+		store.dispatch(U_NavigationActions.set_shell(StringName("gameplay"), StringName("demo_room")))
 		store.dispatch(U_NavigationActions.open_pause())
 		store.dispatch(U_NavigationActions.open_overlay(StringName("save_load_menu_overlay")))
 		await wait_process_frames(2)

@@ -5,5 +5,5 @@
 
 [resource]
 script = ExtResource("1")
-track_id = &"alleyway"
+track_id = &"demo_room"
 stream = ExtResource("2")

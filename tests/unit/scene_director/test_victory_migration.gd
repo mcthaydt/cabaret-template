@@ -130,11 +130,11 @@ func test_scene_manager_no_longer_listens_to_victory_executed() -> void:
 	var state_store: M_STATE_STORE = fixture.get("state_store")
 	assert_not_null(scene_manager)
 
-	state_store.dispatch(U_GAMEPLAY_ACTIONS.trigger_victory_routing(StringName("alleyway")))
+	state_store.dispatch(U_GAMEPLAY_ACTIONS.trigger_victory_routing(StringName("demo_room")))
 	await U_SCENE_TEST_HELPERS.wait_for_transition_idle(scene_manager)
 	assert_eq(
 		scene_manager.get_current_scene(),
-		StringName("alleyway"),
+		StringName("demo_room"),
 		"Scene manager should transition on trigger_victory_routing action"
 	)
 

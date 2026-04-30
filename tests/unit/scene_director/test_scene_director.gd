@@ -110,13 +110,13 @@ func test_select_directive_picks_highest_priority_match() -> void:
 	var fail_top := ConditionStub.new(0.0)
 	var manager: Variant = await _spawn_manager(
 		[
-			_directive(StringName("dir_fail"), StringName("gameplay_base"), 100, [fail_top], []),
-			_directive(StringName("dir_high"), StringName("gameplay_base"), 20, [pass_high], []),
-			_directive(StringName("dir_low"), StringName("gameplay_base"), 5, [pass_low], []),
+			_directive(StringName("dir_fail"), StringName("demo_room"), 100, [fail_top], []),
+			_directive(StringName("dir_high"), StringName("demo_room"), 20, [pass_high], []),
+			_directive(StringName("dir_low"), StringName("demo_room"), 5, [pass_low], []),
 		]
 	)
 
-	var selected: Resource = manager._select_directive(StringName("gameplay_base"))
+	var selected: Resource = manager._select_directive(StringName("demo_room"))
 
 	assert_not_null(selected)
 	assert_eq(selected.directive_id, StringName("dir_high"))
@@ -130,7 +130,7 @@ func test_no_directive_selected_for_non_matching_scene() -> void:
 		]
 	)
 
-	var selected: Resource = manager._select_directive(StringName("gameplay_base"))
+	var selected: Resource = manager._select_directive(StringName("demo_room"))
 	assert_eq(selected, null)
 
 func test_timed_beats_run_in_physics_process_and_complete() -> void:
@@ -140,7 +140,7 @@ func test_timed_beats_run_in_physics_process_and_complete() -> void:
 		[
 			_directive(
 				StringName("dir_timed"),
-				StringName("gameplay_base"),
+				StringName("demo_room"),
 				1,
 				[],
 				[
@@ -157,7 +157,7 @@ func test_timed_beats_run_in_physics_process_and_complete() -> void:
 		]
 	)
 
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	manager._physics_process(0.1)
 	assert_eq(beat_effect.execute_calls, 1)
 	assert_true(beat_effect.last_context.has("state_store"))
@@ -179,7 +179,7 @@ func test_runner_state_sync_avoids_redundant_observability_dispatches() -> void:
 		[
 			_directive(
 				StringName("dir_timed_observability"),
-				StringName("gameplay_base"),
+				StringName("demo_room"),
 				1,
 				[],
 				[
@@ -196,7 +196,7 @@ func test_runner_state_sync_avoids_redundant_observability_dispatches() -> void:
 		]
 	)
 
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	manager._physics_process(0.016)
 
 	var current_beat_dispatches_before: int = _count_actions(U_SCENE_DIRECTOR_ACTIONS.ACTION_SET_CURRENT_BEAT)
@@ -217,7 +217,7 @@ func test_signal_advancement_merges_event_payload_context() -> void:
 		[
 			_directive(
 				StringName("dir_signal"),
-				StringName("gameplay_base"),
+				StringName("demo_room"),
 				1,
 				[],
 				[
@@ -242,7 +242,7 @@ func test_signal_advancement_merges_event_payload_context() -> void:
 		]
 	)
 
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	manager._physics_process(0.016)
 	assert_eq(beat_one_effect.execute_calls, 1)
 	assert_eq(beat_two_effect.execute_calls, 0)
@@ -264,7 +264,7 @@ func test_signal_subscriptions_use_unique_wait_events_only() -> void:
 	var manager: Variant = await _spawn_manager([])
 	var directive: Resource = _directive(
 		StringName("dir_wait_events"),
-		StringName("gameplay_base"),
+		StringName("demo_room"),
 		1,
 		[],
 		[
@@ -287,7 +287,7 @@ func test_signal_subscriptions_cleanup_on_complete_and_reset() -> void:
 		[
 			_directive(
 				StringName("dir_signal"),
-				StringName("gameplay_base"),
+				StringName("demo_room"),
 				1,
 				[],
 				[
@@ -302,7 +302,7 @@ func test_signal_subscriptions_cleanup_on_complete_and_reset() -> void:
 		]
 	)
 
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	assert_eq(manager._signal_unsubscribes_by_event.size(), 1)
 
 	manager._physics_process(0.016)
@@ -319,7 +319,7 @@ func test_late_store_registration_resolves_during_idle_tick() -> void:
 		[
 			_directive(
 				StringName("dir_late_store"),
-				StringName("gameplay_base"),
+				StringName("demo_room"),
 				1,
 				[],
 				[
@@ -333,7 +333,7 @@ func test_late_store_registration_resolves_during_idle_tick() -> void:
 	# No store at _ready(); registration happens after manager is already in tree.
 	U_SERVICE_LOCATOR.register(StringName("state_store"), _store)
 	manager._physics_process(0.016)
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 
 	assert_true(_has_action(U_SCENE_DIRECTOR_ACTIONS.ACTION_START_DIRECTIVE))
 
@@ -349,11 +349,11 @@ func test_branching_directive_uses_set_beat_index_and_skips_intermediate_beat() 
 
 	var manager: Variant = await _spawn_manager(
 		[
-			_directive(StringName("dir_branch"), StringName("gameplay_base"), 1, [], [start, skipped, ending]),
+			_directive(StringName("dir_branch"), StringName("demo_room"), 1, [], [start, skipped, ending]),
 		]
 	)
 
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	manager._physics_process(0.016)
 	manager._physics_process(0.016)
 
@@ -379,11 +379,11 @@ func test_parallel_directive_dispatches_parallel_actions_and_completes_join() ->
 
 	var manager: Variant = await _spawn_manager(
 		[
-			_directive(StringName("dir_parallel"), StringName("gameplay_base"), 1, [], [fork, lane_a, lane_b, join]),
+			_directive(StringName("dir_parallel"), StringName("demo_room"), 1, [], [fork, lane_a, lane_b, join]),
 		]
 	)
 
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	manager._physics_process(0.016)
 	assert_true(_has_action(U_SCENE_DIRECTOR_ACTIONS.ACTION_START_PARALLEL))
 	assert_true(U_SCENE_DIRECTOR_SELECTORS.is_parallel(_store.get_state()))
@@ -406,11 +406,11 @@ func test_invalid_beat_graph_warns_and_skips_directive_start() -> void:
 
 	var manager: Variant = await _spawn_manager(
 		[
-			_directive(StringName("dir_invalid"), StringName("gameplay_base"), 1, [], [invalid_fork, lane_a]),
+			_directive(StringName("dir_invalid"), StringName("demo_room"), 1, [], [invalid_fork, lane_a]),
 		]
 	)
 
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	manager._physics_process(0.016)
 
 	assert_true(_has_action(U_SCENE_DIRECTOR_ACTIONS.ACTION_RESET))

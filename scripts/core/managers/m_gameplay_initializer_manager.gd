@@ -8,7 +8,7 @@ extends I_GameplayInitializerManager
 ## (not through M_SceneManager transition).
 ##
 ## This handles cases like:
-## - Running gameplay_base.tscn directly in editor
+## - Running gameplay_demo_room.tscn directly in editor
 ## - Tests that load gameplay scenes directly
 ## - Initial game boot to gameplay scene
 ##
@@ -56,7 +56,7 @@ func _ready() -> void:
 
 	# Spawn player at last spawn point (defaults to sp_default if no state)
 	# This path is only reached when:
-	# - Running gameplay_base.tscn directly in editor
+	# - Running gameplay_demo_room.tscn directly in editor
 	# - Loading gameplay scenes in tests
 	# - Any other direct scene instantiation (NOT via M_SceneManager)
 	spawn_manager.spawn_at_last_spawn(scene_root)

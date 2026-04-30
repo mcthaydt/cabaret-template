@@ -56,7 +56,7 @@ func test_gameplay_handler_requires_state_store() -> void:
 
 
 func test_gameplay_handler_returns_start_game_action() -> void:
-	var action := gameplay_handler.get_navigation_action(StringName("gameplay_base"))
+	var action := gameplay_handler.get_navigation_action(StringName("demo_room"))
 	assert_true(action.has("type"), "Navigation action should have 'type' field")
 	assert_eq(action["type"], StringName("navigation/start_game"),
 		"Gameplay handler should return start_game action")

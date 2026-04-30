@@ -344,7 +344,7 @@ func _disabled_test_missing_save_file_uses_defaults() -> void:
 
 func test_pause_during_transition_completes_transition_first() -> void:
 	# Start a fade transition
-	_manager.transition_to_scene(StringName("gameplay_base"), "fade")
+	_manager.transition_to_scene(StringName("demo_room"), "fade")
 	await get_tree().physics_frame
 
 	# Verify transition started
@@ -364,7 +364,7 @@ func test_pause_during_transition_completes_transition_first() -> void:
 	var scene_state2: Dictionary = state2.get("scene", {})
 
 	# Transition should complete
-	assert_eq(scene_state2.get("current_scene_id"), StringName("gameplay_base"),
+	assert_eq(scene_state2.get("current_scene_id"), StringName("demo_room"),
 		"Transition should complete even if pause attempted")
 	assert_false(scene_state2.get("is_transitioning", false),
 		"Transition should finish before pause")
@@ -374,8 +374,8 @@ func test_pause_action_during_transition_reconciles_after_completion() -> void:
 	# Test that pause actions don't interfere with ongoing transitions
 
 	# Start gameplay and begin transition
-	_store.dispatch(U_NavigationActions.start_game(StringName("gameplay_base")))
-	_manager.transition_to_scene(StringName("gameplay_base"), "fade")
+	_store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
+	_manager.transition_to_scene(StringName("demo_room"), "fade")
 	await get_tree().physics_frame
 	_debug_transition_snapshot("after start_game + transition_to_scene")
 
@@ -413,7 +413,7 @@ func test_low_memory_triggers_cache_eviction() -> void:
 		StringName("main_menu"),
 		StringName("settings_menu"),
 		StringName("pause_menu"),
-		StringName("gameplay_base"),
+		StringName("demo_room"),
 		StringName("game_over"),
 		StringName("victory"),  # 6th scene should trigger eviction
 	]
@@ -443,7 +443,7 @@ func test_memory_pressure_evicts_lru_scenes() -> void:
 	await wait_physics_frames(2)
 
 	# Load more scenes to trigger eviction
-	_manager.transition_to_scene(StringName("gameplay_base"), "instant")
+	_manager.transition_to_scene(StringName("demo_room"), "instant")
 	await wait_physics_frames(2)
 
 	_manager.transition_to_scene(StringName("game_over"), "instant")

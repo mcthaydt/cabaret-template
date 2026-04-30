@@ -57,6 +57,6 @@ duration = 0.05
 [resource]
 script = ExtResource("1_7m0t8")
 directive_id = &"gameplay_base_intro"
-description = "Default introductory directive for gameplay_base."
-target_scene_id = &"gameplay_base"
+description = "Default introductory directive for demo_room."
+target_scene_id = &"demo_room"
 beats = Array[ExtResource("2_vf4lq")]([SubResource("Resource_n2h5g"), SubResource("Resource_l1k9z")])

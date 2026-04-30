@@ -122,7 +122,7 @@ func test_default_objective_set_requires_final_trigger_before_victory_transition
 	)
 	assert_eq(
 		_scene_manager.get_current_scene(),
-		StringName("alleyway"),
+		StringName("demo_room"),
 		"Default objective set should route back to alleyway after bar objective completion"
 	)
 
@@ -134,7 +134,7 @@ func test_default_objective_set_requires_final_trigger_before_victory_transition
 		"active",
 		"Victory event without final trigger payload should not complete final objective"
 	)
-	assert_eq(_scene_manager.get_current_scene(), StringName("alleyway"))
+	assert_eq(_scene_manager.get_current_scene(), StringName("demo_room"))
 
 	_state_store.dispatch(U_GAMEPLAY_ACTIONS.trigger_victory(StringName("final_goal")))
 	await U_SCENE_TEST_HELPERS.wait_for_transition_idle(_scene_manager)

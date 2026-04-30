@@ -46,10 +46,10 @@ func test_valid_defaults_produce_no_errors() -> void:
 	config.route_retry = config.route_retry
 	config.default_objective_set_id = config.default_objective_set_id
 	config.required_final_area = config.required_final_area
-	assert_eq(config.retry_scene_id, StringName("power_core"), "Default retry_scene_id preserved")
+	assert_eq(config.retry_scene_id, StringName("demo_room"), "Default retry_scene_id preserved")
 	assert_eq(config.route_retry, StringName("retry"), "Default route_retry preserved")
 	assert_eq(config.default_objective_set_id, StringName("default_progression"), "Default objective set preserved")
-	assert_eq(config.required_final_area, "bar", "Default required_final_area preserved")
+	assert_eq(config.required_final_area, "demo_room", "Default required_final_area preserved")
 
 
 func test_error_includes_resource_path() -> void:

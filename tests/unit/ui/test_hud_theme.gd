@@ -23,7 +23,7 @@ func before_each() -> void:
 	U_InteractBlocker.cleanup()
 
 	_store = _create_store()
-	_store.dispatch(U_NAVIGATION_ACTIONS.start_game(StringName("alleyway")))
+	_store.dispatch(U_NAVIGATION_ACTIONS.start_game(StringName("demo_room")))
 	await get_tree().process_frame
 
 func after_each() -> void:

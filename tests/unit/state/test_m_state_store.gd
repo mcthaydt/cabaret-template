@@ -351,8 +351,8 @@ func test_normalize_scene_slice_falls_back_to_default_scene() -> void:
 	}
 	store.call("_normalize_loaded_state", state)
 	var scene_slice: Dictionary = state["scene"]
-	assert_eq(scene_slice.get("current_scene_id"), StringName("gameplay_base"),
-		"Blank scene IDs should fall back to gameplay_base.")
+	assert_eq(scene_slice.get("current_scene_id"), StringName("demo_room"),
+		"Blank scene IDs should fall back to demo_room.")
 
 func test_normalize_gameplay_slice_sanitizes_spawn_and_completed_areas() -> void:
 	var state: Dictionary = {

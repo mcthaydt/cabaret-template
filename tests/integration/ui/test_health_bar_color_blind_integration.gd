@@ -57,7 +57,7 @@ func before_each() -> void:
 	await get_tree().process_frame  # Extra frame for DisplayManager initialization
 
 	# Set navigation shell to "gameplay" so health bar is visible
-	_store.dispatch(U_NavigationActions.set_shell(StringName("gameplay"), StringName("gameplay_base")))
+	_store.dispatch(U_NavigationActions.set_shell(StringName("gameplay"), StringName("demo_room")))
 	await get_tree().process_frame
 
 	# Set initial color blind mode (normal) to ensure display state is initialized

@@ -5,7 +5,7 @@ const MANIFEST_PATH := "res://scripts/core/scene_management/u_scene_manifest.gd"
 func test_manifest_script_exists() -> void:
 	assert_true(FileAccess.file_exists(MANIFEST_PATH), "Scene manifest script must exist: %s" % MANIFEST_PATH)
 
-func test_manifest_builds_all_demo_scenes() -> void:
+func test_manifest_builds_active_demo_scene() -> void:
 	if not FileAccess.file_exists(MANIFEST_PATH):
 		return
 	var script: Script = load(MANIFEST_PATH)
@@ -24,12 +24,9 @@ func test_manifest_builds_all_demo_scenes() -> void:
 	if not (result is Dictionary):
 		return
 	var scenes: Dictionary = result as Dictionary
-	# Verify presence of all demo scenes currently registered via .tres files
+	# Verify the manifest reflects the single active demo gameplay scene.
 	var expected_ids: Array[StringName] = [
-		&"gameplay_base", &"alleyway", &"interior_house",
-		&"interior_a", &"bar", &"power_core",
-		&"comms_array", &"nav_nexus",
-		&"ai_showcase", &"ai_woods",
+		&"demo_room",
 	]
 	for scene_id: StringName in expected_ids:
 		assert_true(
@@ -58,59 +55,38 @@ func test_manifest_builds_all_demo_scenes() -> void:
 				"Entry '%s' must have int preload_priority" % scene_id
 			)
 
-func test_manifest_gameplay_base_matches_tres_values() -> void:
+func test_manifest_demo_room_matches_expected_values() -> void:
 	if not FileAccess.file_exists(MANIFEST_PATH):
 		return
 	var manifest: RefCounted = load(MANIFEST_PATH).new()
 	if not manifest.has_method("build"):
 		return
 	var scenes: Dictionary = manifest.call("build")
-	if not scenes.has(&"gameplay_base"):
-		return
-	var entry: Dictionary = scenes[&"gameplay_base"]
-	assert_eq(entry.get("path"), "res://scenes/core/gameplay/gameplay_base.tscn", "gameplay_base path must match")
-	assert_eq(entry.get("scene_type"), 1, "gameplay_base type must be GAMEPLAY (1)")
-	assert_eq(entry.get("preload_priority"), 8, "gameplay_base priority must be 8")
+	assert_true(scenes.has(&"demo_room"), "demo_room must be present")
+	var entry: Dictionary = scenes[&"demo_room"]
+	assert_eq(entry.get("path"), "res://scenes/demo/gameplay/gameplay_demo_room.tscn", "demo_room path must match")
+	assert_eq(entry.get("scene_type"), 1, "demo_room type must be GAMEPLAY (1)")
+	assert_eq(entry.get("default_transition"), "loading", "demo_room transition must be loading")
+	assert_eq(entry.get("preload_priority"), 8, "demo_room priority must be 8")
 
-func test_manifest_bar_matches_tres_values() -> void:
+func test_manifest_excludes_deleted_legacy_demo_scenes() -> void:
 	if not FileAccess.file_exists(MANIFEST_PATH):
 		return
 	var manifest: RefCounted = load(MANIFEST_PATH).new()
 	if not manifest.has_method("build"):
 		return
 	var scenes: Dictionary = manifest.call("build")
-	if not scenes.has(&"bar"):
-		return
-	var entry: Dictionary = scenes[&"bar"]
-	assert_eq(entry.get("path"), "res://scenes/demo/gameplay/gameplay_bar.tscn", "bar path must match")
-	assert_eq(entry.get("scene_type"), 1, "bar type must be GAMEPLAY (1)")
-	assert_eq(entry.get("preload_priority"), 6, "bar priority must be 6")
-
-func test_manifest_interior_house_matches_tres_values() -> void:
-	if not FileAccess.file_exists(MANIFEST_PATH):
-		return
-	var manifest: RefCounted = load(MANIFEST_PATH).new()
-	if not manifest.has_method("build"):
-		return
-	var scenes: Dictionary = manifest.call("build")
-	if not scenes.has(&"interior_house"):
-		return
-	var entry: Dictionary = scenes[&"interior_house"]
-	assert_eq(entry.get("path"), "res://scenes/demo/gameplay/gameplay_interior_house.tscn", "interior_house path must match")
-	assert_eq(entry.get("scene_type"), 1, "interior_house type must be GAMEPLAY (1)")
-	assert_eq(entry.get("preload_priority"), 6, "interior_house priority must be 6")
-
-func test_manifest_nav_nexus_matches_tres_values() -> void:
-	if not FileAccess.file_exists(MANIFEST_PATH):
-		return
-	var manifest: RefCounted = load(MANIFEST_PATH).new()
-	if not manifest.has_method("build"):
-		return
-	var scenes: Dictionary = manifest.call("build")
-	if not scenes.has(&"nav_nexus"):
-		return
-	var entry: Dictionary = scenes[&"nav_nexus"]
-	assert_eq(entry.get("path"), "res://scenes/demo/gameplay/gameplay_nav_nexus.tscn", "nav_nexus path must match")
-	assert_eq(entry.get("scene_type"), 1, "nav_nexus type must be GAMEPLAY (1)")
-	assert_eq(entry.get("default_transition"), "loading", "nav_nexus transition must be 'loading'")
-	assert_eq(entry.get("preload_priority"), 6, "nav_nexus priority must be 6")
+	var deleted_ids: Array[StringName] = [
+		&"gameplay_base",
+		&"alleyway",
+		&"interior_house",
+		&"interior_a",
+		&"bar",
+		&"power_core",
+		&"comms_array",
+		&"nav_nexus",
+		&"ai_showcase",
+		&"ai_woods",
+	]
+	for scene_id: StringName in deleted_ids:
+		assert_false(scenes.has(scene_id), "Manifest must not contain deleted scene_id '%s'" % scene_id)

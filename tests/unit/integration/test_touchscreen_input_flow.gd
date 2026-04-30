@@ -65,11 +65,11 @@ func test_controls_hide_and_processing_stops_on_device_change_and_transition() -
 	await _await_state_update(store)
 	assert_true(controls.visible, "MobileControls should reappear when touchscreen becomes active")
 
-	store.dispatch(U_SceneActions.transition_started(StringName("gameplay_base"), "fade"))
+	store.dispatch(U_SceneActions.transition_started(StringName("demo_room"), "fade"))
 	await _await_state_update(store)
 	assert_false(controls.visible, "MobileControls should hide during scene transitions")
 
-	store.dispatch(U_SceneActions.transition_completed(StringName("gameplay_base")))
+	store.dispatch(U_SceneActions.transition_completed(StringName("demo_room")))
 	await _await_state_update(store)
 	assert_true(controls.visible, "MobileControls should show after transition completes")
 
@@ -121,7 +121,7 @@ func test_virtual_control_positions_persist_via_state_handoff() -> void:
 
 func _setup_environment() -> Dictionary:
 	var store := await _create_state_store()
-	store.dispatch(U_NavigationActions.start_game(StringName("gameplay_base")))
+	store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	await _await_state_update(store)
 
 	var ecs_manager := M_ECSManager.new()
@@ -166,7 +166,7 @@ func _create_state_store() -> M_StateStore:
 	store.menu_initial_state = RS_MenuInitialState.new()
 	store.gameplay_initial_state = RS_GameplayInitialState.new()
 	store.scene_initial_state = RS_SceneInitialState.new()
-	store.scene_initial_state.current_scene_id = StringName("gameplay_base")
+	store.scene_initial_state.current_scene_id = StringName("demo_room")
 	store.settings_initial_state = RS_SettingsInitialState.new()
 	store.debug_initial_state = RS_DebugInitialState.new()
 	store.navigation_initial_state = RS_NavigationInitialState.new()

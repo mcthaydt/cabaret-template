@@ -5,5 +5,5 @@
 
 [resource]
 script = ExtResource("1")
-ambient_id = &"exterior"
+ambient_id = &"demo_room"
 stream = ExtResource("2")

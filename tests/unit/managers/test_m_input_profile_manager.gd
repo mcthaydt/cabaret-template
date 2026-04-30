@@ -158,7 +158,7 @@ func test_get_default_joystick_position_returns_profile_value() -> void:
 
 func test_switch_profile_requires_pause() -> void:
 	await _await_manager_initialized()
-	_store.dispatch(U_NavigationActions.set_shell(StringName("gameplay"), StringName("gameplay_base")))
+	_store.dispatch(U_NavigationActions.set_shell(StringName("gameplay"), StringName("demo_room")))
 
 	# Ensure default available ids detected (if resources exist)
 	var ids: Array[String] = _mgr.get_available_profile_ids()

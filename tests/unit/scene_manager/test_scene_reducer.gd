@@ -34,7 +34,7 @@ func test_transition_started_sets_transitioning_flag() -> void:
 	}
 
 	var action: Dictionary = U_SceneActions.transition_started(
-		StringName("gameplay_base"),
+		StringName("demo_room"),
 		"fade"
 	)
 
@@ -54,18 +54,18 @@ func test_transition_completed_updates_current_scene() -> void:
 		"previous_scene_id": StringName("main_menu")
 	}
 
-	var action: Dictionary = U_SceneActions.transition_completed(StringName("gameplay_base"))
+	var action: Dictionary = U_SceneActions.transition_completed(StringName("demo_room"))
 
 	var new_state: Dictionary = U_SceneReducer.reduce(state, action)
 
-	assert_eq(new_state["current_scene_id"], StringName("gameplay_base"), "Should update current_scene_id")
+	assert_eq(new_state["current_scene_id"], StringName("demo_room"), "Should update current_scene_id")
 	assert_false(new_state["is_transitioning"], "Should clear is_transitioning flag")
 	assert_eq(new_state["transition_type"], "", "Should clear transition_type")
 
 ## Test PUSH_OVERLAY action
 func test_push_overlay_adds_to_scene_stack() -> void:
 	var state: Dictionary = {
-		"current_scene_id": StringName("gameplay_base"),
+		"current_scene_id": StringName("demo_room"),
 		"scene_stack": [],
 		"is_transitioning": false,
 		"transition_type": "",
@@ -78,12 +78,12 @@ func test_push_overlay_adds_to_scene_stack() -> void:
 
 	assert_eq(new_state["scene_stack"].size(), 1, "Should add overlay to stack")
 	assert_eq(new_state["scene_stack"][0], StringName("pause_menu"), "Should add correct scene ID")
-	assert_eq(new_state["current_scene_id"], StringName("gameplay_base"), "Should not change current_scene_id")
+	assert_eq(new_state["current_scene_id"], StringName("demo_room"), "Should not change current_scene_id")
 
 ## Test POP_OVERLAY action
 func test_pop_overlay_removes_from_scene_stack() -> void:
 	var state: Dictionary = {
-		"current_scene_id": StringName("gameplay_base"),
+		"current_scene_id": StringName("demo_room"),
 		"scene_stack": [StringName("pause_menu"), StringName("settings_menu")],
 		"is_transitioning": false,
 		"transition_type": "",
@@ -100,7 +100,7 @@ func test_pop_overlay_removes_from_scene_stack() -> void:
 ## Test POP_OVERLAY with empty stack
 func test_pop_overlay_with_empty_stack_does_nothing() -> void:
 	var state: Dictionary = {
-		"current_scene_id": StringName("gameplay_base"),
+		"current_scene_id": StringName("demo_room"),
 		"scene_stack": [],
 		"is_transitioning": false,
 		"transition_type": "",
@@ -124,7 +124,7 @@ func test_reducer_returns_new_state_object() -> void:
 	}
 
 	var action: Dictionary = U_SceneActions.transition_started(
-		StringName("gameplay_base"),
+		StringName("demo_room"),
 		"fade"
 	)
 
@@ -156,7 +156,7 @@ func test_unrecognized_action_returns_state_unchanged() -> void:
 ## Test nested overlay stack management
 func test_multiple_overlay_pushes() -> void:
 	var state: Dictionary = {
-		"current_scene_id": StringName("gameplay_base"),
+		"current_scene_id": StringName("demo_room"),
 		"scene_stack": [],
 		"is_transitioning": false,
 		"transition_type": "",
@@ -179,7 +179,7 @@ func test_multiple_overlay_pushes() -> void:
 func test_scene_stack_is_duplicated() -> void:
 	var original_stack: Array = [StringName("pause_menu")]
 	var state: Dictionary = {
-		"current_scene_id": StringName("gameplay_base"),
+		"current_scene_id": StringName("demo_room"),
 		"scene_stack": original_stack,
 		"is_transitioning": false,
 		"transition_type": "",

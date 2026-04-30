@@ -186,7 +186,7 @@ func test_scene_slice_transient_fields_excluded_from_save() -> void:
 
 	# Dispatch scene action to set transient fields
 	var action: Dictionary = U_SceneActions.transition_started(
-		StringName("gameplay_base"),
+		StringName("demo_room"),
 		"fade"
 	)
 	scene_store.dispatch(action)

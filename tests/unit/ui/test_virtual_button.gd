@@ -239,7 +239,7 @@ func test_visual_feedback_updates_on_press_and_release() -> void:
 
 func test_pause_button_toggles_navigation_pause() -> void:
 	var store := await _create_state_store()
-	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	var button := await _create_button(func(instance: Control) -> void:
 		instance.set("action", StringName("pause"))
 	)

@@ -29,7 +29,7 @@ func test_create_root_produces_node3d() -> void:
 	assert_true(root is Node3D, "create_root must produce Node3D")
 	assert_eq((root as Node).name, "TestBlockout", "create_root must set node name")
 	if root is Node:
-		(root as Node).queue_free()
+		(root as Node).free()
 
 func test_add_csg_box_adds_csg_box3d() -> void:
 	var builder: Object = _new_builder()
@@ -44,7 +44,7 @@ func test_add_csg_box_adds_csg_box3d() -> void:
 	assert_true(box is CSGBox3D, "Added child must be CSGBox3D")
 	assert_eq((box as CSGBox3D).size, Vector3(10, 1, 10), "add_csg_box must set size")
 	if root is Node:
-		(root as Node).queue_free()
+		(root as Node).free()
 
 func test_add_csg_sphere_adds_csg_sphere3d() -> void:
 	var builder: Object = _new_builder()
@@ -59,7 +59,7 @@ func test_add_csg_sphere_adds_csg_sphere3d() -> void:
 	assert_true(sphere is CSGSphere3D, "Added child must be CSGSphere3D")
 	assert_eq((sphere as CSGSphere3D).radius, 2.0, "add_csg_sphere must set radius")
 	if root is Node:
-		(root as Node).queue_free()
+		(root as Node).free()
 
 func test_add_spawn_point_adds_marker3d() -> void:
 	var builder: Object = _new_builder()
@@ -74,7 +74,7 @@ func test_add_spawn_point_adds_marker3d() -> void:
 	assert_true(marker is Marker3D, "Added child must be Marker3D")
 	assert_eq((marker as Marker3D).position, Vector3(0, 1, 0), "add_spawn_point must set position")
 	if root is Node:
-		(root as Node).queue_free()
+		(root as Node).free()
 
 func test_execute_custom_runs_callable() -> void:
 	var builder: Object = _new_builder()
@@ -87,9 +87,10 @@ func test_execute_custom_runs_callable() -> void:
 	var callback: Callable = Callable(helper, "run")
 	builder.call("execute_custom", callback)
 	assert_eq(helper.marker, "TestBlockout", "execute_custom must invoke callable and pass root")
+	helper.free()
 	var root: Variant = builder.call("build")
 	if root is Node:
-		(root as Node).queue_free()
+		(root as Node).free()
 
 func test_set_material_changes_color() -> void:
 	var builder: Object = _new_builder()
@@ -108,7 +109,7 @@ func test_set_material_changes_color() -> void:
 	assert_true(mat is StandardMaterial3D, "Material must be StandardMaterial3D")
 	assert_eq((mat as StandardMaterial3D).albedo_color, Color.RED, "Material color must match")
 	if root is Node:
-		(root as Node).queue_free()
+		(root as Node).free()
 
 func test_add_directional_light_adds_light3d() -> void:
 	var builder: Object = _new_builder()
@@ -125,7 +126,7 @@ func test_add_directional_light_adds_light3d() -> void:
 	assert_eq((light as DirectionalLight3D).light_color, Color.YELLOW, "Light color must match")
 	assert_eq((light as DirectionalLight3D).light_energy, 2.0, "Light energy must match")
 	if root is Node:
-		(root as Node).queue_free()
+		(root as Node).free()
 
 func test_add_world_environment_adds_environment() -> void:
 	var builder: Object = _new_builder()
@@ -140,7 +141,7 @@ func test_add_world_environment_adds_environment() -> void:
 	assert_true(env_node is WorldEnvironment, "Added node must be WorldEnvironment")
 	assert_not_null((env_node as WorldEnvironment).environment, "Environment resource must be set")
 	if root is Node:
-		(root as Node).queue_free()
+		(root as Node).free()
 
 func test_save_writes_tscn() -> void:
 	var builder: Object = _new_builder()
@@ -158,4 +159,4 @@ func test_save_writes_tscn() -> void:
 		DirAccess.remove_absolute(save_path)
 	var root: Variant = builder.call("build")
 	if root is Node:
-		(root as Node).queue_free()
+		(root as Node).free()

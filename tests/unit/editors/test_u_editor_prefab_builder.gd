@@ -30,7 +30,7 @@ func test_create_root_produces_node_of_correct_type_and_name() -> void:
 	assert_true(root is Node3D, "create_root must produce Node3D when given 'Node3D'")
 	assert_eq((root as Node).name, "TestRoot", "create_root must set node name")
 	if root is Node:
-		(root as Node).queue_free()
+		(root as Node).free()
 
 func test_create_root_produces_static_body_3d() -> void:
 	var builder: Object = _new_builder()
@@ -42,7 +42,7 @@ func test_create_root_produces_static_body_3d() -> void:
 	assert_true(root is StaticBody3D, "create_root must produce StaticBody3D when given 'StaticBody3D'")
 	assert_eq((root as Node).name, "TestStatic", "create_root must set node name")
 	if root is Node:
-		(root as Node).queue_free()
+		(root as Node).free()
 
 func test_inherit_from_produces_instanced_scene_with_children() -> void:
 	var builder: Object = _new_builder()
@@ -55,7 +55,7 @@ func test_inherit_from_produces_instanced_scene_with_children() -> void:
 	var components: Node = (root as Node).get_node_or_null("Components")
 	assert_not_null(components, "inherited tmpl_character must have Components child")
 	if root is Node:
-		(root as Node).queue_free()
+		(root as Node).free()
 
 func test_set_entity_id_sets_metadata() -> void:
 	var builder: Object = _new_builder()
@@ -67,7 +67,7 @@ func test_set_entity_id_sets_metadata() -> void:
 	assert_not_null(root, "build must return root")
 	assert_eq((root as Node).get_meta("entity_id"), &"wolf", "set_entity_id must set 'entity_id' metadata")
 	if root is Node:
-		(root as Node).queue_free()
+		(root as Node).free()
 
 func test_set_tags_sets_metadata() -> void:
 	var builder: Object = _new_builder()
@@ -82,7 +82,7 @@ func test_set_tags_sets_metadata() -> void:
 	assert_true(tags is Array, "set_tags must store Array in 'tags' metadata")
 	assert_eq(tags, tags_input, "set_tags must match input")
 	if root is Node:
-		(root as Node).queue_free()
+		(root as Node).free()
 
 func test_fluent_methods_return_self() -> void:
 	var builder: Object = _new_builder()
@@ -95,6 +95,9 @@ func test_fluent_methods_return_self() -> void:
 	var tags_input: Array = [&"a"]
 	var r3: Variant = builder.call("set_tags", tags_input)
 	assert_eq(r3, builder, "set_tags must return self")
+	var root: Variant = builder.call("build")
+	if root is Node:
+		(root as Node).free()
 
 func test_build_returns_root_node() -> void:
 	var builder: Object = _new_builder()
@@ -106,7 +109,7 @@ func test_build_returns_root_node() -> void:
 	assert_true(root is Node, "build must return a Node")
 	assert_eq((root as Node).name, "BuiltRoot", "build must return the configured root")
 	if root is Node:
-		(root as Node).queue_free()
+		(root as Node).free()
 
 func test_build_without_root_returns_null() -> void:
 	var builder: Object = _new_builder()
@@ -132,7 +135,7 @@ func test_add_ecs_component_adds_node_with_script_attached() -> void:
 	assert_not_null(component, "Component node must exist under Components")
 	assert_eq(component.get_script(), script, "Component must have script attached")
 	if root is Node:
-		(root as Node).queue_free()
+		(root as Node).free()
 
 func test_add_ecs_component_assigns_settings_export() -> void:
 	var builder: Object = _new_builder()
@@ -149,7 +152,7 @@ func test_add_ecs_component_assigns_settings_export() -> void:
 	assert_not_null(component, "Component must exist with settings")
 	assert_eq(component.get("settings"), settings, "Component settings export must be assigned")
 	if root is Node:
-		(root as Node).queue_free()
+		(root as Node).free()
 
 func test_add_ecs_component_sets_inline_properties() -> void:
 	var builder: Object = _new_builder()
@@ -170,7 +173,7 @@ func test_add_ecs_component_sets_inline_properties() -> void:
 	assert_eq(component.get("is_physics_frozen"), true, "Inline bool property must be set")
 	assert_eq(component.get("unfreeze_at_frame"), 42, "Inline int property must be set")
 	if root is Node:
-		(root as Node).queue_free()
+		(root as Node).free()
 
 func test_add_ecs_component_by_path_loads_and_wires_both() -> void:
 	var builder: Object = _new_builder()
@@ -187,7 +190,7 @@ func test_add_ecs_component_by_path_loads_and_wires_both() -> void:
 	assert_not_null(component, "Component must exist after add_ecs_component_by_path")
 	assert_eq(component.get("is_physics_frozen"), true, "Inline property must be set via path method")
 	if root is Node:
-		(root as Node).queue_free()
+		(root as Node).free()
 
 func test_multiple_components_added_sequentially_are_all_present() -> void:
 	var builder: Object = _new_builder()
@@ -211,7 +214,7 @@ func test_multiple_components_added_sequentially_are_all_present() -> void:
 	assert_true("C_SpawnStateComponent" in names, "First component must exist")
 	assert_true("C_CharacterStateComponent" in names, "Second component must exist")
 	if root is Node:
-		(root as Node).queue_free()
+		(root as Node).free()
 
 # ── P7.4: Save & EditorScript Adapter ─────────────────────────────────────
 
@@ -228,6 +231,9 @@ func test_save_packs_and_writes_file() -> void:
 	assert_not_null(packed, "Saved file must load as PackedScene")
 	if FileAccess.file_exists(save_path):
 		DirAccess.remove_absolute(save_path)
+	var root: Variant = builder.call("build")
+	if root is Node:
+		(root as Node).free()
 
 func test_save_without_root_returns_false() -> void:
 	var builder: Object = _new_builder()
@@ -251,7 +257,7 @@ func test_add_visual_mesh_adds_mesh_instance() -> void:
 	assert_not_null(mesh, "add_visual_mesh must add MeshInstance3D")
 	assert_true(mesh is MeshInstance3D, "Added visual must be MeshInstance3D")
 	if root is Node:
-		(root as Node).queue_free()
+		(root as Node).free()
 
 func test_add_collision_capsule_adds_shape() -> void:
 	var builder: Object = _new_builder()
@@ -265,7 +271,7 @@ func test_add_collision_capsule_adds_shape() -> void:
 	assert_not_null(shape, "add_collision_capsule must add CollisionShape3D")
 	assert_true(shape is CollisionShape3D, "Added collision must be CollisionShape3D")
 	if root is Node:
-		(root as Node).queue_free()
+		(root as Node).free()
 
 func test_add_marker_adds_marker_3d() -> void:
 	var builder: Object = _new_builder()
@@ -279,7 +285,7 @@ func test_add_marker_adds_marker_3d() -> void:
 	assert_not_null(marker, "add_marker must add Marker3D")
 	assert_true(marker is Marker3D, "Added marker must be Marker3D")
 	if root is Node:
-		(root as Node).queue_free()
+		(root as Node).free()
 
 func test_override_property_sets_value() -> void:
 	var builder: Object = _new_builder()
@@ -291,7 +297,7 @@ func test_override_property_sets_value() -> void:
 	assert_not_null(root, "build must return root")
 	assert_eq((root as Node).process_mode, PROCESS_MODE_DISABLED, "override_property must set root process_mode")
 	if root is Node:
-		(root as Node).queue_free()
+		(root as Node).free()
 
 func test_add_child_scene_instantiates_scene() -> void:
 	var builder: Object = _new_builder()
@@ -305,7 +311,7 @@ func test_add_child_scene_instantiates_scene() -> void:
 	assert_not_null(child, "add_child_scene must instantiate child scene")
 	assert_true(child is Node, "Instantiated child must be a Node")
 	if root is Node:
-		(root as Node).queue_free()
+		(root as Node).free()
 
 func test_add_csg_box_adds_csg_box3d_with_material() -> void:
 	var builder: Object = _new_builder()
@@ -322,7 +328,7 @@ func test_add_csg_box_adds_csg_box3d_with_material() -> void:
 	assert_not_null((box as CSGBox3D).material, "add_csg_box must assign material")
 	assert_eq(((box as CSGBox3D).material as StandardMaterial3D).albedo_color, Color.GRAY, "Material color must match")
 	if root is Node:
-		(root as Node).queue_free()
+		(root as Node).free()
 
 func test_add_csg_sphere_adds_csg_sphere3d_with_material() -> void:
 	var builder: Object = _new_builder()
@@ -337,7 +343,7 @@ func test_add_csg_sphere_adds_csg_sphere3d_with_material() -> void:
 	assert_true(sphere is CSGSphere3D, "Added child must be CSGSphere3D")
 	assert_not_null((sphere as CSGSphere3D).material, "add_csg_sphere must assign material")
 	if root is Node:
-		(root as Node).queue_free()
+		(root as Node).free()
 
 func test_add_csg_cylinder_adds_csg_cylinder3d_with_material() -> void:
 	var builder: Object = _new_builder()
@@ -352,7 +358,7 @@ func test_add_csg_cylinder_adds_csg_cylinder3d_with_material() -> void:
 	assert_true(cyl is CSGCylinder3D, "Added child must be CSGCylinder3D")
 	assert_not_null((cyl as CSGCylinder3D).material, "add_csg_cylinder must assign material")
 	if root is Node:
-		(root as Node).queue_free()
+		(root as Node).free()
 
 func test_add_collision_box_adds_box_shape() -> void:
 	var builder: Object = _new_builder()
@@ -369,70 +375,7 @@ func test_add_collision_box_adds_box_shape() -> void:
 	assert_not_null(box_shape, "Shape must be BoxShape3D")
 	assert_eq(box_shape.size, Vector3(1.5, 1, 1.5), "add_collision_box must set size")
 	if root is Node:
-		(root as Node).queue_free()
-
-func test_migrate_stone_prefab_matches_gold() -> void:
-	var builder: Object = _new_builder()
-	if builder == null:
-		return
-	builder.call("create_root", "StaticBody3D", "E_WoodsStone")
-	builder.call("add_csg_sphere", "Mesh", 0.6, Color(0.55, 0.55, 0.55))
-	builder.call("add_collision_box", "CollisionShape3D", Vector3(1.5, 1, 1.5))
-	builder.call("add_ecs_component_by_path",
-		"res://scripts/demo/ecs/components/c_resource_node_component.gd",
-		"res://resources/demo/base_settings/ai_woods/ai_woods/cfg_resource_node_stone.tres",
-		{})
-	var result: Variant = builder.call("save", "res://tests/unit/editors/_prefab_stone_migrated.tscn")
-	assert_true(result, "save must succeed")
-	var packed: PackedScene = load("res://tests/unit/editors/_prefab_stone_migrated.tscn") as PackedScene
-	assert_not_null(packed, "Migrated prefab must load as PackedScene")
-	if FileAccess.file_exists("res://tests/unit/editors/_prefab_stone_migrated.tscn"):
-		DirAccess.remove_absolute("res://tests/unit/editors/_prefab_stone_migrated.tscn")
-	var root: Variant = builder.call("build")
-	if root is Node:
-		(root as Node).queue_free()
-
-func test_migrate_water_prefab_matches_gold() -> void:
-	var builder: Object = _new_builder()
-	if builder == null:
-		return
-	builder.call("create_root", "StaticBody3D", "E_WoodsWater")
-	builder.call("add_csg_box", "Mesh", Vector3(2, 0.15, 2), Color(0.2, 0.4, 0.8, 0.7))
-	builder.call("add_collision_box", "CollisionShape3D", Vector3(3, 0.3, 3))
-	builder.call("add_ecs_component_by_path",
-		"res://scripts/demo/ecs/components/c_resource_node_component.gd",
-		"res://resources/demo/base_settings/ai_woods/ai_woods/cfg_resource_node_water.tres",
-		{})
-	var result: Variant = builder.call("save", "res://tests/unit/editors/_prefab_water_migrated.tscn")
-	assert_true(result, "save must succeed")
-	var packed: PackedScene = load("res://tests/unit/editors/_prefab_water_migrated.tscn") as PackedScene
-	assert_not_null(packed, "Migrated prefab must load as PackedScene")
-	if FileAccess.file_exists("res://tests/unit/editors/_prefab_water_migrated.tscn"):
-		DirAccess.remove_absolute("res://tests/unit/editors/_prefab_water_migrated.tscn")
-	var root: Variant = builder.call("build")
-	if root is Node:
-		(root as Node).queue_free()
-
-func test_migrate_stockpile_prefab_matches_gold() -> void:
-	var builder: Object = _new_builder()
-	if builder == null:
-		return
-	builder.call("create_root", "StaticBody3D", "E_WoodsStockpile")
-	builder.call("add_csg_box", "Mesh", Vector3(1.5, 0.5, 1.5), Color(0.6, 0.45, 0.25))
-	builder.call("add_collision_box", "CollisionShape3D", Vector3(2, 1, 2))
-	builder.call("add_ecs_component_by_path",
-		"res://scripts/demo/ecs/components/c_inventory_component.gd",
-		"res://resources/demo/base_settings/ai_woods/ai_woods/cfg_inventory_stockpile.tres",
-		{})
-	var result: Variant = builder.call("save", "res://tests/unit/editors/_prefab_stockpile_migrated.tscn")
-	assert_true(result, "save must succeed")
-	var packed: PackedScene = load("res://tests/unit/editors/_prefab_stockpile_migrated.tscn") as PackedScene
-	assert_not_null(packed, "Migrated prefab must load as PackedScene")
-	if FileAccess.file_exists("res://tests/unit/editors/_prefab_stockpile_migrated.tscn"):
-		DirAccess.remove_absolute("res://tests/unit/editors/_prefab_stockpile_migrated.tscn")
-	var root: Variant = builder.call("build")
-	if root is Node:
-		(root as Node).queue_free()
+		(root as Node).free()
 
 func test_add_child_to_adds_node_under_parent() -> void:
 	var builder: Object = _new_builder()
@@ -451,7 +394,7 @@ func test_add_child_to_adds_node_under_parent() -> void:
 	assert_not_null(found_child, "add_child_to must add child under specified parent")
 	assert_eq(found_child.name, "ChildMesh", "Child name must match")
 	if root is Node:
-		(root as Node).queue_free()
+		(root as Node).free()
 
 func test_add_child_scene_to_instantiates_under_parent() -> void:
 	var builder: Object = _new_builder()
@@ -467,5 +410,4 @@ func test_add_child_scene_to_instantiates_under_parent() -> void:
 	var child: Node = parent_node.get_node_or_null("CharChild")
 	assert_not_null(child, "add_child_scene_to must instantiate child under parent")
 	if root is Node:
-		(root as Node).queue_free()
-
+		(root as Node).free()

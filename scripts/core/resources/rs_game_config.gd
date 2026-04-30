@@ -12,9 +12,9 @@ class_name RS_GameConfig
 ## field to empty pushes an error with resource_path for designer traceability.
 
 ## Scene to load when retrying (navigating back to start of run).
-var _retry_scene_id: StringName = StringName("power_core")
+var _retry_scene_id: StringName = StringName("demo_room")
 
-@export var retry_scene_id: StringName = StringName("power_core"):
+@export var retry_scene_id: StringName = StringName("demo_room"):
 	get:
 		return _retry_scene_id
 	set(value):
@@ -45,9 +45,9 @@ var _default_objective_set_id: StringName = StringName("default_progression")
 			push_error("RS_GameConfig: default_objective_set_id must not be empty. Resource: %s" % resource_path)
 
 ## Area ID that must be in completed_areas before GAME_COMPLETE victory can fire.
-var _required_final_area: String = "bar"
+var _required_final_area: String = "demo_room"
 
-@export var required_final_area: String = "bar":
+@export var required_final_area: String = "demo_room":
 	get:
 		return _required_final_area
 	set(value):

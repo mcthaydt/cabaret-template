@@ -19,7 +19,7 @@ func before_each() -> void:
 	_store.menu_initial_state = RS_MenuInitialState.new()
 	_store.gameplay_initial_state = RS_GameplayInitialState.new()
 	_store.scene_initial_state = RS_SceneInitialState.new()
-	_store.scene_initial_state.current_scene_id = StringName("gameplay_base")
+	_store.scene_initial_state.current_scene_id = StringName("demo_room")
 	_store.settings_initial_state = RS_SettingsInitialState.new()
 	add_child_autofree(_store)
 	U_ServiceLocator.register(StringName("state_store"), _store)
