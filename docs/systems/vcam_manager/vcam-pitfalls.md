@@ -64,6 +64,8 @@ Camera, vCam, room-fade, wall-visibility, and camera-rule pitfalls collected fro
   - **Fix pattern**: use `_passes_camera_player_occlusion_corridor()` before allowing fade. Use `_resolve_normal_bucket_key()` plus `bucket_has_corridor_hit` for bucket continuity so adjacent wall segments fade together.
 - **Fully dissolved walls (`fade_amount = 1.0`) leave confusing gaps**: Without a minimum fade residue, the dither pattern can make walls completely invisible.
   - **Fix pattern**: cap `fade_amount` at `1.0 - min_fade` so a faint outline survives even at maximum fade.
+- **Screen-space wall cutout holes should use dither-discard, not alpha blend**: A large `blend_mix` transparent wall can reveal empty background as a solid black patch near corners or foreground walls.
+  - **Fix pattern**: keep `sh_wall_cutout.gdshader` on ordered Bayer discard with a nonzero center residue, center the disc on the player's visual center, and scale the radius from projected player height with a conservative authored max clamp.
 
 ## Soft Zone
 

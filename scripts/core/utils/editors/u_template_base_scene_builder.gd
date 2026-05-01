@@ -168,7 +168,7 @@ func _add_wall(parent: Node3D, name_: String, position: Vector3, size: Vector3, 
 	box.material = WALL_MATERIAL
 	box.set_script(BASE_ECS_ENTITY_SCRIPT)
 	box.entity_id = entity_id
-	box.tags = [&"room_fade_group"]
+	box.tags.assign([&"room_fade_group"])
 	parent.add_child(box)
 
 	var component := Node.new()
@@ -272,6 +272,7 @@ func _add_system_node(parent: Node, name_: String, script: Script, priority: int
 	parent.add_child(node)
 
 func _set_owner_recursive(node: Node, owner: Node) -> void:
-	node.set_owner(owner)
+	if node != owner:
+		node.set_owner(owner)
 	for child in node.get_children():
 		_set_owner_recursive(child, owner)

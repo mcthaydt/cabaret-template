@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode unshaded, cull_back, blend_mix, depth_draw_opaque;
+render_mode unshaded, cull_back, depth_draw_opaque;
 
 // Diablo/Hades-style screen-space disc cutout. A circular hole is drawn
 // around the player's screen position on every wall fragment that is closer
@@ -23,12 +23,28 @@ uniform bool use_base_texture = false;
 
 varying vec3 v_world_pos;
 
+int bayer64(ivec2 p) {
+	int x = p.x & 7;
+	int y = p.y & 7;
+	int bayer8[64] = int[](
+		 0, 32,  8, 40,  2, 34, 10, 42,
+		48, 16, 56, 24, 50, 18, 58, 26,
+		12, 44,  4, 36, 14, 46,  6, 38,
+		60, 28, 52, 20, 62, 30, 54, 22,
+		 3, 35, 11, 43,  1, 33,  9, 41,
+		51, 19, 59, 27, 49, 17, 57, 25,
+		15, 47,  7, 39, 13, 45,  5, 37,
+		63, 31, 55, 23, 61, 29, 53, 21
+	);
+	return bayer8[y * 8 + x];
+}
+
 void vertex() {
 	v_world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 }
 
 void fragment() {
-	float alpha = 1.0;
+	float visibility_alpha = 1.0;
 
 	// Project the player into screen space using the active camera matrices.
 	vec4 player_clip = PROJECTION_MATRIX * VIEW_MATRIX * vec4(wall_cutout_player_pos, 1.0);
@@ -57,11 +73,17 @@ void fragment() {
 		vec3 view_frag = (VIEW_MATRIX * vec4(v_world_pos, 1.0)).xyz;
 		float depth_epsilon = 0.05;
 		if (view_frag.z > view_player.z + depth_epsilon) {
-			alpha = disc_alpha;
+			visibility_alpha = disc_alpha;
+		}
+	}
+
+	if (visibility_alpha < 0.999) {
+		float threshold = float(bayer64(ivec2(FRAGCOORD.xy))) / 64.0;
+		if (visibility_alpha <= threshold) {
+			discard;
 		}
 	}
 
 	vec3 tex_rgb = use_base_texture ? texture(base_texture, UV).rgb : vec3(1.0);
 	ALBEDO = base_color.rgb * tex_rgb;
-	ALPHA = alpha;
 }
