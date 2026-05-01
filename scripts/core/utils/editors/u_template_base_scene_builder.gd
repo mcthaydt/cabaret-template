@@ -11,7 +11,6 @@ const WALL_MATERIAL := preload("res://assets/core/materials/mat_wall_cutout.tres
 const WALL_CUTOUT_CONFIG := preload("res://resources/core/base_settings/gameplay/cfg_wall_cutout_config_default.tres")
 const JUMP_PARTICLES_SETTINGS := preload("res://resources/core/base_settings/gameplay/cfg_jump_particles_default.tres")
 const LANDING_PARTICLES_SETTINGS := preload("res://resources/core/base_settings/gameplay/cfg_landing_particles_default.tres")
-const WALL_VISIBILITY_CONFIG := preload("res://resources/core/base_settings/gameplay/cfg_wall_visibility_config_default.tres")
 
 const MARKER_SCENE_OBJECTS := preload("res://scripts/core/scene_structure/marker_scene_objects_group.gd")
 const MARKER_ENVIRONMENT := preload("res://scripts/core/scene_structure/marker_environment_group.gd")
@@ -232,11 +231,11 @@ func _add_movement_systems(parent: Node) -> void:
 	movement.set_script(MARKER_SYSTEMS_MOVEMENT)
 	parent.add_child(movement)
 
-	_add_movement_node(movement, "S_MovementSystem", preload("res://scripts/core/ecs/systems/s_movement_system.gd"), 50)
-	_add_movement_node(movement, "S_FloatingSystem", preload("res://scripts/core/ecs/systems/s_floating_system.gd"), 70)
-	_add_movement_node(movement, "S_SpawnRecoverySystem", preload("res://scripts/core/ecs/systems/s_spawn_recovery_system.gd"), 75)
-	_add_movement_node(movement, "S_RotateToInputSystem", preload("res://scripts/core/ecs/systems/s_rotate_to_input_system.gd"), 80)
-	_add_movement_node(movement, "S_AlignWithSurfaceSystem", preload("res://scripts/core/ecs/systems/s_align_with_surface_system.gd"), 90)
+	_add_system_node(movement, "S_MovementSystem", preload("res://scripts/core/ecs/systems/s_movement_system.gd"), 50)
+	_add_system_node(movement, "S_FloatingSystem", preload("res://scripts/core/ecs/systems/s_floating_system.gd"), 70)
+	_add_system_node(movement, "S_SpawnRecoverySystem", preload("res://scripts/core/ecs/systems/s_spawn_recovery_system.gd"), 75)
+	_add_system_node(movement, "S_RotateToInputSystem", preload("res://scripts/core/ecs/systems/s_rotate_to_input_system.gd"), 80)
+	_add_system_node(movement, "S_AlignWithSurfaceSystem", preload("res://scripts/core/ecs/systems/s_align_with_surface_system.gd"), 90)
 
 func _add_feedback_systems(parent: Node) -> void:
 	var feedback := Node.new()
@@ -244,7 +243,7 @@ func _add_feedback_systems(parent: Node) -> void:
 	feedback.set_script(MARKER_SYSTEMS_FEEDBACK)
 	parent.add_child(feedback)
 
-	_add_feedback_node(feedback, "S_LandingIndicatorSystem", preload("res://scripts/core/ecs/systems/s_landing_indicator_system.gd"), 110)
+	_add_system_node(feedback, "S_LandingIndicatorSystem", preload("res://scripts/core/ecs/systems/s_landing_indicator_system.gd"), 110)
 
 	var jump_parts := Node.new()
 	jump_parts.name = "S_JumpParticlesSystem"
@@ -254,7 +253,7 @@ func _add_feedback_systems(parent: Node) -> void:
 	jump_parts.execution_priority = 120
 	feedback.add_child(jump_parts)
 
-	_add_feedback_node(feedback, "S_JumpSoundSystem", preload("res://scripts/core/ecs/systems/s_jump_sound_system.gd"), 121)
+	_add_system_node(feedback, "S_JumpSoundSystem", preload("res://scripts/core/ecs/systems/s_jump_sound_system.gd"), 121)
 
 	var land_parts := Node.new()
 	land_parts.name = "S_LandingParticlesSystem"
@@ -263,21 +262,13 @@ func _add_feedback_systems(parent: Node) -> void:
 	land_parts.settings = LANDING_PARTICLES_SETTINGS
 	feedback.add_child(land_parts)
 
-	_add_feedback_node(feedback, "S_GamepadVibrationSystem", preload("res://scripts/core/ecs/systems/s_gamepad_vibration_system.gd"), 122)
+	_add_system_node(feedback, "S_GamepadVibrationSystem", preload("res://scripts/core/ecs/systems/s_gamepad_vibration_system.gd"), 122)
 
-func _add_movement_node(parent: Node, name_: String, script: Script, priority: int) -> void:
+func _add_system_node(parent: Node, name_: String, script: Script, priority: int) -> void:
 	var node := Node.new()
 	node.name = name_
 	node.set_script(script)
 	node.execution_priority = priority
-	parent.add_child(node)
-
-func _add_feedback_node(parent: Node, name_: String, script: Script, priority: int = -1) -> void:
-	var node := Node.new()
-	node.name = name_
-	node.set_script(script)
-	if priority >= 0:
-		node.execution_priority = priority
 	parent.add_child(node)
 
 func _set_owner_recursive(node: Node, owner: Node) -> void:
