@@ -37,6 +37,7 @@
 [ext_resource type="Resource" uid="uid://0feve3rl35x4" path="res://resources/core/base_settings/gameplay/cfg_wall_visibility_config_default.tres" id="30_wall_visibility_config"]
 [ext_resource type="Script" uid="uid://csoq062l5f7sh" path="res://scripts/core/ecs/systems/s_wall_cutout_system.gd" id="32_wall_cutout_system"]
 [ext_resource type="Resource" path="res://resources/core/base_settings/gameplay/cfg_wall_cutout_config_default.tres" id="33_wall_cutout_config"]
+[ext_resource type="Material" path="res://assets/core/materials/mat_wall_cutout.tres" id="34_wall_cutout_material"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_grid"]
 shading_mode = 0
@@ -60,13 +61,13 @@ material = SubResource("StandardMaterial3D_grid")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 30, 0)
 use_collision = true
 size = Vector3(30, 0.01, 30)
-material = SubResource("StandardMaterial3D_grid")
+material = ExtResource("34_wall_cutout_material")
 
 [node name="SO_Wall_West" type="CSGBox3D" parent="SceneObjects" unique_id=210348679]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 15, 0)
 use_collision = true
 size = Vector3(0.01, 30, 30)
-material = SubResource("StandardMaterial3D_grid")
+material = ExtResource("34_wall_cutout_material")
 script = ExtResource("4_e74ay")
 entity_id = &"wall_west"
 tags = Array[StringName]([&"room_fade_group"])
@@ -80,7 +81,7 @@ fade_normal = Vector3(-1, 0, 0)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 15, 0)
 use_collision = true
 size = Vector3(0.01, 30, 30)
-material = SubResource("StandardMaterial3D_grid")
+material = ExtResource("34_wall_cutout_material")
 script = ExtResource("4_e74ay")
 entity_id = &"wall_east"
 tags = Array[StringName]([&"room_fade_group"])
@@ -94,7 +95,7 @@ fade_normal = Vector3(1, 0, 0)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 15, -15)
 use_collision = true
 size = Vector3(30, 30, 0.01)
-material = SubResource("StandardMaterial3D_grid")
+material = ExtResource("34_wall_cutout_material")
 script = ExtResource("4_e74ay")
 entity_id = &"wall_north"
 tags = Array[StringName]([&"room_fade_group"])
@@ -107,7 +108,7 @@ group_tag = &"wall_north"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 15, 15)
 use_collision = true
 size = Vector3(30, 30, 0.01)
-material = SubResource("StandardMaterial3D_grid")
+material = ExtResource("34_wall_cutout_material")
 script = ExtResource("4_e74ay")
 entity_id = &"wall_south"
 tags = Array[StringName]([&"room_fade_group"])
@@ -140,10 +141,6 @@ script = ExtResource("1_pybrx")
 [node name="S_VCamSystem" type="Node" parent="Systems/Core" unique_id=967520144]
 script = ExtResource("23_vcam_system")
 execution_priority = 100
-
-[node name="S_WallVisibilitySystem" type="Node" parent="Systems/Core" unique_id=1150735353]
-script = ExtResource("27_wall_visibility_system")
-wall_visibility_config = ExtResource("30_wall_visibility_config")
 
 [node name="S_WallCutoutSystem" type="Node" parent="Systems/Core" unique_id=1150735354]
 script = ExtResource("32_wall_cutout_system")

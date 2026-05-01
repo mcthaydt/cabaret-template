@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode unshaded, cull_back, blend_mix, depth_draw_alpha_prepass;
+render_mode unshaded, cull_back, blend_mix, depth_draw_opaque;
 
 global uniform vec3 wall_cutout_player_pos;
 global uniform vec3 wall_cutout_camera_pos;
