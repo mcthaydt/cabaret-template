@@ -18,10 +18,11 @@ func _run() -> void:
 	var sprite := Sprite3D.new()
 	sprite.name = "DirectionalSprite"
 	sprite.pixel_size = 1.0 / 128.0
+	sprite.hframes = 3
+	sprite.vframes = 3
 	sprite.texture = sprite_texture
 	sprite.modulate = Color(0.08627451, 0.3529412, 0.29803923, 1)
-	sprite.position = Vector3(0, 0.8, 0)
-	sprite.scale = Vector3(1.0, 1.6, 1.0)
+	sprite.position = Vector3(0, 0.5, 0)
 	builder.add_child_to(".", sprite)
 
 	var ground_indicator := Sprite3D.new()

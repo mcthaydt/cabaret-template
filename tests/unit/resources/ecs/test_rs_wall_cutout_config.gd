@@ -47,10 +47,14 @@ func test_defaults_are_sane() -> void:
 	assert_gt(falloff, 0.0, "disc_falloff should be positive so the cutout edge is soft")
 	assert_between(min_alpha, 0.1, 0.4, "disc_min_alpha should keep wall residue so cutouts do not become solid black voids")
 	assert_gt(center_offset, 0.0, "disc_center_height_offset should aim the cutout at the player's visual center")
+	assert_almost_eq(center_offset, 0.5, 0.001,
+		"disc_center_height_offset should match the one-tile player visual center")
 	assert_gte(target_coverage, 2.0, "disc_target_height_coverage should make the cutout substantially larger than the projected player")
 	assert_gt(max_radius, radius, "disc_max_radius should allow the radius to expand when the player is close")
 	assert_gte(max_radius, 0.5, "disc_max_radius should allow large close-range cutouts now that per-wall occlusion gates prevent side-wall artifacts")
 	assert_gt(player_height, center_offset, "disc_player_height_meters should describe the full visual height")
+	assert_almost_eq(player_height, 1.0, 0.001,
+		"disc_player_height_meters should match the one-tile default humanoid visual")
 
 
 func test_class_name_is_registered() -> void:

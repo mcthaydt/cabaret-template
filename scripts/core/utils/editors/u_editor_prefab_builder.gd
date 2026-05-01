@@ -37,8 +37,7 @@ func add_ecs_component(script: Script, settings: Resource = null, properties: Di
 	if _root == null:
 		push_error("U_EditorPrefabBuilder: add_ecs_component called before root creation")
 		return self
-	_components_container()
-	var components: Node = _root.get_node("Components")
+	var components: Node = _components_container()
 	var component: Node = Node.new()
 	component.set_script(script)
 	var component_name: String = StringName(component.get("COMPONENT_TYPE")) if component.get("COMPONENT_TYPE") != null else script.resource_path.get_file().get_basename()
@@ -88,6 +87,11 @@ func override_property(node_path: String, property: StringName, value: Variant) 
 	var target: Node = _root.get_node(node_path) if node_path != "." else _root
 	if target == null:
 		push_error("U_EditorPrefabBuilder: override_property target not found at '%s'" % node_path)
+		return self
+	var current_value: Variant = target.get(property)
+	if current_value is Array and value is Array:
+		(current_value as Array).assign(value)
+		target.set(property, current_value)
 		return self
 	target.set(property, value)
 	return self

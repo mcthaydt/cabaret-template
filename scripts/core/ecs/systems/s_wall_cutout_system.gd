@@ -18,7 +18,7 @@ const PARAM_DISC_MIN_ALPHA := &"wall_cutout_disc_min_alpha"
 const PARAM_CUTOUT_ENABLED := &"wall_cutout_enabled"
 const ROOM_FADE_GROUP_TYPE := StringName("RoomFadeGroup")
 const DEBUG_KEY_TICK := &"tick"
-const DEBUG_PLAYER_VISUAL_HEIGHT_METERS := 1.6
+const DEBUG_PLAYER_VISUAL_HEIGHT_METERS := 1.0
 
 # Far-off position used to disable the cutout when the camera is not in orbit
 # mode. The shader projects this through the view+projection matrices and the
@@ -163,7 +163,7 @@ func _resolve_config_values() -> Dictionary:
 		"disc_radius": 0.12,
 		"disc_max_radius": 0.55,
 		"disc_falloff": 0.05,
-		"disc_center_height_offset": 0.85,
+		"disc_center_height_offset": 0.5,
 		"disc_player_height_meters": DEBUG_PLAYER_VISUAL_HEIGHT_METERS,
 		"disc_target_height_coverage": 2.2,
 		"occlusion_segment_margin": 0.05,

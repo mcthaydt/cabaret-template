@@ -24,7 +24,10 @@ Create `scripts/core/utils/editors/u_template_base_scene_builder.gd`:
 class_name U_TemplateBaseSceneBuilder
 extends RefCounted
 
-const ROOM_SIZE := 30.0
+const ROOM_SIZE := 5.0
+const WALL_HEIGHT := 3.0
+const HALF_ROOM := ROOM_SIZE / 2.0
+const HALF_WALL_HEIGHT := WALL_HEIGHT / 2.0
 const THIN := 0.01
 
 const PREFAB_PLAYER := preload("res://scenes/core/prefabs/prefab_player.tscn")
@@ -69,10 +72,10 @@ func build_scene_objects() -> U_TemplateBaseSceneBuilder:
 
 	_add_floor(group)
 	_add_ceiling(group)
-	_add_wall(group, "SO_Wall_West", Vector3(-15, 15, 0), Vector3(THIN, ROOM_SIZE, ROOM_SIZE), &"wall_west", Vector3(-1, 0, 0))
-	_add_wall(group, "SO_Wall_East", Vector3(15, 15, 0), Vector3(THIN, ROOM_SIZE, ROOM_SIZE), &"wall_east", Vector3(1, 0, 0))
-	_add_wall(group, "SO_Wall_North", Vector3(0, 15, -15), Vector3(ROOM_SIZE, ROOM_SIZE, THIN), &"wall_north")
-	_add_wall(group, "SO_Wall_South", Vector3(0, 15, 15), Vector3(ROOM_SIZE, ROOM_SIZE, THIN), &"wall_south", Vector3(0, 0, 1))
+	_add_wall(group, "SO_Wall_West", Vector3(-HALF_ROOM, HALF_WALL_HEIGHT, 0), Vector3(THIN, WALL_HEIGHT, ROOM_SIZE), &"wall_west", Vector3(-1, 0, 0))
+	_add_wall(group, "SO_Wall_East", Vector3(HALF_ROOM, HALF_WALL_HEIGHT, 0), Vector3(THIN, WALL_HEIGHT, ROOM_SIZE), &"wall_east", Vector3(1, 0, 0))
+	_add_wall(group, "SO_Wall_North", Vector3(0, HALF_WALL_HEIGHT, -HALF_ROOM), Vector3(ROOM_SIZE, WALL_HEIGHT, THIN), &"wall_north", Vector3(0, 0, -1))
+	_add_wall(group, "SO_Wall_South", Vector3(0, HALF_WALL_HEIGHT, HALF_ROOM), Vector3(ROOM_SIZE, WALL_HEIGHT, THIN), &"wall_south", Vector3(0, 0, 1))
 	return self
 
 func build_environment() -> U_TemplateBaseSceneBuilder:
@@ -177,7 +180,7 @@ func _add_floor(parent: Node3D) -> void:
 func _add_ceiling(parent: Node3D) -> void:
 	var box := CSGBox3D.new()
 	box.name = "SO_Ceiling"
-	box.position = Vector3(0, ROOM_SIZE, 0)
+	box.position = Vector3(0, WALL_HEIGHT, 0)
 	box.use_collision = true
 	box.size = Vector3(ROOM_SIZE, THIN, ROOM_SIZE)
 	box.material = WALL_MATERIAL

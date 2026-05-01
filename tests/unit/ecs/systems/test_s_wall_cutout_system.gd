@@ -202,6 +202,22 @@ func test_dynamic_radius_expands_to_cover_projected_player_height() -> void:
 		"Projected-player sizing must respect the authored max radius clamp.")
 
 
+func test_invalid_config_defaults_match_one_tile_player_visual() -> void:
+	var system_script := _system_script()
+	if system_script == null:
+		return
+	var system: Variant = system_script.new()
+	autofree(system)
+	system.wall_cutout_config = Resource.new()
+
+	var values: Dictionary = system.call("_resolve_config_values")
+
+	assert_almost_eq(float(values.get("disc_center_height_offset")), 0.5, 0.001,
+		"Invalid wall cutout config fallback should aim at the one-tile player center.")
+	assert_almost_eq(float(values.get("disc_player_height_meters")), 1.0, 0.001,
+		"Invalid wall cutout config fallback should use the one-tile player height.")
+
+
 func test_disables_cutout_via_sentinel_when_not_orbit_mode() -> void:
 	var fixture := _create_fixture(Vector3(0, 1, 0), "fixed")
 	var system = fixture.get("system")

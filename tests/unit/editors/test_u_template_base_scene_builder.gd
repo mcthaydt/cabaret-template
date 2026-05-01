@@ -54,6 +54,42 @@ func test_scene_objects_contains_walls_floor_ceiling() -> void:
 	assert_not_null(so.get_node_or_null("SO_Wall_North"), "North wall must exist")
 	assert_not_null(so.get_node_or_null("SO_Wall_South"), "South wall must exist")
 
+func test_scene_objects_follow_2_5d_units_and_scale_contract() -> void:
+	var builder: Object = _new_builder()
+	if builder == null:
+		return
+	builder.call("create_root")
+	builder.call("build_scene_objects")
+	var root: Node = builder.call("build") as Node
+	var so: Node = root.get_node_or_null("SceneObjects")
+	assert_not_null(so, "SceneObjects group must exist")
+	if so == null:
+		return
+
+	var floor_node := so.get_node_or_null("SO_Floor") as CSGBox3D
+	var ceiling_node := so.get_node_or_null("SO_Ceiling") as CSGBox3D
+	var west_wall := so.get_node_or_null("SO_Wall_West") as CSGBox3D
+	var north_wall := so.get_node_or_null("SO_Wall_North") as CSGBox3D
+	assert_not_null(floor_node, "Floor must exist")
+	assert_not_null(ceiling_node, "Ceiling must exist")
+	assert_not_null(west_wall, "West wall must exist")
+	assert_not_null(north_wall, "North wall must exist")
+	if floor_node == null or ceiling_node == null or west_wall == null or north_wall == null:
+		return
+
+	assert_eq(floor_node.size, Vector3(5.0, 0.01, 5.0),
+		"Default 2.5D base scene floor must be 5 x 5 tiles")
+	assert_eq(ceiling_node.position, Vector3(0.0, 3.0, 0.0),
+		"Default ceiling must sit at the standard 3-tile wall height")
+	assert_eq(west_wall.position, Vector3(-2.5, 1.5, 0.0),
+		"West wall must be centered on the 5-tile room edge")
+	assert_eq(west_wall.size, Vector3(0.01, 3.0, 5.0),
+		"Wall dimensions must use 3-tile height and 5-tile room depth")
+	assert_eq(north_wall.position, Vector3(0.0, 1.5, -2.5),
+		"North wall must be centered on the 5-tile room edge")
+	assert_eq(north_wall.size, Vector3(5.0, 3.0, 0.01),
+		"Wall dimensions must use 3-tile height and 5-tile room width")
+
 func test_walls_are_ecs_entities_with_room_fade_component() -> void:
 	var builder: Object = _new_builder()
 	if builder == null:

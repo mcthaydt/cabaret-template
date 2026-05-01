@@ -21,10 +21,10 @@ Single 5m x 5m x 5m (WxDxH) square room, centered at origin.
 | Element | Dimensions | Position (center) | Notes |
 |---------|-----------|-------------------|-------|
 | Floor | 5 x 0.2 x 5 | (0, 0, 0) | Surface at y=0; collision enabled |
-| West wall | 0.2 x 5 x 5 | (-2.5, 2.5, 0) | With C_RoomFadeGroupComponent |
-| East wall | 0.2 x 5 x 5 | (2.5, 2.5, 0) | With C_RoomFadeGroupComponent |
-| North wall | 5 x 5 x 0.2 | (0, 2.5, 2.5) | With C_RoomFadeGroupComponent |
-| South wall | 5 x 5 x 0.2 | (0, 2.5, -2.5) | With C_RoomFadeGroupComponent |
+| West wall | 0.2 x 3 x 5 | (-2.5, 1.5, 0) | With C_RoomFadeGroupComponent |
+| East wall | 0.2 x 3 x 5 | (2.5, 1.5, 0) | With C_RoomFadeGroupComponent |
+| North wall | 5 x 3 x 0.2 | (0, 1.5, 2.5) | With C_RoomFadeGroupComponent |
+| South wall | 5 x 3 x 0.2 | (0, 1.5, -2.5) | With C_RoomFadeGroupComponent |
 | Ceiling | 5 x 0.2 x 5 | (0, 5, 0) | Collision enabled |
 
 Each wall:

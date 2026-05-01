@@ -15,7 +15,7 @@ Rewrite `scripts/demo/editors/build_gameplay_demo_room.gd` to simplify it. No ch
 
 ### Proposed state
 
-The build script instantiates `tmpl_base_scene.tscn` directly, adds a `sp_default` spawn marker under `Entities/SpawnPoints`, and saves. The template's 5x5x5m grid-textured room, camera defaults, and wall fading components carry through automatically.
+The build script instantiates `tmpl_base_scene.tscn` directly, adds a `sp_default` spawn marker under `Entities/SpawnPoints`, and saves. The template's 5x3x5m grid-textured room, camera defaults, and wall fading components carry through automatically.
 
 ### Pseudo-code
 

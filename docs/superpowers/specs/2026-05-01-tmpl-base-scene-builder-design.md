@@ -35,18 +35,18 @@ The builder follows the fluent pattern established by `U_EditorBlockoutBuilder`:
 ```
 GameplayRoot (Node3D, script=root.gd)
 ├── SceneObjects (Node3D, marker_scene_objects_group.gd)
-│   ├── SO_Floor (CSGBox3D, 30x0.01x30, grid texture material)
-│   ├── SO_Ceiling (CSGBox3D, y=30, 30x0.01x30, wall_cutout material)
-│   ├── SO_Wall_West (CSGBox3D, x=-15 y=15, 0.01x30x30)
+│   ├── SO_Floor (CSGBox3D, 5x0.01x5, grid texture material)
+│   ├── SO_Ceiling (CSGBox3D, y=3, 5x0.01x5, wall_cutout material)
+│   ├── SO_Wall_West (CSGBox3D, x=-2.5 y=1.5, 0.01x3x5)
 │   │   ├── BaseECSEntity script, entity_id="wall_west", tags=["room_fade_group"]
 │   │   └── C_RoomFadeGroupComponent (group_tag="wall_west", fade_normal=(-1,0,0))
-│   ├── SO_Wall_East (x=15 y=15, 0.01x30x30)
+│   ├── SO_Wall_East (x=2.5 y=1.5, 0.01x3x5)
 │   │   ├── BaseECSEntity script, entity_id="wall_east", tags=["room_fade_group"]
 │   │   └── C_RoomFadeGroupComponent (group_tag="wall_east", fade_normal=(1,0,0))
-│   ├── SO_Wall_North (y=15 z=-15, 30x30x0.01)
+│   ├── SO_Wall_North (y=1.5 z=-2.5, 5x3x0.01)
 │   │   ├── BaseECSEntity script, entity_id="wall_north", tags=["room_fade_group"]
 │   │   └── C_RoomFadeGroupComponent (group_tag="wall_north")
-│   └── SO_Wall_South (y=15 z=15, 30x30x0.01)
+│   └── SO_Wall_South (y=1.5 z=2.5, 5x3x0.01)
 │       ├── BaseECSEntity script, entity_id="wall_south", tags=["room_fade_group"]
 │       └── C_RoomFadeGroupComponent (group_tag="wall_south", fade_normal=(0,0,1))
 ├── Environment (Node, marker_environment_group.gd)

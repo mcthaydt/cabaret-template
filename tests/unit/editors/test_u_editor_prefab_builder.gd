@@ -57,6 +57,22 @@ func test_inherit_from_produces_instanced_scene_with_children() -> void:
 	if root is Node:
 		(root as Node).free()
 
+func test_override_property_assigns_typed_array_exports() -> void:
+	var builder: Object = _new_builder()
+	if builder == null:
+		return
+	builder.call("inherit_from", TMPL_CHARACTER_PATH)
+	builder.call("override_property", ".", "tags", [&"player", &"character"])
+	var root: Variant = builder.call("build")
+	assert_not_null(root, "inherit_from must produce a root")
+	if root == null:
+		return
+	var tags: Array = (root as Node).get("tags")
+	assert_true(tags.has(&"player"), "override_property must preserve StringName array values")
+	assert_true(tags.has(&"character"), "override_property must preserve existing requested tags")
+	if root is Node:
+		(root as Node).free()
+
 func test_set_entity_id_sets_metadata() -> void:
 	var builder: Object = _new_builder()
 	if builder == null:

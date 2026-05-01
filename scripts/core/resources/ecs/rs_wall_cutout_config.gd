@@ -21,10 +21,10 @@ class_name RS_WallCutoutConfig
 @export var disc_falloff: float = 0.05
 
 ## Vertical offset from the player root to the intended visual cutout center.
-@export var disc_center_height_offset: float = 0.85
+@export var disc_center_height_offset: float = 0.5
 
 ## Approximate player visual height used for projected screen-space scaling.
-@export var disc_player_height_meters: float = 1.6
+@export var disc_player_height_meters: float = 1.0
 
 ## Desired disc diameter as a multiple of projected player height.
 @export var disc_target_height_coverage: float = 2.2
