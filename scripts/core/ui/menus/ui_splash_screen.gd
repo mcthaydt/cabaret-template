@@ -12,11 +12,11 @@ const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_LOCALIZATION_SELECTORS := preload("res://scripts/core/state/selectors/u_localization_selectors.gd")
 const U_SCENE_REGISTRY := preload("res://scripts/core/scene_management/u_scene_registry.gd")
 const U_DEBUG_SELECTORS := preload("res://scripts/core/state/selectors/u_debug_selectors.gd")
+const CFG_GAME_CONFIG := preload("res://resources/core/cfg_game_config.tres")
 
 enum Phase { CRISPY_CABARET, GODOT_ENGINE, DONE }
 
 const MIN_DISPLAY_TIME := 2.0
-const DEFAULT_GAMEPLAY_SCENE_ID := StringName("demo_room")
 
 @onready var _crispy_panel: Control = %CrispyCabaretPanel
 @onready var _godot_panel: Control = %GodotEnginePanel
@@ -114,7 +114,7 @@ func _finalize_preload() -> void:
 				cache.add_to_cache(_gameplay_scene_path, packed)
 
 func _resolve_gameplay_scene_path() -> String:
-	var scene_data: Dictionary = U_SCENE_REGISTRY.get_scene(DEFAULT_GAMEPLAY_SCENE_ID)
+	var scene_data: Dictionary = U_SCENE_REGISTRY.get_scene(CFG_GAME_CONFIG.get_default_gameplay_scene_id())
 	if scene_data.is_empty():
 		return ""
 	return str(scene_data.get("path", ""))

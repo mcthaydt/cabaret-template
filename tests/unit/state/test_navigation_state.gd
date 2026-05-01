@@ -115,6 +115,17 @@ func test_endgame_retry_and_return_to_menu() -> void:
 	assert_eq(menu_state.get("base_scene_id"), StringName("main_menu"), "Base scene should point to main menu after return_to_main_menu")
 	assert_eq(menu_state.get("overlay_stack"), [], "Overlays should be cleared when returning to main menu")
 
+func test_start_game_without_scene_uses_configured_default_gameplay_scene() -> void:
+	var state: Dictionary = RS_NavigationInitialState.new().to_dictionary()
+
+	var gameplay_state: Dictionary = U_NavigationReducer.reduce(state, U_NavigationActions.start_game())
+
+	assert_eq(gameplay_state.get("shell"), StringName("gameplay"), "Blank start_game should enter gameplay shell")
+	assert_eq(gameplay_state.get("base_scene_id"), _get_expected_default_gameplay_scene(),
+		"Blank start_game should target the configured default gameplay scene")
+	assert_eq(gameplay_state.get("last_gameplay_scene_id"), _get_expected_default_gameplay_scene(),
+		"Blank start_game should track the configured default gameplay scene")
+
 ## T011: Victory skip flows
 func test_victory_skip_to_credits_and_menu() -> void:
 	var state: Dictionary = {
@@ -195,3 +206,9 @@ func test_navigation_slice_initializes_in_state_store() -> void:
 	_store.dispatch(U_NavigationActions.open_pause())
 	var updated_slice: Dictionary = _store.get_slice(StringName("navigation"))
 	assert_true(updated_slice.get("overlay_stack", []).size() > 0, "Navigation slice should update via dispatched actions")
+
+func _get_expected_default_gameplay_scene() -> StringName:
+	var config: RS_GameConfig = load("res://resources/core/cfg_game_config.tres") as RS_GameConfig
+	if config == null:
+		return StringName("demo_room")
+	return config.get_default_gameplay_scene_id()

@@ -394,7 +394,7 @@ func test_victory_continue_and_credits_buttons_route_correctly() -> void:
 
 	continue_button.emit_signal("pressed")
 	await wait_seconds(0.4)
-	assert_eq(_scene_manager.get_current_scene(), CFG_GAME_CONFIG.retry_scene_id,
+	assert_eq(_scene_manager.get_current_scene(), CFG_GAME_CONFIG.get_retry_scene_id(),
 		"Continue should return to configured retry scene")
 	await wait_physics_frames(2)
 	gameplay_state = _state_store.get_state().get("gameplay", {})

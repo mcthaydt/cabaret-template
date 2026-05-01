@@ -27,7 +27,7 @@ const OVERLAY_EDIT_TOUCH_CONTROLS := StringName("edit_touch_controls")
 
 const DEFAULT_MENU_PANEL := StringName("menu/main")
 const DEFAULT_PAUSE_PANEL := StringName("pause/root")
-const DEFAULT_RETRY_SCENE := StringName("demo_room")
+const CFG_GAME_CONFIG := preload("res://resources/core/cfg_game_config.tres")
 
 static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 	var action_type: StringName = action.get("type", StringName())
@@ -204,9 +204,9 @@ static func _reduce_set_menu_panel(state: Dictionary, action: Dictionary) -> Dic
 	return new_state
 
 static func _reduce_start_game(state: Dictionary, action: Dictionary) -> Dictionary:
-	var scene_id: StringName = action.get("scene_id", state.get("base_scene_id", DEFAULT_RETRY_SCENE))
+	var scene_id: StringName = action.get("scene_id", state.get("base_scene_id", _get_default_gameplay_scene_id()))
 	if scene_id == StringName(""):
-		scene_id = DEFAULT_RETRY_SCENE
+		scene_id = _get_default_gameplay_scene_id()
 
 	var new_state: Dictionary = state.duplicate(true)
 	new_state["shell"] = SHELL_GAMEPLAY
@@ -225,7 +225,7 @@ static func _reduce_start_game(state: Dictionary, action: Dictionary) -> Diction
 
 static func _reduce_open_endgame(state: Dictionary, action: Dictionary) -> Dictionary:
 	var scene_id: StringName = action.get("scene_id", StringName("game_over"))
-	var previous_gameplay_scene: StringName = state.get("base_scene_id", DEFAULT_RETRY_SCENE)
+	var previous_gameplay_scene: StringName = state.get("base_scene_id", _get_retry_scene_id())
 
 	var new_state: Dictionary = state.duplicate(true)
 	new_state["shell"] = SHELL_ENDGAME
@@ -242,14 +242,14 @@ static func _reduce_open_endgame(state: Dictionary, action: Dictionary) -> Dicti
 static func _reduce_retry(state: Dictionary, action: Dictionary) -> Dictionary:
 	var desired_scene: StringName = action.get("scene_id", StringName())
 	if desired_scene == StringName(""):
-		desired_scene = state.get("last_gameplay_scene_id", state.get("base_scene_id", DEFAULT_RETRY_SCENE))
+		desired_scene = state.get("last_gameplay_scene_id", state.get("base_scene_id", _get_retry_scene_id()))
 	if desired_scene == StringName(""):
-		desired_scene = DEFAULT_RETRY_SCENE
+		desired_scene = _get_retry_scene_id()
 
 	var scene_data: Dictionary = U_SceneRegistry.get_scene(desired_scene)
 	var scene_type: int = scene_data.get("scene_type", U_SceneRegistry.SceneType.GAMEPLAY)
 	if scene_type != U_SceneRegistry.SceneType.GAMEPLAY:
-		desired_scene = DEFAULT_RETRY_SCENE
+		desired_scene = _get_retry_scene_id()
 
 	var new_state: Dictionary = state.duplicate(true)
 	new_state["shell"] = SHELL_GAMEPLAY
@@ -264,6 +264,12 @@ static func _reduce_retry(state: Dictionary, action: Dictionary) -> Dictionary:
 		"priority": 2
 	}
 	return new_state
+
+static func _get_default_gameplay_scene_id() -> StringName:
+	return CFG_GAME_CONFIG.get_default_gameplay_scene_id()
+
+static func _get_retry_scene_id() -> StringName:
+	return CFG_GAME_CONFIG.get_retry_scene_id()
 
 static func _reduce_skip_to_credits(state: Dictionary) -> Dictionary:
 	var new_state: Dictionary = state.duplicate(true)

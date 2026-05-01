@@ -90,7 +90,7 @@ func test_run_reset_dispatches_gameplay_reset_then_retry_and_resets_objectives()
 	if retry_index >= 0:
 		assert_eq(
 			actions[retry_index].get("scene_id", StringName("")),
-			coordinator.game_config.retry_scene_id
+			coordinator.game_config.get_retry_scene_id()
 		)
 	assert_eq(objectives_manager.reset_calls, 1)
 	assert_eq(objectives_manager.last_set_id, StringName("default_progression"))

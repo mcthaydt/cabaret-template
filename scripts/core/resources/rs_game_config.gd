@@ -8,10 +8,21 @@ class_name RS_GameConfig
 ## M_ObjectivesManager in root.tscn to configure template-specific IDs
 ## without touching manager code.
 ##
-## Schema validation (F15): all four fields must be non-empty. Setting any
-## field to empty pushes an error with resource_path for designer traceability.
+## Schema validation (F15): required fields must be non-empty. Setting any
+## required field to empty pushes an error with resource_path for designer traceability.
 
-## Scene to load when retrying (navigating back to start of run).
+## Scene to load for a new run from the main menu and boot-time preloading.
+var _default_gameplay_scene_id: StringName = StringName("demo_room")
+
+@export var default_gameplay_scene_id: StringName = StringName("demo_room"):
+	get:
+		return _default_gameplay_scene_id
+	set(value):
+		_default_gameplay_scene_id = value
+		if value == StringName(""):
+			push_error("RS_GameConfig: default_gameplay_scene_id must not be empty. Resource: %s" % resource_path)
+
+## Scene to load when retrying. Empty means use default_gameplay_scene_id.
 var _retry_scene_id: StringName = StringName("demo_room")
 
 @export var retry_scene_id: StringName = StringName("demo_room"):
@@ -19,8 +30,6 @@ var _retry_scene_id: StringName = StringName("demo_room")
 		return _retry_scene_id
 	set(value):
 		_retry_scene_id = value
-		if value == StringName(""):
-			push_error("RS_GameConfig: retry_scene_id must not be empty. Resource: %s" % resource_path)
 
 ## Route action name dispatched with run/reset to trigger a retry.
 var _route_retry: StringName = StringName("retry")
@@ -54,3 +63,11 @@ var _required_final_area: String = "demo_room"
 		_required_final_area = value
 		if value == "":
 			push_error("RS_GameConfig: required_final_area must not be empty. Resource: %s" % resource_path)
+
+func get_default_gameplay_scene_id() -> StringName:
+	return default_gameplay_scene_id
+
+func get_retry_scene_id() -> StringName:
+	if retry_scene_id == StringName(""):
+		return get_default_gameplay_scene_id()
+	return retry_scene_id

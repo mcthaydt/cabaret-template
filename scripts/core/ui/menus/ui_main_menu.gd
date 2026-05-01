@@ -18,7 +18,6 @@ const CFG_GAME_CONFIG := preload("res://resources/core/cfg_game_config.tres")
 
 const PANEL_MAIN := StringName("menu/main")
 const PANEL_SETTINGS := StringName("menu/settings")
-const FALLBACK_GAMEPLAY_SCENE := StringName("demo_room")
 const OVERLAY_SAVE_LOAD := StringName("save_load_menu_overlay")
 
 @onready var _title_label: Label = %TitleLabel
@@ -299,12 +298,7 @@ func _try_debug_skip_main_menu() -> bool:
 	return true
 
 func _get_default_gameplay_scene() -> StringName:
-	if CFG_GAME_CONFIG == null:
-		return FALLBACK_GAMEPLAY_SCENE
-	var retry_scene_id: StringName = CFG_GAME_CONFIG.retry_scene_id
-	if retry_scene_id == StringName(""):
-		return FALLBACK_GAMEPLAY_SCENE
-	return retry_scene_id
+	return CFG_GAME_CONFIG.get_default_gameplay_scene_id()
 
 func _can_debug_skip_via_save_slot(slot_id: StringName) -> bool:
 	var concrete_save_manager := _save_manager as M_SaveManager

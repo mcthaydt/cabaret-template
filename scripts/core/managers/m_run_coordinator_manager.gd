@@ -111,12 +111,12 @@ func _resolve_next_route(action: Dictionary) -> StringName:
 
 func _resolve_retry_scene_id(next_route: StringName) -> StringName:
 	if next_route == game_config.route_retry:
-		return game_config.retry_scene_id
+		return game_config.get_retry_scene_id()
 	_warn("Unknown run/reset next_route '%s'; defaulting to retry scene '%s'." % [
 		String(next_route),
-		String(game_config.retry_scene_id),
+		String(game_config.get_retry_scene_id()),
 	])
-	return game_config.retry_scene_id
+	return game_config.get_retry_scene_id()
 
 static func _to_string_name(value: Variant) -> StringName:
 	if value is StringName:
@@ -129,9 +129,15 @@ func is_reset_in_flight() -> bool:
 	return _is_reset_in_flight
 
 func _validate_game_config_references() -> void:
-	var retry_scene_data: Dictionary = U_SCENE_REGISTRY.get_scene(game_config.retry_scene_id)
+	var default_scene_id: StringName = game_config.get_default_gameplay_scene_id()
+	var default_scene_data: Dictionary = U_SCENE_REGISTRY.get_scene(default_scene_id)
+	if default_scene_data.is_empty():
+		push_error("M_RunCoordinatorManager: game_config.default_gameplay_scene_id '%s' not found in U_SceneRegistry. Resource: %s" % [String(default_scene_id), game_config.resource_path])
+
+	var retry_scene_id: StringName = game_config.get_retry_scene_id()
+	var retry_scene_data: Dictionary = U_SCENE_REGISTRY.get_scene(retry_scene_id)
 	if retry_scene_data.is_empty():
-		push_error("M_RunCoordinatorManager: game_config.retry_scene_id '%s' not found in U_SceneRegistry. Resource: %s" % [String(game_config.retry_scene_id), game_config.resource_path])
+		push_error("M_RunCoordinatorManager: game_config.retry_scene_id '%s' not found in U_SceneRegistry. Resource: %s" % [String(retry_scene_id), game_config.resource_path])
 
 	var objectives_manager: I_ObjectivesManager = U_SERVICE_LOCATOR.try_get_service(OBJECTIVES_SERVICE_NAME) as I_ObjectivesManager
 	if objectives_manager != null and is_instance_valid(objectives_manager):

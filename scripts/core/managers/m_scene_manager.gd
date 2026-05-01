@@ -45,6 +45,7 @@ const U_LOCALIZATION_SELECTORS := preload("res://scripts/core/state/selectors/u_
 const U_DEBUG_SELECTORS := preload("res://scripts/core/state/selectors/u_debug_selectors.gd")
 const U_SCENE_SELECTORS := preload("res://scripts/core/state/selectors/u_scene_selectors.gd")
 const U_NAVIGATION_SELECTORS := preload("res://scripts/core/state/selectors/u_navigation_selectors.gd")
+const CFG_GAME_CONFIG := preload("res://resources/core/cfg_game_config.tres")
 const HUD_OVERLAY_SCENE := preload("res://scenes/core/ui/hud/ui_hud_overlay.tscn")
 const UI_HUD_CONTROLLER := preload("res://scripts/core/ui/hud/ui_hud_controller.gd")
 # T209: Transition class imports removed - now handled by U_TransitionFactory
@@ -401,7 +402,7 @@ func _load_initial_scene() -> void:
 
 ## Start background preload of the default gameplay scene (mirrors splash screen preload)
 func _start_background_gameplay_preload() -> void:
-	var scene_data: Dictionary = U_SCENE_REGISTRY.get_scene(StringName("demo_room"))
+	var scene_data: Dictionary = U_SCENE_REGISTRY.get_scene(CFG_GAME_CONFIG.get_default_gameplay_scene_id())
 	if scene_data.is_empty():
 		return
 	var path: String = str(scene_data.get("path", ""))

@@ -36,6 +36,12 @@ ResourceSaver.save(entry, "res://resources/core/scene_registry/cfg_my_level_entr
 - **GAMEPLAY (1)**: Interactive levels - hides cursor, allows pause
 - **END_GAME (2)**: Game over, victory screens - shows cursor
 
+## Changing The Starting Gameplay Scene
+
+After registering a gameplay scene, set `default_gameplay_scene_id` in `resources/core/cfg_game_config.tres` to make it the New Game/startup preload target.
+
+`retry_scene_id` in the same resource is optional. Leave it empty when retries should use `default_gameplay_scene_id`; set it only when retry should restart somewhere else.
+
 ## Preload Priority Guide
 
 - **10-15**: Critical scenes (main menu, pause) - preloaded at startup

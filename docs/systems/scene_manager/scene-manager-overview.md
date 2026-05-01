@@ -34,6 +34,17 @@ Preload priority guidelines:
 
 `M_SceneManager._ready()` validates door pairings through `U_SceneRegistry.validate_door_pairings()`. Invalid pairings log errors at startup.
 
+## Default Gameplay Scene
+
+The default New Game/startup gameplay scene is configured in `resources/core/cfg_game_config.tres` with `default_gameplay_scene_id`.
+
+- Main menu New Game routing uses `default_gameplay_scene_id`.
+- Splash and debug-skip background preloading use `default_gameplay_scene_id`.
+- Save-state normalization falls back to `default_gameplay_scene_id` when a loaded scene id is blank or invalid.
+- `retry_scene_id` is an optional override. Leave it empty to retry from `default_gameplay_scene_id`.
+
+When changing the starting gameplay scene, update `resources/core/cfg_game_config.tres` and ensure the target scene id is registered in the scene registry.
+
 ## Transitions
 
 Access the manager through the service locator:

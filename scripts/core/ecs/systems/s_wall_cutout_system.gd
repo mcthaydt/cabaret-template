@@ -477,7 +477,7 @@ func _debug_log_status(
 		camera_player_distance = camera.global_position.distance_to(player_position)
 
 	var mode: String = U_VCAM_SELECTORS.get_active_mode(state) if not state.is_empty() else ""
-	print(
+	print_verbose(
 		"[WallCutoutDebug] status=%s mode=%s player_pos=%s cutout_center=%s radius=%.3f falloff=%.3f min_alpha=%.3f viewport=%s hole_radius_px=%.1f cutout_screen_px=%s est_player_height_px=%.1f hole_diameter_to_est_height=%.2f camera_player_dist=%.3f player_view_z=%.3f behind_camera=%s camera=%s" % [
 			status,
 			mode,

@@ -17,7 +17,7 @@ class_name U_StateValidator
 ##   var valid_spawn := U_StateValidator.normalize_spawn_reference(value)
 
 
-const DEFAULT_SCENE_ID := StringName("demo_room")
+const CFG_GAME_CONFIG := preload("res://resources/core/cfg_game_config.tres")
 const DEFAULT_SPAWN_POINT := StringName("sp_default")
 const SPAWN_PREFIX := "sp_"
 const CHECKPOINT_PREFIX := "cp_"
@@ -35,10 +35,11 @@ static func normalize_loaded_state(state: Dictionary) -> void:
 ## Normalize scene slice references.
 ##
 ## Validates current_scene_id against scene registry.
-## Falls back to DEFAULT_SCENE_ID if invalid.
+## Falls back to configured default gameplay scene if invalid.
 static func _normalize_scene_slice(scene_slice: Dictionary) -> void:
 	var raw_scene_id: Variant = scene_slice.get("current_scene_id", StringName(""))
 	var scene_id := _as_string_name(raw_scene_id)
+	var fallback_scene_id := _get_default_gameplay_scene_id()
 
 	if validate_scene_reference(scene_id):
 		scene_slice["current_scene_id"] = scene_id
@@ -46,9 +47,9 @@ static func _normalize_scene_slice(scene_slice: Dictionary) -> void:
 		if not String(scene_id).is_empty():
 			push_warning(
 				"State load: Unknown scene_id '%s'. Falling back to %s."
-				% [String(scene_id), String(DEFAULT_SCENE_ID)]
+				% [String(scene_id), String(fallback_scene_id)]
 			)
-		scene_slice["current_scene_id"] = DEFAULT_SCENE_ID
+		scene_slice["current_scene_id"] = fallback_scene_id
 
 ## Normalize gameplay slice spawn references.
 ##
@@ -80,6 +81,9 @@ static func validate_scene_reference(scene_id: StringName) -> bool:
 	if scene_id.is_empty():
 		return false
 	return not U_SceneRegistry.get_scene(scene_id).is_empty()
+
+static func _get_default_gameplay_scene_id() -> StringName:
+	return CFG_GAME_CONFIG.get_default_gameplay_scene_id()
 
 ## Validate and normalize a spawn point reference.
 ##

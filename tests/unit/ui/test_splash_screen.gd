@@ -111,6 +111,16 @@ func test_gameplay_scene_path_resolves() -> void:
 	# Just verify the method doesn't crash and returns a String
 	assert_true(path is String, "Should return a String")
 
+func test_gameplay_scene_path_uses_configured_default_scene() -> void:
+	var config: RS_GameConfig = load("res://resources/core/cfg_game_config.tres") as RS_GameConfig
+	assert_not_null(config, "Game config should load")
+	if config == null:
+		return
+	var expected_path: String = U_SceneRegistry.get_scene_path(config.get_default_gameplay_scene_id())
+
+	assert_eq(splash._resolve_gameplay_scene_path(), expected_path,
+		"Splash preload should resolve the configured default gameplay scene")
+
 func test_preload_started_flag() -> void:
 	# Preload may or may not have started depending on scene registry
 	# Just verify the flag is a bool

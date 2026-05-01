@@ -351,8 +351,8 @@ func test_normalize_scene_slice_falls_back_to_default_scene() -> void:
 	}
 	store.call("_normalize_loaded_state", state)
 	var scene_slice: Dictionary = state["scene"]
-	assert_eq(scene_slice.get("current_scene_id"), StringName("demo_room"),
-		"Blank scene IDs should fall back to demo_room.")
+	assert_eq(scene_slice.get("current_scene_id"), _get_expected_default_gameplay_scene(),
+		"Blank scene IDs should fall back to configured default gameplay scene.")
 
 func test_normalize_gameplay_slice_sanitizes_spawn_and_completed_areas() -> void:
 	var state: Dictionary = {
@@ -378,6 +378,12 @@ func test_normalize_spawn_reference_handles_invalid_values() -> void:
 	assert_eq(fallback_spawn, StringName("sp_default"), "Invalid spawn IDs should fall back to sp_default")
 	var fallback_checkpoint: StringName = store.call("_normalize_spawn_reference", StringName("hub_default"), false, false)
 	assert_eq(fallback_checkpoint, StringName("sp_default"), "Invalid checkpoints should fall back to sp_default")
+
+func _get_expected_default_gameplay_scene() -> StringName:
+	var config: RS_GameConfig = load("res://resources/core/cfg_game_config.tres") as RS_GameConfig
+	if config == null:
+		return StringName("demo_room")
+	return config.get_default_gameplay_scene_id()
 
 func test_signal_batching_overhead_less_than_0_05ms() -> void:
 	U_ActionRegistry.register_action(StringName("test/perf"))

@@ -88,7 +88,7 @@ static func set_menu_panel(panel_id: StringName) -> Dictionary:
 		"panel_id": panel_id
 	}
 
-static func start_game(scene_id: StringName) -> Dictionary:
+static func start_game(scene_id: StringName = StringName()) -> Dictionary:
 	return {
 		"type": ACTION_START_GAME,
 		"scene_id": scene_id
