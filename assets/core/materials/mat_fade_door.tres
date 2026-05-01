@@ -1,6 +1,6 @@
 [gd_resource type="ShaderMaterial" format=3 uid="uid://wi1mbdu28csn"]
 
-[ext_resource type="Shader" uid="uid://ctduc0gtb7cbq" path="res://assets/core/shaders/sh_vertical_fade.gdshader" id="1"]
+[ext_resource type="Shader" uid="uid://b62btecnt5wtk" path="res://assets/core/shaders/sh_vertical_fade.gdshader" id="1"]
 
 [resource]
 render_priority = 0

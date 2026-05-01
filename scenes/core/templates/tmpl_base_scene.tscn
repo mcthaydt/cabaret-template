@@ -29,8 +29,8 @@
 [ext_resource type="Script" uid="uid://bxuh4wr37jbss" path="res://scripts/core/scene_structure/marker_spawn_points_group.gd" id="21_spawnpoints"]
 [ext_resource type="Script" uid="uid://2teehl7y7n7w" path="res://scripts/core/ecs/systems/s_gamepad_vibration_system.gd" id="22_gamepad_vibration"]
 [ext_resource type="Script" uid="uid://cas8xr0c0ly7b" path="res://scripts/core/ecs/systems/s_vcam_system.gd" id="23_vcam_system"]
-[ext_resource type="Script" uid="uid://dmpersmvlqd8v" path="res://scripts/core/ecs/components/c_room_fade_group_component.gd" id="26_room_fade_group_component"]
-[ext_resource type="Script" uid="uid://cev2jaqejfcyx" path="res://scripts/core/ecs/systems/s_wall_visibility_system.gd" id="27_wall_visibility_system"]
+[ext_resource type="Script" uid="uid://damq3ad23fbkh" path="res://scripts/core/ecs/components/c_room_fade_group_component.gd" id="26_room_fade_group_component"]
+[ext_resource type="Script" uid="uid://c6xcd4yuyixgg" path="res://scripts/core/ecs/systems/s_wall_visibility_system.gd" id="27_wall_visibility_system"]
 [ext_resource type="Script" uid="uid://b2huwk7mlhlvv" path="res://scripts/core/ecs/systems/s_spawn_recovery_system.gd" id="28_ai_spawn_recovery_system"]
 [ext_resource type="Script" uid="uid://de8ypfw5vqclq" path="res://scripts/core/ecs/base_ecs_entity.gd" id="29_base_ecs_entity"]
 [ext_resource type="Resource" uid="uid://0feve3rl35x4" path="res://resources/core/base_settings/gameplay/cfg_wall_visibility_config_default.tres" id="30_wall_visibility_config"]
@@ -42,7 +42,6 @@ albedo_texture = ExtResource("31_grid_texture")
 
 [sub_resource type="Environment" id="Environment_black"]
 background_mode = 1
-background_color = Color(0, 0, 0, 1)
 
 [node name="GameplayRoot" type="Node3D" unique_id=1664541665]
 script = ExtResource("1_f2o31")
@@ -101,7 +100,6 @@ tags = Array[StringName]([&"room_fade_group"])
 [node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/SO_Wall_North" unique_id=329378109]
 script = ExtResource("26_room_fade_group_component")
 group_tag = &"wall_north"
-fade_normal = Vector3(0, 0, -1)
 
 [node name="SO_Wall_South" type="CSGBox3D" parent="SceneObjects" unique_id=210000002]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 15, 15)

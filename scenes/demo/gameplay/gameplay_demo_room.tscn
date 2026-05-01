@@ -14,7 +14,7 @@
 [ext_resource type="Script" uid="uid://bg0ptld1k2akh" path="res://scripts/core/ecs/systems/s_gravity_system.gd" id="3_xnqit"]
 [ext_resource type="Script" uid="uid://de8ypfw5vqclq" path="res://scripts/core/ecs/base_ecs_entity.gd" id="4_e74ay"]
 [ext_resource type="Script" uid="uid://cuqdt15fmwqkj" path="res://scripts/core/ecs/systems/s_movement_system.gd" id="4_vry44"]
-[ext_resource type="Script" uid="uid://dmpersmvlqd8v" path="res://scripts/core/ecs/components/c_room_fade_group_component.gd" id="5_32uqa"]
+[ext_resource type="Script" uid="uid://damq3ad23fbkh" path="res://scripts/core/ecs/components/c_room_fade_group_component.gd" id="5_32uqa"]
 [ext_resource type="Script" uid="uid://bobu5vi2a46q3" path="res://scripts/core/ecs/systems/s_rotate_to_input_system.gd" id="5_r0a6q"]
 [ext_resource type="Script" uid="uid://b8r23xdb7nfxv" path="res://scripts/core/managers/m_ecs_manager.gd" id="6_0e7m3"]
 [ext_resource type="Script" uid="uid://fggpnfaguryd" path="res://scripts/core/ecs/systems/s_floating_system.gd" id="6_tnjgn"]
@@ -32,7 +32,7 @@
 [ext_resource type="Script" uid="uid://bxuh4wr37jbss" path="res://scripts/core/scene_structure/marker_spawn_points_group.gd" id="21_spawnpoints"]
 [ext_resource type="Script" uid="uid://2teehl7y7n7w" path="res://scripts/core/ecs/systems/s_gamepad_vibration_system.gd" id="22_gamepad_vibration"]
 [ext_resource type="Script" uid="uid://cas8xr0c0ly7b" path="res://scripts/core/ecs/systems/s_vcam_system.gd" id="23_vcam_system"]
-[ext_resource type="Script" uid="uid://cev2jaqejfcyx" path="res://scripts/core/ecs/systems/s_wall_visibility_system.gd" id="27_wall_visibility_system"]
+[ext_resource type="Script" uid="uid://c6xcd4yuyixgg" path="res://scripts/core/ecs/systems/s_wall_visibility_system.gd" id="27_wall_visibility_system"]
 [ext_resource type="Script" uid="uid://b2huwk7mlhlvv" path="res://scripts/core/ecs/systems/s_spawn_recovery_system.gd" id="28_ai_spawn_recovery_system"]
 [ext_resource type="Resource" uid="uid://0feve3rl35x4" path="res://resources/core/base_settings/gameplay/cfg_wall_visibility_config_default.tres" id="30_wall_visibility_config"]
 
@@ -210,15 +210,9 @@ script = ExtResource("6_0e7m3")
 [node name="Entities" type="Node" parent="." unique_id=1237100906]
 script = ExtResource("16_8qi87")
 
-[node name="E_Player" type="Node3D" parent="Entities" unique_id=1120420520 instance=ExtResource("7_4wxy1")]
-script = ExtResource("4_e74ay")
-entity_id = &"player"
-tags = Array[StringName]([&"player", &"character"])
+[node name="E_Player" parent="Entities" unique_id=1120420520 instance=ExtResource("7_4wxy1")]
 
-[node name="E_CameraRoot" type="Node3D" parent="Entities" unique_id=1177918532 instance=ExtResource("19_ph0bl")]
-script = ExtResource("4_e74ay")
-entity_id = &"camera"
-tags = Array[StringName]([&"camera"])
+[node name="E_CameraRoot" parent="Entities" unique_id=1177918532 instance=ExtResource("19_ph0bl")]
 
 [node name="SpawnPoints" type="Node3D" parent="Entities" unique_id=978423780]
 script = ExtResource("21_spawnpoints")
