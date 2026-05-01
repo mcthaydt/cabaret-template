@@ -8,6 +8,7 @@ const U_VCAM_SELECTORS := preload("res://scripts/core/state/selectors/u_vcam_sel
 const U_ENTITY_SELECTORS := preload("res://scripts/core/state/selectors/u_entity_selectors.gd")
 const RS_WALL_CUTOUT_CONFIG_SCRIPT := preload("res://scripts/core/resources/ecs/rs_wall_cutout_config.gd")
 const DEFAULT_WALL_CUTOUT_CONFIG := preload("res://resources/core/base_settings/gameplay/cfg_wall_cutout_config_default.tres")
+const DEFAULT_WALL_CUTOUT_MATERIAL := preload("res://assets/core/materials/mat_wall_cutout.tres")
 
 const PARAM_PLAYER_POS := &"wall_cutout_player_pos"
 const PARAM_DISC_RADIUS := &"wall_cutout_disc_radius"
@@ -23,10 +24,14 @@ const DISABLED_SENTINEL := Vector3(1.0e6, 1.0e6, 1.0e6)
 @export var camera_manager: I_CAMERA_MANAGER = null
 @export var state_store: I_StateStore = null
 @export var wall_cutout_config: Resource = null
+## The shared ShaderMaterial that walls use. The system pushes per-frame uniform
+## values (player position, disc radii, alpha) onto this material so every wall
+## referencing it sees the same values. Defaults to mat_wall_cutout.tres.
+@export var wall_cutout_material: ShaderMaterial = null
 
 # Test seam: an object exposing `set_param(name, value)`. Defaults to a thin
-# RenderingServer wrapper. Tests inject a stub to observe pushes without
-# depending on headless RenderingServer behavior for global shader parameters.
+# wrapper around the shared ShaderMaterial. Tests inject a stub to observe
+# pushes without needing a real material.
 var shader_writer: Variant = null
 
 var _camera_manager: I_CAMERA_MANAGER = null
@@ -40,13 +45,23 @@ func _init() -> void:
 func _resolve_shader_writer() -> Variant:
 	if shader_writer != null:
 		return shader_writer
-	shader_writer = _RenderingServerShaderWriter.new()
+	var material: ShaderMaterial = wall_cutout_material
+	if material == null:
+		material = DEFAULT_WALL_CUTOUT_MATERIAL
+	shader_writer = _MaterialShaderWriter.new(material)
 	return shader_writer
 
 
-class _RenderingServerShaderWriter extends RefCounted:
+class _MaterialShaderWriter extends RefCounted:
+	var _material: ShaderMaterial
+
+	func _init(material: ShaderMaterial) -> void:
+		_material = material
+
 	func set_param(param_name: StringName, value: Variant) -> void:
-		RenderingServer.global_shader_parameter_set(param_name, value)
+		if _material == null:
+			return
+		_material.set_shader_parameter(param_name, value)
 
 
 func process_tick(_delta: float) -> void:

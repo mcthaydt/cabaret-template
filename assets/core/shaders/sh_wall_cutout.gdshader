@@ -8,10 +8,14 @@ render_mode unshaded, cull_back, blend_mix, depth_draw_opaque;
 // Sizes are in normalized viewport-height units (0..1). At default 0.12 the
 // disc is ~12% of viewport height in radius — readable on mobile and desktop.
 
-global uniform vec3 wall_cutout_player_pos;
-global uniform float wall_cutout_disc_radius;
-global uniform float wall_cutout_disc_falloff;
-global uniform float wall_cutout_disc_min_alpha;
+// Pushed each frame by S_WallCutoutSystem to this material instance.
+// (Plain uniforms rather than global uniforms so the shader doesn't depend on
+// project.godot [shader_globals] entries — the cutout system is fully
+// self-contained.)
+uniform vec3 wall_cutout_player_pos = vec3(1.0e6);
+uniform float wall_cutout_disc_radius = 0.12;
+uniform float wall_cutout_disc_falloff = 0.05;
+uniform float wall_cutout_disc_min_alpha = 0.0;
 
 uniform vec4 base_color : source_color = vec4(1.0);
 uniform sampler2D base_texture : source_color, hint_default_white;
