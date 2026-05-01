@@ -245,6 +245,33 @@ textures/decals/filter=0
 textures/light_projectors/filter=0
 textures/canvas_textures_default_texture_filter=2
 
+[shader_globals]
+
+wall_cutout_player_pos={
+"type": "vec3",
+"value": Vector3(1000000, 1000000, 1000000)
+}
+wall_cutout_camera_pos={
+"type": "vec3",
+"value": Vector3(0, 0, 0)
+}
+wall_cutout_near_radius={
+"type": "float",
+"value": 0.5
+}
+wall_cutout_far_radius={
+"type": "float",
+"value": 2.5
+}
+wall_cutout_falloff={
+"type": "float",
+"value": 0.5
+}
+wall_cutout_min_alpha={
+"type": "float",
+"value": 0.0
+}
+
 [state]
 
 #Reduxstatestoresettings#ForRELEASEbuilds:Setdebug/*tofalseinexportpresettodisable:#-Actionhistorytracking(savesmemory)#-Debugoverlaytoggle(F3key)#-Debugloggingoutputdebug/enable_history=true

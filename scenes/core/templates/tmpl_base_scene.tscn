@@ -35,6 +35,8 @@
 [ext_resource type="Script" uid="uid://de8ypfw5vqclq" path="res://scripts/core/ecs/base_ecs_entity.gd" id="29_base_ecs_entity"]
 [ext_resource type="Resource" uid="uid://0feve3rl35x4" path="res://resources/core/base_settings/gameplay/cfg_wall_visibility_config_default.tres" id="30_wall_visibility_config"]
 [ext_resource type="Texture2D" uid="uid://bsfq5ykk8yynq" path="res://assets/core/textures/prototype_grids/tex_texture_01.png" id="31_grid_texture"]
+[ext_resource type="Script" uid="uid://csoq062l5f7sh" path="res://scripts/core/ecs/systems/s_wall_cutout_system.gd" id="32_wall_cutout_system"]
+[ext_resource type="Resource" path="res://resources/core/base_settings/gameplay/cfg_wall_cutout_config_default.tres" id="33_wall_cutout_config"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_grid"]
 shading_mode = 0
@@ -142,6 +144,10 @@ execution_priority = 100
 [node name="S_WallVisibilitySystem" type="Node" parent="Systems/Core" unique_id=1150735353]
 script = ExtResource("27_wall_visibility_system")
 wall_visibility_config = ExtResource("30_wall_visibility_config")
+
+[node name="S_WallCutoutSystem" type="Node" parent="Systems/Core" unique_id=1150735354]
+script = ExtResource("32_wall_cutout_system")
+wall_cutout_config = ExtResource("33_wall_cutout_config")
 
 [node name="Physics" type="Node" parent="Systems" unique_id=369931067]
 script = ExtResource("3_systems_physics")

@@ -1,0 +1,9 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" uid="uid://damxhbt46sv1q" path="res://assets/core/shaders/sh_wall_cutout.gdshader" id="1"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1")
+shader_parameter/base_color = Color(1, 1, 1, 1)
+shader_parameter/use_base_texture = true
