@@ -105,10 +105,12 @@ func build_entities() -> U_TemplateBaseSceneBuilder:
 
 	var player := PREFAB_PLAYER.instantiate()
 	player.name = "E_Player"
+	player.set_scene_file_path("res://scenes/core/prefabs/prefab_player.tscn")
 	group.add_child(player)
 
 	var camera := PREFAB_CAMERA.instantiate()
 	camera.name = "E_CameraRoot"
+	camera.set_scene_file_path("res://scenes/core/templates/tmpl_camera.tscn")
 	group.add_child(camera)
 
 	var spawn_points := Node3D.new()
@@ -274,5 +276,8 @@ func _add_system_node(parent: Node, name_: String, script: Script, priority: int
 func _set_owner_recursive(node: Node, owner: Node) -> void:
 	if node != owner:
 		node.set_owner(owner)
+	var scene_path: String = node.get_scene_file_path()
+	if not scene_path.is_empty():
+		return
 	for child in node.get_children():
 		_set_owner_recursive(child, owner)
