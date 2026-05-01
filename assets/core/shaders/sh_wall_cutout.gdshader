@@ -32,10 +32,22 @@ void fragment() {
 	float edge = smoothstep(radius, radius + falloff, dist);
 	float alpha = mix(wall_cutout_min_alpha, 1.0, edge);
 
-	// Cone strictly ends at player: fragments past the player along the
-	// camera->player axis stay fully opaque. Without this, clamp(t, 0, 1)
-	// causes walls behind the player within far_radius to be cut out (the
-	// cutout becomes a sphere around the player instead of a cone).
+	// Occlusion gate: a wall only contributes to the cutout if it is actually
+	// between the camera and the player. Without this, walls *beside* the
+	// player at the same camera-distance also fall inside the cone (because
+	// the cone widens toward t=1 and a side wall near the player has small
+	// lateral distance from the segment). Compare camera-space depth: in
+	// Godot view space -Z is forward, so a closer point has a larger (less
+	// negative) Z. Require fragment Z > player Z by an epsilon so a wall
+	// touching the player at exactly the same depth doesn't pop in/out.
+	vec3 view_player = (VIEW_MATRIX * vec4(wall_cutout_player_pos, 1.0)).xyz;
+	vec3 view_frag = (VIEW_MATRIX * vec4(v_world_pos, 1.0)).xyz;
+	float depth_epsilon = 0.05;
+	if (view_frag.z <= view_player.z + depth_epsilon) {
+		alpha = 1.0;
+	}
+
+	// Past-player along camera->player axis: also no cutout (defensive).
 	if (t_raw > 1.0 || t_raw < 0.0) {
 		alpha = 1.0;
 	}
