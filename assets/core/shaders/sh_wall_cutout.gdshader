@@ -1,12 +1,17 @@
 shader_type spatial;
 render_mode unshaded, cull_back, blend_mix, depth_draw_opaque;
 
+// Diablo/Hades-style screen-space disc cutout. A circular hole is drawn
+// around the player's screen position on every wall fragment that is closer
+// to the camera than the player (i.e., actually occluding them).
+//
+// Sizes are in normalized viewport-height units (0..1). At default 0.12 the
+// disc is ~12% of viewport height in radius — readable on mobile and desktop.
+
 global uniform vec3 wall_cutout_player_pos;
-global uniform vec3 wall_cutout_camera_pos;
-global uniform float wall_cutout_near_radius;
-global uniform float wall_cutout_far_radius;
-global uniform float wall_cutout_falloff;
-global uniform float wall_cutout_min_alpha;
+global uniform float wall_cutout_disc_radius;
+global uniform float wall_cutout_disc_falloff;
+global uniform float wall_cutout_disc_min_alpha;
 
 uniform vec4 base_color : source_color = vec4(1.0);
 uniform sampler2D base_texture : source_color, hint_default_white;
@@ -19,37 +24,37 @@ void vertex() {
 }
 
 void fragment() {
-	vec3 ab = wall_cutout_player_pos - wall_cutout_camera_pos;
-	float ab_len_sq = max(dot(ab, ab), 1e-6);
-	vec3 ap = v_world_pos - wall_cutout_camera_pos;
-	float t_raw = dot(ap, ab) / ab_len_sq;
-	float t = clamp(t_raw, 0.0, 1.0);
-	vec3 closest = wall_cutout_camera_pos + t * ab;
-	float dist = length(v_world_pos - closest);
+	float alpha = 1.0;
 
-	float radius = mix(wall_cutout_near_radius, wall_cutout_far_radius, t);
-	float falloff = max(wall_cutout_falloff, 1e-4);
-	float edge = smoothstep(radius, radius + falloff, dist);
-	float alpha = mix(wall_cutout_min_alpha, 1.0, edge);
+	// Project the player into screen space using the active camera matrices.
+	vec4 player_clip = PROJECTION_MATRIX * VIEW_MATRIX * vec4(wall_cutout_player_pos, 1.0);
+	if (player_clip.w > 0.0) {
+		vec2 player_ndc = player_clip.xy / player_clip.w;
+		vec2 player_uv = player_ndc * 0.5 + 0.5;
 
-	// Occlusion gate: a wall only contributes to the cutout if it is actually
-	// between the camera and the player. Without this, walls *beside* the
-	// player at the same camera-distance also fall inside the cone (because
-	// the cone widens toward t=1 and a side wall near the player has small
-	// lateral distance from the segment). Compare camera-space depth: in
-	// Godot view space -Z is forward, so a closer point has a larger (less
-	// negative) Z. Require fragment Z > player Z by an epsilon so a wall
-	// touching the player at exactly the same depth doesn't pop in/out.
-	vec3 view_player = (VIEW_MATRIX * vec4(wall_cutout_player_pos, 1.0)).xyz;
-	vec3 view_frag = (VIEW_MATRIX * vec4(v_world_pos, 1.0)).xyz;
-	float depth_epsilon = 0.05;
-	if (view_frag.z <= view_player.z + depth_epsilon) {
-		alpha = 1.0;
-	}
+		// FRAGCOORD is in viewport pixels (origin bottom-left). Convert to UV.
+		vec2 frag_uv = FRAGCOORD.xy / VIEWPORT_SIZE;
 
-	// Past-player along camera->player axis: also no cutout (defensive).
-	if (t_raw > 1.0 || t_raw < 0.0) {
-		alpha = 1.0;
+		// Aspect-correct so the cutout is a true circle on screen, not an
+		// ellipse stretched along X by the viewport's aspect ratio.
+		float aspect = VIEWPORT_SIZE.x / VIEWPORT_SIZE.y;
+		vec2 delta = vec2((frag_uv.x - player_uv.x) * aspect, frag_uv.y - player_uv.y);
+		float screen_dist = length(delta);
+
+		float falloff = max(wall_cutout_disc_falloff, 1e-4);
+		float edge = smoothstep(wall_cutout_disc_radius, wall_cutout_disc_radius + falloff, screen_dist);
+		float disc_alpha = mix(wall_cutout_disc_min_alpha, 1.0, edge);
+
+		// Occlusion gate: only fade walls that are actually between camera
+		// and player. In Godot view space -Z is forward, so a closer point
+		// has a larger (less negative) Z. Add an epsilon so a wall touching
+		// the player at the same depth doesn't pop in/out frame to frame.
+		vec3 view_player = (VIEW_MATRIX * vec4(wall_cutout_player_pos, 1.0)).xyz;
+		vec3 view_frag = (VIEW_MATRIX * vec4(v_world_pos, 1.0)).xyz;
+		float depth_epsilon = 0.05;
+		if (view_frag.z > view_player.z + depth_epsilon) {
+			alpha = disc_alpha;
+		}
 	}
 
 	vec3 tex_rgb = use_base_texture ? texture(base_texture, UV).rgb : vec3(1.0);

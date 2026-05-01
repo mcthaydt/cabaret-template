@@ -26,15 +26,14 @@ func test_defaults_are_sane() -> void:
 	var config := _new_config()
 	if config == null:
 		return
-	var near_radius := float(config.get("cone_near_radius"))
-	var far_radius := float(config.get("cone_far_radius"))
-	var falloff := float(config.get("cone_falloff"))
-	var min_alpha := float(config.get("cone_min_alpha"))
+	var radius := float(config.get("disc_radius"))
+	var falloff := float(config.get("disc_falloff"))
+	var min_alpha := float(config.get("disc_min_alpha"))
 
-	assert_gt(near_radius, 0.0, "near radius should be positive by default")
-	assert_gt(far_radius, near_radius, "far radius should be larger than near radius (cone widens toward player)")
-	assert_gt(falloff, 0.0, "falloff should be positive so the cutout edge is soft")
-	assert_between(min_alpha, 0.0, 1.0, "min_alpha must be a valid alpha in [0,1]")
+	assert_gt(radius, 0.0, "disc_radius should be positive by default")
+	assert_lt(radius, 1.0, "disc_radius is fraction of viewport height; default should be much less than 1")
+	assert_gt(falloff, 0.0, "disc_falloff should be positive so the cutout edge is soft")
+	assert_between(min_alpha, 0.0, 1.0, "disc_min_alpha must be a valid alpha in [0,1]")
 
 
 func test_class_name_is_registered() -> void:

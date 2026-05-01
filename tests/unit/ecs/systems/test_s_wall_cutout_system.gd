@@ -3,17 +3,12 @@ extends BaseTest
 const SYSTEM_PATH := "res://scripts/core/ecs/systems/s_wall_cutout_system.gd"
 const CONFIG_PATH := "res://scripts/core/resources/ecs/rs_wall_cutout_config.gd"
 const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")
-const MOCK_CAMERA_MANAGER := preload("res://tests/mocks/mock_camera_manager.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 
 const PARAM_PLAYER_POS := &"wall_cutout_player_pos"
-const PARAM_CAMERA_POS := &"wall_cutout_camera_pos"
-const PARAM_NEAR_RADIUS := &"wall_cutout_near_radius"
-const PARAM_FAR_RADIUS := &"wall_cutout_far_radius"
-const PARAM_FALLOFF := &"wall_cutout_falloff"
-const PARAM_MIN_ALPHA := &"wall_cutout_min_alpha"
-
-const PLAYER_ENTITY_ID := StringName("player")
+const PARAM_DISC_RADIUS := &"wall_cutout_disc_radius"
+const PARAM_DISC_FALLOFF := &"wall_cutout_disc_falloff"
+const PARAM_DISC_MIN_ALPHA := &"wall_cutout_disc_min_alpha"
 
 
 class StubShaderWriter extends RefCounted:
@@ -34,34 +29,24 @@ func _config_script() -> Script:
 	return script_obj
 
 
-func _make_config(near_r: float, far_r: float, falloff: float, min_a: float) -> Resource:
+func _make_config(radius: float, falloff: float, min_a: float) -> Resource:
 	var script_obj := _config_script()
 	if script_obj == null:
 		return null
 	var config: Variant = script_obj.new()
-	config.set("cone_near_radius", near_r)
-	config.set("cone_far_radius", far_r)
-	config.set("cone_falloff", falloff)
-	config.set("cone_min_alpha", min_a)
+	config.set("disc_radius", radius)
+	config.set("disc_falloff", falloff)
+	config.set("disc_min_alpha", min_a)
 	return config as Resource
 
 
-func _create_fixture(camera_pos: Vector3, player_pos: Vector3, mode: String) -> Dictionary:
+func _create_fixture(player_pos: Vector3, mode: String) -> Dictionary:
 	var system_script := _system_script()
 	if system_script == null:
 		return {}
 
 	var ecs_manager := MOCK_ECS_MANAGER.new()
 	autofree(ecs_manager)
-
-	var camera_manager := MOCK_CAMERA_MANAGER.new()
-	autofree(camera_manager)
-	var main_camera := Camera3D.new()
-	main_camera.global_transform = Transform3D(Basis.IDENTITY, camera_pos)
-	main_camera.current = true
-	add_child(main_camera)
-	autofree(main_camera)
-	camera_manager.main_camera = main_camera
 
 	var state_store := MOCK_STATE_STORE.new()
 	autofree(state_store)
@@ -79,9 +64,8 @@ func _create_fixture(camera_pos: Vector3, player_pos: Vector3, mode: String) -> 
 	var system: Variant = system_script.new()
 	autofree(system)
 	system.ecs_manager = ecs_manager
-	system.camera_manager = camera_manager
 	system.state_store = state_store
-	system.wall_cutout_config = _make_config(0.7, 3.0, 0.4, 0.1)
+	system.wall_cutout_config = _make_config(0.2, 0.07, 0.1)
 	var writer := StubShaderWriter.new()
 	system.shader_writer = writer
 	add_child(system)
@@ -89,7 +73,6 @@ func _create_fixture(camera_pos: Vector3, player_pos: Vector3, mode: String) -> 
 
 	return {
 		"system": system,
-		"camera": main_camera,
 		"state_store": state_store,
 		"writer": writer,
 	}
@@ -115,10 +98,9 @@ func test_system_script_loads() -> void:
 	_system_script()
 
 
-func test_writes_player_and_camera_position_globals_on_tick() -> void:
-	var camera_pos := Vector3(10.0, 5.0, 0.0)
+func test_writes_player_position_global_on_tick() -> void:
 	var player_pos := Vector3(0.0, 1.0, 0.0)
-	var fixture := _create_fixture(camera_pos, player_pos, "orbit")
+	var fixture := _create_fixture(player_pos, "orbit")
 	var system = fixture.get("system")
 	var writer: StubShaderWriter = fixture.get("writer")
 	assert_not_null(system)
@@ -127,26 +109,23 @@ func test_writes_player_and_camera_position_globals_on_tick() -> void:
 
 	assert_eq(_read_vec3(writer, PARAM_PLAYER_POS), player_pos,
 		"Should push player position into wall_cutout_player_pos global.")
-	assert_eq(_read_vec3(writer, PARAM_CAMERA_POS), camera_pos,
-		"Should push camera position into wall_cutout_camera_pos global.")
 
 
-func test_writes_config_radii_to_globals_on_tick() -> void:
-	var fixture := _create_fixture(Vector3.ZERO, Vector3.ZERO, "orbit")
+func test_writes_disc_params_to_globals_on_tick() -> void:
+	var fixture := _create_fixture(Vector3.ZERO, "orbit")
 	var system = fixture.get("system")
 	var writer: StubShaderWriter = fixture.get("writer")
 	assert_not_null(system)
 
 	system.process_tick(0.1)
 
-	assert_almost_eq(_read_float(writer, PARAM_NEAR_RADIUS), 0.7, 0.0001)
-	assert_almost_eq(_read_float(writer, PARAM_FAR_RADIUS), 3.0, 0.0001)
-	assert_almost_eq(_read_float(writer, PARAM_FALLOFF), 0.4, 0.0001)
-	assert_almost_eq(_read_float(writer, PARAM_MIN_ALPHA), 0.1, 0.0001)
+	assert_almost_eq(_read_float(writer, PARAM_DISC_RADIUS), 0.2, 0.0001)
+	assert_almost_eq(_read_float(writer, PARAM_DISC_FALLOFF), 0.07, 0.0001)
+	assert_almost_eq(_read_float(writer, PARAM_DISC_MIN_ALPHA), 0.1, 0.0001)
 
 
 func test_disables_cutout_via_sentinel_when_not_orbit_mode() -> void:
-	var fixture := _create_fixture(Vector3(10, 5, 0), Vector3(0, 1, 0), "fixed")
+	var fixture := _create_fixture(Vector3(0, 1, 0), "fixed")
 	var system = fixture.get("system")
 	var writer: StubShaderWriter = fixture.get("writer")
 	assert_not_null(system)
@@ -165,13 +144,6 @@ func test_falls_back_to_default_config_when_export_missing() -> void:
 
 	var ecs_manager := MOCK_ECS_MANAGER.new()
 	autofree(ecs_manager)
-	var camera_manager := MOCK_CAMERA_MANAGER.new()
-	autofree(camera_manager)
-	var main_camera := Camera3D.new()
-	main_camera.current = true
-	add_child(main_camera)
-	autofree(main_camera)
-	camera_manager.main_camera = main_camera
 	var state_store := MOCK_STATE_STORE.new()
 	autofree(state_store)
 	state_store.set_slice("vcam", {"active_mode": "orbit"})
@@ -183,7 +155,6 @@ func test_falls_back_to_default_config_when_export_missing() -> void:
 	var system: Variant = system_script.new()
 	autofree(system)
 	system.ecs_manager = ecs_manager
-	system.camera_manager = camera_manager
 	system.state_store = state_store
 	var writer := StubShaderWriter.new()
 	system.shader_writer = writer
@@ -193,5 +164,5 @@ func test_falls_back_to_default_config_when_export_missing() -> void:
 
 	system.process_tick(0.1)
 
-	assert_gt(_read_float(writer, PARAM_FAR_RADIUS), _read_float(writer, PARAM_NEAR_RADIUS),
-		"With null config, system must fall back to default cfg_wall_cutout_config_default.tres so far > near.")
+	assert_gt(_read_float(writer, PARAM_DISC_RADIUS), 0.0,
+		"With null config, system must fall back to default cfg_wall_cutout_config_default.tres so disc_radius is positive.")

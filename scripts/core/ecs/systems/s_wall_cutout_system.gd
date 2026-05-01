@@ -10,13 +10,14 @@ const RS_WALL_CUTOUT_CONFIG_SCRIPT := preload("res://scripts/core/resources/ecs/
 const DEFAULT_WALL_CUTOUT_CONFIG := preload("res://resources/core/base_settings/gameplay/cfg_wall_cutout_config_default.tres")
 
 const PARAM_PLAYER_POS := &"wall_cutout_player_pos"
-const PARAM_CAMERA_POS := &"wall_cutout_camera_pos"
-const PARAM_NEAR_RADIUS := &"wall_cutout_near_radius"
-const PARAM_FAR_RADIUS := &"wall_cutout_far_radius"
-const PARAM_FALLOFF := &"wall_cutout_falloff"
-const PARAM_MIN_ALPHA := &"wall_cutout_min_alpha"
+const PARAM_DISC_RADIUS := &"wall_cutout_disc_radius"
+const PARAM_DISC_FALLOFF := &"wall_cutout_disc_falloff"
+const PARAM_DISC_MIN_ALPHA := &"wall_cutout_disc_min_alpha"
 
-# Far-off position used to disable the cutout when the camera is not in orbit mode.
+# Far-off position used to disable the cutout when the camera is not in orbit
+# mode. The shader projects this through the view+projection matrices and the
+# resulting screen position will be far outside any reasonable disc radius, so
+# every fragment passes through opaque.
 const DISABLED_SENTINEL := Vector3(1.0e6, 1.0e6, 1.0e6)
 
 @export var camera_manager: I_CAMERA_MANAGER = null
@@ -24,8 +25,8 @@ const DISABLED_SENTINEL := Vector3(1.0e6, 1.0e6, 1.0e6)
 @export var wall_cutout_config: Resource = null
 
 # Test seam: an object exposing `set_param(name, value)`. Defaults to a thin
-# RenderingServer wrapper. Tests inject a stub to observe pushes without depending
-# on headless RenderingServer behavior.
+# RenderingServer wrapper. Tests inject a stub to observe pushes without
+# depending on headless RenderingServer behavior for global shader parameters.
 var shader_writer: Variant = null
 
 var _camera_manager: I_CAMERA_MANAGER = null
@@ -50,14 +51,7 @@ class _RenderingServerShaderWriter extends RefCounted:
 
 func process_tick(_delta: float) -> void:
 	var config_values: Dictionary = _resolve_config_values()
-	_push_cone_params(config_values)
-
-	var camera: Camera3D = _resolve_active_camera()
-	if camera == null:
-		_push_player_position(DISABLED_SENTINEL)
-		return
-	var camera_pos: Vector3 = camera.global_transform.origin
-	_push_camera_position(camera_pos)
+	_push_disc_params(config_values)
 
 	var state: Dictionary = _get_state()
 	if not _is_orbit_mode(state):
@@ -81,21 +75,6 @@ func _resolve_camera_manager() -> I_CAMERA_MANAGER:
 func _resolve_state_store() -> I_StateStore:
 	_state_store = U_DependencyResolution.resolve_state_store(_state_store, state_store, self) as I_StateStore
 	return _state_store
-
-
-func _resolve_active_camera() -> Camera3D:
-	var manager: I_CAMERA_MANAGER = _resolve_camera_manager()
-	if manager != null:
-		var manager_camera: Camera3D = manager.get_main_camera()
-		if manager_camera != null and is_instance_valid(manager_camera):
-			return manager_camera
-	var viewport: Viewport = get_viewport()
-	if viewport == null:
-		return null
-	var viewport_camera: Camera3D = viewport.get_camera_3d()
-	if viewport_camera == null or not is_instance_valid(viewport_camera):
-		return null
-	return viewport_camera
 
 
 func _get_state() -> Dictionary:
@@ -130,10 +109,9 @@ func _resolve_player_position_from_state(state: Dictionary) -> Dictionary:
 
 func _resolve_config_values() -> Dictionary:
 	var defaults := {
-		"cone_near_radius": 0.5,
-		"cone_far_radius": 2.5,
-		"cone_falloff": 0.5,
-		"cone_min_alpha": 0.0,
+		"disc_radius": 0.12,
+		"disc_falloff": 0.05,
+		"disc_min_alpha": 0.0,
 	}
 	var config_variant: Variant = wall_cutout_config
 	if config_variant == null:
@@ -146,25 +124,19 @@ func _resolve_config_values() -> Dictionary:
 		return defaults
 
 	return {
-		"cone_near_radius": maxf(float(config_resource.get("cone_near_radius")), 0.0),
-		"cone_far_radius": maxf(float(config_resource.get("cone_far_radius")), 0.0),
-		"cone_falloff": maxf(float(config_resource.get("cone_falloff")), 0.0),
-		"cone_min_alpha": clampf(float(config_resource.get("cone_min_alpha")), 0.0, 1.0),
+		"disc_radius": clampf(float(config_resource.get("disc_radius")), 0.0, 1.0),
+		"disc_falloff": maxf(float(config_resource.get("disc_falloff")), 0.0),
+		"disc_min_alpha": clampf(float(config_resource.get("disc_min_alpha")), 0.0, 1.0),
 	}
 
 
 # --- Global shader parameter helpers ---
 
-func _push_cone_params(values: Dictionary) -> void:
+func _push_disc_params(values: Dictionary) -> void:
 	var writer: Variant = _resolve_shader_writer()
-	writer.set_param(PARAM_NEAR_RADIUS, values["cone_near_radius"])
-	writer.set_param(PARAM_FAR_RADIUS, values["cone_far_radius"])
-	writer.set_param(PARAM_FALLOFF, values["cone_falloff"])
-	writer.set_param(PARAM_MIN_ALPHA, values["cone_min_alpha"])
-
-
-func _push_camera_position(pos: Vector3) -> void:
-	_resolve_shader_writer().set_param(PARAM_CAMERA_POS, pos)
+	writer.set_param(PARAM_DISC_RADIUS, values["disc_radius"])
+	writer.set_param(PARAM_DISC_FALLOFF, values["disc_falloff"])
+	writer.set_param(PARAM_DISC_MIN_ALPHA, values["disc_min_alpha"])
 
 
 func _push_player_position(pos: Vector3) -> void:

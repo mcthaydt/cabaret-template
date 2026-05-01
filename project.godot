@@ -251,23 +251,15 @@ wall_cutout_player_pos={
 "type": "vec3",
 "value": Vector3(1000000, 1000000, 1000000)
 }
-wall_cutout_camera_pos={
-"type": "vec3",
-"value": Vector3(0, 0, 0)
-}
-wall_cutout_near_radius={
+wall_cutout_disc_radius={
 "type": "float",
-"value": 0.5
+"value": 0.12
 }
-wall_cutout_far_radius={
+wall_cutout_disc_falloff={
 "type": "float",
-"value": 2.5
+"value": 0.05
 }
-wall_cutout_falloff={
-"type": "float",
-"value": 0.5
-}
-wall_cutout_min_alpha={
+wall_cutout_disc_min_alpha={
 "type": "float",
 "value": 0.0
 }
