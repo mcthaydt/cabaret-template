@@ -1111,8 +1111,6 @@ func test_migrated_files_do_not_duplicate_dependency_resolution_pattern() -> voi
 		"res://scripts/core/ecs/systems/s_camera_state_system.gd",
 		"res://scripts/core/ecs/systems/s_character_state_system.gd",
 		"res://scripts/core/ecs/systems/s_game_event_system.gd",
-		"res://scripts/core/ecs/systems/s_wall_visibility_system.gd",
-		"res://scripts/core/ecs/systems/s_region_visibility_system.gd",
 		"res://scripts/core/managers/m_vcam_manager.gd",
 		"res://scripts/core/managers/m_character_lighting_manager.gd",
 		"res://scripts/core/managers/m_run_coordinator_manager.gd",
@@ -1161,7 +1159,6 @@ func test_ecs_systems_do_not_define_local_get_frame_state_snapshot() -> void:
 		"res://scripts/core/ecs/systems/s_camera_state_system.gd",
 		"res://scripts/core/ecs/systems/s_character_state_system.gd",
 		"res://scripts/core/ecs/systems/s_vcam_system.gd",
-		"res://scripts/core/ecs/systems/s_wall_visibility_system.gd",
 	]
 	var forbidden_pattern: String = "func _get_frame_state_snapshot"
 	var snapshot_violations: Array[String] = []
@@ -2227,14 +2224,6 @@ func test_s_camera_state_system_stays_under_400_lines() -> void:
 	var line_count: int = _count_file_lines("res://scripts/core/ecs/systems/s_camera_state_system.gd")
 	assert_lt(line_count, 400,
 		"S_CameraStateSystem should stay under 400 lines (current=%d)." % line_count)
-
-
-func test_s_wall_visibility_system_stays_under_1200_lines() -> void:
-	# C5 decomposed wall visibility; the remaining size is in private methods
-	# that C5 chose not to extract (target architecture). F8 targets VCam/CameraState only.
-	var line_count: int = _count_file_lines("res://scripts/core/ecs/systems/s_wall_visibility_system.gd")
-	assert_lt(line_count, 1200,
-		"S_WallVisibilitySystem should stay under 1200 lines (current=%d)." % line_count)
 
 
 func test_vcam_system_process_tick_under_80_lines() -> void:
