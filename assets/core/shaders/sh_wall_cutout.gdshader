@@ -22,7 +22,8 @@ void fragment() {
 	vec3 ab = wall_cutout_player_pos - wall_cutout_camera_pos;
 	float ab_len_sq = max(dot(ab, ab), 1e-6);
 	vec3 ap = v_world_pos - wall_cutout_camera_pos;
-	float t = clamp(dot(ap, ab) / ab_len_sq, 0.0, 1.0);
+	float t_raw = dot(ap, ab) / ab_len_sq;
+	float t = clamp(t_raw, 0.0, 1.0);
 	vec3 closest = wall_cutout_camera_pos + t * ab;
 	float dist = length(v_world_pos - closest);
 
@@ -30,6 +31,14 @@ void fragment() {
 	float falloff = max(wall_cutout_falloff, 1e-4);
 	float edge = smoothstep(radius, radius + falloff, dist);
 	float alpha = mix(wall_cutout_min_alpha, 1.0, edge);
+
+	// Cone strictly ends at player: fragments past the player along the
+	// camera->player axis stay fully opaque. Without this, clamp(t, 0, 1)
+	// causes walls behind the player within far_radius to be cut out (the
+	// cutout becomes a sphere around the player instead of a cone).
+	if (t_raw > 1.0 || t_raw < 0.0) {
+		alpha = 1.0;
+	}
 
 	vec3 tex_rgb = use_base_texture ? texture(base_texture, UV).rgb : vec3(1.0);
 	ALBEDO = base_color.rgb * tex_rgb;
