@@ -10,12 +10,22 @@ const PARAM_PLAYER_POS := &"wall_cutout_player_pos"
 const PARAM_DISC_RADIUS := &"wall_cutout_disc_radius"
 const PARAM_DISC_FALLOFF := &"wall_cutout_disc_falloff"
 const PARAM_DISC_MIN_ALPHA := &"wall_cutout_disc_min_alpha"
+const PARAM_CUTOUT_ENABLED := &"wall_cutout_enabled"
 
 
 class StubShaderWriter extends RefCounted:
 	var values: Dictionary = {}
+	var instance_values_by_target_id: Dictionary = {}
+
 	func set_param(param_name: StringName, value: Variant) -> void:
 		values[param_name] = value
+
+	func set_instance_param(target: Node3D, param_name: StringName, value: Variant) -> void:
+		if target == null:
+			return
+		if not instance_values_by_target_id.has(target.get_instance_id()):
+			instance_values_by_target_id[target.get_instance_id()] = {}
+		(instance_values_by_target_id[target.get_instance_id()] as Dictionary)[param_name] = value
 
 
 func _system_script() -> Script:
@@ -104,6 +114,25 @@ func _read_float(writer: StubShaderWriter, name: StringName) -> float:
 	if value is float or value is int:
 		return float(value)
 	return 0.0
+
+
+func _read_instance_float(writer: StubShaderWriter, target: Node3D, name: StringName) -> float:
+	if target == null:
+		return 0.0
+	var values: Dictionary = writer.instance_values_by_target_id.get(target.get_instance_id(), {}) as Dictionary
+	var value: Variant = values.get(name, null)
+	if value is float or value is int:
+		return float(value)
+	return 0.0
+
+
+func _make_wall_target(name_: String, position: Vector3, size: Vector3) -> CSGBox3D:
+	var wall := CSGBox3D.new()
+	wall.name = name_
+	wall.position = position
+	wall.size = size
+	add_child_autofree(wall)
+	return wall
 
 
 # ---- Tests ----
@@ -227,3 +256,39 @@ func test_wall_cutout_shader_uses_dither_discard_instead_of_alpha_blend() -> voi
 		"Wall cutout should use the same ordered dither discard pattern as wall visibility.")
 	assert_true(shader_text.contains("bayer64"),
 		"Wall cutout should use deterministic Bayer dithering for stable wall residue.")
+
+
+func test_wall_cutout_shader_has_per_instance_cutout_gate() -> void:
+	var shader_text := FileAccess.get_file_as_string(SHADER_PATH)
+	assert_true(shader_text.contains("instance uniform float wall_cutout_enabled"),
+		"Cutout shader should expose a per-wall gate so adjacent non-occluding walls do not cut out.")
+
+
+func test_tight_occlusion_segment_enables_intersected_wall_only() -> void:
+	var fixture := _create_fixture(Vector3.ZERO, "orbit")
+	var system = fixture.get("system")
+	var writer: StubShaderWriter = fixture.get("writer")
+	assert_not_null(system)
+
+	var intersected_wall := _make_wall_target(
+		"IntersectedWall",
+		Vector3(0.0, 1.0, 1.0),
+		Vector3(4.0, 2.0, 0.1)
+	)
+	var side_wall := _make_wall_target(
+		"SideWall",
+		Vector3(-1.0, 1.0, 0.0),
+		Vector3(0.1, 2.0, 4.0)
+	)
+
+	system._update_cutout_target_gates(
+		[intersected_wall, side_wall],
+		Vector3(0.0, 1.0, 0.0),
+		Vector3(0.0, 1.0, 2.0),
+		{"occlusion_segment_margin": 0.05}
+	)
+
+	assert_almost_eq(_read_instance_float(writer, intersected_wall, PARAM_CUTOUT_ENABLED), 1.0, 0.0001,
+		"Wall whose footprint intersects the camera-player segment should allow cutout.")
+	assert_almost_eq(_read_instance_float(writer, side_wall, PARAM_CUTOUT_ENABLED), 0.0, 0.0001,
+		"Adjacent wall beside the player should not allow cutout when it does not intersect the camera-player segment.")

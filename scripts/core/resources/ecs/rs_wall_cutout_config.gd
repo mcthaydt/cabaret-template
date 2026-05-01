@@ -14,7 +14,7 @@ class_name RS_WallCutoutConfig
 @export var disc_radius: float = 0.12
 
 ## Maximum radius after runtime projected-player scaling.
-@export var disc_max_radius: float = 0.32
+@export var disc_max_radius: float = 0.55
 
 ## Soft-edge width as a fraction of viewport height. Larger values make the
 ## edge of the cutout fade more gradually.
@@ -27,7 +27,10 @@ class_name RS_WallCutoutConfig
 @export var disc_player_height_meters: float = 1.6
 
 ## Desired disc diameter as a multiple of projected player height.
-@export var disc_target_height_coverage: float = 1.2
+@export var disc_target_height_coverage: float = 2.2
+
+## XZ footprint margin for treating a wall as intersecting camera-to-player line of sight.
+@export var occlusion_segment_margin: float = 0.05
 
 @export_group("Alpha")
 ## Alpha at the center of the disc. 0.0 = fully transparent (you see straight

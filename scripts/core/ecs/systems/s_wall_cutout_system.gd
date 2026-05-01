@@ -15,6 +15,8 @@ const PARAM_PLAYER_POS := &"wall_cutout_player_pos"
 const PARAM_DISC_RADIUS := &"wall_cutout_disc_radius"
 const PARAM_DISC_FALLOFF := &"wall_cutout_disc_falloff"
 const PARAM_DISC_MIN_ALPHA := &"wall_cutout_disc_min_alpha"
+const PARAM_CUTOUT_ENABLED := &"wall_cutout_enabled"
+const ROOM_FADE_GROUP_TYPE := StringName("RoomFadeGroup")
 const DEBUG_KEY_TICK := &"tick"
 const DEBUG_PLAYER_VISUAL_HEIGHT_METERS := 1.6
 
@@ -42,6 +44,7 @@ var shader_writer: Variant = null
 var _camera_manager: I_CAMERA_MANAGER = null
 var _state_store: I_StateStore = null
 var _debug_log_throttle: Variant = U_DEBUG_LOG_THROTTLE.new()
+var _tracked_cutout_targets: Dictionary = {}
 
 
 func _init() -> void:
@@ -69,6 +72,12 @@ class _MaterialShaderWriter extends RefCounted:
 			return
 		_material.set_shader_parameter(param_name, value)
 
+	func set_instance_param(target: Node3D, param_name: StringName, value: Variant) -> void:
+		var geometry := target as GeometryInstance3D
+		if geometry == null or not is_instance_valid(geometry):
+			return
+		geometry.set_instance_shader_parameter(param_name, value)
+
 
 func process_tick(delta: float) -> void:
 	_debug_log_throttle.tick(delta)
@@ -78,6 +87,7 @@ func process_tick(delta: float) -> void:
 	if not _is_orbit_mode(state):
 		_push_disc_params(config_values)
 		_push_player_position(DISABLED_SENTINEL)
+		_disable_all_tracked_targets()
 		_debug_log_status("disabled: non-orbit mode", DISABLED_SENTINEL, DISABLED_SENTINEL, config_values, state)
 		return
 
@@ -85,13 +95,24 @@ func process_tick(delta: float) -> void:
 	if player_pos_data.is_empty():
 		_push_disc_params(config_values)
 		_push_player_position(DISABLED_SENTINEL)
+		_disable_all_tracked_targets()
 		_debug_log_status("disabled: player position missing", DISABLED_SENTINEL, DISABLED_SENTINEL, config_values, state)
 		return
 	var player_position: Vector3 = player_pos_data["position"] as Vector3
+	var camera: Camera3D = _resolve_active_camera()
 	var cutout_center: Vector3 = _resolve_cutout_center_position(player_position, config_values)
 	var adjusted_values: Dictionary = _resolve_runtime_disc_params(config_values, player_position)
 	_push_disc_params(adjusted_values)
 	_push_player_position(cutout_center)
+	if camera != null and is_instance_valid(camera):
+		_update_cutout_target_gates(
+			_collect_cutout_targets(),
+			player_position,
+			camera.global_position,
+			adjusted_values
+		)
+	else:
+		_disable_all_tracked_targets()
 	_debug_log_status("active", player_position, cutout_center, adjusted_values, state)
 
 
@@ -140,11 +161,12 @@ func _resolve_player_position_from_state(state: Dictionary) -> Dictionary:
 func _resolve_config_values() -> Dictionary:
 	var defaults := {
 		"disc_radius": 0.12,
-		"disc_max_radius": 0.32,
+		"disc_max_radius": 0.55,
 		"disc_falloff": 0.05,
 		"disc_center_height_offset": 0.85,
 		"disc_player_height_meters": DEBUG_PLAYER_VISUAL_HEIGHT_METERS,
-		"disc_target_height_coverage": 1.2,
+		"disc_target_height_coverage": 2.2,
+		"occlusion_segment_margin": 0.05,
 		"disc_min_alpha": 0.18,
 	}
 	var config_variant: Variant = wall_cutout_config
@@ -164,6 +186,7 @@ func _resolve_config_values() -> Dictionary:
 		"disc_center_height_offset": maxf(float(config_resource.get("disc_center_height_offset")), 0.0),
 		"disc_player_height_meters": maxf(float(config_resource.get("disc_player_height_meters")), 0.0),
 		"disc_target_height_coverage": maxf(float(config_resource.get("disc_target_height_coverage")), 0.0),
+		"occlusion_segment_margin": maxf(float(config_resource.get("occlusion_segment_margin")), 0.0),
 		"disc_min_alpha": clampf(float(config_resource.get("disc_min_alpha")), 0.0, 1.0),
 	}
 
@@ -246,6 +269,167 @@ func _push_disc_params(values: Dictionary) -> void:
 
 func _push_player_position(pos: Vector3) -> void:
 	_resolve_shader_writer().set_param(PARAM_PLAYER_POS, pos)
+
+
+# --- Cutout target gating ---
+
+func _collect_cutout_targets() -> Array:
+	var targets: Array = []
+	var seen_target_ids: Dictionary = {}
+	var components: Array = get_components(ROOM_FADE_GROUP_TYPE)
+	for component_variant in components:
+		if component_variant == null or not is_instance_valid(component_variant):
+			continue
+		if not (component_variant is Object):
+			continue
+		var component: Object = component_variant as Object
+		if not component.has_method("collect_mesh_targets"):
+			continue
+		var collected_variant: Variant = component.call("collect_mesh_targets")
+		if not (collected_variant is Array):
+			continue
+		var collected: Array = collected_variant as Array
+		for target_variant in collected:
+			var target := target_variant as Node3D
+			if target == null or not is_instance_valid(target):
+				continue
+			var target_id: int = target.get_instance_id()
+			if seen_target_ids.has(target_id):
+				continue
+			seen_target_ids[target_id] = true
+			targets.append(target)
+	return targets
+
+
+func _update_cutout_target_gates(
+	targets: Array,
+	player_position: Vector3,
+	camera_position: Vector3,
+	config_values: Dictionary
+) -> void:
+	var seen_this_tick: Dictionary = {}
+	for target_variant in targets:
+		var target := target_variant as Node3D
+		if target == null or not is_instance_valid(target):
+			continue
+		var target_id: int = target.get_instance_id()
+		seen_this_tick[target_id] = target
+		_tracked_cutout_targets[target_id] = weakref(target)
+		var enabled: float = 1.0 if _target_intersects_camera_player_segment(
+			target,
+			camera_position,
+			player_position,
+			float(config_values.get("occlusion_segment_margin", 0.05))
+		) else 0.0
+		_set_target_cutout_enabled(target, enabled)
+	_disable_stale_targets(seen_this_tick)
+
+
+func _disable_all_tracked_targets() -> void:
+	_disable_stale_targets({})
+
+
+func _disable_stale_targets(seen_this_tick: Dictionary) -> void:
+	var stale_ids: Array = []
+	for target_id_variant in _tracked_cutout_targets.keys():
+		var target_id: int = int(target_id_variant)
+		var target_ref: WeakRef = _tracked_cutout_targets.get(target_id) as WeakRef
+		var target: Node3D = null
+		if target_ref != null:
+			target = target_ref.get_ref() as Node3D
+		if target != null and is_instance_valid(target):
+			if seen_this_tick.has(target_id):
+				continue
+			_set_target_cutout_enabled(target, 0.0)
+		stale_ids.append(target_id)
+	for target_id_variant in stale_ids:
+		_tracked_cutout_targets.erase(target_id_variant)
+
+
+func _set_target_cutout_enabled(target: Node3D, enabled: float) -> void:
+	var writer: Variant = _resolve_shader_writer()
+	if writer != null and writer.has_method("set_instance_param"):
+		writer.set_instance_param(target, PARAM_CUTOUT_ENABLED, enabled)
+
+
+func _target_intersects_camera_player_segment(
+	target: Node3D,
+	camera_position: Vector3,
+	player_position: Vector3,
+	margin: float
+) -> bool:
+	if target == null or not is_instance_valid(target):
+		return false
+	var camera_planar := Vector2(camera_position.x, camera_position.z)
+	var player_planar := Vector2(player_position.x, player_position.z)
+	if camera_planar.is_equal_approx(player_planar):
+		return false
+	var bounds: Rect2 = _resolve_target_planar_bounds(target).grow(maxf(margin, 0.0))
+	return _segment_intersects_rect(camera_planar, player_planar, bounds)
+
+
+func _segment_intersects_rect(segment_start: Vector2, segment_end: Vector2, rect: Rect2) -> bool:
+	if rect.has_point(segment_start) or rect.has_point(segment_end):
+		return true
+	var direction: Vector2 = segment_end - segment_start
+	var range_values: Array = [0.0, 1.0]
+	if not _clip_segment_axis(segment_start.x, direction.x, rect.position.x, rect.end.x, range_values):
+		return false
+	if not _clip_segment_axis(segment_start.y, direction.y, rect.position.y, rect.end.y, range_values):
+		return false
+	return true
+
+
+func _clip_segment_axis(
+	start: float,
+	direction: float,
+	min_bound: float,
+	max_bound: float,
+	range_values: Array
+) -> bool:
+	var t_min: float = float(range_values[0])
+	var t_max: float = float(range_values[1])
+	if absf(direction) <= 0.000001:
+		return start >= min_bound and start <= max_bound
+	var inv_direction: float = 1.0 / direction
+	var t1: float = (min_bound - start) * inv_direction
+	var t2: float = (max_bound - start) * inv_direction
+	if t1 > t2:
+		var swap: float = t1
+		t1 = t2
+		t2 = swap
+	t_min = maxf(t_min, t1)
+	t_max = minf(t_max, t2)
+	range_values[0] = t_min
+	range_values[1] = t_max
+	return t_min <= t_max
+
+
+func _resolve_target_planar_bounds(target: Node3D) -> Rect2:
+	if target is CSGBox3D:
+		return _resolve_csg_box_planar_bounds(target as CSGBox3D)
+	if target is MeshInstance3D:
+		return _resolve_mesh_planar_bounds(target as MeshInstance3D)
+	return Rect2(Vector2(target.global_position.x, target.global_position.z), Vector2.ZERO)
+
+
+func _resolve_csg_box_planar_bounds(csg_box: CSGBox3D) -> Rect2:
+	if csg_box == null or not is_instance_valid(csg_box):
+		return Rect2()
+	var half: Vector3 = csg_box.size.abs() * 0.5
+	var basis: Basis = csg_box.global_basis
+	var world_half_x: float = half.x * absf(basis.x.x) + half.z * absf(basis.z.x)
+	var world_half_z: float = half.x * absf(basis.x.z) + half.z * absf(basis.z.z)
+	var center := Vector2(csg_box.global_position.x, csg_box.global_position.z)
+	var extents := Vector2(world_half_x, world_half_z)
+	return Rect2(center - extents, extents * 2.0)
+
+
+func _resolve_mesh_planar_bounds(mesh_instance: MeshInstance3D) -> Rect2:
+	if mesh_instance == null or not is_instance_valid(mesh_instance) or mesh_instance.mesh == null:
+		return Rect2()
+	var aabb: AABB = mesh_instance.global_transform * mesh_instance.mesh.get_aabb()
+	return Rect2(Vector2(aabb.position.x, aabb.position.z), Vector2(aabb.size.x, aabb.size.z))
 
 
 # --- Diagnostic logging ---
