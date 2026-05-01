@@ -38,6 +38,7 @@ This recipe does **not** cover:
 | BT behavior script | `scripts/demo/ai/trees/wolf_behavior.gd` | Script-backed brain: `build() -> RS_BTNode` |
 | Editor prefab | `scripts/core/utils/editors/u_editor_prefab_builder.gd` (Phase 7) | `U_EditorPrefabBuilder.create_root(...)` |
 | Editor blockout | `scripts/core/utils/editors/u_editor_blockout_builder.gd` (Phase 7) | `U_EditorBlockoutBuilder.create_root(...)` |
+| Template scene | `scripts/core/utils/editors/u_template_base_scene_builder.gd` | `U_TemplateBaseSceneBuilder.new().create_root()...` |
 | Settings tab | `scripts/core/ui/helpers/u_settings_tab_builder.gd` (Phase 8) | `U_SettingsTabBuilder.new(tab).bind_heading(...)` |
 | UI menu | `scripts/core/ui/helpers/u_ui_menu_builder.gd` (Phase 8) | `U_UIMenuBuilder.new(menu).bind_title(...)` |
 | Settings catalog | `scripts/core/ui/helpers/u_ui_settings_catalog.gd` (Phase 8) | `U_UISettingsCatalog.get_quality_presets()` |
