@@ -8,13 +8,15 @@ Phase 5 may prepare the scene path for this direction by cleaning the canonical 
 
 ## Target Direction
 
-The template should support a Xenogears-style presentation: 2D directional character sprites moving through authored 3D spaces with stepped left/right camera rotation, camera-relative movement, and JRPG interaction loops.
+The template should support a Xenogears-style presentation: 2D directional character sprites moving through authored 3D spaces with freely rotatable horizontal camera control, camera-relative movement, and JRPG interaction loops.
+
+Default 2.5D world, tile, sprite, and collision scale lives in `docs/systems/2_5d/2_5d-units-and-scale.md`. Future room builders, character prefabs, and camera work should use that contract unless a focused design explicitly overrides it.
 
 The first target is a small but real demo path that proves the template can host:
 
 - 3D blockout spaces with readable traversal, interactables, and spawn points.
 - Sprite-based characters that face and animate by direction.
-- Camera steps that reframe the room without becoming a free-orbit camera.
+- Free horizontal camera rotation that keeps rooms readable from arbitrary yaw angles.
 - Dialogue, narrative, and cutscene hooks as first-class interactions.
 - Encounter stubs that can later connect to combat or scene-director flows.
 
@@ -31,7 +33,7 @@ Phase 5 owns scene cleanup only:
 Later phases own runtime implementation:
 
 - Directional sprite character templates.
-- Stepped camera rotation.
+- Free horizontal camera rotation.
 - Camera-relative movement.
 - Dialogue, narrative, cutscene, and encounter loops.
 - Tooling and docs for authoring 2.5D rooms.
@@ -46,19 +48,20 @@ Later phases own runtime implementation:
 - Keep ECS identity, input, movement, spawn recovery, and interaction components reusable.
 - Decide billboard behavior explicitly per character type; avoid accidental always-face-camera sprites if directional facing matters.
 
-### Stepped Camera
+### Free Horizontal Camera
 
-- Add left/right camera step commands that rotate between authored angles, likely 90-degree room steps first and 45-degree steps only where needed.
+- Add horizontal camera rotation that can move freely around authored rooms while preserving readable traversal and interaction framing.
 - Route behavior through vCam/camera-manager contracts instead of ad-hoc Camera3D manipulation.
-- Treat each step as a short transition with input buffering rules and collision/path readability checks.
+- Define input response, rotation speed, recentering, and cutscene lock rules explicitly.
+- Treat optional snap points as a later accessibility or authored-room presentation feature, not the primary camera model.
 - Preserve scene-manager camera handoff rules for gameplay-to-gameplay transitions.
 
 ### Camera-Relative Movement
 
-- Convert input intent through the current camera basis so up/down/left/right stay readable after a camera step.
+- Convert input intent through the current camera basis so up/down/left/right stay readable throughout free horizontal rotation.
 - Keep movement ECS-driven; avoid special-case player scripts that bypass `S_MovementSystem`.
 - Define how sprite facing is derived from movement vector, interaction target, and cutscene override.
-- Add tests for camera basis changes so left/right rotation does not invert or drift input.
+- Add tests for camera basis changes so continuous horizontal rotation does not invert or drift input.
 
 ### Interaction, Dialogue, And Cutscenes
 
@@ -88,7 +91,7 @@ Future implementation phases should add:
 - Scene inventory consistency tests for the keep/delete scene set.
 - Builder smoke tests for every new scene or prefab builder script.
 - Character template tests for required Sprite3D or AnimatedSprite3D nodes and ECS components.
-- Camera-step tests for left/right stepping and camera-relative input mapping.
+- Camera rotation tests for horizontal look input, recentering, camera locks, and camera-relative input mapping.
 - Interaction/dialogue/cutscene tests for input lock and state cleanup.
 - Encounter stub tests for scene-director or event-bus handoff.
 
