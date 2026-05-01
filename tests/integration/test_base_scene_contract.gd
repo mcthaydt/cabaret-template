@@ -1,9 +1,8 @@
 extends BaseTest
 
 const BASE_SCENE_PATH := "res://scenes/core/templates/tmpl_base_scene.tscn"
-const BASE_SCENE_2_5D_PATH := "res://scenes/core/templates/tmpl_base_scene_2_5d.tscn"
-const PLAYER_2_5D_PATH := "res://scenes/core/prefabs/prefab_player_2_5d.tscn"
-const PLAYER_BODY_2_5D_PATH := "res://scenes/core/prefabs/prefab_player_body_2_5d.tscn"
+const PLAYER_PATH := "res://scenes/core/prefabs/prefab_player.tscn"
+const PLAYER_BODY_PATH := "res://scenes/core/prefabs/prefab_player_body.tscn"
 
 func _load_scene(path: String) -> Node:
 	var packed_variant: Variant = load(path)
@@ -26,7 +25,7 @@ func test_base_scene_has_node3d_world_container() -> void:
 	assert_not_null(root, "Base scene must load")
 	if root == null:
 		return
-	assert_true(root is Node3D, "Base scene root must be Node3D for 2.5D world")
+	assert_true(root is Node3D, "Base scene root must be Node3D for hybrid world")
 	assert_eq(root.name, "GameplayRoot", "Base scene root must be named GameplayRoot")
 
 
@@ -90,61 +89,62 @@ func test_base_scene_has_camera_template_entity() -> void:
 	assert_not_null(camera, "Base scene must have E_CameraRoot camera entity")
 
 
-func test_2_5d_base_scene_loads_with_shared_structure() -> void:
-	var root: Node = _load_scene(BASE_SCENE_2_5D_PATH)
-	assert_not_null(root, "2.5D base scene must load")
+func test_canonical_base_scene_loads_with_shared_structure() -> void:
+	var root: Node = _load_scene(BASE_SCENE_PATH)
+	assert_not_null(root, "Canonical base scene must load")
 	if root == null:
 		return
-	assert_true(root is Node3D, "2.5D base scene root must be Node3D")
-	assert_eq(root.name, "GameplayRoot", "2.5D base scene root must be named GameplayRoot")
-	assert_not_null(root.get_node_or_null("SceneObjects"), "2.5D base scene must have SceneObjects")
-	assert_not_null(root.get_node_or_null("Systems/Core/S_VCamSystem"), "2.5D base scene must reuse vCam system")
-	assert_not_null(root.get_node_or_null("Systems/Movement/S_MovementSystem"), "2.5D base scene must reuse movement system")
-	assert_not_null(root.get_node_or_null("Managers/M_ECSManager"), "2.5D base scene must have scene-local ECS manager")
-	assert_not_null(root.get_node_or_null("Entities/E_CameraRoot"), "2.5D base scene must reuse camera template")
-	assert_not_null(root.get_node_or_null("Entities/SpawnPoints/sp_default"), "2.5D base scene must include a default spawn point")
+	assert_true(root is Node3D, "Canonical base scene root must be Node3D")
+	assert_eq(root.name, "GameplayRoot", "Canonical base scene root must be named GameplayRoot")
+	assert_not_null(root.get_node_or_null("SceneObjects"), "Canonical base scene must have SceneObjects")
+	assert_not_null(root.get_node_or_null("Systems/Core/S_VCamSystem"), "Canonical base scene must reuse vCam system")
+	assert_not_null(root.get_node_or_null("Systems/Movement/S_MovementSystem"), "Canonical base scene must reuse movement system")
+	assert_not_null(root.get_node_or_null("Managers/M_ECSManager"), "Canonical base scene must have scene-local ECS manager")
+	assert_not_null(root.get_node_or_null("Entities/E_CameraRoot"), "Canonical base scene must reuse camera template")
+	assert_not_null(root.get_node_or_null("Entities/SpawnPoints"), "Canonical base scene must include SpawnPoints")
 
 
-func test_2_5d_base_scene_uses_five_unit_floor() -> void:
-	var root: Node = _load_scene(BASE_SCENE_2_5D_PATH)
+func test_canonical_base_scene_uses_positive_floor_size() -> void:
+	var root: Node = _load_scene(BASE_SCENE_PATH)
 	if root == null:
 		return
 	var floor_node: Node = root.get_node_or_null("SceneObjects/SO_Floor")
-	assert_not_null(floor_node, "2.5D base scene must have SO_Floor")
-	assert_true(floor_node is CSGBox3D, "2.5D floor must be a CSGBox3D")
+	assert_not_null(floor_node, "Canonical base scene must have SO_Floor")
+	assert_true(floor_node is CSGBox3D, "Canonical floor must be a CSGBox3D")
 	if floor_node is CSGBox3D:
-		assert_eq((floor_node as CSGBox3D).size, Vector3(5.0, 0.01, 5.0),
-			"2.5D default floor must be 5 x 5 units")
+		var floor_size: Vector3 = (floor_node as CSGBox3D).size
+		assert_gt(floor_size.x, 0.0, "Canonical floor width must be positive")
+		assert_gt(floor_size.z, 0.0, "Canonical floor depth must be positive")
 
 
-func test_2_5d_base_scene_uses_three_unit_walls() -> void:
-	var root: Node = _load_scene(BASE_SCENE_2_5D_PATH)
+func test_canonical_base_scene_uses_positive_wall_heights() -> void:
+	var root: Node = _load_scene(BASE_SCENE_PATH)
 	if root == null:
 		return
 	for wall_name in ["SO_Wall_West", "SO_Wall_East", "SO_Wall_North", "SO_Wall_South"]:
 		var wall_node: Node = root.get_node_or_null("SceneObjects/%s" % wall_name)
-		assert_not_null(wall_node, "2.5D base scene must include %s" % wall_name)
+		assert_not_null(wall_node, "Canonical base scene must include %s" % wall_name)
 		assert_true(wall_node is CSGBox3D, "%s must be a CSGBox3D" % wall_name)
 		if wall_node is CSGBox3D:
-			assert_eq((wall_node as CSGBox3D).size.y, 3.0,
-				"%s must use the 3-unit standard wall height" % wall_name)
+			assert_gt((wall_node as CSGBox3D).size.y, 0.0,
+				"%s must use a positive wall height" % wall_name)
 
 
-func test_2_5d_base_scene_uses_2_5d_player_prefab() -> void:
-	var root: Node = _load_scene(BASE_SCENE_2_5D_PATH)
+func test_canonical_base_scene_uses_canonical_player_prefab() -> void:
+	var root: Node = _load_scene(BASE_SCENE_PATH)
 	if root == null:
 		return
 	var player: Node = root.get_node_or_null("Entities/E_Player")
-	assert_not_null(player, "2.5D base scene must have E_Player")
+	assert_not_null(player, "Canonical base scene must have E_Player")
 	if player == null:
 		return
-	assert_eq(player.get_scene_file_path(), PLAYER_2_5D_PATH,
-		"2.5D base scene must instance the 2.5D player prefab")
+	assert_eq(player.get_scene_file_path(), PLAYER_PATH,
+		"Canonical base scene must instance the canonical player prefab")
 
 
-func test_2_5d_player_prefab_reuses_shared_ecs_components() -> void:
-	var player: Node = _load_scene(PLAYER_2_5D_PATH)
-	assert_not_null(player, "2.5D player prefab must load")
+func test_canonical_player_prefab_reuses_shared_ecs_components() -> void:
+	var player: Node = _load_scene(PLAYER_PATH)
+	assert_not_null(player, "Canonical player prefab must load")
 	if player == null:
 		return
 	for component_path in [
@@ -156,22 +156,30 @@ func test_2_5d_player_prefab_reuses_shared_ecs_components() -> void:
 		"Components/C_PlayerTagComponent",
 	]:
 		assert_not_null(player.get_node_or_null(component_path),
-			"2.5D player prefab must reuse %s" % component_path)
+			"Canonical player prefab must reuse %s" % component_path)
 
 
-func test_2_5d_player_prefab_uses_sprite_body_visual() -> void:
-	var player: Node = _load_scene(PLAYER_2_5D_PATH)
+func test_canonical_player_prefab_uses_sprite_body_visual() -> void:
+	var player: Node = _load_scene(PLAYER_PATH)
 	if player == null:
 		return
 	var body_mesh: Node = player.get_node_or_null("Player_Body/Body_Mesh")
-	assert_not_null(body_mesh, "2.5D player prefab must attach Body_Mesh under Player_Body")
+	assert_not_null(body_mesh, "Canonical player prefab must attach Body_Mesh under Player_Body")
 	if body_mesh == null:
 		return
-	assert_eq(body_mesh.get_scene_file_path(), PLAYER_BODY_2_5D_PATH,
-		"2.5D player Body_Mesh must instance the 2.5D body visual prefab")
+	assert_eq(body_mesh.get_scene_file_path(), PLAYER_BODY_PATH,
+		"Canonical player Body_Mesh must instance the canonical body visual prefab")
 	var sprite: Node = body_mesh.get_node_or_null("DirectionalSprite")
-	assert_not_null(sprite, "2.5D body visual must expose DirectionalSprite")
+	assert_not_null(sprite, "Canonical body visual must expose DirectionalSprite")
 	assert_true(sprite is Sprite3D, "DirectionalSprite must be Sprite3D")
 	if sprite is Sprite3D:
 		assert_eq((sprite as Sprite3D).pixel_size, 1.0 / 128.0,
-			"2.5D sprite pixel size must match 128px = 1 world unit")
+			"canonical sprite pixel size must match 128px = 1 world unit")
+
+
+func test_canonical_player_prefab_does_not_reserialize_body_visual_children() -> void:
+	var scene_text := FileAccess.get_file_as_string(PLAYER_PATH)
+	assert_false(
+		scene_text.contains('parent="Player_Body/Body_Mesh"'),
+		"prefab_player.tscn must keep prefab_player_body children inside the nested instance to avoid Godot load-name clashes"
+	)

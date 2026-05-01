@@ -5,6 +5,7 @@
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each milestone, not deferred.
 **Scope**: Eight phases. Phase 1 is the largest (AI rewrite) and must complete before Phases 2–5, because Phases 4–5 depend on a stable AI architecture to decide what is "core template" vs "demo content." Phase 6 (fluent builders) can proceed after Phase 4 completes. Phase 7 (EditorScript + PackedScene builders) proceeds after Phase 6 completes. Phase 8 (UI menu builders) proceeds after Phase 6 (builder precedent) and extends the fluent-builder philosophy to UI layout, theming, localization, focus, and signal wiring.
 **Current status (2026-04-29)**: Phases 1–4, 6–8 COMPLETE. Phase 5 not started (deferred to last). Phase 8 complete: P8.1–P8.12 all landed with full `add_*` implementation eliminating all @onready variables from settings tabs. Display tab: 36 @onready → 0. Audio tab: 27 @onready → 0. Localization tab: 13 @onready → 0. Style enforcement 98/98 passing. Full suite 4859/4860 passing (1 pre-existing flaky save manager test unrelated to UI).
+**Update (2026-05-01)**: Canonical player hybrid migration landed: root sprite sheet moved to `assets/core/textures/characters/tex_player_sprite_sheet.png`, `prefab_player_body.tscn` now uses `DirectionalSprite` + `GroundIndicator`, temporary hybrid-only player builders were removed, and player-prefab contracts/tests/docs were repointed to canonical `prefab_player.tscn` + `prefab_player_body.tscn`.
 
 **Relationship to cleanup-v7.2**: This is a successor plan, not a replacement. V7.2 addressed architectural weaknesses inside existing systems. V8 addresses structural/organizational debt surfaced while working on the AI forest: the planner stack is overbuilt, debug/perf code is scattered across managers, `AGENTS.md` is sprawling, template-vs-demo content is entangled, and temp scenes are piling up.
 
@@ -18,7 +19,7 @@ Eight phases bundled because they share an outcome: **make the template LLM-frie
 2. **Phase 2 — Debug/perf extraction.** Managers and ECS systems have accumulated in-line debug logging and perf probes (e.g., mobile camera perf probes documented in `DEV_PITFALLS.md`). Consolidate through the existing `U_DebugLogThrottle` / `U_PerfProbe` utilities so production code paths stop carrying inspection logic. `U_PerfProbe` already exists at `scripts/utils/debug/u_perf_probe.gd` and is in use; Phase 2 extends adoption and forbids bare `print()` in managers/systems.
 3. **Phase 3 — Docs split.** `AGENTS.md` has grown into a single mega-doc with overlap against `DEV_PITFALLS.md`. Split by audience and concern so LLMs (and humans) can load just the section they need.
 4. **Phase 4 — Template vs demo separation.** Forest AI (wolf/deer/rabbit), sentry/drone/prism agents, and any demo-only scenes are entangled with core template code under `scripts/` and `resources/`. Reorganize into `template/` (core) and `demo/` (examples) so consumers can delete the demo tree without breaking the template.
-5. **Phase 5 — Builder-backed base scene + 2.5D demo entry cleanup.** Multiple temp / fake scenes exist under `scenes/`. Rebuild the canonical base/demo scene path around `scenes/core/templates/tmpl_base_scene.tscn`, use existing scene/prefab builders where practical, create a Xenogears-style demo entry path, and delete fake/temp scenes only after inventory and rebuild verification.
+5. **Phase 5 — Builder-backed base scene + hybrid demo entry cleanup.** Multiple temp / fake scenes exist under `scenes/`. Rebuild the canonical base/demo scene path around `scenes/core/templates/tmpl_base_scene.tscn`, use existing scene/prefab builders where practical, create a Xenogears-style demo entry path, and delete fake/temp scenes only after inventory and rebuild verification.
 6. **Phase 6 — LLM-first fluent builders.** All configuration is currently authored as `.tres` resource files via Godot's inspector — hostile to LLM co-pilots (multiple turns, hallucinated ExtResource IDs, unreadable git diffs). Introduce GDScript builder APIs for BT trees, scene registry, input profiles, and QB rules. Each builder provides a programmatic alternative that an LLM can write in a single 20-line script. Migrate all existing `.tres` configuration to builder scripts.
 7. **Phase 7 — EditorScript + PackedScene builders.** Hand-authored `.tscn` scene creation is hostile to LLM co-pilots for the same reasons as `.tres` resources: multi-file coordination, unreadable git diffs, and drag-and-drop NodePath requirements. Introduce `U_EditorPrefabBuilder` and `U_EditorBlockoutBuilder` fluent APIs. Migrate all demo prefab scenes to builder scripts.
 8. **Phase 8 — LLM-first UI menu builders.** UI settings screens and menu overlays are authored via `.tscn` scenes with dozens of `@onready` variables, 50+ line `_apply_theme_tokens()` / `_localize_labels()` / `_configure_focus_neighbors()` methods, and per-control null-guard boilerplate — exactly the LLM-hostile pattern that Phases 6–7 eliminated for data resources and scene authoring. Introduce `U_SettingsTabBuilder` and `U_UIMenuBuilder` fluent APIs that programmatically construct UI nodes, wire signals, apply theme tokens, localize labels, and configure focus chains in a single declarative chain. A `U_UISettingsCatalog` utility centralizes dropdown/slider option data. Migrate all settings tabs and menu screens to builder-driven implementations.
@@ -1427,13 +1428,13 @@ resources/
 
 ---
 
-# Phase 5 — Builder-Backed Base Scene + 2.5D Demo Entry Cleanup
+# Phase 5 — Builder-Backed Base Scene + hybrid Demo Entry Cleanup
 
-**Goal**: Keep one canonical builder-backed base scene and rebuild the demo entry path toward a Xenogears-style 2.5D direction: 2D directional sprites in 3D worlds, authored through existing builder tooling where practical. Phase 5 stays scene-first: base scene cleanup, temp scene inventory, demo-entry rebuild, and deletion of fake/temp scenes.
+**Goal**: Keep one canonical builder-backed base scene and rebuild the demo entry path toward a Xenogears-style hybrid direction: 2D directional sprites in 3D worlds, authored through existing builder tooling where practical. Phase 5 stays scene-first: base scene cleanup, temp scene inventory, demo-entry rebuild, and deletion of fake/temp scenes.
 
 **Starting state**: `scenes/core/templates/tmpl_base_scene.tscn` already exists with full managers + ECS systems wiring + camera template + scene-structure markers. P5 extends/refactors this file rather than creating a new `base_scene.tscn`. The `tmpl_` prefix is preserved per the template scene naming convention (see `tmpl_camera.tscn`, `tmpl_character.tscn`, `tmpl_character_ragdoll.tscn`).
 
-**2.5D pivot scope**: The full runtime pivot is planned separately in `docs/systems/2_5d/2_5d-template-pivot-plan.md`. Phase 5 may prepare scenes, placeholder content, and builder scripts for that direction, but it should not introduce new runtime systems unless required to preserve existing behavior.
+**hybrid pivot scope**: The full runtime pivot is planned separately in `docs/systems/hybrid/hybrid-template-pivot-plan.md`. Phase 5 may prepare scenes, placeholder content, and builder scripts for that direction, but it should not introduce new runtime systems unless required to preserve existing behavior.
 
 **Phase 5 Constraints**:
 - Do not create a new base scene; continue from `scenes/core/templates/tmpl_base_scene.tscn`.
@@ -1456,12 +1457,12 @@ resources/
 ## Milestone P5.3: Builder-Backed Demo Entry Rebuild
 
 - [x] **Commit 1** (RED) — Demo-entry smoke test: the registry's primary demo path loads from the canonical base/template pattern, has a valid `sp_default`, has a camera, and contains no fake/temp scene dependencies.
-- [x] **Commit 2+** (GREEN) — Use `U_EditorBlockoutBuilder` to rebuild real demo entry scenes on top of the canonical base/template pattern. The first pass should establish the 2.5D visual target with blockout geometry and placeholder sprite-oriented character placement, not the full runtime pivot.
+- [x] **Commit 2+** (GREEN) — Use `U_EditorBlockoutBuilder` to rebuild real demo entry scenes on top of the canonical base/template pattern. The first pass should establish the hybrid visual target with blockout geometry and placeholder sprite-oriented character placement, not the full runtime pivot.
 - [x] **Commit 3** (GREEN) — Rewire scene registry/default startup paths to the rebuilt demo entry and document any remaining non-entry demo scenes that stay as examples.
 
 ## Milestone P5.4: Prefab Normalization
 
-- [x] **Commit 1+** — Use `U_EditorPrefabBuilder` for any prefab normalization uncovered by the scene inventory or demo-entry rebuild. Keep prefab changes scoped to scene cleanup and existing behavior parity. *(No-op — core prefabs already 2.5D-compliant.)*
+- [x] **Commit 1+** — Use `U_EditorPrefabBuilder` for any prefab normalization uncovered by the scene inventory or demo-entry rebuild. Keep prefab changes scoped to scene cleanup and existing behavior parity. *(No-op — core prefabs already hybrid-compliant.)*
 - [x] **Commit 2** — Add builder smoke tests for any new or changed scene/prefab builder scripts.
 
 ## Milestone P5.5: Temp/Fake Scene Deletion
@@ -1474,7 +1475,7 @@ resources/
 - [x] Scene inventory consistency test green; `scenes/` tree matches the inventory keep/delete classifications.
 - [x] Builder smoke tests green for any new or changed editor builder scripts.
 - [x] Style/doc-structure guard green after docs-structure, scene naming, script/resource naming, or scene-structure changes.
-- [x] `docs/systems/2_5d/2_5d-template-pivot-plan.md` remains a future runtime plan and does not claim Phase 5 implements directional sprite, camera, dialogue, cutscene, or encounter systems.
+- [x] `docs/systems/hybrid/hybrid-template-pivot-plan.md` remains a future runtime plan and does not claim Phase 5 implements directional sprite, camera, dialogue, cutscene, or encounter systems.
 - [x] No orphaned `.tscn` files. `scenes/` tree matches the inventory's "keep" set exactly.
 
 ---

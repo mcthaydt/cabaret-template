@@ -6,7 +6,7 @@ Implements `docs/history/cleanup_v8/cleanup-v8-tasks.md` in phase order with TDD
 
 **Branch**: `cleanup-v8` (off `main`, after `GOAP-AI` merged via PR #16).
 **Status**: Phases 1–4 complete. Phase 5 not started (deferred to last per sequencing plan). Phase 6 **COMPLETE** (P6.1–P6.13). Phase 7 **COMPLETE** (P7.1–P7.8). Phase 8 **COMPLETE** (P8.1–P8.12).
-**Next Task**: Phase 5 — Builder-backed base scene + 2.5D demo entry cleanup.
+**Next Task**: Phase 5 — Builder-backed base scene + hybrid demo entry cleanup.
 **Prerequisite**: V7.2 complete (`e015aff2`). Phase 4 complete (`cbf0fd61`). All 18 P3.5 extension recipes complete (`b0c5b1cd`).
 
 ---

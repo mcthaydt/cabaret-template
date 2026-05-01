@@ -177,6 +177,8 @@ func save(save_path: String) -> bool:
 	return true
 func _set_owner_recursive(node: Node, owner: Node) -> void:
 	node.set_owner(owner)
+	if node.get_scene_file_path() != "":
+		return
 	for child in node.get_children():
 		_set_owner_recursive(child, owner)
 func build() -> Node:

@@ -7,7 +7,7 @@ script files as **keep** or **delete** for Phase 5.
 
 | File | Purpose |
 |---|---|
-| `scenes/core/templates/tmpl_base_scene.tscn` | Canonical base scene for 2.5D gameplay |
+| `scenes/core/templates/tmpl_base_scene.tscn` | Canonical base scene for hybrid gameplay |
 | `scenes/core/templates/tmpl_camera.tscn` | Camera rig template |
 | `scenes/core/templates/tmpl_character.tscn` | Character prefab template |
 | `scenes/core/templates/tmpl_character_ragdoll.tscn` | Character ragdoll template |
@@ -101,7 +101,7 @@ script files as **keep** or **delete** for Phase 5.
 
 | File | Purpose |
 |---|---|
-| `scenes/demo/gameplay/gameplay_demo_room.tscn` | Single-room 2.5D blockout demo entry (created in P5.3) |
+| `scenes/demo/gameplay/gameplay_demo_room.tscn` | Single-room hybrid blockout demo entry (created in P5.3) |
 
 ## Delete — Demo Gameplay (10)
 

@@ -1,7 +1,7 @@
 # Base Scene Defaults Design
 
 **Date:** 2026-04-30
-**Context:** Update the canonical `tmpl_base_scene.tscn` with proper 2.5D defaults: grid-textured room, tuned camera, and working wall/ceiling fading.
+**Context:** Update the canonical `tmpl_base_scene.tscn` with proper hybrid defaults: grid-textured room, tuned camera, and working wall/ceiling fading.
 
 ## Scope
 

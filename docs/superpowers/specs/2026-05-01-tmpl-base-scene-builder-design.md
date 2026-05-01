@@ -104,4 +104,4 @@ A structural equivalence test instantiates both the generated scene and the curr
 
 - Updating `build_gameplay_demo_room.gd` to use the builder rather than loading the template `.tscn` (future step)
 - Any changes to `gameplay_demo_room.tscn` structure
-- Wall/ceiling fading, 2.5D camera, or other base-scene systems — this builder just reproduces what exists
+- Wall/ceiling fading, hybrid camera, or other base-scene systems — this builder just reproduces what exists

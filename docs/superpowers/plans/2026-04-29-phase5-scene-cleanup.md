@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Clean the template's scene tree to reflect its 2.5D game template identity: one canonical builder-backed base scene, one blockout demo room, all legacy demo content deleted.
+**Goal:** Clean the template's scene tree to reflect its hybrid game template identity: one canonical builder-backed base scene, one blockout demo room, all legacy demo content deleted.
 
-**Architecture:** Sequential TDD across 5 milestones. Scene inventory first to classify every `.tscn` and script file, then extend `tmpl_base_scene.tscn` with clean 2.5D node structure (removing demo system references), then build a single-room blockout scene via `U_EditorBlockoutBuilder`, rewire the scene registry/manifest to it, and finally delete all legacy demo content in one atomic commit.
+**Architecture:** Sequential TDD across 5 milestones. Scene inventory first to classify every `.tscn` and script file, then extend `tmpl_base_scene.tscn` with clean hybrid node structure (removing demo system references), then build a single-room blockout scene via `U_EditorBlockoutBuilder`, rewire the scene registry/manifest to it, and finally delete all legacy demo content in one atomic commit.
 
 **Tech Stack:** Godot 4.6, GDScript, GUT test framework, CSG geometry
 
@@ -71,7 +71,7 @@ script files as **keep** or **delete** for Phase 5.
 
 | File | Purpose |
 |---|---|
-| `scenes/core/templates/tmpl_base_scene.tscn` | Canonical base scene for 2.5D gameplay |
+| `scenes/core/templates/tmpl_base_scene.tscn` | Canonical base scene for hybrid gameplay |
 | `scenes/core/templates/tmpl_camera.tscn` | Camera rig template |
 | `scenes/core/templates/tmpl_character.tscn` | Character prefab template |
 | `scenes/core/templates/tmpl_character_ragdoll.tscn` | Character ragdoll template |
@@ -168,7 +168,7 @@ script files as **keep** or **delete** for Phase 5.
 
 | File | Purpose |
 |---|---|
-| `scenes/demo/gameplay/gameplay_demo_room.tscn` | Single-room 2.5D blockout demo entry (created in P5.3) |
+| `scenes/demo/gameplay/gameplay_demo_room.tscn` | Single-room hybrid blockout demo entry (created in P5.3) |
 
 ## Delete — Demo Gameplay (10)
 
@@ -452,7 +452,7 @@ func test_base_scene_has_node3d_world_container() -> void:
 	assert_not_null(root, "Base scene must load")
 	if root == null:
 		return
-	assert_true(root is Node3D, "Base scene root must be Node3D for 2.5D world")
+	assert_true(root is Node3D, "Base scene root must be Node3D for hybrid world")
 	assert_eq(root.name, "GameplayRoot", "Base scene root must be named GameplayRoot")
 
 
