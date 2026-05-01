@@ -41,6 +41,7 @@ Use whole-tile dimensions for blockouts and builder defaults whenever practical.
 
 | Room Element | Example Size | Notes |
 |--------------|--------------|-------|
+| Default 2.5D base scene floor | `5 x 5` units | Compact template footprint for `tmpl_base_scene_2_5d.tscn` |
 | Small room floor | `8 x 8` units | 8 tiles wide by 8 tiles deep |
 | Medium room floor | `12 x 10` units | Supports camera rotation and NPC spacing |
 | Corridor width | `2-3` units | Use `3` units when two actors may pass or turn cleanly |

@@ -4,6 +4,8 @@
 
 This is a planning document for the broader runtime pivot. It is not a Phase 5 implementation checklist.
 
+The first structural split is now in place: `scenes/core/templates/tmpl_base_scene_2_5d.tscn` provides a compact `5 x 5` unit 2.5D base template, and `prefab_player_2_5d.tscn` uses a `Sprite3D` body visual while preserving the shared character ECS contract.
+
 Phase 5 may prepare the scene path for this direction by cleaning the canonical base scene, rebuilding a demo entry with builder-backed blockout authoring, and removing temp/fake scenes. Directional sprite runtime systems, camera behavior changes, narrative systems, cutscene orchestration, and encounter loops should land in later focused phases.
 
 ## Target Direction
@@ -42,6 +44,7 @@ Later phases own runtime implementation:
 
 ### Directional Sprites
 
+- `prefab_player_2_5d.tscn` is the first structural sprite-character prefab. It reuses `tmpl_character.tscn`, keeps the `CharacterBody3D` and existing ECS components, and swaps the body visual to `prefab_player_body_2_5d.tscn`.
 - Introduce Sprite3D or AnimatedSprite3D character templates that inherit from the existing character prefab contracts where practical.
 - Support 4-direction first, with room to expand to 8-direction if the art pipeline needs it.
 - Define animation names around intent and direction, for example `idle_down`, `walk_left`, and `talk_up`.

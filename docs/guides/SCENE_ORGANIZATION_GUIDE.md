@@ -426,8 +426,8 @@ Camera entity showing:
 
 ### Templates vs Prefabs
 
-- **Templates (generic bases):** `tmpl_base_scene.tscn`, `tmpl_character.tscn`, `tmpl_character_ragdoll.tscn`, `tmpl_camera.tscn`. These scenes contain reusable structure and non-domain-specific components.
-- **Prefabs (configured entities):** `prefab_player.tscn`, `prefab_player_ragdoll.tscn`, hazard/objective prefabs. Prefabs instance templates and add domain-specific components, tags, and IDs.
+- **Templates (generic bases):** `tmpl_base_scene.tscn`, `tmpl_base_scene_2_5d.tscn`, `tmpl_character.tscn`, `tmpl_character_ragdoll.tscn`, `tmpl_camera.tscn`. These scenes contain reusable structure and non-domain-specific components.
+- **Prefabs (configured entities):** `prefab_player.tscn`, `prefab_player_2_5d.tscn`, `prefab_player_ragdoll.tscn`, hazard/objective prefabs. Prefabs instance templates and add domain-specific components, tags, and IDs.
 - **Pattern:** Start from a template, instance it in a prefab, then add input/AI/tag components and set `entity_id`/`tags`. Example: to build an NPC, instance `tmpl_character.tscn`, rename root to `E_NPCRoot`, add AI components, set tags `[npc, character]`, and save as `prefab_npc_*.tscn`.
 
 ---

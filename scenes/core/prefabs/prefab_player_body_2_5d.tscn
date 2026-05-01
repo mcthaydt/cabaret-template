@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Texture2D" uid="uid://dm23qd3lalkrv" path="res://assets/core/textures/tex_shadow_blob.png" id="1_shadow_blob"]
+[ext_resource type="Texture2D" path="res://assets/core/textures/prototype_grids/tex_texture_01.png" id="2_sprite_placeholder"]
+
+[node name="PlayerBodyVisualRoot" type="Node3D"]
+
+[node name="DirectionalSprite" type="Sprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1.6, 0, 0, 0, 1, 0, 0.8, 0)
+modulate = Color(0.08627451, 0.3529412, 0.29803923, 1)
+pixel_size = 0.0078125
+texture = ExtResource("2_sprite_placeholder")
+
+[node name="GroundIndicator" type="Sprite3D" parent="."]
+transform = Transform3D(0.2, 0, 0, 0, -8.742278e-09, -0.2, 0, 0.2, -8.742278e-09, 0, -0.02, 0)
+modulate = Color(1, 1, 1, 0.49803922)
+texture = ExtResource("1_shadow_blob")

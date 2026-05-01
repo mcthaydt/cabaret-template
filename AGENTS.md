@@ -9,6 +9,7 @@
 - For architecture orientation and repo map, read `docs/guides/ARCHITECTURE.md`.
 - Keep project planning docs current whenever a story advances.
 - Run `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd` after file naming, scene structure, script/resource, or docs-structure changes.
+- **Never create `.tscn` files by hand.** New scenes and prefabs must be created via builder scripts (`U_EditorPrefabBuilder`, `U_TemplateBaseSceneBuilder`, etc.). See `docs/guides/pitfalls/GODOT_ENGINE.md` → Template Scene Authoring and `docs/architecture/extensions/builders.md`.
 
 ## Core Routing
 
