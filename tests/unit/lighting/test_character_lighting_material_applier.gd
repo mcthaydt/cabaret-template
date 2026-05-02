@@ -318,6 +318,7 @@ func test_apply_sprite_lighting_sets_shader_material_and_params() -> void:
 	var shader_code: String = shader.code
 	assert_true(shader_code.find("unshaded") >= 0, "Sprite shader must remain unshaded.")
 	assert_true(shader_code.find("blend_mix") >= 0, "Sprite shader must use blend_mix for transparency.")
+	assert_true(shader_code.find("vertex()") >= 0, "Sprite shader must implement vertex billboarding.")
 	assert_true(shader_code.find("ALPHA") >= 0, "Sprite shader must output texture alpha.")
 	assert_eq(override_material.get_shader_parameter(PARAM_ALBEDO_TEXTURE), texture)
 	assert_eq(override_material.get_shader_parameter(PARAM_BASE_TINT), Color(1.0, 1.0, 1.0, 1.0))

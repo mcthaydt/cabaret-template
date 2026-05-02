@@ -1,30 +1,19 @@
 [gd_scene format=3]
 
-[ext_resource type="Shader" path="res://assets/core/shaders/sh_sprite_zone_lighting.gdshader" id="1_a5ktg"]
 [ext_resource type="Texture2D" path="res://assets/core/textures/characters/tex_player_sprite_sheet.png" id="1_agckp"]
 [ext_resource type="Texture2D" path="res://assets/core/textures/tex_shadow_blob.png" id="2_a5ktg"]
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_a5ktg"]
-render_priority = 0
-shader = ExtResource("1_a5ktg")
-shader_parameter/albedo_texture = ExtResource("1_agckp")
-shader_parameter/base_tint = null
-shader_parameter/effective_tint = null
-shader_parameter/effective_intensity = null
-shader_parameter/minimum_unlit_floor = null
+[node name="PlayerBodyVisualRoot" type="Node3D" unique_id=2046426247]
 
-[node name="PlayerBodyVisualRoot" type="Node3D" unique_id=105448096]
-
-[node name="DirectionalSprite" type="Sprite3D" parent="." unique_id=1247853940]
+[node name="DirectionalSprite" type="Sprite3D" parent="." unique_id=1515500510]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.64, 0)
-material_override = SubResource("ShaderMaterial_a5ktg")
 billboard = 1
 texture_filter = 0
 texture = ExtResource("1_agckp")
 hframes = 3
 vframes = 3
 
-[node name="GroundIndicator" type="Sprite3D" parent="." unique_id=233088545]
+[node name="GroundIndicator" type="Sprite3D" parent="." unique_id=1172172747]
 transform = Transform3D(0.08, 0, 0, 0, -3.496911e-09, 0.08, 0, -0.08, -3.496911e-09, 0, -0.01, 0)
 modulate = Color(1, 1, 1, 0.49803922)
 texture = ExtResource("2_a5ktg")

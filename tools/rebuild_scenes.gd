@@ -29,11 +29,6 @@ func _rebuild_prefab_player_body() -> void:
 	sprite.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 	sprite.position = Vector3(0, 0.64, 0)
 
-	var sprite_shader_material := ShaderMaterial.new()
-	sprite_shader_material.shader = preload("res://assets/core/shaders/sh_sprite_zone_lighting.gdshader")
-	sprite_shader_material.set_shader_parameter("albedo_texture", tex)
-	sprite.material_override = sprite_shader_material
-
 	builder.add_child_to(".", sprite)
 
 	var ground := Sprite3D.new()
