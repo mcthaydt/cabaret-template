@@ -12,7 +12,7 @@ func load_resource_entries(scenes: Dictionary, register_scene_callable: Callable
 		return
 
 	# Load entries from the builder manifest first (mobile-safe script file).
-	var manifest_result: Dictionary = _load_entries_from_manifest(scenes, register_scene_callable)
+	var _manifest_result: Dictionary = _load_entries_from_manifest(scenes, register_scene_callable)
 
 	# Mobile/Web-safe baseline: registry resources are preloaded so core scenes remain
 	# available even when exported PCKs do not support directory iteration.
@@ -244,5 +244,5 @@ func _join_path(dir_path: String, file_name: String) -> String:
 		return dir_path + file_name
 	return dir_path + "/" + file_name
 
-func backfill_default_gameplay_scenes(scenes: Dictionary, register_scene_callable: Callable) -> void:
+func backfill_default_gameplay_scenes(_scenes: Dictionary, _register_scene_callable: Callable) -> void:
 	pass # Removed: manifest is now the single source of truth for non-critical scenes.

@@ -109,7 +109,7 @@ func _check_and_resync_pause_state() -> void:
 				else:
 					_store.dispatch(U_GAMEPLAY_ACTIONS.unpause_game())
 
-func _on_slice_updated(slice_name: StringName, slice_state: Dictionary) -> void:
+func _on_slice_updated(slice_name: StringName, _slice_state: Dictionary) -> void:
 	if slice_name == TIME_SLICE_NAME:
 		if _store != null:
 			_hydrate_from_time_slice(_store.get_state())

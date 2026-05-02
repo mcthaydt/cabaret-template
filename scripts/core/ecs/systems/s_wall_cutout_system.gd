@@ -3,7 +3,7 @@ extends BaseECSSystem
 class_name S_WallCutoutSystem
 
 const I_CAMERA_MANAGER := preload("res://scripts/core/interfaces/i_camera_manager.gd")
-const I_StateStore := preload("res://scripts/core/interfaces/i_state_store.gd")
+
 const U_VCAM_SELECTORS := preload("res://scripts/core/state/selectors/u_vcam_selectors.gd")
 const U_ENTITY_SELECTORS := preload("res://scripts/core/state/selectors/u_entity_selectors.gd")
 const U_DEBUG_LOG_THROTTLE := preload("res://scripts/core/utils/debug/u_debug_log_throttle.gd")

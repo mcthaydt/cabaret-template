@@ -344,7 +344,6 @@ func _record_recovery(reason: String) -> void:
 		store.dispatch(U_VCAM_ACTIONS.record_recovery(reason))
 
 func _clear_runtime_state() -> void:
-	var previous_vcam_id := _active_vcam_id
 	_clear_all_silhouettes(_resolve_player_entity_id())
 	_active_vcam_id = StringName("")
 	_previous_vcam_id = StringName("")

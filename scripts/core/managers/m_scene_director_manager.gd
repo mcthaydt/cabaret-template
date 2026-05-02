@@ -8,7 +8,8 @@ const U_SCENE_DIRECTOR_ACTIONS := preload("res://scripts/core/state/actions/u_sc
 const U_BEAT_RUNNER := preload("res://scripts/core/utils/scene_director/u_beat_runner.gd")
 const U_BEAT_GRAPH := preload("res://scripts/core/utils/scene_director/u_beat_graph.gd")
 const RS_BEAT_DEFINITION := preload("res://scripts/core/resources/scene_director/rs_beat_definition.gd")
-const RSRuleContext := preload("res://scripts/core/resources/ecs/rs_rule_context.gd")
+const RS_RULE_CONTEXT := preload("res://scripts/core/resources/ecs/rs_rule_context.gd")
+
 
 @export var state_store: I_StateStore = null
 @export var directives: Array[Resource] = []
@@ -164,7 +165,7 @@ func get_active_directive_id() -> StringName:
 func _build_context() -> Dictionary:
 	_binder.resolve(state_store, self, _on_action_dispatched)
 
-	var rule_context: RefCounted = RSRuleContext.new()
+	var rule_context: RefCounted = RS_RULE_CONTEXT.new()
 	if _store != null:
 		rule_context.redux_state = _store.get_state()
 		rule_context.state_store = _store
@@ -172,7 +173,7 @@ func _build_context() -> Dictionary:
 
 func _build_event_context(event_payload: Dictionary) -> Dictionary:
 	var context: Dictionary = _build_context()
-	context[RSRuleContext.KEY_EVENT_PAYLOAD] = event_payload.duplicate(true)
+	context[RS_RULE_CONTEXT.KEY_EVENT_PAYLOAD] = event_payload.duplicate(true)
 	return context
 
 func _on_action_dispatched(action: Dictionary) -> void:

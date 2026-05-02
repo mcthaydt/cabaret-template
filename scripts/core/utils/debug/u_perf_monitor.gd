@@ -215,9 +215,9 @@ func _resolve_game_viewport() -> SubViewport:
 	return null
 
 func _build_render_stats_payload() -> Dictionary:
-	var object_count: int = Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME)
-	var primitive_count: int = Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME)
-	var draw_call_count: int = Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)
+	var object_count: int = int(Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME))
+	var primitive_count: int = int(Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME))
+	var draw_call_count: int = int(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME))
 	var payload := {
 		"objects": object_count,
 		"primitives": primitive_count,
