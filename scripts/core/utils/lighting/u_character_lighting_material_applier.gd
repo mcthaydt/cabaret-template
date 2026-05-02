@@ -2,6 +2,7 @@ extends RefCounted
 class_name U_CharacterLightingMaterialApplier
 
 const SH_CHARACTER_ZONE_LIGHTING := preload("res://assets/core/shaders/sh_character_zone_lighting.gdshader")
+const SH_SPRITE_ZONE_LIGHTING := preload("res://assets/core/shaders/sh_sprite_zone_lighting.gdshader")
 
 const PARAM_ALBEDO_TEXTURE := "albedo_texture"
 const PARAM_BASE_TINT := "base_tint"
@@ -12,6 +13,7 @@ const MAX_INTENSITY := 8.0
 
 var _material_cache: Dictionary = {}
 var _shader: Shader = SH_CHARACTER_ZONE_LIGHTING
+var _sprite_shader: Shader = SH_SPRITE_ZONE_LIGHTING
 var _fallback_white_texture: ImageTexture = null
 
 func collect_mesh_targets(character_entity: Node) -> Array[MeshInstance3D]:
@@ -32,24 +34,94 @@ func apply_character_lighting(
 	for mesh_instance in targets:
 		_apply_mesh_override(mesh_instance, base_tint, effective_tint, effective_intensity)
 
+func apply_sprite_lighting(
+	character_entity: Node,
+	base_tint: Color,
+	effective_tint: Color,
+	effective_intensity: float
+) -> void:
+	_prune_invalid_cache_entries()
+	var targets := collect_sprite_targets(character_entity)
+	for sprite in targets:
+		_apply_sprite_override(sprite, base_tint, effective_tint, effective_intensity)
+
+func _apply_sprite_override(
+	sprite: Sprite3D,
+	base_tint: Color,
+	effective_tint: Color,
+	effective_intensity: float
+) -> void:
+	if sprite == null or not is_instance_valid(sprite):
+		return
+	if sprite.texture == null:
+		return
+
+	var albedo_texture: Texture2D = sprite.texture
+
+	var shader_material := _ensure_sprite_shader_material(sprite)
+	if shader_material == null:
+		return
+
+	shader_material.set_shader_parameter(PARAM_ALBEDO_TEXTURE, albedo_texture)
+	shader_material.set_shader_parameter(PARAM_BASE_TINT, base_tint)
+	shader_material.set_shader_parameter(PARAM_EFFECTIVE_TINT, effective_tint)
+	shader_material.set_shader_parameter(
+		PARAM_EFFECTIVE_INTENSITY,
+		clampf(effective_intensity, MIN_INTENSITY, MAX_INTENSITY)
+	)
+	sprite.material_override = shader_material
+
+func _ensure_sprite_shader_material(sprite: Sprite3D) -> ShaderMaterial:
+	var cache_key: int = sprite.get_instance_id()
+	var entry_variant: Variant = _material_cache.get(cache_key, null)
+	if entry_variant is Dictionary:
+		var existing_entry := entry_variant as Dictionary
+		var shader_material_variant: Variant = existing_entry.get("shader_material", null)
+		if shader_material_variant is ShaderMaterial:
+			return shader_material_variant as ShaderMaterial
+
+	var shader_material := ShaderMaterial.new()
+	shader_material.shader = _sprite_shader
+	_material_cache[cache_key] = {
+		"mesh_ref": weakref(sprite),
+		"original_material_override": sprite.material_override,
+		"shader_material": shader_material,
+	}
+	return shader_material
+
 func restore_character_materials(character_entity: Node) -> void:
 	var targets := collect_mesh_targets(character_entity)
 	for mesh_instance in targets:
 		_restore_mesh(mesh_instance)
 	_prune_invalid_cache_entries()
 
+func restore_sprite_materials(character_entity: Node) -> void:
+	var targets := collect_sprite_targets(character_entity)
+	for sprite in targets:
+		_restore_sprite(sprite)
+	_prune_invalid_cache_entries()
+
+func _restore_sprite(sprite: Sprite3D) -> void:
+	var cache_key: int = sprite.get_instance_id()
+	var entry_variant: Variant = _material_cache.get(cache_key, null)
+	if not (entry_variant is Dictionary):
+		return
+	var entry := entry_variant as Dictionary
+	sprite.material_override = entry.get("original_material_override", null)
+	_material_cache.erase(cache_key)
+
 func restore_all_materials() -> void:
 	var keys: Array = _material_cache.keys()
 	for key_variant in keys:
 		var cache_key: int = int(key_variant)
-		var mesh_instance := _get_cached_mesh(cache_key)
-		if mesh_instance == null:
+		var node := _get_cached_node(cache_key)
+		if node == null:
 			continue
 		var entry_variant: Variant = _material_cache.get(cache_key, null)
 		if not (entry_variant is Dictionary):
 			continue
 		var entry := entry_variant as Dictionary
-		mesh_instance.material_override = entry.get("original_material_override", null)
+		node.set("material_override", entry.get("original_material_override", null))
 	_material_cache.clear()
 
 func get_cached_mesh_count() -> int:
@@ -66,6 +138,24 @@ func _collect_mesh_targets_recursive(node: Node, targets: Array[MeshInstance3D])
 	for child_variant in children:
 		if child_variant is Node:
 			_collect_mesh_targets_recursive(child_variant as Node, targets)
+
+func collect_sprite_targets(character_entity: Node) -> Array[Sprite3D]:
+	var targets: Array[Sprite3D] = []
+	if character_entity == null or not is_instance_valid(character_entity):
+		return targets
+	_collect_sprite_targets_recursive(character_entity, targets)
+	return targets
+
+func _collect_sprite_targets_recursive(node: Node, targets: Array[Sprite3D]) -> void:
+	if node is Sprite3D:
+		var sprite := node as Sprite3D
+		if sprite.texture != null:
+			targets.append(sprite)
+
+	var children: Array = node.get_children()
+	for child_variant in children:
+		if child_variant is Node:
+			_collect_sprite_targets_recursive(child_variant as Node, targets)
 
 func _apply_mesh_override(
 	mesh_instance: MeshInstance3D,
@@ -180,13 +270,13 @@ func _ensure_shader_material(mesh_instance: MeshInstance3D) -> ShaderMaterial:
 	}
 	return shader_material
 
-func _restore_mesh(mesh_instance: MeshInstance3D) -> void:
-	var cache_key: int = mesh_instance.get_instance_id()
+func _restore_mesh(node: Node) -> void:
+	var cache_key: int = node.get_instance_id()
 	var entry_variant: Variant = _material_cache.get(cache_key, null)
 	if not (entry_variant is Dictionary):
 		return
 	var entry := entry_variant as Dictionary
-	mesh_instance.material_override = entry.get("original_material_override", null)
+	node.set("material_override", entry.get("original_material_override", null))
 	_material_cache.erase(cache_key)
 
 func _prune_invalid_cache_entries() -> void:
@@ -194,23 +284,24 @@ func _prune_invalid_cache_entries() -> void:
 	var keys: Array = _material_cache.keys()
 	for key_variant in keys:
 		var cache_key: int = int(key_variant)
-		if _get_cached_mesh(cache_key) == null:
+		if _get_cached_node(cache_key) == null:
 			stale_keys.append(cache_key)
 	for cache_key in stale_keys:
 		_material_cache.erase(cache_key)
 
-func _get_cached_mesh(cache_key: int) -> MeshInstance3D:
+func _get_cached_node(cache_key: int) -> Node:
 	var entry_variant: Variant = _material_cache.get(cache_key, null)
 	if not (entry_variant is Dictionary):
 		return null
 	var entry := entry_variant as Dictionary
-	var mesh_ref_variant: Variant = entry.get("mesh_ref", null)
-	if not (mesh_ref_variant is WeakRef):
+	var ref_key := "mesh_ref"
+	var ref_variant: Variant = entry.get(ref_key, null)
+	if not (ref_variant is WeakRef):
 		return null
-	var resolved_variant: Variant = (mesh_ref_variant as WeakRef).get_ref()
-	if not (resolved_variant is MeshInstance3D):
+	var resolved_variant: Variant = (ref_variant as WeakRef).get_ref()
+	if not (resolved_variant is Node):
 		return null
-	var mesh_instance := resolved_variant as MeshInstance3D
-	if not is_instance_valid(mesh_instance):
+	var node := resolved_variant as Node
+	if not is_instance_valid(node):
 		return null
-	return mesh_instance
+	return node
