@@ -24,6 +24,13 @@ func _run() -> void:
 	builder.override_property(".", "tags", [&"player", &"character"])
 	builder.add_child_scene_to("Player_Body", BODY_SCENE_PATH, "Body_Mesh")
 
+	var _capsule_class := CapsuleShape3D
+	var capsule: CapsuleShape3D = _capsule_class.new()
+	capsule.radius = 0.18
+	capsule.height = 0.5
+	builder.override_property("Player_Body/CollisionShape3D", "shape", capsule)
+	builder.override_property("Player_Body/CollisionShape3D", "transform", Transform3D.IDENTITY.translated(Vector3(0, 0.25, 0)))
+
 	builder.add_ecs_component(_INPUT_COMPONENT)
 	var gamepad_component := _build_component("C_GamepadComponent", _GAMEPAD_COMPONENT)
 	gamepad_component.settings = _GAMEPAD_SETTINGS

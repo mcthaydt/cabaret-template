@@ -79,16 +79,16 @@ func test_scene_objects_follow_2_5d_units_and_scale_contract() -> void:
 
 	assert_eq(floor_node.size, Vector3(5.0, 0.01, 5.0),
 		"Default 2.5D base scene floor must be 5 x 5 tiles")
-	assert_eq(ceiling_node.position, Vector3(0.0, 5.0, 0.0),
-		"Default ceiling must sit at the standard 5-tile wall height")
-	assert_eq(west_wall.position, Vector3(-2.5, 2.5, 0.0),
+	assert_eq(ceiling_node.position, Vector3(0.0, 3.0, 0.0),
+		"Default ceiling must sit at the standard 3-tile wall height")
+	assert_eq(west_wall.position, Vector3(-2.5, 1.5, 0.0),
 		"West wall must be centered on the 5-tile room edge")
-	assert_eq(west_wall.size, Vector3(0.01, 5.0, 5.0),
-		"Wall dimensions must use 5-tile height and 5-tile room depth")
-	assert_eq(north_wall.position, Vector3(0.0, 2.5, -2.5),
+	assert_eq(west_wall.size, Vector3(0.01, 3.0, 5.0),
+		"Wall dimensions must use 3-tile height and 5-tile room depth")
+	assert_eq(north_wall.position, Vector3(0.0, 1.5, -2.5),
 		"North wall must be centered on the 5-tile room edge")
-	assert_eq(north_wall.size, Vector3(5.0, 5.0, 0.01),
-		"Wall dimensions must use 5-tile height and 5-tile room width")
+	assert_eq(north_wall.size, Vector3(5.0, 3.0, 0.01),
+		"Wall dimensions must use 3-tile height and 5-tile room width")
 
 func test_walls_are_ecs_entities_with_room_fade_component() -> void:
 	var builder: Object = _new_builder()

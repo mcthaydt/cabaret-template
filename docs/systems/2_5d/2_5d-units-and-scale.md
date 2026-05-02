@@ -15,20 +15,20 @@ Use this scale unless a focused system or asset document explicitly overrides it
 | World unit | `1.0` Godot unit | |
 | Floor/wall tile | `1.0 x 1.0` Godot units | |
 | Source sprite sheet | `384 x 384` pixels | `3 x 3` cells of `128 x 128` |
-| Sprite cell display | `0.33 x 0.33` Godot units | `pixel_size = 1.0 / 384.0` |
-| Player collision radius | `0.12` Godot units | Roughly 36% of visual width |
-| Player collision height | `0.33` Godot units | Matches visual height |
-| Standard wall height | `5.0` tiles / `5.0` Godot units | Tall JRPG ceilings |
+| Sprite cell display | `0.5 x 0.5` Godot units | `pixel_size = 1.0 / 256.0` |
+| Player collision radius | `0.18` Godot units | Roughly 36% of visual width |
+| Player collision height | `0.5` Godot units | Matches visual height |
+| Standard wall height | `3.0` tiles / `3.0` Godot units | Comfortable JRPG ceilings |
 | Camera orbit distance | `4.0` Godot units | Comfortable framing in 5x5 room |
 | Camera authored pitch | `-30.0` degrees | Classic elevated JRPG angle |
 | Player hover height | `0.02` Godot units | Feet on floor, minimal safety margin |
 | Default spawn Y | `0.0` | Spawn on floor |
 
-In short: `1 tile = 1 Godot unit`. `128px sprite cell = 0.33 world units` via `pixel_size = 1/384`.
+In short: `1 tile = 1 Godot unit`. `128px sprite cell = 0.5 world units` via `pixel_size = 1/256`.
 
-Characters are roughly one-third of a tile wide. One tile is ~3x the player's width, matching the Xenogears-like scale target.
+Characters are roughly half a tile wide. One tile is ~2x the player's width.
 
-`128 x 128` is the source art cell for a character frame. It displays as `0.33 x 0.33` world units when `pixel_size = 1/384`. If a future actor needs to appear larger or smaller, its actor or prefab settings should declare that display size explicitly.
+`128 x 128` is the source art cell for a character frame. It displays as `0.5 x 0.5` world units when `pixel_size = 1/256`. If a future actor needs to appear larger or smaller, its actor or prefab settings should declare that display size explicitly.
 
 ## Sprites In 3D Space
 

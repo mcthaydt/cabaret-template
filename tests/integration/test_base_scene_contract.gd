@@ -134,16 +134,16 @@ func test_canonical_base_scene_matches_2_5d_room_scale() -> void:
 
 	assert_eq(floor_node.size, Vector3(5.0, 0.01, 5.0),
 		"Canonical floor must use 1 unit per tile over a 5 x 5 room")
-	assert_eq(ceiling_node.position, Vector3(0.0, 5.0, 0.0),
-		"Canonical ceiling must align with the standard 5-unit wall height")
-	assert_eq(west_wall.position, Vector3(-2.5, 2.5, 0.0),
+	assert_eq(ceiling_node.position, Vector3(0.0, 3.0, 0.0),
+		"Canonical ceiling must align with the standard 3-unit wall height")
+	assert_eq(west_wall.position, Vector3(-2.5, 1.5, 0.0),
 		"Canonical west wall must sit on the 5-tile room edge")
-	assert_eq(west_wall.size, Vector3(0.01, 5.0, 5.0),
-		"Canonical west wall must use 5-unit height and 5-unit depth")
-	assert_eq(north_wall.position, Vector3(0.0, 2.5, -2.5),
+	assert_eq(west_wall.size, Vector3(0.01, 3.0, 5.0),
+		"Canonical west wall must use 3-unit height and 5-unit depth")
+	assert_eq(north_wall.position, Vector3(0.0, 1.5, -2.5),
 		"Canonical north wall must sit on the 5-tile room edge")
-	assert_eq(north_wall.size, Vector3(5.0, 5.0, 0.01),
-		"Canonical north wall must use 5-unit height and 5-unit width")
+	assert_eq(north_wall.size, Vector3(5.0, 3.0, 0.01),
+		"Canonical north wall must use 3-unit height and 5-unit width")
 
 
 func test_canonical_base_scene_uses_positive_wall_heights() -> void:
@@ -202,16 +202,16 @@ func test_canonical_player_prefab_uses_sprite_body_visual() -> void:
 	assert_not_null(sprite, "Canonical body visual must expose DirectionalSprite")
 	assert_true(sprite is Sprite3D, "DirectionalSprite must be Sprite3D")
 	if sprite is Sprite3D:
-		assert_almost_eq((sprite as Sprite3D).pixel_size, 1.0 / 384.0, 0.0000001,
-			"canonical sprite pixel size must match 384px = 1 world unit for Xenogears scale")
+		assert_almost_eq((sprite as Sprite3D).pixel_size, 1.0 / 256.0, 0.0000001,
+			"canonical sprite pixel size must match 256px = 1 world unit for Xenogears scale")
 		assert_eq((sprite as Sprite3D).hframes, 3,
 			"canonical sprite must split the 384px sheet into 128px-wide cells")
 		assert_eq((sprite as Sprite3D).vframes, 3,
 			"canonical sprite must split the 384px sheet into 128px-tall cells")
 		assert_eq((sprite as Sprite3D).scale, Vector3.ONE,
-			"canonical 128px sprite cell must display as 0.33 x 0.33 world units")
-		assert_eq((sprite as Sprite3D).position, Vector3(0.0, 0.165, 0.0),
-			"canonical one-third-tile sprite should sit on the floor with its center at half height")
+			"canonical 128px sprite cell must display as 0.5 x 0.5 world units")
+		assert_eq((sprite as Sprite3D).position, Vector3(0.0, 0.25, 0.0),
+			"canonical half-tile sprite should sit on the floor with its center at half height")
 		assert_eq((sprite as Sprite3D).billboard, BaseMaterial3D.BILLBOARD_ENABLED,
 			"canonical sprite must billboard to face camera")
 		assert_eq((sprite as Sprite3D).texture_filter, BaseMaterial3D.TEXTURE_FILTER_NEAREST,
@@ -226,16 +226,16 @@ func test_canonical_player_collision_uses_smaller_2_5d_footprint() -> void:
 	assert_not_null(collision, "Canonical player prefab must have collision shape")
 	if collision == null:
 		return
-	assert_eq(collision.position, Vector3(0.0, 0.165, 0.0),
-		"Canonical player capsule must be centered on the one-third-tile visual")
+	assert_eq(collision.position, Vector3(0.0, 0.25, 0.0),
+		"Canonical player capsule must be centered on the half-tile visual")
 	assert_true(collision.shape is CapsuleShape3D,
 		"Canonical player collision must use a capsule footprint")
 	if collision.shape is CapsuleShape3D:
 		var capsule := collision.shape as CapsuleShape3D
-		assert_almost_eq(capsule.radius, 0.12, 0.001,
-			"Canonical player collision radius must stay smaller than the one-third-tile visual")
-		assert_almost_eq(capsule.height, 0.33, 0.001,
-			"Canonical player collision height must match the one-third-tile visual height")
+		assert_almost_eq(capsule.radius, 0.18, 0.001,
+			"Canonical player collision radius must stay smaller than the half-tile visual")
+		assert_almost_eq(capsule.height, 0.5, 0.001,
+			"Canonical player collision height must match the half-tile visual height")
 
 
 func test_canonical_player_prefab_does_not_reserialize_body_visual_children() -> void:

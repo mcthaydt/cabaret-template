@@ -17,13 +17,13 @@ func _run() -> void:
 
 	var sprite := Sprite3D.new()
 	sprite.name = "DirectionalSprite"
-	sprite.pixel_size = 1.0 / 384.0
+	sprite.pixel_size = 1.0 / 256.0
 	sprite.hframes = 3
 	sprite.vframes = 3
 	sprite.texture = sprite_texture
 	sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	sprite.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
-	sprite.position = Vector3(0, 0.165, 0)
+	sprite.position = Vector3(0, 0.25, 0)
 	builder.add_child_to(".", sprite)
 
 	var ground_indicator := Sprite3D.new()
