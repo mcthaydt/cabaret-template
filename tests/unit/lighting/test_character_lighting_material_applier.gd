@@ -217,3 +217,98 @@ func test_restore_all_materials_clears_cache_after_meshes_are_freed() -> void:
 	await get_tree().process_frame
 	applier.restore_all_materials()
 	assert_eq(applier.get_cached_mesh_count(), 0)
+
+func _create_sprite_with_texture(texture: Texture2D) -> Sprite3D:
+	var sprite := Sprite3D.new()
+	sprite.name = "DirectionalSprite"
+	sprite.texture = texture
+	sprite.pixel_size = 0.01
+	sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	sprite.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	return sprite
+
+func test_collect_sprite_targets_finds_sprite3d_children() -> void:
+	var script_obj := _applier_script()
+	if script_obj == null:
+		return
+	var applier: Variant = script_obj.new()
+	var character_root := _create_character_root()
+	var texture := _create_test_texture()
+
+	var sprite := _create_sprite_with_texture(texture)
+	character_root.add_child(sprite)
+	autofree(sprite)
+
+	var nested := Node3D.new()
+	nested.name = "Nested"
+	character_root.add_child(nested)
+	autofree(nested)
+
+	var nested_sprite := _create_sprite_with_texture(texture)
+	nested_sprite.name = "NestedSprite"
+	nested.add_child(nested_sprite)
+	autofree(nested_sprite)
+
+	var result: Array = applier.collect_sprite_targets(character_root)
+	assert_eq(result.size(), 2)
+	assert_true(result.has(sprite))
+	assert_true(result.has(nested_sprite))
+
+func test_collect_sprite_targets_skips_null_texture_sprites() -> void:
+	var script_obj := _applier_script()
+	if script_obj == null:
+		return
+	var applier: Variant = script_obj.new()
+	var character_root := _create_character_root()
+
+	var no_texture_sprite := Sprite3D.new()
+	no_texture_sprite.name = "NoTexSprite"
+	character_root.add_child(no_texture_sprite)
+	autofree(no_texture_sprite)
+
+	var result: Array = applier.collect_sprite_targets(character_root)
+	assert_eq(result.size(), 0)
+
+func test_apply_sprite_lighting_sets_shader_material_and_params() -> void:
+	var script_obj := _applier_script()
+	if script_obj == null:
+		return
+	var applier: Variant = script_obj.new()
+	var character_root := _create_character_root()
+	var texture := _create_test_texture()
+
+	var sprite := _create_sprite_with_texture(texture)
+	character_root.add_child(sprite)
+	autofree(sprite)
+
+	applier.apply_sprite_lighting(character_root, Color(1.0, 1.0, 1.0, 1.0), Color(0.5, 0.6, 0.7, 1.0), 1.75)
+
+	var override_material := sprite.material_override as ShaderMaterial
+	assert_not_null(override_material, "Sprite should receive a ShaderMaterial override.")
+	var shader := override_material.shader
+	assert_not_null(shader, "ShaderMaterial should have the sprite lighting shader assigned.")
+	var shader_code: String = shader.code
+	assert_true(shader_code.find("unshaded") >= 0, "Sprite shader must remain unshaded.")
+	assert_eq(override_material.get_shader_parameter(PARAM_ALBEDO_TEXTURE), texture)
+	assert_eq(override_material.get_shader_parameter(PARAM_EFFECTIVE_TINT), Color(0.5, 0.6, 0.7, 1.0))
+	assert_almost_eq(float(override_material.get_shader_parameter(PARAM_EFFECTIVE_INTENSITY)), 1.75, 0.0001)
+
+func test_restore_sprite_materials_clears_material_override() -> void:
+	var script_obj := _applier_script()
+	if script_obj == null:
+		return
+	var applier: Variant = script_obj.new()
+	var character_root := _create_character_root()
+	var texture := _create_test_texture()
+
+	var original_override := StandardMaterial3D.new()
+	var sprite := _create_sprite_with_texture(texture)
+	sprite.material_override = original_override
+	character_root.add_child(sprite)
+	autofree(sprite)
+
+	applier.apply_sprite_lighting(character_root, Color.WHITE, Color(0.8, 0.8, 0.8, 1.0), 2.0)
+	assert_true(sprite.material_override is ShaderMaterial)
+
+	applier.restore_sprite_materials(character_root)
+	assert_eq(sprite.material_override, original_override)
