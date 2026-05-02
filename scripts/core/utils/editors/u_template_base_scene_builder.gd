@@ -2,7 +2,7 @@ class_name U_TemplateBaseSceneBuilder
 extends RefCounted
 
 const ROOM_SIZE := 5.0
-const WALL_HEIGHT := 3.0
+const WALL_HEIGHT := 5.0
 const HALF_ROOM := ROOM_SIZE / 2.0
 const HALF_WALL_HEIGHT := WALL_HEIGHT / 2.0
 const THIN := 0.01

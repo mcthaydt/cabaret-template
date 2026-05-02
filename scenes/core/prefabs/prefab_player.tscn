@@ -28,8 +28,8 @@
 [ext_resource type="Resource" path="res://resources/core/base_settings/gameplay/cfg_spawn_recovery_player_default.tres" id="26_l8i1k"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_16kfq"]
-radius = 0.35
-height = 1.0
+radius = 0.12
+height = 0.33
 
 [node name="E_PlayerRoot" type="Node3D" unique_id=1565336801]
 script = ExtResource("1_goky4")
@@ -41,45 +41,45 @@ tags = Array[StringName]([&"player", &"character"])
 [node name="CameraFollowAnchor" type="Node3D" parent="Player_Body" unique_id=1697731006]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Player_Body" unique_id=1174621009]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.165, 0)
 shape = SubResource("CapsuleShape3D_16kfq")
 
 [node name="HoverRays" type="Node3D" parent="Player_Body" unique_id=125732774]
 
 [node name="Center" type="RayCast3D" parent="Player_Body/HoverRays" unique_id=2090294656]
-target_position = Vector3(0, -0.85, 0)
+target_position = Vector3(0, -0.28, 0)
 
 [node name="Forward" type="RayCast3D" parent="Player_Body/HoverRays" unique_id=1587196027]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.3)
-target_position = Vector3(0, -0.85, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.1)
+target_position = Vector3(0, -0.28, 0)
 
 [node name="Back" type="RayCast3D" parent="Player_Body/HoverRays" unique_id=1819381193]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.3)
-target_position = Vector3(0, -0.85, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.1)
+target_position = Vector3(0, -0.28, 0)
 
 [node name="Left" type="RayCast3D" parent="Player_Body/HoverRays" unique_id=38065460]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.3, 0, 0)
-target_position = Vector3(0, -0.85, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.1, 0, 0)
+target_position = Vector3(0, -0.28, 0)
 
 [node name="Right" type="RayCast3D" parent="Player_Body/HoverRays" unique_id=1313980861]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 0, 0)
-target_position = Vector3(0, -0.85, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1, 0, 0)
+target_position = Vector3(0, -0.28, 0)
 
 [node name="ForwardLeft" type="RayCast3D" parent="Player_Body/HoverRays" unique_id=2113602555]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.21, 0, 0.21)
-target_position = Vector3(0, -0.85, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.07, 0, 0.07)
+target_position = Vector3(0, -0.28, 0)
 
 [node name="ForwardRight" type="RayCast3D" parent="Player_Body/HoverRays" unique_id=1382398280]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.21, 0, 0.21)
-target_position = Vector3(0, -0.85, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.07, 0, 0.07)
+target_position = Vector3(0, -0.28, 0)
 
 [node name="BackLeft" type="RayCast3D" parent="Player_Body/HoverRays" unique_id=1041709853]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.21, 0, -0.21)
-target_position = Vector3(0, -0.85, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.07, 0, -0.07)
+target_position = Vector3(0, -0.28, 0)
 
 [node name="BackRight" type="RayCast3D" parent="Player_Body/HoverRays" unique_id=326573186]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.21, 0, -0.21)
-target_position = Vector3(0, -0.85, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.07, 0, -0.07)
+target_position = Vector3(0, -0.28, 0)
 
 [node name="Body_Mesh" parent="Player_Body" unique_id=270249801 instance=ExtResource("2_6wqir")]
 

@@ -56,15 +56,15 @@ size = Vector3(5, 0.01, 5)
 material = SubResource("StandardMaterial3D_ixlhf")
 
 [node name="SO_Ceiling" type="CSGBox3D" parent="SceneObjects" unique_id=231386892]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
 use_collision = true
 size = Vector3(5, 0.01, 5)
 material = ExtResource("4_qhki8")
 
 [node name="SO_Wall_West" type="CSGBox3D" parent="SceneObjects" unique_id=1157881525]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 1.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 2.5, 0)
 use_collision = true
-size = Vector3(0.01, 3, 5)
+size = Vector3(0.01, 5, 5)
 material = ExtResource("4_qhki8")
 script = ExtResource("5_gnvin")
 entity_id = &"wall_west"
@@ -77,9 +77,9 @@ fade_normal = Vector3(-1, 0, 0)
 component_type = &"RoomFadeGroup"
 
 [node name="SO_Wall_East" type="CSGBox3D" parent="SceneObjects" unique_id=1005503083]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 1.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 2.5, 0)
 use_collision = true
-size = Vector3(0.01, 3, 5)
+size = Vector3(0.01, 5, 5)
 material = ExtResource("4_qhki8")
 script = ExtResource("5_gnvin")
 entity_id = &"wall_east"
@@ -92,9 +92,9 @@ fade_normal = Vector3(1, 0, 0)
 component_type = &"RoomFadeGroup"
 
 [node name="SO_Wall_North" type="CSGBox3D" parent="SceneObjects" unique_id=1821856516]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -2.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, -2.5)
 use_collision = true
-size = Vector3(5, 3, 0.01)
+size = Vector3(5, 5, 0.01)
 material = ExtResource("4_qhki8")
 script = ExtResource("5_gnvin")
 entity_id = &"wall_north"
@@ -106,9 +106,9 @@ group_tag = &"wall_north"
 component_type = &"RoomFadeGroup"
 
 [node name="SO_Wall_South" type="CSGBox3D" parent="SceneObjects" unique_id=197358095]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 2.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 2.5)
 use_collision = true
-size = Vector3(5, 3, 0.01)
+size = Vector3(5, 5, 0.01)
 material = ExtResource("4_qhki8")
 script = ExtResource("5_gnvin")
 entity_id = &"wall_south"
@@ -232,4 +232,4 @@ tags = Array[StringName]([&"camera"])
 script = ExtResource("36_3r3kn")
 
 [node name="sp_default" type="Marker3D" parent="Entities/SpawnPoints" unique_id=2122339711]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)

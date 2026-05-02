@@ -17,21 +17,22 @@ func _run() -> void:
 
 	var sprite := Sprite3D.new()
 	sprite.name = "DirectionalSprite"
-	sprite.pixel_size = 1.0 / 128.0
+	sprite.pixel_size = 1.0 / 384.0
 	sprite.hframes = 3
 	sprite.vframes = 3
 	sprite.texture = sprite_texture
-	sprite.modulate = Color(0.08627451, 0.3529412, 0.29803923, 1)
-	sprite.position = Vector3(0, 0.5, 0)
+	sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	sprite.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	sprite.position = Vector3(0, 0.165, 0)
 	builder.add_child_to(".", sprite)
 
 	var ground_indicator := Sprite3D.new()
 	ground_indicator.name = "GroundIndicator"
 	ground_indicator.texture = _SHADOW_BLOB
 	ground_indicator.modulate = Color(1, 1, 1, 0.49803922)
-	ground_indicator.position = Vector3(0, -0.02, 0)
+	ground_indicator.position = Vector3(0, -0.01, 0)
 	ground_indicator.rotation_degrees = Vector3(-90, 0, 0)
-	ground_indicator.scale = Vector3(0.2, 0.2, 0.2)
+	ground_indicator.scale = Vector3(0.08, 0.08, 0.08)
 	builder.add_child_to(".", ground_indicator)
 
 	if builder.save(OUTPUT_PATH):

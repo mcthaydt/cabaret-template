@@ -17,7 +17,7 @@ func _run() -> void:
 	if spawn_points != null:
 		var spawn := Marker3D.new()
 		spawn.name = "sp_default"
-		spawn.position = Vector3(0, 1.0, 0)
+		spawn.position = Vector3(0, 0.0, 0)
 		spawn_points.add_child(spawn)
 
 	_set_owner_recursive(root, root)
