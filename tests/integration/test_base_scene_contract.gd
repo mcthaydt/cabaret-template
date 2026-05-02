@@ -216,6 +216,13 @@ func test_canonical_player_prefab_uses_sprite_body_visual() -> void:
 			"canonical sprite must billboard to face camera")
 		assert_eq((sprite as Sprite3D).texture_filter, BaseMaterial3D.TEXTURE_FILTER_NEAREST,
 			"canonical sprite must use nearest-neighbor filtering for pixel art")
+		var sprite_material := (sprite as Sprite3D).material_override as ShaderMaterial
+		assert_not_null(sprite_material, "DirectionalSprite must have a ShaderMaterial override for zone lighting")
+		var sprite_mat_shader := sprite_material.shader
+		assert_not_null(sprite_mat_shader, "Sprite ShaderMaterial must have a shader assigned")
+		var sprite_shader_code: String = sprite_mat_shader.code
+		assert_true(sprite_shader_code.find("zone_tinted_color") >= 0,
+			"Sprite material shader must contain zone tinting math")
 
 
 func test_canonical_player_collision_uses_smaller_2_5d_footprint() -> void:
