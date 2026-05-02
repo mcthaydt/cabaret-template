@@ -44,24 +44,24 @@ albedo_texture = ExtResource("3_il3cv")
 [sub_resource type="Environment" id="Environment_eu8dy"]
 background_mode = 1
 
-[node name="GameplayRoot" type="Node3D" unique_id=1689000872]
+[node name="GameplayRoot" type="Node3D" unique_id=2000544608]
 script = ExtResource("1_vk5n3")
 
-[node name="SceneObjects" type="Node3D" parent="." unique_id=736712854]
+[node name="SceneObjects" type="Node3D" parent="." unique_id=775669213]
 script = ExtResource("2_oyi0l")
 
-[node name="SO_Floor" type="CSGBox3D" parent="SceneObjects" unique_id=1675996320]
+[node name="SO_Floor" type="CSGBox3D" parent="SceneObjects" unique_id=1228055385]
 use_collision = true
 size = Vector3(5, 0.01, 5)
 material = SubResource("StandardMaterial3D_lnc6c")
 
-[node name="SO_Ceiling" type="CSGBox3D" parent="SceneObjects" unique_id=1743572330]
+[node name="SO_Ceiling" type="CSGBox3D" parent="SceneObjects" unique_id=1933072411]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
 use_collision = true
 size = Vector3(5, 0.01, 5)
 material = ExtResource("4_vnbe2")
 
-[node name="SO_Wall_West" type="CSGBox3D" parent="SceneObjects" unique_id=2089529782]
+[node name="SO_Wall_West" type="CSGBox3D" parent="SceneObjects" unique_id=1103055923]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 1.5, 0)
 use_collision = true
 size = Vector3(0.01, 3, 5)
@@ -70,13 +70,13 @@ script = ExtResource("5_e4cnu")
 entity_id = &"wall_west"
 tags = Array[StringName]([&"room_fade_group"])
 
-[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/SO_Wall_West" unique_id=273002041]
+[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/SO_Wall_West" unique_id=1715003973]
 script = ExtResource("6_pmnk7")
 group_tag = &"wall_west"
 fade_normal = Vector3(-1, 0, 0)
 component_type = &"RoomFadeGroup"
 
-[node name="SO_Wall_East" type="CSGBox3D" parent="SceneObjects" unique_id=1918309027]
+[node name="SO_Wall_East" type="CSGBox3D" parent="SceneObjects" unique_id=965033162]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 1.5, 0)
 use_collision = true
 size = Vector3(0.01, 3, 5)
@@ -85,13 +85,13 @@ script = ExtResource("5_e4cnu")
 entity_id = &"wall_east"
 tags = Array[StringName]([&"room_fade_group"])
 
-[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/SO_Wall_East" unique_id=1609120228]
+[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/SO_Wall_East" unique_id=2063087987]
 script = ExtResource("6_pmnk7")
 group_tag = &"wall_east"
 fade_normal = Vector3(1, 0, 0)
 component_type = &"RoomFadeGroup"
 
-[node name="SO_Wall_North" type="CSGBox3D" parent="SceneObjects" unique_id=385772349]
+[node name="SO_Wall_North" type="CSGBox3D" parent="SceneObjects" unique_id=1846673933]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -2.5)
 use_collision = true
 size = Vector3(5, 3, 0.01)
@@ -100,12 +100,12 @@ script = ExtResource("5_e4cnu")
 entity_id = &"wall_north"
 tags = Array[StringName]([&"room_fade_group"])
 
-[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/SO_Wall_North" unique_id=1293800178]
+[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/SO_Wall_North" unique_id=1583340487]
 script = ExtResource("6_pmnk7")
 group_tag = &"wall_north"
 component_type = &"RoomFadeGroup"
 
-[node name="SO_Wall_South" type="CSGBox3D" parent="SceneObjects" unique_id=2100422667]
+[node name="SO_Wall_South" type="CSGBox3D" parent="SceneObjects" unique_id=497669149]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 2.5)
 use_collision = true
 size = Vector3(5, 3, 0.01)
@@ -114,108 +114,108 @@ script = ExtResource("5_e4cnu")
 entity_id = &"wall_south"
 tags = Array[StringName]([&"room_fade_group"])
 
-[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/SO_Wall_South" unique_id=1603096100]
+[node name="C_RoomFadeGroupComponent" type="Node" parent="SceneObjects/SO_Wall_South" unique_id=2095586571]
 script = ExtResource("6_pmnk7")
 group_tag = &"wall_south"
 fade_normal = Vector3(0, 0, 1)
 component_type = &"RoomFadeGroup"
 
-[node name="Environment" type="Node" parent="." unique_id=1668943049]
+[node name="Environment" type="Node" parent="." unique_id=1479321634]
 script = ExtResource("7_r0jv3")
 
-[node name="Env_WorldEnvironment" type="WorldEnvironment" parent="Environment" unique_id=851394255]
+[node name="Env_WorldEnvironment" type="WorldEnvironment" parent="Environment" unique_id=2031870942]
 environment = SubResource("Environment_eu8dy")
 
-[node name="Env_DirectionalLight3D" type="DirectionalLight3D" parent="Environment" unique_id=851313448]
+[node name="Env_DirectionalLight3D" type="DirectionalLight3D" parent="Environment" unique_id=1587198450]
 light_color = Color(0.56078434, 0.827451, 1, 1)
 light_energy = 1.5
 light_indirect_energy = 0.0
 
-[node name="Systems" type="Node" parent="." unique_id=1274493937]
+[node name="Systems" type="Node" parent="." unique_id=871895945]
 script = ExtResource("8_cjiv1")
 
-[node name="Core" type="Node" parent="Systems" unique_id=1104879767]
+[node name="Core" type="Node" parent="Systems" unique_id=2052288903]
 script = ExtResource("9_bfoxe")
 
-[node name="S_InputSystem" type="Node" parent="Systems/Core" unique_id=259196360]
+[node name="S_InputSystem" type="Node" parent="Systems/Core" unique_id=1353266198]
 script = ExtResource("10_yhopk")
 
-[node name="S_VCamSystem" type="Node" parent="Systems/Core" unique_id=925768439]
+[node name="S_VCamSystem" type="Node" parent="Systems/Core" unique_id=19787704]
 script = ExtResource("11_0iaqr")
 execution_priority = 100
 
-[node name="S_WallCutoutSystem" type="Node" parent="Systems/Core" unique_id=298057835]
+[node name="S_WallCutoutSystem" type="Node" parent="Systems/Core" unique_id=1073584609]
 script = ExtResource("12_i4tfi")
 wall_cutout_config = ExtResource("13_6ja8b")
 execution_priority = 110
 
-[node name="Physics" type="Node" parent="Systems" unique_id=1833447642]
+[node name="Physics" type="Node" parent="Systems" unique_id=1714000092]
 script = ExtResource("14_2x47x")
 
-[node name="S_GravitySystem" type="Node" parent="Systems/Physics" unique_id=1415059665]
+[node name="S_GravitySystem" type="Node" parent="Systems/Physics" unique_id=728371095]
 script = ExtResource("15_oa076")
 execution_priority = 60
 
-[node name="S_JumpSystem" type="Node" parent="Systems/Physics" unique_id=967245399]
+[node name="S_JumpSystem" type="Node" parent="Systems/Physics" unique_id=1904750050]
 script = ExtResource("16_eyrvd")
 execution_priority = 75
 
-[node name="Movement" type="Node" parent="Systems" unique_id=1797534000]
+[node name="Movement" type="Node" parent="Systems" unique_id=1419283533]
 script = ExtResource("17_q2o8l")
 
-[node name="S_MovementSystem" type="Node" parent="Systems/Movement" unique_id=1317031112]
+[node name="S_MovementSystem" type="Node" parent="Systems/Movement" unique_id=836858595]
 script = ExtResource("18_kusp8")
 execution_priority = 50
 
-[node name="S_FloatingSystem" type="Node" parent="Systems/Movement" unique_id=1019778295]
+[node name="S_FloatingSystem" type="Node" parent="Systems/Movement" unique_id=1493729161]
 script = ExtResource("19_40w0y")
 execution_priority = 70
 
-[node name="S_SpawnRecoverySystem" type="Node" parent="Systems/Movement" unique_id=2039703603]
+[node name="S_SpawnRecoverySystem" type="Node" parent="Systems/Movement" unique_id=1504133593]
 script = ExtResource("20_ngsg0")
 execution_priority = 75
 
-[node name="S_RotateToInputSystem" type="Node" parent="Systems/Movement" unique_id=247370439]
+[node name="S_RotateToInputSystem" type="Node" parent="Systems/Movement" unique_id=1324883137]
 script = ExtResource("21_pijxw")
 execution_priority = 80
 
-[node name="S_AlignWithSurfaceSystem" type="Node" parent="Systems/Movement" unique_id=1623004593]
+[node name="S_AlignWithSurfaceSystem" type="Node" parent="Systems/Movement" unique_id=150026647]
 script = ExtResource("22_iwj1i")
 execution_priority = 90
 
-[node name="Feedback" type="Node" parent="Systems" unique_id=14787704]
+[node name="Feedback" type="Node" parent="Systems" unique_id=721201493]
 script = ExtResource("23_adcsa")
 
-[node name="S_LandingIndicatorSystem" type="Node" parent="Systems/Feedback" unique_id=942060537]
+[node name="S_LandingIndicatorSystem" type="Node" parent="Systems/Feedback" unique_id=2136016207]
 script = ExtResource("24_2vx18")
 execution_priority = 110
 
-[node name="S_JumpParticlesSystem" type="Node" parent="Systems/Feedback" unique_id=1598852546]
+[node name="S_JumpParticlesSystem" type="Node" parent="Systems/Feedback" unique_id=250236585]
 script = ExtResource("25_3lafo")
 settings = ExtResource("26_gw7a6")
 execution_priority = 120
 
-[node name="S_JumpSoundSystem" type="Node" parent="Systems/Feedback" unique_id=359212562]
+[node name="S_JumpSoundSystem" type="Node" parent="Systems/Feedback" unique_id=627900545]
 script = ExtResource("27_cly5i")
 execution_priority = 121
 
-[node name="S_LandingParticlesSystem" type="Node" parent="Systems/Feedback" unique_id=1589397837]
+[node name="S_LandingParticlesSystem" type="Node" parent="Systems/Feedback" unique_id=746308411]
 script = ExtResource("28_xkim1")
 settings = ExtResource("29_nal8p")
 
-[node name="S_GamepadVibrationSystem" type="Node" parent="Systems/Feedback" unique_id=602361988]
+[node name="S_GamepadVibrationSystem" type="Node" parent="Systems/Feedback" unique_id=242521490]
 script = ExtResource("30_lpvcn")
 execution_priority = 122
 
-[node name="Managers" type="Node" parent="." unique_id=1244322493]
+[node name="Managers" type="Node" parent="." unique_id=1051832126]
 script = ExtResource("31_oxr7a")
 
-[node name="M_ECSManager" type="Node" parent="Managers" unique_id=1022335330]
+[node name="M_ECSManager" type="Node" parent="Managers" unique_id=2124056568]
 script = ExtResource("32_pkqxs")
 query_metrics_enabled = true
 query_metrics_capacity = 64
 
-[node name="Entities" type="Node" parent="." unique_id=640905005]
+[node name="Entities" type="Node" parent="." unique_id=1940518183]
 script = ExtResource("33_aohp5")
 
 [node name="E_Player" type="Node3D" parent="Entities" unique_id=1565336801 instance=ExtResource("34_i2nmu")]
@@ -228,5 +228,5 @@ script = ExtResource("5_e4cnu")
 entity_id = &"camera"
 tags = Array[StringName]([&"camera"])
 
-[node name="SpawnPoints" type="Node3D" parent="Entities" unique_id=199308754]
+[node name="SpawnPoints" type="Node3D" parent="Entities" unique_id=2011576355]
 script = ExtResource("36_81866")
