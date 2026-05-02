@@ -56,6 +56,7 @@ func _rebuild_prefab_player() -> void:
 	capsule.height = 1.408
 	builder.override_property("Player_Body/CollisionShape3D", "shape", capsule)
 	builder.override_property("Player_Body/CollisionShape3D", "transform", Transform3D.IDENTITY.translated(Vector3(0, 0.64, 0)))
+	builder.override_property("Player_Body/CameraFollowAnchor", "position", Vector3(0, 0.64, 0))
 
 	builder.add_ecs_component(preload("res://scripts/core/ecs/components/c_input_component.gd"))
 

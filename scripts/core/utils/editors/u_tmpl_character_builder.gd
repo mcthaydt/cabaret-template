@@ -49,6 +49,7 @@ func add_character_body() -> U_TmplCharacterBuilder:
 
 	var anchor := Node3D.new()
 	anchor.name = "CameraFollowAnchor"
+	anchor.position = Vector3(0, 0.64, 0)
 	body.add_child(anchor)
 
 	var collision := CollisionShape3D.new()

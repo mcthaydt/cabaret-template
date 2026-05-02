@@ -30,6 +30,7 @@ tags = Array[StringName]([&"character"])
 [node name="Player_Body" type="CharacterBody3D" parent="." unique_id=312897681]
 
 [node name="CameraFollowAnchor" type="Node3D" parent="Player_Body" unique_id=1697731006]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.64, 0)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Player_Body" unique_id=1174621009]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.165, 0)

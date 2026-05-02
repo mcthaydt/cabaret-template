@@ -542,9 +542,10 @@ func test_character_template_defines_camera_follow_anchor() -> void:
 		"tmpl_character.tscn must define Player_Body/CameraFollowAnchor for vCam follow targeting"
 	)
 	if follow_anchor != null:
-		assert_true(
-			follow_anchor.transform.origin.is_zero_approx(),
-			"CameraFollowAnchor should stay at Player_Body origin unless intentionally authored otherwise"
+		assert_eq(
+			follow_anchor.transform.origin,
+			Vector3(0, 0.64, 0),
+			"CameraFollowAnchor should be at half sprite height (0.64) for vCam follow targeting"
 		)
 
 func test_camera_template_uses_camera_follow_anchor_path() -> void:
@@ -578,9 +579,10 @@ func test_prefab_player_inherits_camera_follow_anchor() -> void:
 		"prefab_player.tscn must include Player_Body/CameraFollowAnchor (inherited from tmpl_character)"
 	)
 	if follow_anchor != null:
-		assert_true(
-			follow_anchor.transform.origin.is_zero_approx(),
-			"prefab_player CameraFollowAnchor should stay at Player_Body origin unless intentionally authored otherwise"
+		assert_eq(
+			follow_anchor.transform.origin,
+			Vector3(0, 0.64, 0),
+			"CameraFollowAnchor should be at half sprite height (0.64) for vCam follow targeting"
 		)
 
 func test_gameplay_scenes_do_not_embed_hud_instances() -> void:
