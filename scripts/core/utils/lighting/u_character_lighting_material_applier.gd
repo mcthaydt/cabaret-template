@@ -175,13 +175,9 @@ func _apply_mesh_override(
 	var albedo_texture := _extract_albedo_texture(source_material)
 	var albedo_color := _extract_albedo_color(source_material)
 
-	# When no texture exists (e.g. albedo_color-only materials like E_Sentry),
-	# use a white fallback so the shader still runs and applies zone lighting.
 	if albedo_texture == null:
 		albedo_texture = _get_fallback_white_texture()
 
-	# Forward the original albedo_color as base_tint so color-only materials
-	# are preserved when the shader replaces the source material.
 	var resolved_base_tint := base_tint
 	if albedo_color != Color.WHITE:
 		resolved_base_tint = albedo_color

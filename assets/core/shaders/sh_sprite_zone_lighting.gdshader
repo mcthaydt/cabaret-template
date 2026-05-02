@@ -8,21 +8,24 @@ uniform float effective_intensity : hint_range(0.0, 8.0, 0.01) = 1.0;
 uniform float minimum_unlit_floor : hint_range(0.0, 1.0, 0.01) = 0.2;
 
 void vertex() {
-	vec3 cam_right = INV_VIEW_MATRIX[0].xyz;
-	vec3 cam_up = INV_VIEW_MATRIX[1].xyz;
-	cam_up.y = 0.0;
-	cam_up = normalize(cam_up);
+	vec3 world_pos = MODEL_MATRIX[3].xyz;
+	vec3 cam_pos = CAMERA_POSITION_WORLD;
+	vec3 dir_to_cam = normalize(cam_pos - world_pos);
+	dir_to_cam.y = 0.0;
+	dir_to_cam = normalize(dir_to_cam);
 
-	float angle = atan(cam_right.x, cam_right.z);
+	float angle = atan(dir_to_cam.x, dir_to_cam.z);
 	float c = cos(angle);
 	float s = sin(angle);
 
-	MODELVIEW_MATRIX = VIEW_MATRIX * MODEL_MATRIX * mat4(
+	mat4 y_rotation = mat4(
 		vec4(c, 0.0, s, 0.0),
 		vec4(0.0, 1.0, 0.0, 0.0),
 		vec4(-s, 0.0, c, 0.0),
 		vec4(0.0, 0.0, 0.0, 1.0)
 	);
+
+	MODELVIEW_MATRIX = VIEW_MATRIX * MODEL_MATRIX * y_rotation;
 }
 
 void fragment() {
