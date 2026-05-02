@@ -130,6 +130,7 @@ func _ready() -> void:
 	_hide_desktop_only_controls_on_mobile()
 	if _builder != null:
 		_builder.build()
+	_configure_focus_neighbors()
 	set_meta(&"settings_builder", true)
 
 	_state_store = U_StateUtils.get_store(self)
@@ -788,3 +789,17 @@ func _on_option_button_popup_about_to_show(popup: PopupMenu) -> void:
 		return
 	await get_tree().process_frame
 	popup.grab_focus()
+
+func _configure_focus_neighbors() -> void:
+	var pairs: Array = [
+		[_get_window_size_option(), _get_window_mode_option()],
+		[_get_vsync_toggle(), _get_quality_preset_option()],
+		[_get_post_processing_toggle(), _get_post_processing_preset_option()],
+		[_get_color_blind_mode_option(), _get_high_contrast_toggle()],
+	]
+	for pair in pairs:
+		var left: Control = pair[0]
+		var right: Control = pair[1]
+		if left != null and right != null:
+			left.focus_neighbor_right = left.get_path_to(right)
+			right.focus_neighbor_left = right.get_path_to(left)

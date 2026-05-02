@@ -53,6 +53,7 @@ func build() -> Control:
 	set_heading(&"settings.display.title")
 	
 	begin_section(&"settings.display.section.graphics", "GraphicsHeader")
+	begin_inline_group("WindowSize")
 	add_dropdown(
 		&"settings.display.label.window_size",
 		U_UI_SETTINGS_CATALOG.get_window_sizes(),
@@ -69,6 +70,8 @@ func build() -> Control:
 		"",
 		"WindowModeOption"
 	)
+	end_inline_group()
+	begin_inline_group("VSync")
 	add_toggle(
 		&"settings.display.label.vsync",
 		_on_vsync_toggled,
@@ -84,9 +87,11 @@ func build() -> Control:
 		"",
 		"QualityPresetOption"
 	)
+	end_inline_group()
 	end_section()
 	
 	begin_section(&"settings.display.section.post_processing", "PostProcessingHeader")
+	begin_inline_group("PostProcessing")
 	add_toggle(
 		&"settings.display.label.post_processing",
 		_on_post_processing_toggled,
@@ -102,6 +107,7 @@ func build() -> Control:
 		"",
 		"PostProcessPresetOption"
 	)
+	end_inline_group()
 	end_section()
 	
 	begin_section(&"settings.display.section.ui", "UIHeader")
@@ -120,6 +126,7 @@ func build() -> Control:
 	end_section()
 	
 	begin_section(&"settings.display.section.accessibility", "AccessibilityHeader")
+	begin_inline_group("Accessibility")
 	add_dropdown(
 		&"settings.display.label.color_blind_mode",
 		U_DISPLAY_OPTION_CATALOG.get_color_blind_mode_option_entries(),
@@ -135,6 +142,7 @@ func build() -> Control:
 		"",
 		"HighContrastToggle"
 	)
+	end_inline_group()
 	end_section()
 	
 	add_button_row(_on_apply_pressed, _on_cancel_pressed, _on_reset_pressed)

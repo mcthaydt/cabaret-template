@@ -11,6 +11,8 @@ var _label_keys: Dictionary = {}
 var _label_fallbacks: Dictionary = {}
 var _theme_map: Array[Dictionary] = []
 var _focusable_controls: Array[Control] = []
+var _inline_group_row: HBoxContainer = null
+var _inline_group_item_count: int = 0
 func _init(tab: Control) -> void:
 	_tab = tab
 	_current_parent = tab
@@ -69,13 +71,28 @@ func end_section() -> U_SettingsTabBuilder:
 	_current_parent = _tab
 	return self
 
+func begin_inline_group(group_name: String = "") -> U_SettingsTabBuilder:
+	var row := HBoxContainer.new()
+	row.name = group_name + "Row" if group_name != "" else "InlineGroupRow"
+	_current_parent.add_child(row)
+	_theme_map.append({"control": row, "role": &"default_row"})
+	_inline_group_row = row
+	_inline_group_item_count = 0
+	return self
+
+func end_inline_group() -> U_SettingsTabBuilder:
+	_inline_group_row = null
+	_inline_group_item_count = 0
+	return self
+
 func add_dropdown(key: StringName, options: Array[Dictionary], callback: Callable, tooltip_key: StringName = &"", fallback: String = "", custom_name: String = "") -> U_SettingsTabBuilder:
-	var row := _add_row()
+	var is_inline: bool = _inline_group_row != null
+	var row: HBoxContainer = _inline_group_row if is_inline else _add_row()
 	var label := _add_label(key, row, fallback)
 	if custom_name != "":
 		var label_name := custom_name.replace("Option", "Label")
 		label.name = label_name if label_name != custom_name else custom_name + "Label"
-	label.custom_minimum_size = Vector2(180, 0)
+	label.custom_minimum_size = Vector2(0, 0) if (is_inline and _inline_group_item_count > 0) else Vector2(180, 0)
 	var dropdown := OptionButton.new()
 	dropdown.name = custom_name if custom_name != "" else key.capitalize().replace(" ", "") + "Option"
 	dropdown.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -85,15 +102,18 @@ func add_dropdown(key: StringName, options: Array[Dictionary], callback: Callabl
 	_connect(dropdown.item_selected, callback)
 	_register_field(label, dropdown)
 	_apply_tooltip(dropdown, tooltip_key)
+	if is_inline:
+		_inline_group_item_count += 1
 	return self
 
 func add_toggle(key: StringName, callback: Callable, tooltip_key: StringName = &"", fallback: String = "", custom_name: String = "") -> U_SettingsTabBuilder:
-	var row := _add_row()
+	var is_inline: bool = _inline_group_row != null
+	var row: HBoxContainer = _inline_group_row if is_inline else _add_row()
 	var label := _add_label(key, row, fallback)
 	if custom_name != "":
 		var label_name := custom_name.replace("Toggle", "Label").replace("CheckButton", "Label")
 		label.name = label_name if label_name != custom_name else custom_name + "Label"
-	label.custom_minimum_size = Vector2(180, 0)
+	label.custom_minimum_size = Vector2(0, 0) if (is_inline and _inline_group_item_count > 0) else Vector2(180, 0)
 	var toggle := CheckBox.new()
 	toggle.name = custom_name if custom_name != "" else key.capitalize().replace(" ", "") + "Toggle"
 	toggle.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -101,15 +121,18 @@ func add_toggle(key: StringName, callback: Callable, tooltip_key: StringName = &
 	_connect(toggle.toggled, callback)
 	_register_field(label, toggle)
 	_apply_tooltip(toggle, tooltip_key)
+	if is_inline:
+		_inline_group_item_count += 1
 	return self
 
 func add_slider(key: StringName, min_val: float, max_val: float, step: float, callback: Callable, value_label_key: StringName = &"", tooltip_key: StringName = &"", fallback: String = "", custom_name: String = "") -> U_SettingsTabBuilder:
-	var row := _add_row()
+	var is_inline: bool = _inline_group_row != null
+	var row: HBoxContainer = _inline_group_row if is_inline else _add_row()
 	var label := _add_label(key, row, fallback)
 	if custom_name != "":
 		var label_name := custom_name.replace("Slider", "Label")
 		label.name = label_name if label_name != custom_name else custom_name + "Label"
-	label.custom_minimum_size = Vector2(180, 0)
+	label.custom_minimum_size = Vector2(0, 0) if (is_inline and _inline_group_item_count > 0) else Vector2(180, 0)
 	var slider := HSlider.new()
 	slider.name = custom_name if custom_name != "" else key.capitalize().replace(" ", "") + "Slider"
 	slider.min_value = min_val
@@ -125,6 +148,8 @@ func add_slider(key: StringName, min_val: float, max_val: float, step: float, ca
 	_register_field(label, slider)
 	_theme_map.append({"control": value_label, "role": &"value_label"})
 	_apply_tooltip(slider, tooltip_key)
+	if is_inline:
+		_inline_group_item_count += 1
 	return self
 
 func _create_slider_value_label(key: StringName, custom_name: String = "") -> Label:

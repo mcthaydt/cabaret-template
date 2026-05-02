@@ -52,6 +52,7 @@ func build() -> Control:
 	
 	var vol_range := U_UI_SETTINGS_CATALOG.get_volume_range()
 	
+	begin_inline_group("MasterVolume")
 	add_slider(
 		&"settings.audio.label.master_volume",
 		vol_range.min,
@@ -64,7 +65,9 @@ func build() -> Control:
 		"MasterVolumeSlider"
 	)
 	add_toggle(&"settings.audio.label.mute", _on_master_mute_toggled, &"", "", "MasterMuteToggle")
+	end_inline_group()
 	
+	begin_inline_group("MusicVolume")
 	add_slider(
 		&"settings.audio.label.music_volume",
 		vol_range.min,
@@ -77,7 +80,9 @@ func build() -> Control:
 		"MusicVolumeSlider"
 	)
 	add_toggle(&"settings.audio.label.mute", _on_music_mute_toggled, &"", "", "MusicMuteToggle")
+	end_inline_group()
 	
+	begin_inline_group("SFXVolume")
 	add_slider(
 		&"settings.audio.label.sfx_volume",
 		vol_range.min,
@@ -90,7 +95,9 @@ func build() -> Control:
 		"SFXVolumeSlider"
 	)
 	add_toggle(&"settings.audio.label.mute", _on_sfx_mute_toggled, &"", "", "SFXMuteToggle")
+	end_inline_group()
 	
+	begin_inline_group("AmbientVolume")
 	add_slider(
 		&"settings.audio.label.ambient_volume",
 		vol_range.min,
@@ -103,6 +110,7 @@ func build() -> Control:
 		"AmbientVolumeSlider"
 	)
 	add_toggle(&"settings.audio.label.mute", _on_ambient_mute_toggled, &"", "", "AmbientMuteToggle")
+	end_inline_group()
 	
 	add_toggle(
 		&"settings.audio.label.spatial_audio",

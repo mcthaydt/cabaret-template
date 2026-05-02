@@ -6,6 +6,9 @@ const U_SETTINGS_TAB_BUILDER := preload("res://scripts/core/ui/helpers/u_setting
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 
+const OVERLAY_SCREEN_MARGIN := 40.0
+const MIN_PANEL_HEIGHT := 200.0
+
 @onready var _main_panel: PanelContainer = $CenterContainer/Panel
 @onready var _main_panel_content: VBoxContainer = $CenterContainer/Panel/VBox
 var _builder: RefCounted = null
@@ -15,8 +18,47 @@ func _on_panel_ready() -> void:
 	_setup_builder()
 	if _builder != null:
 		_builder.build()
+	_wrap_content_in_scroll()
+	_apply_size_guards()
+	if get_viewport() != null:
+		if not get_viewport().size_changed.is_connected(_apply_size_guards):
+			get_viewport().size_changed.connect(_apply_size_guards)
 	_apply_overlay_theme()
 	play_enter_animation()
+
+
+func _wrap_content_in_scroll() -> void:
+	if _main_panel_content == null:
+		return
+	var children: Array[Node] = []
+	for child in _main_panel_content.get_children():
+		children.append(child)
+	var scroll := ScrollContainer.new()
+	scroll.name = "SettingsScrollContainer"
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.follow_focus = true
+	_main_panel_content.add_child(scroll)
+	for child in children:
+		child.reparent(scroll)
+
+
+func _apply_size_guards() -> void:
+	var viewport_size := get_viewport().get_visible_rect().size
+	var center_container := $CenterContainer as CenterContainer
+	if center_container != null:
+		center_container.anchors_preset = Control.PRESET_FULL_RECT
+		center_container.offset_left = OVERLAY_SCREEN_MARGIN
+		center_container.offset_top = OVERLAY_SCREEN_MARGIN
+		center_container.offset_right = -OVERLAY_SCREEN_MARGIN
+		center_container.offset_bottom = -OVERLAY_SCREEN_MARGIN
+		center_container.grow_horizontal = Control.GROW_DIRECTION_BOTH
+		center_container.grow_vertical = Control.GROW_DIRECTION_BOTH
+	if _main_panel != null:
+		_main_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		_main_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	if _main_panel_content != null:
+		_main_panel_content.custom_maximum_size.y = maxf(MIN_PANEL_HEIGHT, viewport_size.y - OVERLAY_SCREEN_MARGIN * 2.0)
 
 
 func _on_back_pressed() -> void:
