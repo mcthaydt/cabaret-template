@@ -27,9 +27,9 @@
 [ext_resource type="Script" path="res://scripts/core/ecs/components/c_spawn_recovery_component.gd" id="25_7kmdg"]
 [ext_resource type="Resource" path="res://resources/core/base_settings/gameplay/cfg_spawn_recovery_player_default.tres" id="26_l8i1k"]
 
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_16kfq"]
-radius = 0.12
-height = 0.33
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_goky4"]
+radius = 0.512
+height = 1.408
 
 [node name="E_PlayerRoot" type="Node3D" unique_id=1565336801]
 script = ExtResource("1_goky4")
@@ -41,8 +41,8 @@ tags = Array[StringName]([&"player", &"character"])
 [node name="CameraFollowAnchor" type="Node3D" parent="Player_Body" unique_id=1697731006]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Player_Body" unique_id=1174621009]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.165, 0)
-shape = SubResource("CapsuleShape3D_16kfq")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.64, 0)
+shape = SubResource("CapsuleShape3D_goky4")
 
 [node name="HoverRays" type="Node3D" parent="Player_Body" unique_id=125732774]
 
@@ -81,7 +81,7 @@ target_position = Vector3(0, -0.28, 0)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.07, 0, -0.07)
 target_position = Vector3(0, -0.28, 0)
 
-[node name="Body_Mesh" parent="Player_Body" unique_id=270249801 instance=ExtResource("2_6wqir")]
+[node name="Body_Mesh" parent="Player_Body" unique_id=633757028 instance=ExtResource("2_6wqir")]
 
 [node name="Components" type="Node" parent="." unique_id=1373490017]
 script = ExtResource("3_xlpt5")
@@ -140,25 +140,25 @@ settings = ExtResource("19_o13id")
 character_body_path = NodePath("../../Player_Body")
 component_type = &"C_HealthComponent"
 
-[node name="C_InputComponent" type="Node" parent="Components" unique_id=1060745192]
+[node name="C_InputComponent" type="Node" parent="Components" unique_id=1738982295]
 script = ExtResource("20_jgfnv")
 component_type = &"C_InputComponent"
 
-[node name="C_GamepadComponent" type="Node" parent="Components" unique_id=916543056]
+[node name="C_GamepadComponent" type="Node" parent="Components" unique_id=1698581349]
 script = ExtResource("21_ngqq0")
 settings = ExtResource("22_cd5qc")
 component_type = &"C_GamepadComponent"
 
-[node name="C_PlayerTagComponent" type="Node" parent="Components" unique_id=581406333]
+[node name="C_PlayerTagComponent" type="Node" parent="Components" unique_id=1165292819]
 script = ExtResource("23_h72xx")
 component_type = &"C_PlayerTagComponent"
 
-[node name="C_SurfaceDetectorComponent" type="Node" parent="Components" unique_id=1065645201]
+[node name="C_SurfaceDetectorComponent" type="Node" parent="Components" unique_id=1808411432]
 script = ExtResource("24_4nvt3")
 character_body_path = NodePath("../../Player_Body")
 component_type = &"C_SurfaceDetectorComponent"
 
-[node name="C_SpawnRecoveryComponent" type="Node" parent="Components" unique_id=566656263]
+[node name="C_SpawnRecoveryComponent" type="Node" parent="Components" unique_id=1955152921]
 script = ExtResource("25_7kmdg")
 settings = ExtResource("26_l8i1k")
 component_type = &"C_SpawnRecoveryComponent"
