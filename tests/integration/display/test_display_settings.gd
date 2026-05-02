@@ -87,7 +87,7 @@ func _await_overlay_store_ready(overlay: UI_DisplaySettingsOverlay, max_frames: 
 				return
 
 func _get_tab(overlay: Node) -> UI_DisplaySettingsTab:
-	return overlay.get_node_or_null("CenterContainer/Panel/VBox/DisplaySettingsTab") as UI_DisplaySettingsTab
+	return overlay.get_node_or_null("CenterContainer/Panel/VBox/SettingsScrollContainer/DisplaySettingsTab") as UI_DisplaySettingsTab
 
 func _remove_test_save_file() -> void:
 	if FileAccess.file_exists(TEST_SAVE_PATH):

@@ -175,6 +175,17 @@ func _exit_tree() -> void:
 		_unsubscribe.call()
 		_unsubscribe = Callable()
 
+func _enter_tree() -> void:
+	if not is_node_ready():
+		return
+	_state_store = U_StateUtils.get_store(self)
+	if _state_store == null:
+		return
+	if _unsubscribe != Callable() and _unsubscribe.is_valid():
+		return
+	_unsubscribe = _state_store.subscribe(_on_state_changed)
+	_on_state_changed({}, _state_store.get_state())
+
 func _connect_window_confirm_signals() -> void:
 	var window_confirm_dialog: ConfirmationDialog = _get_window_confirm_dialog()
 	if window_confirm_dialog != null:

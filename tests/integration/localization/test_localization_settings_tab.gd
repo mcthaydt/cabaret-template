@@ -58,7 +58,7 @@ func _await_overlay_ready(overlay: UI_LocalizationSettingsOverlay, max_frames: i
 			return
 
 func _get_tab(overlay: Node) -> UI_LocalizationSettingsTab:
-	return overlay.get_node_or_null("CenterContainer/Panel/VBox/LocalizationSettingsTab") as UI_LocalizationSettingsTab
+	return overlay.get_node_or_null("CenterContainer/Panel/VBox/SettingsScrollContainer/LocalizationSettingsTab") as UI_LocalizationSettingsTab
 
 func _collect_localization_action_types(actions: Array[Dictionary]) -> Array[StringName]:
 	var types: Array[StringName] = []

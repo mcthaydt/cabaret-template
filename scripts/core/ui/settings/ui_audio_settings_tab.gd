@@ -127,6 +127,17 @@ func _exit_tree() -> void:
 		_unsubscribe.call()
 		_unsubscribe = Callable()
 
+func _enter_tree() -> void:
+	if not is_node_ready():
+		return
+	_state_store = U_ServiceLocator.get_service(StringName("state_store")) as I_StateStore
+	if _state_store == null:
+		return
+	if _unsubscribe != Callable() and _unsubscribe.is_valid():
+		return
+	_unsubscribe = _state_store.subscribe(_on_state_changed)
+	_on_state_changed({}, _state_store.get_state())
+
 func _configure_tooltips() -> void:
 	if _master_volume_slider != null:
 		_master_volume_slider.tooltip_text = U_LOCALIZATION_UTILS.localize_with_fallback(

@@ -277,6 +277,7 @@ func _update_health(state: Dictionary) -> void:
 	_previous_health = health
 
 	health_container.visible = _health_bar_damage_show_timer > 0.0
+	_update_health_bar_colors(state, health, max_health)
 
 	if not health_container.visible:
 		return
@@ -291,8 +292,6 @@ func _update_health(state: Dictionary) -> void:
 	if health_label != null:
 		health_label.text = display_text
 	health_bar.tooltip_text = display_text
-
-	_update_health_bar_colors(state, health, max_health)
 
 ## ECS: Show a brief toast when a checkpoint is activated
 func _on_checkpoint_event(payload: Variant) -> void:

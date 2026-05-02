@@ -24,6 +24,7 @@ func _on_panel_ready() -> void:
 		if not get_viewport().size_changed.is_connected(_apply_size_guards):
 			get_viewport().size_changed.connect(_apply_size_guards)
 	_apply_overlay_theme()
+	await get_tree().process_frame
 	play_enter_animation()
 
 
@@ -58,7 +59,7 @@ func _apply_size_guards() -> void:
 		_main_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		_main_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	if _main_panel_content != null:
-		_main_panel_content.custom_maximum_size.y = maxf(MIN_PANEL_HEIGHT, viewport_size.y - OVERLAY_SCREEN_MARGIN * 2.0)
+		_main_panel_content.custom_minimum_size.y = MIN_PANEL_HEIGHT
 
 
 func _on_back_pressed() -> void:

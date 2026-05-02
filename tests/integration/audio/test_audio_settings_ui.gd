@@ -80,7 +80,7 @@ func _await_overlay_store_ready(overlay: UI_AudioSettingsOverlay, max_frames: in
 
 
 func _get_tab(overlay: Node) -> UI_AudioSettingsTab:
-	return overlay.get_node_or_null("CenterContainer/Panel/VBox/AudioSettingsTab") as UI_AudioSettingsTab
+	return overlay.get_node_or_null("CenterContainer/Panel/VBox/SettingsScrollContainer/AudioSettingsTab") as UI_AudioSettingsTab
 
 
 func _remove_test_settings_files() -> void:
