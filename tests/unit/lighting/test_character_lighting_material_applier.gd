@@ -274,6 +274,29 @@ func test_collect_sprite_targets_skips_null_texture_sprites() -> void:
 	var result: Array = applier.collect_sprite_targets(character_root)
 	assert_eq(result.size(), 1, "Should only return sprites with textures, not null-texture sprites.")
 
+func test_collect_sprite_targets_skips_ground_indicator() -> void:
+	var script_obj := _applier_script()
+	if script_obj == null:
+		return
+	var applier: Variant = script_obj.new()
+	var character_root := _create_character_root()
+	var texture := _create_test_texture()
+
+	var sprite := _create_sprite_with_texture(texture)
+	character_root.add_child(sprite)
+	autofree(sprite)
+
+	var ground_indicator := Sprite3D.new()
+	ground_indicator.name = "GroundIndicator"
+	ground_indicator.texture = texture
+	character_root.add_child(ground_indicator)
+	autofree(ground_indicator)
+
+	var result: Array = applier.collect_sprite_targets(character_root)
+	assert_eq(result.size(), 1, "Should exclude GroundIndicator from sprite zone lighting targets.")
+	assert_true(result.has(sprite), "Should include the regular sprite.")
+	assert_false(result.has(ground_indicator), "Should exclude the GroundIndicator.")
+
 func test_apply_sprite_lighting_sets_shader_material_and_params() -> void:
 	var script_obj := _applier_script()
 	if script_obj == null:
@@ -294,6 +317,8 @@ func test_apply_sprite_lighting_sets_shader_material_and_params() -> void:
 	assert_not_null(shader, "ShaderMaterial should have the sprite lighting shader assigned.")
 	var shader_code: String = shader.code
 	assert_true(shader_code.find("unshaded") >= 0, "Sprite shader must remain unshaded.")
+	assert_true(shader_code.find("blend_mix") >= 0, "Sprite shader must use blend_mix for transparency.")
+	assert_true(shader_code.find("ALPHA") >= 0, "Sprite shader must output texture alpha.")
 	assert_eq(override_material.get_shader_parameter(PARAM_ALBEDO_TEXTURE), texture)
 	assert_eq(override_material.get_shader_parameter(PARAM_BASE_TINT), Color(1.0, 1.0, 1.0, 1.0))
 	assert_eq(override_material.get_shader_parameter(PARAM_EFFECTIVE_TINT), Color(0.5, 0.6, 0.7, 1.0))

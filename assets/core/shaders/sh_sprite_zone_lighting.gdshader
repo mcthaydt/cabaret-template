@@ -1,7 +1,7 @@
 shader_type spatial;
-render_mode unshaded, depth_draw_opaque, cull_disabled;
+render_mode unshaded, blend_mix, cull_disabled;
 
-uniform sampler2D albedo_texture : source_color;
+uniform sampler2D albedo_texture : source_color, filter_nearest;
 uniform vec4 base_tint : source_color = vec4(1.0, 1.0, 1.0, 1.0);
 uniform vec4 effective_tint : source_color = vec4(1.0, 1.0, 1.0, 1.0);
 uniform float effective_intensity : hint_range(0.0, 8.0, 0.01) = 1.0;
@@ -12,4 +12,5 @@ void fragment() {
 	vec3 zone_tinted_color = albedo_sample.rgb * base_tint.rgb * effective_tint.rgb;
 	ALBEDO = zone_tinted_color * effective_intensity;
 	EMISSION = zone_tinted_color * minimum_unlit_floor;
+	ALPHA = albedo_sample.a;
 }

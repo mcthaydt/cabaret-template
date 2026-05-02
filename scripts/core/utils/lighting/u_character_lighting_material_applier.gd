@@ -149,7 +149,7 @@ func collect_sprite_targets(character_entity: Node) -> Array[Sprite3D]:
 func _collect_sprite_targets_recursive(node: Node, targets: Array[Sprite3D]) -> void:
 	if node is Sprite3D:
 		var sprite := node as Sprite3D
-		if sprite.texture != null:
+		if sprite.texture != null and sprite.name != &"GroundIndicator":
 			targets.append(sprite)
 
 	var children: Array = node.get_children()
