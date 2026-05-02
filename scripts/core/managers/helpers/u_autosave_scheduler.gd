@@ -212,7 +212,21 @@ func _request_autosave_for_gameplay_transition(priority: int) -> void:
 	# Trigger autosave
 	_is_dirty = true
 	_pending_priority = maxi(_pending_priority, priority)
-	call_deferred("_perform_autosave")
+	_schedule_post_render_autosave()
+
+func _schedule_post_render_autosave() -> void:
+	# In headless mode (tests), frame_post_draw may not fire; fall back to call_deferred.
+	if OS.has_feature("headless") or DisplayServer.get_name() == "headless":
+		call_deferred("_perform_autosave")
+		return
+	# RenderingServer.frame_post_draw fires after the GPU finishes rendering the frame.
+	# At that point viewport.get_texture().get_image() returns the just-drawn scene,
+	# so the screenshot captures the new gameplay area rather than the loading screen.
+	if not RenderingServer.frame_post_draw.is_connected(_on_post_render_autosave):
+		RenderingServer.frame_post_draw.connect(_on_post_render_autosave, CONNECT_ONE_SHOT)
+
+func _on_post_render_autosave() -> void:
+	_perform_autosave()
 
 func _flush_pending_autosave_before_menu() -> void:
 	if not _is_dirty:
@@ -253,3 +267,7 @@ func _exit_tree() -> void:
 	if _state_store != null and _state_store.has_signal("action_dispatched"):
 		if _state_store.action_dispatched.is_connected(_on_action_dispatched):
 			_state_store.action_dispatched.disconnect(_on_action_dispatched)
+
+	# Clean up any pending post-render autosave callback
+	if RenderingServer.frame_post_draw.is_connected(_on_post_render_autosave):
+		RenderingServer.frame_post_draw.disconnect(_on_post_render_autosave)
