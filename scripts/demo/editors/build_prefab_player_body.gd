@@ -3,6 +3,7 @@ extends EditorScript
 
 const OUTPUT_PATH := "res://scenes/core/prefabs/prefab_player_body.tscn"
 const PLAYER_SPRITE_PATH := "res://assets/core/textures/characters/tex_player_sprite_sheet.png"
+const SH_SPRITE_ZONE_LIGHTING := preload("res://assets/core/shaders/sh_sprite_zone_lighting.gdshader")
 
 const _SHADOW_BLOB := preload("res://assets/core/textures/tex_shadow_blob.png")
 
@@ -24,6 +25,12 @@ func _run() -> void:
 	sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	sprite.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 	sprite.position = Vector3(0, 0.64, 0)
+
+	var sprite_shader_material := ShaderMaterial.new()
+	sprite_shader_material.shader = SH_SPRITE_ZONE_LIGHTING
+	sprite_shader_material.set_shader_parameter("albedo_texture", sprite_texture)
+	sprite.material_override = sprite_shader_material
+
 	builder.add_child_to(".", sprite)
 
 	var ground_indicator := Sprite3D.new()
