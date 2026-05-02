@@ -125,7 +125,7 @@ func add_toggle(key: StringName, callback: Callable, tooltip_key: StringName = &
 		_inline_group_item_count += 1
 	return self
 
-func add_slider(key: StringName, min_val: float, max_val: float, step: float, callback: Callable, value_label_key: StringName = &"", tooltip_key: StringName = &"", fallback: String = "", custom_name: String = "") -> U_SettingsTabBuilder:
+func add_slider(key: StringName, min_val: float, max_val: float, step: float, callback: Callable, _value_label_key: StringName = &"", tooltip_key: StringName = &"", fallback: String = "", custom_name: String = "") -> U_SettingsTabBuilder:
 	var is_inline: bool = _inline_group_row != null
 	var row: HBoxContainer = _inline_group_row if is_inline else _add_row()
 	var label := _add_label(key, row, fallback)
