@@ -13,7 +13,7 @@ render_mode unshaded, cull_back, depth_draw_opaque;
 // project.godot [shader_globals] entries — the cutout system is fully
 // self-contained.)
 uniform vec3 wall_cutout_player_pos = vec3(1.0e6);
-uniform float wall_cutout_disc_radius = 0.12;
+uniform float wall_cutout_disc_radius = 0.18;
 uniform float wall_cutout_disc_falloff = 0.05;
 uniform float wall_cutout_disc_min_alpha = 0.0;
 instance uniform float wall_cutout_enabled = 0.0;
