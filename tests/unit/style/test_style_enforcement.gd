@@ -187,7 +187,7 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/core/ui/utils": ["u_"], # UI utilities
 	"res://scripts/core/ui": ["ui_", "u_"], # ui_ for controllers, u_ for utilities
 	"res://scripts/core/gameplay/helpers": ["u_"], # gameplay helper utilities
-	"res://scripts/core/gameplay": ["e_", "inter_", "base_", "triggered_", "s_"], # e_ for entities, inter_ for interactable controllers, base_ for base controllers, triggered_ for special controllers, s_ for gameplay-scoped ECS systems
+	"res://scripts/core/gameplay": ["e_", "inter_", "base_", "triggered_", "s_", "l_"], # e_ for entities, inter_ for interactable controllers, base_ for base controllers, triggered_ for special controllers, s_ for gameplay-scoped ECS systems
 	"res://scripts/core/scene_structure": ["marker_"], # marker_*.gd organizational scripts
 	"res://scripts/core/scene_management/transitions": ["trans_", "base_"], # transition effects
 	"res://scripts/core/resources/scene_management": ["rs_"], # scene registry resources
