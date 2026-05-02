@@ -39,6 +39,7 @@ const SIGNPOST_MIN_DURATION_SEC: float = 0.05
 const SIGNPOST_PANEL_FADE_IN_FALLBACK_SEC: float = 0.14
 const SIGNPOST_PANEL_FADE_OUT_FALLBACK_SEC: float = 0.18
 const SIGNPOST_BLOCKER_COOLDOWN_SEC: float = 0.15
+const HEALTH_BAR_DAMAGE_DISPLAY_DURATION_SEC: float = 2.0
 const AUTOSAVE_SPINNER_ROTATION_SPEED_DEG: float = 240.0
 const AUTOSAVE_SPINNER_MIN_VISIBLE_SEC: float = 0.35
 const CHECKPOINT_TOAST_UNBLOCK_COOLDOWN_SEC: float = 0.3
@@ -62,6 +63,8 @@ var _checkpoint_toast_tween: Tween = null
 var _signpost_panel_tween: Tween = null
 var _health_bar_fill_style: StyleBoxFlat = null
 var _pending_prompt_localization_refresh: bool = false
+var _health_bar_damage_show_timer: float = -1.0
+var _previous_health: float = -1.0
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -100,6 +103,8 @@ func _complete_initialization() -> void:
 func _process(delta: float) -> void:
 	if _store == null or not is_instance_valid(_store):
 		return
+	if _health_bar_damage_show_timer > 0.0:
+		_health_bar_damage_show_timer -= delta
 	# Keep HUD visibility in sync even if a slice update arrives between frames.
 	_update_display(_store.get_state())
 	_update_autosave_spinner_animation(delta)
@@ -249,13 +254,10 @@ func _update_health(state: Dictionary) -> void:
 	if health_container == null or health_bar == null:
 		return
 
-	# Hide health container when any menu/overlay is open
 	if _is_paused(state):
 		health_container.visible = false
 		return
 
-	# Only show health bar during active gameplay shell
-	# Don't show when transitioning to/from gameplay (shell != "gameplay")
 	var navigation_state: Dictionary = state.get("navigation", {})
 	var shell: StringName = navigation_state.get("shell", StringName())
 
@@ -263,14 +265,21 @@ func _update_health(state: Dictionary) -> void:
 		health_container.visible = false
 		return
 
-	# Show health bar during active gameplay
-	health_container.visible = true
-
 	var health: float = U_EntitySelectors.get_entity_health(state, _player_entity_id)
 	var max_health: float = U_EntitySelectors.get_entity_max_health(state, _player_entity_id)
 
 	max_health = max(max_health, 1.0)
 	health = clampf(health, 0.0, max_health)
+
+	# Detect damage: show health bar briefly, then auto-hide
+	if _previous_health >= 0.0 and health < _previous_health - 0.001:
+		_health_bar_damage_show_timer = HEALTH_BAR_DAMAGE_DISPLAY_DURATION_SEC
+	_previous_health = health
+
+	health_container.visible = _health_bar_damage_show_timer > 0.0
+
+	if not health_container.visible:
+		return
 
 	# Avoid redundant redraws
 	if not is_equal_approx(health_bar.max_value, max_health):
@@ -283,7 +292,6 @@ func _update_health(state: Dictionary) -> void:
 		health_label.text = display_text
 	health_bar.tooltip_text = display_text
 
-	# Update health bar colors based on color blind palette and health percentage
 	_update_health_bar_colors(state, health, max_health)
 
 ## ECS: Show a brief toast when a checkpoint is activated
