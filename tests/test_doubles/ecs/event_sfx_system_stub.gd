@@ -1,4 +1,4 @@
-extends "res://scripts/ecs/base_event_sfx_system.gd"
+extends "res://scripts/core/ecs/base_event_sfx_system.gd"
 
 var event_name: StringName = StringName()
 var request_builder: Callable = Callable()

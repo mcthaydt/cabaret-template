@@ -1,8 +1,8 @@
 extends BaseTest
 
-const M_SCREENSHOT_CACHE := preload("res://scripts/managers/m_screenshot_cache_manager.gd")
+const M_SCREENSHOT_CACHE := preload("res://scripts/core/managers/m_screenshot_cache_manager.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
-const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
+const U_NAVIGATION_ACTIONS := preload("res://scripts/core/state/actions/u_navigation_actions.gd")
 
 class TestScreenshotCache extends M_SCREENSHOT_CACHE:
 	var override_image: Image = null

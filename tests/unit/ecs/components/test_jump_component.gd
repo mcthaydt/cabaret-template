@@ -1,8 +1,8 @@
 extends BaseTest
 
-const JumpComponentScript = preload("res://scripts/ecs/components/c_jump_component.gd")
-const JumpSettingsScript = preload("res://scripts/resources/ecs/rs_jump_settings.gd")
-const ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
+const JumpComponentScript = preload("res://scripts/core/ecs/components/c_jump_component.gd")
+const JumpSettingsScript = preload("res://scripts/core/resources/ecs/rs_jump_settings.gd")
+const ECS_UTILS := preload("res://scripts/core/utils/ecs/u_ecs_utils.gd")
 
 func _create_jump_component(min_fall_height: float = 0.5) -> C_JumpComponent:
 	var component := JumpComponentScript.new()

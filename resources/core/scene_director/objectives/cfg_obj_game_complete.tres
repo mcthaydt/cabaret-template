@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="RS_ObjectiveDefinition" format=3 uid="uid://rhjrn8gss2ub"]
+
+[ext_resource type="Script" uid="uid://c01hdmwtkd014" path="res://scripts/core/resources/qb/conditions/rs_condition_event_payload.gd" id="1_event_payload"]
+[ext_resource type="Script" uid="uid://b0lcjld33hohy" path="res://scripts/core/resources/qb/effects/rs_effect_dispatch_action.gd" id="2_ma66e"]
+[ext_resource type="Script" uid="uid://d1pyjxgvw256f" path="res://scripts/core/resources/scene_director/rs_objective_definition.gd" id="3_q7xsc"]
+[ext_resource type="Script" uid="uid://c3bnu5ue4okdf" path="res://scripts/core/interfaces/i_condition.gd" id="4_icond"]
+[ext_resource type="Script" uid="uid://dhp1tdn8axoos" path="res://scripts/core/interfaces/i_effect.gd" id="5_ieffect"]
+
+[sub_resource type="Resource" id="Resource_7xq82"]
+script = ExtResource("2_ma66e")
+action_type = &"gameplay/game_complete"
+
+[sub_resource type="Resource" id="Resource_final_goal_triggered"]
+script = ExtResource("1_event_payload")
+field_path = "trigger_node.objective_id"
+match_mode = "equals"
+match_value_string = "final_goal"
+
+[resource]
+script = ExtResource("3_q7xsc")
+objective_id = &"final_complete"
+description = "Reach the demo endgame trigger to complete the game."
+objective_type = 1
+conditions = Array[ExtResource("4_icond")]([SubResource("Resource_final_goal_triggered")])
+completion_effects = Array[ExtResource("5_ieffect")]([SubResource("Resource_7xq82")])
+completion_event_payload = {
+"target_scene": &"victory"
+}
+dependencies = Array[StringName]([&"bar_complete"])

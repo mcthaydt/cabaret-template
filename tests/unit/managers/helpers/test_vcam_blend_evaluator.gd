@@ -1,7 +1,7 @@
 extends GutTest
 
-const BLEND_EVALUATOR := preload("res://scripts/managers/helpers/u_vcam_blend_evaluator.gd")
-const RS_VCAM_BLEND_HINT := preload("res://scripts/resources/display/vcam/rs_vcam_blend_hint.gd")
+const BLEND_EVALUATOR := preload("res://scripts/core/managers/helpers/u_vcam_blend_evaluator.gd")
+const RS_VCAM_BLEND_HINT := preload("res://scripts/core/resources/display/vcam/rs_vcam_blend_hint.gd")
 
 func test_blend_at_zero_progress_returns_from_transform() -> void:
 	var from_result: Dictionary = _make_result(Vector3.ZERO, 80.0)

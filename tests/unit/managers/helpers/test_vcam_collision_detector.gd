@@ -1,6 +1,6 @@
 extends GutTest
 
-const U_VCAM_COLLISION_DETECTOR := preload("res://scripts/managers/helpers/u_vcam_collision_detector.gd")
+const U_VCAM_COLLISION_DETECTOR := preload("res://scripts/core/managers/helpers/u_vcam_collision_detector.gd")
 const OCCLUDABLE_LAYER_MASK: int = 1 << 5
 const NON_OCCLUDABLE_LAYER_MASK: int = 1 << 0
 

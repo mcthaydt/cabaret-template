@@ -1,6 +1,6 @@
 extends BaseTest
 
-const APPLIER_PATH := "res://scripts/utils/lighting/u_character_lighting_material_applier.gd"
+const APPLIER_PATH := "res://scripts/core/utils/lighting/u_character_lighting_material_applier.gd"
 const PARAM_ALBEDO_TEXTURE := "albedo_texture"
 const PARAM_BASE_TINT := "base_tint"
 const PARAM_EFFECTIVE_TINT := "effective_tint"
@@ -217,3 +217,139 @@ func test_restore_all_materials_clears_cache_after_meshes_are_freed() -> void:
 	await get_tree().process_frame
 	applier.restore_all_materials()
 	assert_eq(applier.get_cached_mesh_count(), 0)
+
+func _create_sprite_with_texture(texture: Texture2D) -> Sprite3D:
+	var sprite := Sprite3D.new()
+	sprite.name = "DirectionalSprite"
+	sprite.texture = texture
+	sprite.pixel_size = 0.01
+	sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	sprite.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	return sprite
+
+func test_collect_sprite_targets_finds_sprite3d_children() -> void:
+	var script_obj := _applier_script()
+	if script_obj == null:
+		return
+	var applier: Variant = script_obj.new()
+	var character_root := _create_character_root()
+	var texture := _create_test_texture()
+
+	var sprite := _create_sprite_with_texture(texture)
+	character_root.add_child(sprite)
+	autofree(sprite)
+
+	var nested := Node3D.new()
+	nested.name = "Nested"
+	character_root.add_child(nested)
+	autofree(nested)
+
+	var nested_sprite := _create_sprite_with_texture(texture)
+	nested_sprite.name = "NestedSprite"
+	nested.add_child(nested_sprite)
+	autofree(nested_sprite)
+
+	var result: Array = applier.collect_sprite_targets(character_root)
+	assert_eq(result.size(), 2)
+	assert_true(result.has(sprite))
+	assert_true(result.has(nested_sprite))
+
+func test_collect_sprite_targets_skips_null_texture_sprites() -> void:
+	var script_obj := _applier_script()
+	if script_obj == null:
+		return
+	var applier: Variant = script_obj.new()
+	var character_root := _create_character_root()
+	var texture := _create_test_texture()
+
+	var no_texture_sprite := Sprite3D.new()
+	no_texture_sprite.name = "NoTexSprite"
+	character_root.add_child(no_texture_sprite)
+	autofree(no_texture_sprite)
+
+	var valid_sprite := _create_sprite_with_texture(texture)
+	character_root.add_child(valid_sprite)
+	autofree(valid_sprite)
+
+	var result: Array = applier.collect_sprite_targets(character_root)
+	assert_eq(result.size(), 1, "Should only return sprites with textures, not null-texture sprites.")
+
+func test_collect_sprite_targets_skips_ground_indicator() -> void:
+	var script_obj := _applier_script()
+	if script_obj == null:
+		return
+	var applier: Variant = script_obj.new()
+	var character_root := _create_character_root()
+	var texture := _create_test_texture()
+
+	var sprite := _create_sprite_with_texture(texture)
+	character_root.add_child(sprite)
+	autofree(sprite)
+
+	var ground_indicator := Sprite3D.new()
+	ground_indicator.name = "GroundIndicator"
+	ground_indicator.texture = texture
+	character_root.add_child(ground_indicator)
+	autofree(ground_indicator)
+
+	var result: Array = applier.collect_sprite_targets(character_root)
+	assert_eq(result.size(), 1, "Should exclude GroundIndicator from sprite zone lighting targets.")
+	assert_true(result.has(sprite), "Should include the regular sprite.")
+	assert_false(result.has(ground_indicator), "Should exclude the GroundIndicator.")
+
+func test_apply_sprite_lighting_sets_modulate() -> void:
+	var script_obj := _applier_script()
+	if script_obj == null:
+		return
+	var applier: Variant = script_obj.new()
+	var character_root := _create_character_root()
+	var texture := _create_test_texture()
+
+	var sprite := _create_sprite_with_texture(texture)
+	character_root.add_child(sprite)
+	autofree(sprite)
+
+	applier.apply_sprite_lighting(character_root, Color(1.0, 1.0, 1.0, 1.0), Color(0.5, 0.6, 0.7, 1.0), 1.75)
+
+	assert_null(sprite.material_override, "modulate approach must not set material_override.")
+	assert_almost_eq(sprite.modulate.r, 0.875, 0.0001, "r = 1.0 * 0.5 * 1.75")
+	assert_almost_eq(sprite.modulate.g, 1.05, 0.0001, "g = 1.0 * 0.6 * 1.75")
+	assert_almost_eq(sprite.modulate.b, 1.225, 0.0001, "b = 1.0 * 0.7 * 1.75")
+	assert_almost_eq(sprite.modulate.a, 1.0, 0.0001, "alpha must be preserved from original modulate.")
+
+func test_apply_sprite_lighting_preserves_original_modulate_alpha() -> void:
+	var script_obj := _applier_script()
+	if script_obj == null:
+		return
+	var applier: Variant = script_obj.new()
+	var character_root := _create_character_root()
+	var texture := _create_test_texture()
+
+	var sprite := _create_sprite_with_texture(texture)
+	sprite.modulate = Color(1.0, 1.0, 1.0, 0.5)
+	character_root.add_child(sprite)
+	autofree(sprite)
+
+	applier.apply_sprite_lighting(character_root, Color(1.0, 1.0, 1.0, 1.0), Color(1.0, 1.0, 1.0, 1.0), 0.5)
+
+	assert_eq(sprite.modulate.a, 0.5, "alpha must be preserved from original modulate.")
+
+func test_restore_sprite_materials_restores_modulate() -> void:
+	var script_obj := _applier_script()
+	if script_obj == null:
+		return
+	var applier: Variant = script_obj.new()
+	var character_root := _create_character_root()
+	var texture := _create_test_texture()
+
+	var original_modulate := Color(0.8, 0.9, 1.0, 0.7)
+	var sprite := _create_sprite_with_texture(texture)
+	sprite.modulate = original_modulate
+	character_root.add_child(sprite)
+	autofree(sprite)
+
+	applier.apply_sprite_lighting(character_root, Color.WHITE, Color(0.8, 0.8, 0.8, 1.0), 2.0)
+	assert_ne(sprite.modulate, original_modulate, "modulate should change after apply.")
+
+	applier.restore_sprite_materials(character_root)
+	assert_eq(sprite.modulate, original_modulate, "restore must return modulate to original value.")

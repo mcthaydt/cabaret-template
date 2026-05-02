@@ -1,12 +1,12 @@
 extends BaseTest
 
-const RULE_UTILS_PATH := "res://scripts/utils/ecs/u_rule_utils.gd"
-const RS_RULE := preload("res://scripts/resources/qb/rs_rule.gd")
-const RS_CONDITION_CONSTANT := preload("res://scripts/resources/qb/conditions/rs_condition_constant.gd")
-const RS_CONDITION_EVENT_NAME := preload("res://scripts/resources/qb/conditions/rs_condition_event_name.gd")
-const RS_CONDITION_COMPOSITE := preload("res://scripts/resources/qb/conditions/rs_condition_composite.gd")
+const RULE_UTILS_PATH := "res://scripts/core/utils/ecs/u_rule_utils.gd"
+const RS_RULE := preload("res://scripts/core/resources/qb/rs_rule.gd")
+const RS_CONDITION_CONSTANT := preload("res://scripts/core/resources/qb/conditions/rs_condition_constant.gd")
+const RS_CONDITION_EVENT_NAME := preload("res://scripts/core/resources/qb/conditions/rs_condition_event_name.gd")
+const RS_CONDITION_COMPOSITE := preload("res://scripts/core/resources/qb/conditions/rs_condition_composite.gd")
 
-const I_CONDITION := preload("res://scripts/interfaces/i_condition.gd")
+const I_CONDITION := preload("res://scripts/core/interfaces/i_condition.gd")
 
 var _rule_utils: Variant = null
 
@@ -291,7 +291,7 @@ func test_is_script_instance_of_returns_true_for_child_script() -> void:
 		pending("U_RuleUtils not loaded")
 		return
 	# RS_ConditionEventName extends RS_BaseCondition, so it should be instance of the base script
-	var base_condition_script := load("res://scripts/resources/qb/rs_base_condition.gd") as Script
+	var base_condition_script := load("res://scripts/core/resources/qb/rs_base_condition.gd") as Script
 	var condition := RS_CONDITION_EVENT_NAME.new()
 	var result: bool = _rule_utils.is_script_instance_of(condition, base_condition_script)
 	assert_true(result)

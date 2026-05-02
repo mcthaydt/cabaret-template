@@ -1,17 +1,17 @@
 extends GutTest
 
-const M_OBJECTIVES_MANAGER := preload("res://scripts/managers/m_objectives_manager.gd")
-const I_STATE_STORE := preload("res://scripts/interfaces/i_state_store.gd")
-const OBJECTIVE_DEFINITION := preload("res://scripts/resources/scene_director/rs_objective_definition.gd")
-const OBJECTIVE_SET := preload("res://scripts/resources/scene_director/rs_objective_set.gd")
-const OBJECTIVES_REDUCER := preload("res://scripts/state/reducers/u_objectives_reducer.gd")
-const OBJECTIVES_ACTIONS := preload("res://scripts/state/actions/u_objectives_actions.gd")
-const GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
-const NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const OBJECTIVE_EVENT_LOG := preload("res://scripts/utils/scene_director/u_objective_event_log.gd")
+const M_OBJECTIVES_MANAGER := preload("res://scripts/core/managers/m_objectives_manager.gd")
+const I_STATE_STORE := preload("res://scripts/core/interfaces/i_state_store.gd")
+const OBJECTIVE_DEFINITION := preload("res://scripts/core/resources/scene_director/rs_objective_definition.gd")
+const OBJECTIVE_SET := preload("res://scripts/core/resources/scene_director/rs_objective_set.gd")
+const OBJECTIVES_REDUCER := preload("res://scripts/core/state/reducers/u_objectives_reducer.gd")
+const OBJECTIVES_ACTIONS := preload("res://scripts/core/state/actions/u_objectives_actions.gd")
+const GAMEPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
+const NAVIGATION_ACTIONS := preload("res://scripts/core/state/actions/u_navigation_actions.gd")
+const OBJECTIVE_EVENT_LOG := preload("res://scripts/core/utils/scene_director/u_objective_event_log.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
-const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
+const U_ECS_EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
+const U_ECS_EVENT_NAMES := preload("res://scripts/core/events/ecs/u_ecs_event_names.gd")
 const ACTION_SET_TEST_FLAG := StringName("tests/objectives/set_test_flag")
 
 class ObjectivesStoreStub extends I_STATE_STORE:
@@ -486,7 +486,7 @@ func test_navigation_start_game_resets_objectives_for_new_run() -> void:
 	assert_eq(manager.get_objective_status(StringName("final_complete")), "active")
 	assert_true(_store.get_state().get("objectives", {}).get("event_log", []).size() > 0)
 
-	_store.dispatch(NAVIGATION_ACTIONS.start_game(StringName("alleyway")))
+	_store.dispatch(NAVIGATION_ACTIONS.start_game(StringName("demo_room")))
 
 	var objectives_slice: Dictionary = _store.get_state().get("objectives", {})
 	var statuses: Dictionary = objectives_slice.get("statuses", {})

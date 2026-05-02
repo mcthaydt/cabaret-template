@@ -30,7 +30,7 @@ func after_each() -> void:
 
 func test_post_processing_preset_dropdown_exists() -> void:
 	# GIVEN: Display settings tab is loaded
-	var scene := load("res://scenes/ui/overlays/settings/ui_display_settings_tab.tscn")
+	var scene := load("res://scenes/core/ui/overlays/settings/ui_display_settings_tab.tscn")
 	_tab = scene.instantiate()
 	add_child_autofree(_tab)
 	await get_tree().process_frame
@@ -42,7 +42,7 @@ func test_post_processing_preset_dropdown_exists() -> void:
 
 func test_post_processing_preset_dropdown_has_three_options() -> void:
 	# GIVEN: Display settings tab is loaded
-	var scene := load("res://scenes/ui/overlays/settings/ui_display_settings_tab.tscn")
+	var scene := load("res://scenes/core/ui/overlays/settings/ui_display_settings_tab.tscn")
 	_tab = scene.instantiate()
 	add_child_autofree(_tab)
 	await get_tree().process_frame
@@ -62,7 +62,7 @@ func test_post_processing_preset_dropdown_has_three_options() -> void:
 
 func test_selecting_preset_updates_state() -> void:
 	# GIVEN: Display settings tab with preset dropdown
-	var scene := load("res://scenes/ui/overlays/settings/ui_display_settings_tab.tscn")
+	var scene := load("res://scenes/core/ui/overlays/settings/ui_display_settings_tab.tscn")
 	_tab = scene.instantiate()
 	add_child_autofree(_tab)
 	await get_tree().process_frame
@@ -87,7 +87,7 @@ func test_selecting_preset_updates_state() -> void:
 
 func test_medium_preset_is_default_selection() -> void:
 	# GIVEN: Display settings tab is loaded with default state
-	var scene := load("res://scenes/ui/overlays/settings/ui_display_settings_tab.tscn")
+	var scene := load("res://scenes/core/ui/overlays/settings/ui_display_settings_tab.tscn")
 	_tab = scene.instantiate()
 	add_child_autofree(_tab)
 	await get_tree().process_frame

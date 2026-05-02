@@ -1,6 +1,6 @@
 extends GutTest
 
-const SCENE_DIRECTOR_SELECTORS := preload("res://scripts/state/selectors/u_scene_director_selectors.gd")
+const SCENE_DIRECTOR_SELECTORS := preload("res://scripts/core/state/selectors/u_scene_director_selectors.gd")
 
 func test_get_active_directive_id_returns_directive_id() -> void:
 	var state := _make_state(StringName("dir_intro"), 1, "running")

@@ -1,0 +1,153 @@
+[gd_scene format=3 uid="uid://ovtewossaj7n"]
+
+[ext_resource type="Script" uid="uid://dqp2bo71wdojb" path="res://scripts/core/ui/overlays/ui_keyboard_mouse_settings_overlay.gd" id="1"]
+[ext_resource type="Resource" uid="uid://b72010a71rlh7" path="res://resources/core/ui/motions/cfg_motion_fade_slide.tres" id="2_motion_set"]
+[ext_resource type="Script" uid="uid://cvi7rh32jhp6d" path="res://scripts/core/ui/helpers/u_localization_root.gd" id="localization_root"]
+[ext_resource type="Script" uid="uid://dfg7i5kfpjwg1" path="res://scripts/core/ui/helpers/u_ui_scale_root.gd" id="ui_scale_root"]
+
+[node name="KeyboardMouseSettingsOverlay" type="Control" unique_id=746308400]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+background_color = Color(0.114, 0.114, 0.129, 0.5)
+background_shader_preset = "scanline_drift"
+background_shader_intensity = 0.24
+background_shader_speed = 0.8
+motion_set = ExtResource("2_motion_set")
+
+[node name="UIScaleRoot" type="Node" parent="." unique_id=1075060969]
+script = ExtResource("ui_scale_root")
+
+[node name="LocalizationRoot" type="Node" parent="." unique_id=979823775]
+script = ExtResource("localization_root")
+
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=1887207226]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MainPanelMotionHost" type="Control" parent="CenterContainer" unique_id=1441302026]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(620, 460)
+layout_mode = 2
+
+[node name="MainPanel" type="PanelContainer" parent="CenterContainer/MainPanelMotionHost" unique_id=1291523619]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MainPanelPadding" type="MarginContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel" unique_id=18075629]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="MainPanelContent" type="VBoxContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding" unique_id=1132124]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="HeadingLabel" type="Label" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=657096787]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_alignment = 1
+
+[node name="MouseSensitivityRow" type="HBoxContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=431778605]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MouseSensitivityLabel" type="Label" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/MouseSensitivityRow" unique_id=120619412]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MouseSensitivitySlider" type="HSlider" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/MouseSensitivityRow" unique_id=1227058514]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.1
+max_value = 5.0
+step = 0.05
+value = 0.6
+
+[node name="MouseSensitivityValue" type="Label" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/MouseSensitivityRow" unique_id=148176362]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+text = "0.60"
+horizontal_alignment = 1
+
+[node name="KeyboardLookEnabledRow" type="HBoxContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=681258856]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="KeyboardLookEnabledLabel" type="Label" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/KeyboardLookEnabledRow" unique_id=915656380]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="KeyboardLookEnabledCheck" type="CheckButton" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/KeyboardLookEnabledRow" unique_id=1795425074]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="KeyboardLookSpeedRow" type="HBoxContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=1392973164]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="KeyboardLookSpeedLabel" type="Label" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/KeyboardLookSpeedRow" unique_id=1577588027]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="KeyboardLookSpeedSlider" type="HSlider" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/KeyboardLookSpeedRow" unique_id=169616784]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.1
+max_value = 10.0
+step = 0.1
+value = 2.0
+
+[node name="KeyboardLookSpeedValue" type="Label" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/KeyboardLookSpeedRow" unique_id=1422040995]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+text = "2.00"
+horizontal_alignment = 1
+
+[node name="ButtonRow" type="HBoxContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=1107545596]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 2
+
+[node name="CancelButton" type="Button" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/ButtonRow" unique_id=2009081126]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="ResetButton" type="Button" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/ButtonRow" unique_id=1738305888]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="RebindButton" type="Button" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/ButtonRow" unique_id=1298509004]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="ApplyButton" type="Button" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/ButtonRow" unique_id=846775920]
+unique_name_in_owner = true
+layout_mode = 2

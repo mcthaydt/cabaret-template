@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://jbtongjvvs1u"]
+
+[ext_resource type="Script" uid="uid://b6bjh8jqo382n" path="res://scripts/core/ui/hud/ui_virtual_joystick.gd" id="1"]
+
+[node name="VirtualJoystick" type="Control" unique_id=1137824657]
+custom_minimum_size = Vector2(180, 180)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 180.0
+offset_bottom = 180.0
+script = ExtResource("1")
+joystick_radius = 90.0
+
+[node name="BaseTexture" type="TextureRect" parent="." unique_id=16308760]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="ThumbTexture" type="TextureRect" parent="." unique_id=1705897256]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 66.0
+offset_top = 66.0
+mouse_filter = 2

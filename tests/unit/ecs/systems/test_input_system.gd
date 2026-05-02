@@ -1,16 +1,16 @@
 extends BaseTest
 
-const ECS_MANAGER = preload("res://scripts/managers/m_ecs_manager.gd")
-const InputComponentScript = preload("res://scripts/ecs/components/c_input_component.gd")
-const PlayerTagComponentScript = preload("res://scripts/ecs/components/c_player_tag_component.gd")
-const InputSystemScript = preload("res://scripts/ecs/systems/s_input_system.gd")
-const InputDeviceManagerScript = preload("res://scripts/managers/m_input_device_manager.gd")
-const RS_SettingsInitialState = preload("res://scripts/resources/state/rs_settings_initial_state.gd")
-const U_StateHandoff = preload("res://scripts/state/utils/u_state_handoff.gd")
-const U_InputActions = preload("res://scripts/state/actions/u_input_actions.gd")
-const U_DeviceTypeConstants = preload("res://scripts/input/u_device_type_constants.gd")
-const KeyboardMouseSource = preload("res://scripts/input/sources/keyboard_mouse_source.gd")
-const GamepadSource = preload("res://scripts/input/sources/gamepad_source.gd")
+const ECS_MANAGER = preload("res://scripts/core/managers/m_ecs_manager.gd")
+const InputComponentScript = preload("res://scripts/core/ecs/components/c_input_component.gd")
+const PlayerTagComponentScript = preload("res://scripts/core/ecs/components/c_player_tag_component.gd")
+const InputSystemScript = preload("res://scripts/core/ecs/systems/s_input_system.gd")
+const InputDeviceManagerScript = preload("res://scripts/core/managers/m_input_device_manager.gd")
+const RS_SettingsInitialState = preload("res://scripts/core/resources/state/rs_settings_initial_state.gd")
+const U_StateHandoff = preload("res://scripts/core/state/utils/u_state_handoff.gd")
+const U_InputActions = preload("res://scripts/core/state/actions/u_input_actions.gd")
+const U_DeviceTypeConstants = preload("res://scripts/core/input/u_device_type_constants.gd")
+const KeyboardMouseSource = preload("res://scripts/core/input/sources/keyboard_mouse_source.gd")
+const GamepadSource = preload("res://scripts/core/input/sources/gamepad_source.gd")
 
 func before_all() -> void:
 	_ensure_action("move_left")
@@ -26,7 +26,7 @@ func before_all() -> void:
 	_ensure_action("sprint")
 
 func before_each() -> void:
-	U_StateHandoff.clear_all()  # Prevent StateHandoff pollution across tests (see DEV_PITFALLS)
+	U_StateHandoff.clear_all()  # Prevent StateHandoff pollution across tests (see docs/guides/pitfalls/TESTING.md)
 
 func after_each() -> void:
 	U_StateHandoff.clear_all()

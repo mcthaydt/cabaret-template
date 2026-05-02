@@ -1,11 +1,11 @@
 extends GutTest
 
-const SaveLoadMenuScene := preload("res://scenes/ui/overlays/ui_save_load_menu.tscn")
+const SaveLoadMenuScene := preload("res://scenes/core/ui/overlays/ui_save_load_menu.tscn")
 const U_SAVE_TEST_UTILS := preload("res://tests/unit/save/u_save_test_utils.gd")
-const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
-const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 
-const PLACEHOLDER_TEXTURE_PATH := "res://resources/ui/tex_save_slot_placeholder.png"
+const PLACEHOLDER_TEXTURE_PATH := "res://resources/core/ui/tex_save_slot_placeholder.png"
 const TEST_THUMB_DIR := "user://test_ui_thumbs/"
 
 var _test_save_manager: MockSaveManager
@@ -355,7 +355,7 @@ func _prepare_load_mode(store: M_StateStore) -> void:
 
 func _open_save_load_overlay_in_gameplay(store: M_StateStore) -> void:
 	if store != null:
-		store.dispatch(U_NavigationActions.set_shell(StringName("gameplay"), StringName("alleyway")))
+		store.dispatch(U_NavigationActions.set_shell(StringName("gameplay"), StringName("demo_room")))
 		store.dispatch(U_NavigationActions.open_pause())
 		store.dispatch(U_NavigationActions.open_overlay(StringName("save_load_menu_overlay")))
 		await wait_process_frames(2)

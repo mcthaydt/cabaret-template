@@ -1,9 +1,9 @@
 extends BaseTest
 
-const ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
-const BASE_ECS_COMPONENT := preload("res://scripts/ecs/base_ecs_component.gd")
-const C_SPAWN_RECOVERY_COMPONENT_PATH := "res://scripts/ecs/components/c_spawn_recovery_component.gd"
-const RS_SPAWN_RECOVERY_SETTINGS_PATH := "res://scripts/resources/ecs/rs_spawn_recovery_settings.gd"
+const ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
+const BASE_ECS_COMPONENT := preload("res://scripts/core/ecs/base_ecs_component.gd")
+const C_SPAWN_RECOVERY_COMPONENT_PATH := "res://scripts/core/ecs/components/c_spawn_recovery_component.gd"
+const RS_SPAWN_RECOVERY_SETTINGS_PATH := "res://scripts/core/resources/ecs/rs_spawn_recovery_settings.gd"
 
 func _load_script(path: String) -> Script:
 	var script_variant: Variant = load(path)

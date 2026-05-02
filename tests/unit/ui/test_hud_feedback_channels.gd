@@ -1,7 +1,7 @@
 extends GutTest
 
-const HUD_SCENE := preload("res://scenes/ui/hud/ui_hud_overlay.tscn")
-const U_SAVE_ACTIONS := preload("res://scripts/state/actions/u_save_actions.gd")
+const HUD_SCENE := preload("res://scenes/core/ui/hud/ui_hud_overlay.tscn")
+const U_SAVE_ACTIONS := preload("res://scripts/core/state/actions/u_save_actions.gd")
 
 var _store: M_StateStore
 var _hud: CanvasLayer
@@ -20,7 +20,7 @@ func before_each() -> void:
 	_store.navigation_initial_state = RS_NavigationInitialState.new()
 	add_child_autofree(_store)
 	await get_tree().process_frame
-	_store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	_store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	await get_tree().process_frame
 
 	_hud = HUD_SCENE.instantiate()

@@ -1,13 +1,13 @@
 extends BaseTest
 
-const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
-const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
-const RS_SCENE_INITIAL_STATE := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
-const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
-const RS_DOOR_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_door_interaction_config.gd")
-const RS_HAZARD_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_hazard_interaction_config.gd")
-const RS_SCENE_TRIGGER_SETTINGS := preload("res://scripts/resources/ecs/rs_scene_trigger_settings.gd")
-const INTERACTION_HINT_TEXTURE := preload("res://assets/textures/tex_icon.svg")
+const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
+const RS_STATE_STORE_SETTINGS := preload("res://scripts/core/resources/state/rs_state_store_settings.gd")
+const RS_SCENE_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_scene_initial_state.gd")
+const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_gameplay_initial_state.gd")
+const RS_DOOR_INTERACTION_CONFIG := preload("res://scripts/core/resources/interactions/rs_door_interaction_config.gd")
+const RS_HAZARD_INTERACTION_CONFIG := preload("res://scripts/core/resources/interactions/rs_hazard_interaction_config.gd")
+const RS_SCENE_TRIGGER_SETTINGS := preload("res://scripts/core/resources/ecs/rs_scene_trigger_settings.gd")
+const INTERACTION_HINT_TEXTURE := preload("res://assets/core/textures/tex_icon.svg")
 
 ## Minimal stub SceneManager for unit tests
 class TestSceneManager:

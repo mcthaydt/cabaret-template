@@ -1,7 +1,7 @@
 extends GutTest
 
-const U_BEAT_RUNNER := preload("res://scripts/utils/scene_director/u_beat_runner.gd")
-const RS_BEAT_DEFINITION := preload("res://scripts/resources/scene_director/rs_beat_definition.gd")
+const U_BEAT_RUNNER := preload("res://scripts/core/utils/scene_director/u_beat_runner.gd")
+const RS_BEAT_DEFINITION := preload("res://scripts/core/resources/scene_director/rs_beat_definition.gd")
 
 class StoreStub extends RefCounted:
 	var dispatched: Array[Dictionary] = []

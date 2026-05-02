@@ -1,6 +1,6 @@
 extends GutTest
 
-const TAB_SCENE := preload("res://scenes/ui/overlays/settings/ui_display_settings_tab.tscn")
+const TAB_SCENE := preload("res://scenes/core/ui/overlays/settings/ui_display_settings_tab.tscn")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 
 var _store: M_StateStore
@@ -43,12 +43,16 @@ func after_each() -> void:
 	_localization_manager = null
 
 func test_locale_change_relocalizes_labels_and_option_entries() -> void:
-	assert_eq(_tab._heading_label.text, "Display EN")
-	assert_eq(_tab._apply_button.text, "Apply EN")
+	var heading_label := _tab.find_child("HeadingLabel", true, false) as Label
+	var apply_button := _tab.find_child("ApplyButton", true, false) as Button
+	var window_mode_option := _tab.find_child("WindowModeOption", true, false) as OptionButton
+	
+	assert_eq(heading_label.text, "Display EN")
+	assert_eq(apply_button.text, "Apply EN")
 
 	var windowed_index: int = _tab._window_mode_values.find("windowed")
 	assert_true(windowed_index >= 0, "Window mode option should include windowed id")
-	assert_eq(_tab._window_mode_option.get_item_text(windowed_index), "Windowed EN")
+	assert_eq(window_mode_option.get_item_text(windowed_index), "Windowed EN")
 
 	_localization_manager.translations[&"settings.display.title"] = "Pantalla"
 	_localization_manager.translations[&"common.apply"] = "Aplicar"
@@ -57,9 +61,9 @@ func test_locale_change_relocalizes_labels_and_option_entries() -> void:
 	_tab._on_locale_changed(&"es")
 	await get_tree().process_frame
 
-	assert_eq(_tab._heading_label.text, "Pantalla")
-	assert_eq(_tab._apply_button.text, "Aplicar")
-	assert_eq(_tab._window_mode_option.get_item_text(windowed_index), "Ventana")
+	assert_eq(heading_label.text, "Pantalla")
+	assert_eq(apply_button.text, "Aplicar")
+	assert_eq(window_mode_option.get_item_text(windowed_index), "Ventana")
 
 class MockLocalizationManager extends Node:
 	var translations: Dictionary = {}

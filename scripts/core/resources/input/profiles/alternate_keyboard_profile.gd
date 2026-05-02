@@ -1,0 +1,23 @@
+extends RefCounted
+
+static func build() -> RS_InputProfile:
+	var builder := U_InputProfileBuilder.new()
+	builder.named("input.profile.alternate_keyboard.name")
+	builder.with_description("input.profile.alternate_keyboard.description")
+	builder.bind_key("move_forward", KEY_UP)
+	builder.bind_key("move_backward", KEY_DOWN)
+	builder.bind_key("move_left", KEY_LEFT)
+	builder.bind_key("move_right", KEY_RIGHT)
+	builder.bind_key("jump", KEY_SPACE)
+	builder.bind_key("sprint", KEY_SHIFT)
+	builder.bind_key("interact", KEY_E)
+	builder.bind_key("camera_center", KEY_C)
+	builder.bind_key("look_up", KEY_W)
+	builder.bind_key("look_down", KEY_S)
+	builder.bind_key("look_left", KEY_A)
+	builder.bind_key("look_right", KEY_D)
+	builder.bind_key("ui_up", KEY_W)
+	builder.bind_key("ui_down", KEY_S)
+	builder.bind_key("ui_left", KEY_A)
+	builder.bind_key("ui_right", KEY_D)
+	return builder.build()

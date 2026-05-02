@@ -2,7 +2,7 @@ extends GutTest
 
 ## Tests for UI_SplashScreen boot splash and preloading behavior
 
-const UI_SPLASH_SCREEN := preload("res://scripts/ui/menus/ui_splash_screen.gd")
+const UI_SPLASH_SCREEN := preload("res://scripts/core/ui/menus/ui_splash_screen.gd")
 
 var splash: Control  # UI_SplashScreen
 
@@ -20,11 +20,16 @@ func after_each() -> void:
 func _build_splash_screen() -> Control:
 	var root: Control = UI_SPLASH_SCREEN.new()
 
-	var crispy_panel := Control.new()
-	crispy_panel.name = "CrispyCabaretPanel"
-	crispy_panel.unique_name_in_owner = true
-	root.add_child(crispy_panel)
-	crispy_panel.owner = root
+	var game_logo_panel := Control.new()
+	game_logo_panel.name = "GameLogoPanel"
+	game_logo_panel.unique_name_in_owner = true
+	root.add_child(game_logo_panel)
+	game_logo_panel.owner = root
+
+	var game_name_label := Label.new()
+	game_name_label.name = "GameNameLabel"
+	game_logo_panel.add_child(game_name_label)
+	game_name_label.owner = root
 
 	var godot_panel := Control.new()
 	godot_panel.name = "GodotEnginePanel"
@@ -40,15 +45,13 @@ func _build_splash_screen() -> Control:
 
 	return root
 
-# --- Phase management ---
+func test_starts_on_game_logo_phase() -> void:
+	assert_eq(splash.get_current_phase(), UI_SPLASH_SCREEN.Phase.GAME_LOGO)
 
-func test_starts_on_crispy_cabaret_phase() -> void:
-	assert_eq(splash.get_current_phase(), UI_SPLASH_SCREEN.Phase.CRISPY_CABARET)
-
-func test_crispy_panel_visible_on_start() -> void:
-	var crispy: Control = splash.get_node("%CrispyCabaretPanel") as Control
+func test_game_logo_panel_visible_on_start() -> void:
+	var game_logo: Control = splash.get_node("%GameLogoPanel") as Control
 	var godot: Control = splash.get_node("%GodotEnginePanel") as Control
-	assert_true(crispy.visible, "Crispy panel should be visible initially")
+	assert_true(game_logo.visible, "Game logo panel should be visible initially")
 	assert_false(godot.visible, "Godot panel should be hidden initially")
 
 func test_skip_not_allowed_before_min_time() -> void:
@@ -66,9 +69,9 @@ func test_advance_to_godot_phase() -> void:
 		splash._process(1.0 / 60.0)
 	splash._advance_phase()
 	assert_eq(splash.get_current_phase(), UI_SPLASH_SCREEN.Phase.GODOT_ENGINE)
-	var crispy: Control = splash.get_node("%CrispyCabaretPanel") as Control
+	var game_logo: Control = splash.get_node("%GameLogoPanel") as Control
 	var godot: Control = splash.get_node("%GodotEnginePanel") as Control
-	assert_false(crispy.visible, "Crispy panel should be hidden after advance")
+	assert_false(game_logo.visible, "Game logo panel should be hidden after advance")
 	assert_true(godot.visible, "Godot panel should be visible after advance")
 
 func test_advance_from_godot_to_done() -> void:
@@ -89,8 +92,8 @@ func test_auto_advance_after_double_min_time() -> void:
 	for i in range(250):
 		splash._process(1.0 / 60.0)
 	assert_ne(
-		splash.get_current_phase(), UI_SPLASH_SCREEN.Phase.CRISPY_CABARET,
-		"Should auto-advance from crispy phase after 4s"
+		splash.get_current_phase(), UI_SPLASH_SCREEN.Phase.GAME_LOGO,
+		"Should auto-advance from game logo phase after 4s"
 	)
 
 func test_skip_hint_hidden_initially() -> void:
@@ -110,6 +113,16 @@ func test_gameplay_scene_path_resolves() -> void:
 	# power_core may or may not be registered depending on scene registry init
 	# Just verify the method doesn't crash and returns a String
 	assert_true(path is String, "Should return a String")
+
+func test_gameplay_scene_path_uses_configured_default_scene() -> void:
+	var config: RS_GameConfig = load("res://resources/core/cfg_game_config.tres") as RS_GameConfig
+	assert_not_null(config, "Game config should load")
+	if config == null:
+		return
+	var expected_path: String = U_SceneRegistry.get_scene_path(config.get_default_gameplay_scene_id())
+
+	assert_eq(splash._resolve_gameplay_scene_path(), expected_path,
+		"Splash preload should resolve the configured default gameplay scene")
 
 func test_preload_started_flag() -> void:
 	# Preload may or may not have started depending on scene registry

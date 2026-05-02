@@ -5,7 +5,7 @@ extends GutTest
 ## Validates that required fields and structure push_error when set to
 ## invalid values, and that valid values produce no errors.
 
-const RS_INPUT_PROFILE_PATH := "res://scripts/resources/input/rs_input_profile.gd"
+const RS_INPUT_PROFILE_PATH := "res://scripts/core/resources/input/rs_input_profile.gd"
 const TEST_RESOURCE_PATH := "res://tests/unit/resources/test_cfg_input_profile_invalid.tres"
 
 

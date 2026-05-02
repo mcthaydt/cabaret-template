@@ -1,10 +1,10 @@
 extends BaseTest
 
-const ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
-const MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
-const JUMP_COMPONENT := preload("res://scripts/ecs/components/c_jump_component.gd")
-const INPUT_COMPONENT := preload("res://scripts/ecs/components/c_input_component.gd")
-const ROTATE_COMPONENT := preload("res://scripts/ecs/components/c_rotate_to_input_component.gd")
+const ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
+const MOVEMENT_COMPONENT := preload("res://scripts/core/ecs/components/c_movement_component.gd")
+const JUMP_COMPONENT := preload("res://scripts/core/ecs/components/c_jump_component.gd")
+const INPUT_COMPONENT := preload("res://scripts/core/ecs/components/c_input_component.gd")
+const ROTATE_COMPONENT := preload("res://scripts/core/ecs/components/c_rotate_to_input_component.gd")
 
 func _add_manager() -> M_ECSManager:
 	var manager: M_ECSManager = ECS_MANAGER.new()
@@ -31,9 +31,9 @@ func test_movement_component_defaults_and_registration() -> void:
 	await _pump()
 
 	assert_eq(component.get_component_type(), MOVEMENT_COMPONENT.COMPONENT_TYPE)
-	assert_eq(component.settings.max_speed, 6.0)
-	assert_eq(component.settings.acceleration, 20.0)
-	assert_eq(component.settings.deceleration, 25.0)
+	assert_eq(component.settings.max_speed, 4.0)
+	assert_eq(component.settings.acceleration, 25.0)
+	assert_eq(component.settings.deceleration, 30.0)
 
 	var components := manager.get_components(MOVEMENT_COMPONENT.COMPONENT_TYPE)
 	assert_eq(components, [component])
@@ -54,7 +54,7 @@ func test_jump_component_defaults_and_registration() -> void:
 	await _pump()
 
 	assert_eq(component.get_component_type(), JUMP_COMPONENT.COMPONENT_TYPE)
-	assert_eq(component.settings.jump_force, 12.0)
+	assert_eq(component.settings.jump_force, 7.0)
 	assert_eq(component.settings.coyote_time, 0.28)
 	assert_eq(component.settings.max_air_jumps, 0)
 

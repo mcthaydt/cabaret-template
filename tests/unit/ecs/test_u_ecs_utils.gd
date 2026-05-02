@@ -1,11 +1,11 @@
 extends BaseTest
 
-const ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
-const ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
-const FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")
-const MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
-const FLOATING_SETTINGS := preload("res://scripts/resources/ecs/rs_floating_settings.gd")
-const CAMERA_MANAGER := preload("res://scripts/managers/m_camera_manager.gd")
+const ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
+const ECS_UTILS := preload("res://scripts/core/utils/ecs/u_ecs_utils.gd")
+const FLOATING_COMPONENT := preload("res://scripts/core/ecs/components/c_floating_component.gd")
+const MOVEMENT_COMPONENT := preload("res://scripts/core/ecs/components/c_movement_component.gd")
+const FLOATING_SETTINGS := preload("res://scripts/core/resources/ecs/rs_floating_settings.gd")
+const CAMERA_MANAGER := preload("res://scripts/core/managers/m_camera_manager.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 
 func before_each() -> void:
@@ -61,7 +61,7 @@ func test_find_entity_root_detects_ecs_entity() -> void:
 	autofree(manager)
 	await get_tree().process_frame
 
-	var entity_script := load("res://scripts/ecs/base_ecs_entity.gd")
+	var entity_script := load("res://scripts/core/ecs/base_ecs_entity.gd")
 	var entity := entity_script.new() as Node3D
 	entity.name = "E_Base"
 	manager.add_child(entity)

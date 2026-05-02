@@ -5,10 +5,10 @@ extends GutTest
 ## Verifies that per-sound throttles prevent rapid repeated plays
 ## based on the throttle_ms setting in RS_UISoundDefinition.
 
-const U_UI_SOUND_PLAYER := preload("res://scripts/ui/utils/u_ui_sound_player.gd")
-const M_AUDIO_MANAGER := preload("res://scripts/managers/m_audio_manager.gd")
+const U_UI_SOUND_PLAYER := preload("res://scripts/core/ui/utils/u_ui_sound_player.gd")
+const M_AUDIO_MANAGER := preload("res://scripts/core/managers/m_audio_manager.gd")
 const U_AUDIO_TEST_HELPERS := preload("res://tests/helpers/u_audio_test_helpers.gd")
-const U_AUDIO_REGISTRY_LOADER := preload("res://scripts/managers/helpers/u_audio_registry_loader.gd")
+const U_AUDIO_REGISTRY_LOADER := preload("res://scripts/core/managers/helpers/u_audio_registry_loader.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 
 var _manager: M_AUDIO_MANAGER

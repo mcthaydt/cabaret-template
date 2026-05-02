@@ -1,6 +1,6 @@
 extends GutTest
 
-const HUD_SCENE := preload("res://scenes/ui/hud/ui_hud_overlay.tscn")
+const HUD_SCENE := preload("res://scenes/core/ui/hud/ui_hud_overlay.tscn")
 const DeviceType := M_InputDeviceManager.DeviceType
 
 class LocalizationManagerStub extends Node:
@@ -99,7 +99,7 @@ func test_interact_prompt_updates_icon_on_device_switch() -> void:
 
 func test_interact_prompt_falls_back_to_text_when_icon_missing() -> void:
 	var action := StringName("custom_prompt_action")
-	U_ButtonPromptRegistry.register_prompt(action, DeviceType.GAMEPAD, "res://assets/button_prompts/gamepad/missing_button.png")
+	U_ButtonPromptRegistry.register_prompt(action, DeviceType.GAMEPAD, "res://assets/core/button_prompts/gamepad/missing_button.png")
 
 	_device_manager._on_joy_connection_changed(2, true)
 	await _await_frames(1)

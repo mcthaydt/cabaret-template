@@ -1,6 +1,6 @@
 extends GutTest
 
-const RESPONSE_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_response.gd")
+const RESPONSE_SCRIPT := preload("res://scripts/core/resources/display/vcam/rs_vcam_response.gd")
 
 func _new_response() -> Resource:
 	return RESPONSE_SCRIPT.new()

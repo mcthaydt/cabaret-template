@@ -1,9 +1,9 @@
 extends GutTest
 
-const TAB_SCENE := preload("res://scenes/ui/overlays/settings/ui_audio_settings_tab.tscn")
+const TAB_SCENE := preload("res://scenes/core/ui/overlays/settings/ui_audio_settings_tab.tscn")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
-const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 
 var _store: M_StateStore
 var _tab: UI_AudioSettingsTab
@@ -101,11 +101,11 @@ func test_audio_settings_tab_applies_row_separation_tokens_when_active_config_se
 		"Tab root separation should use separation_default token"
 	)
 
-	var master_row := _tab.get_node_or_null("MasterRow") as HBoxContainer
-	var music_row := _tab.get_node_or_null("MusicRow") as HBoxContainer
-	var sfx_row := _tab.get_node_or_null("SFXRow") as HBoxContainer
-	var ambient_row := _tab.get_node_or_null("AmbientRow") as HBoxContainer
-	var button_row := _tab.get_node_or_null("ButtonRow") as HBoxContainer
+	var master_row := _tab._master_row
+	var music_row := _tab._music_row
+	var sfx_row := _tab._sfx_row
+	var ambient_row := _tab._ambient_row
+	var button_row := _tab._button_row
 
 	var default_rows: Array[HBoxContainer] = [master_row, music_row, sfx_row, ambient_row]
 	for row in default_rows:
@@ -125,18 +125,21 @@ func test_audio_settings_tab_applies_row_separation_tokens_when_active_config_se
 			"Button row should use separation_compact token"
 		)
 
+	var heading_label := _find_child_by_name(_tab, "HeadingLabel") as Label
+	var master_label := _find_child_by_name(_tab, "MasterVolumeSlider").get_parent().get_child(0) as Label
+	
 	assert_eq(
-		_tab._heading_label.get_theme_font_size(&"font_size"),
+		heading_label.get_theme_font_size(&"font_size"),
 		config.heading,
 		"Heading should use heading font token"
 	)
 	assert_eq(
-		_tab._master_label.get_theme_font_size(&"font_size"),
+		master_label.get_theme_font_size(&"font_size"),
 		config.body_small,
 		"Master label should use body_small font token"
 	)
 	assert_true(
-		_tab._master_label.get_theme_color(&"font_color").is_equal_approx(config.text_secondary),
+		master_label.get_theme_color(&"font_color").is_equal_approx(config.text_secondary),
 		"Master label should use text_secondary color token"
 	)
 	assert_eq(
@@ -144,3 +147,12 @@ func test_audio_settings_tab_applies_row_separation_tokens_when_active_config_se
 		config.section_header,
 		"Apply button should use section_header font token"
 	)
+
+func _find_child_by_name(parent: Node, name: String) -> Node:
+	for child in parent.get_children():
+		if child.name == name:
+			return child
+		var result := _find_child_by_name(child, name)
+		if result != null:
+			return result
+	return null

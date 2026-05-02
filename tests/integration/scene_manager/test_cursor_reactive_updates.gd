@@ -2,7 +2,7 @@ extends GutTest
 
 ## Integration test for reactive cursor updates on scene changes
 
-const M_TIME_MANAGER := preload("res://scripts/managers/m_time_manager.gd")
+const M_TIME_MANAGER := preload("res://scripts/core/managers/m_time_manager.gd")
 
 var _root: Node
 var _store: M_StateStore

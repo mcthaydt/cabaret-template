@@ -1,0 +1,16 @@
+extends RefCounted
+
+const U_QB_RULE_BUILDER := preload("res://scripts/core/utils/qb/u_qb_rule_builder.gd")
+
+func build() -> RS_Rule:
+	return U_QB_RULE_BUILDER.rule(&"pause_gate_paused",
+		[
+			U_QB_RULE_BUILDER.redux_field("time.is_paused", RS_ConditionReduxField.MATCH_EQUALS, "true"),
+		],
+		[
+			U_QB_RULE_BUILDER.set_context(&"is_gameplay_active", false, {}),
+		],
+		{
+			"decision_group": &"pause_gate",
+		}
+	)

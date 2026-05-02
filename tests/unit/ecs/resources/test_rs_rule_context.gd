@@ -1,13 +1,13 @@
 extends GutTest
 
-const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/ecs/components/c_character_state_component.gd")
+const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/core/ecs/components/c_character_state_component.gd")
 
 # RSRuleContext is the class under test.
 
 var _context_class: Script = null
 
 func before_each() -> void:
-	var script_path := "res://scripts/resources/ecs/rs_rule_context.gd"
+	var script_path := "res://scripts/core/resources/ecs/rs_rule_context.gd"
 	var script_obj: Variant = load(script_path)
 	if script_obj is Script:
 		_context_class = script_obj
@@ -377,7 +377,7 @@ func test_to_dictionary_is_compatible_with_rule_utils_get_context_value() -> voi
 	var dict: Dictionary = context.call("to_dictionary")
 
 	# U_RuleUtils.get_context_value should find values by string key lookup
-	var U_RULE_UTILS := load("res://scripts/utils/ecs/u_rule_utils.gd")
+	var U_RULE_UTILS := load("res://scripts/core/utils/ecs/u_rule_utils.gd")
 	var rule_utils: RefCounted = U_RULE_UTILS.new()
 
 	var entity_id: Variant = rule_utils.call("get_context_value", dict, "entity_id")

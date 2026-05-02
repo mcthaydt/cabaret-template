@@ -1,10 +1,9 @@
 extends BaseTest
 
-const M_CHARACTER_LIGHTING_MANAGER := preload("res://scripts/managers/m_character_lighting_manager.gd")
+const M_CHARACTER_LIGHTING_MANAGER := preload("res://scripts/core/managers/m_character_lighting_manager.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
-const I_ECS_MANAGER := preload("res://scripts/interfaces/i_ecs_manager.gd")
-const I_SCENE_MANAGER := preload("res://scripts/interfaces/i_scene_manager.gd")
-const RS_CHARACTER_LIGHTING_PROFILE := preload("res://scripts/resources/lighting/rs_character_lighting_profile.gd")
+const I_ECS_MANAGER := preload("res://scripts/core/interfaces/i_ecs_manager.gd")
+const I_SCENE_MANAGER := preload("res://scripts/core/interfaces/i_scene_manager.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 
 const PARAM_EFFECTIVE_TINT := "effective_tint"
@@ -64,6 +63,18 @@ class FakeSceneManager extends I_SceneManager:
 
 class FakeCharacterLightingSettings extends Node:
 	var default_profile: Resource = null
+
+class FakeCharacterLightingProfile extends Resource:
+	var tint: Color = Color.WHITE
+	var intensity: float = 1.0
+	var blend_smoothing: float = 0.0
+
+	func get_resolved_values() -> Dictionary:
+		return {
+			"tint": tint,
+			"intensity": intensity,
+			"blend_smoothing": blend_smoothing,
+		}
 
 class FakeLightZone extends Node3D:
 	var zone_weight: float = 0.0
@@ -131,7 +142,7 @@ func test_discovers_zones_and_scene_default_profile_from_lighting_subtree() -> v
 	var context := await _create_manager_context()
 	var manager: M_CharacterLightingManager = context.manager
 
-	var default_profile := RS_CHARACTER_LIGHTING_PROFILE.new()
+	var default_profile := FakeCharacterLightingProfile.new()
 	default_profile.tint = Color(0.2, 0.3, 0.4, 1.0)
 	default_profile.intensity = 1.8
 	var settings := FakeCharacterLightingSettings.new()

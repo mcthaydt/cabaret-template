@@ -1,0 +1,159 @@
+@icon("res://assets/core/editor_icons/icn_system.svg")
+extends Node
+
+class_name BaseECSSystem
+
+const ECS_UTILS := preload("res://scripts/core/utils/ecs/u_ecs_utils.gd")
+static var _missing_manager_method_warnings: Dictionary = {}
+
+## System execution phases, ordered by intended execution sequence.
+## Systems in earlier phases run before systems in later phases.
+## Within a phase, execution_priority determines ordering.
+enum SystemPhase {
+	PRE_PHYSICS,    ## AI perception, decision-making, target setting
+	INPUT,           ## Player input capture
+	PHYSICS_SOLVE,   ## Core physics/movement calculations
+	POST_PHYSICS,    ## Game state evaluation, handlers, recovery
+	CAMERA,           ## Camera processing, visibility, checkpoints
+	VFX,              ## Visual/audio effects, HUD feedback
+}
+
+var _manager: I_ECSManager
+var _configured: bool = false
+var _execution_priority: int = 0
+var _debug_disabled: bool = false
+
+## Injected ECS manager (for testing)
+## If set via @export, system uses this instead of auto-discovery
+## Phase 10B-8 (T142c): Enable dependency injection for isolated testing
+@export var ecs_manager: I_ECSManager = null
+
+@export var execution_priority: int:
+	get:
+		return _execution_priority
+	set(value):
+		var clamped := clampi(value, -100, 1000)
+		if _execution_priority == clamped:
+			return
+		_execution_priority = clamped
+		_notify_manager_priority_changed()
+
+func _ready() -> void:
+	call_deferred("_register_with_manager")
+
+func configure(manager: I_ECSManager) -> void:
+	_manager = manager
+	_notify_manager_priority_changed()
+	_configured = true
+	on_configured()
+
+func on_configured() -> void:
+	pass
+
+func get_manager() -> I_ECSManager:
+	# Prioritize injected manager for tests (Phase 10B-8)
+	if ecs_manager != null:
+		return ecs_manager
+	return _manager
+
+## Returns the frame state snapshot for this tick.
+##
+## Tries the ECS manager's get_frame_state_snapshot() first (fastest path).
+## If the manager returns an empty snapshot, falls through to the state store
+## via _resolve_state_store() — an empty manager snapshot typically means no
+## components are registered yet, so the store provides the actual state.
+## Returns an empty Dictionary if neither is available.
+func get_frame_state_snapshot() -> Dictionary:
+	var manager := get_manager()
+	if manager != null and manager.has_method("get_frame_state_snapshot"):
+		var snapshot: Variant = manager.get_frame_state_snapshot()
+		if snapshot is Dictionary and not (snapshot as Dictionary).is_empty():
+			return snapshot as Dictionary
+	var store := _resolve_state_store()
+	if store != null:
+		return store.get_state()
+	return {}
+
+## Resolves the state store for this system.
+##
+## Default implementation uses U_DependencyResolution.resolve_state_store()
+## with ServiceLocator fallback only. Subclasses with @export var state_store
+## should override this to pass their export value.
+##
+## Example override:
+##   func _resolve_state_store() -> I_StateStore:
+##       return U_DependencyResolution.resolve_state_store(null, state_store, self)
+func _resolve_state_store() -> I_StateStore:
+	return U_DependencyResolution.resolve_state_store(null, null, self)
+
+func get_components(component_type: StringName) -> Array:
+	if _manager == null:
+		return []
+	var components: Array = _manager.get_components(component_type)
+	return components.duplicate()
+
+func query_entities(required: Array[StringName], optional: Array[StringName] = []) -> Array:
+	if _manager == null:
+		return []
+	return _manager.query_entities(required, optional)
+
+func set_debug_disabled(disabled: bool) -> void:
+	_debug_disabled = disabled
+
+func is_debug_disabled() -> bool:
+	return _debug_disabled
+
+## Returns the execution phase for this system.
+## Override in subclasses to declare a specific phase.
+## Default is PHYSICS_SOLVE — the most common bucket for gameplay systems.
+func get_phase() -> SystemPhase:
+	return SystemPhase.PHYSICS_SOLVE
+
+func process_tick(_delta: float) -> void:
+	pass
+
+func _physics_process(delta: float) -> void:
+	# Allow manual invocation when the system is not managed,
+	# but only after on_configured() has initialized the system.
+	if _manager == null and _configured:
+		process_tick(delta)
+
+func _register_with_manager() -> void:
+	# Use injected manager if available (Phase 10B-8)
+	if ecs_manager != null:
+		ecs_manager.register_system(self)
+		return
+
+	# Otherwise, auto-discover
+	var manager := ECS_UTILS.get_manager(self) as I_ECSManager
+	if manager == null:
+		return
+	manager.register_system(self)
+
+func _notify_manager_priority_changed() -> void:
+	if _manager == null:
+		return
+	_manager.mark_systems_dirty()
+
+func _warn_missing_manager_method(method_name: String) -> void:
+	if _manager == null:
+		return
+	if not is_instance_valid(_manager):
+		return
+	if not OS.is_debug_build() and not Engine.is_editor_hint():
+		return
+
+	var key := "%s:%d" % [method_name, _manager.get_instance_id()]
+	if _missing_manager_method_warnings.has(key):
+		return
+	_missing_manager_method_warnings[key] = true
+
+	var identifier := String(_manager.name)
+	if _manager.is_inside_tree():
+		identifier = String(_manager.get_path())
+
+	push_warning("BaseECSSystem: Manager '%s' is missing required method '%s' (requested by system '%s')." % [
+		String(identifier),
+		method_name,
+		String(name),
+	])

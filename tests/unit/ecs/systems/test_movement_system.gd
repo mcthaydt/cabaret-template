@@ -1,15 +1,13 @@
 extends BaseTest
 
-const ECS_MANAGER = preload("res://scripts/managers/m_ecs_manager.gd")
-const MovementComponentScript = preload("res://scripts/ecs/components/c_movement_component.gd")
-const MovementSystemScript = preload("res://scripts/ecs/systems/s_movement_system.gd")
-const InputComponentScript = preload("res://scripts/ecs/components/c_input_component.gd")
-const FloatingComponentScript = preload("res://scripts/ecs/components/c_floating_component.gd")
-const AIBrainComponentScript = preload("res://scripts/ecs/components/c_ai_brain_component.gd")
-const AIBrainSettingsScript = preload("res://scripts/resources/ai/brain/rs_ai_brain_settings.gd")
-const ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
+const ECS_MANAGER = preload("res://scripts/core/managers/m_ecs_manager.gd")
+const MovementComponentScript = preload("res://scripts/core/ecs/components/c_movement_component.gd")
+const MovementSystemScript = preload("res://scripts/core/ecs/systems/s_movement_system.gd")
+const InputComponentScript = preload("res://scripts/core/ecs/components/c_input_component.gd")
+const FloatingComponentScript = preload("res://scripts/core/ecs/components/c_floating_component.gd")
+const ECS_UTILS := preload("res://scripts/core/utils/ecs/u_ecs_utils.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
+const I_CAMERA_MANAGER := preload("res://scripts/core/interfaces/i_camera_manager.gd")
 
 class FakeBody extends CharacterBody3D:
 	var move_called: bool = false
@@ -60,7 +58,7 @@ func after_each() -> void:
 func _pump() -> void:
 	await get_tree().process_frame
 
-func _setup_entity(include_floating: bool = false, include_ai_brain: bool = false) -> Dictionary:
+func _setup_entity(include_floating: bool = false) -> Dictionary:
 	# Create M_StateStore first (required by systems)
 	var store := M_StateStore.new()
 	store.settings = RS_StateStoreSettings.new()
@@ -89,13 +87,6 @@ func _setup_entity(include_floating: bool = false, include_ai_brain: bool = fals
 	entity.add_child(input)
 	await _pump()
 
-	var ai_brain: C_AIBrainComponent = null
-	if include_ai_brain:
-		ai_brain = AIBrainComponentScript.new()
-		ai_brain.brain_settings = AIBrainSettingsScript.new()
-		entity.add_child(ai_brain)
-		await _pump()
-
 	var body: FakeBody = FakeBody.new()
 	entity.add_child(body)
 	await _pump()
@@ -120,7 +111,6 @@ func _setup_entity(include_floating: bool = false, include_ai_brain: bool = fals
 		"body": body,
 		"system": system,
 		"floating": floating,
-		"ai_brain": ai_brain,
 	}
 
 func _register_camera(camera: Camera3D) -> void:
@@ -341,28 +331,3 @@ func test_movement_system_processes_without_manual_wiring() -> void:
 	manager._physics_process(0.1)
 
 	assert_true(body.velocity.x > 0.0, "Movement System should use query_entities to retrieve input component without manual wiring.")
-
-func test_ai_entities_use_world_space_input_instead_of_camera_relative() -> void:
-	var context: Dictionary = await _setup_entity(false, true)
-	autofree_context(context)
-	var movement: C_MovementComponent = context["movement"]
-	var input: C_InputComponent = context["input"]
-	var body: FakeBody = context["body"]
-	var manager: M_ECSManager = context["manager"]
-
-	movement.settings.use_second_order_dynamics = false
-	movement.settings.max_speed = 10.0
-	movement.settings.acceleration = 100.0
-
-	var camera := Camera3D.new()
-	add_child_autofree(camera)
-	camera.rotation = Vector3(0.0, -PI / 2.0, 0.0)
-	_register_camera(camera)
-
-	body.velocity = Vector3.ZERO
-	input.set_move_vector(Vector2.RIGHT)
-
-	manager._physics_process(0.1)
-
-	assert_true(body.velocity.x > 0.0)
-	assert_almost_eq(body.velocity.z, 0.0, 0.01)

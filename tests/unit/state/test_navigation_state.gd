@@ -2,7 +2,7 @@ extends GutTest
 
 ## Tests for navigation slice reducer, selectors, and initial state
 
-const StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
+const StateHandoff := preload("res://scripts/core/state/utils/u_state_handoff.gd")
 
 var _store
 
@@ -29,7 +29,7 @@ func test_navigation_initial_state_defaults() -> void:
 func test_open_close_pause_flow() -> void:
 	var state: Dictionary = {
 		"shell": StringName("gameplay"),
-		"base_scene_id": StringName("alleyway"),
+		"base_scene_id": StringName("demo_room"),
 		"overlay_stack": [],
 		"active_menu_panel": StringName("menu/main")
 	}
@@ -46,7 +46,7 @@ func test_open_close_pause_flow() -> void:
 func test_nested_overlay_navigation_returns_to_pause_then_resumes_gameplay() -> void:
 	var state: Dictionary = {
 		"shell": StringName("gameplay"),
-		"base_scene_id": StringName("alleyway"),
+		"base_scene_id": StringName("demo_room"),
 		"overlay_stack": [StringName("pause_menu")],
 		"overlay_return_stack": [],
 		"active_menu_panel": StringName("pause/root")
@@ -69,7 +69,7 @@ func test_nested_overlay_navigation_returns_to_pause_then_resumes_gameplay() -> 
 func test_overlay_close_mode_resumes_gameplay_directly() -> void:
 	var state: Dictionary = {
 		"shell": StringName("gameplay"),
-		"base_scene_id": StringName("alleyway"),
+		"base_scene_id": StringName("demo_room"),
 		"overlay_stack": [StringName("settings_menu_overlay")],
 		"overlay_return_stack": [StringName("pause_menu")],
 		"active_menu_panel": StringName("pause/root")
@@ -96,7 +96,7 @@ func test_set_menu_panel_updates_active_panel() -> void:
 func test_endgame_retry_and_return_to_menu() -> void:
 	var state: Dictionary = {
 		"shell": StringName("gameplay"),
-		"base_scene_id": StringName("alleyway"),
+		"base_scene_id": StringName("demo_room"),
 		"overlay_stack": [],
 		"active_menu_panel": StringName("menu/main")
 	}
@@ -108,12 +108,23 @@ func test_endgame_retry_and_return_to_menu() -> void:
 
 	var retry_state: Dictionary = U_NavigationReducer.reduce(endgame_state, U_NavigationActions.retry())
 	assert_eq(retry_state.get("shell"), StringName("gameplay"), "Retry should return to gameplay shell")
-	assert_eq(retry_state.get("base_scene_id"), StringName("alleyway"), "Retry should restore last gameplay scene")
+	assert_eq(retry_state.get("base_scene_id"), StringName("demo_room"), "Retry should restore last gameplay scene")
 
 	var menu_state: Dictionary = U_NavigationReducer.reduce(endgame_state, U_NavigationActions.return_to_main_menu())
 	assert_eq(menu_state.get("shell"), StringName("main_menu"), "Return to main menu should switch shell")
 	assert_eq(menu_state.get("base_scene_id"), StringName("main_menu"), "Base scene should point to main menu after return_to_main_menu")
 	assert_eq(menu_state.get("overlay_stack"), [], "Overlays should be cleared when returning to main menu")
+
+func test_start_game_without_scene_uses_configured_default_gameplay_scene() -> void:
+	var state: Dictionary = RS_NavigationInitialState.new().to_dictionary()
+
+	var gameplay_state: Dictionary = U_NavigationReducer.reduce(state, U_NavigationActions.start_game())
+
+	assert_eq(gameplay_state.get("shell"), StringName("gameplay"), "Blank start_game should enter gameplay shell")
+	assert_eq(gameplay_state.get("base_scene_id"), _get_expected_default_gameplay_scene(),
+		"Blank start_game should target the configured default gameplay scene")
+	assert_eq(gameplay_state.get("last_gameplay_scene_id"), _get_expected_default_gameplay_scene(),
+		"Blank start_game should track the configured default gameplay scene")
 
 ## T011: Victory skip flows
 func test_victory_skip_to_credits_and_menu() -> void:
@@ -151,7 +162,7 @@ func test_open_overlay_ignored_in_wrong_shell() -> void:
 func test_navigation_selectors_reflect_state_and_do_not_mutate() -> void:
 	var state: Dictionary = {
 		"shell": StringName("gameplay"),
-		"base_scene_id": StringName("alleyway"),
+		"base_scene_id": StringName("demo_room"),
 		"overlay_stack": [StringName("settings_menu_overlay")],
 		"overlay_return_stack": [StringName("pause_menu")],
 		"active_menu_panel": StringName("pause/root")
@@ -166,7 +177,7 @@ func test_navigation_selectors_reflect_state_and_do_not_mutate() -> void:
 	var active_panel: StringName = U_NavigationSelectors.get_active_menu_panel(state)
 
 	assert_eq(shell, StringName("gameplay"), "Selector should return shell")
-	assert_eq(base_scene_id, StringName("alleyway"), "Selector should return base scene id")
+	assert_eq(base_scene_id, StringName("demo_room"), "Selector should return base scene id")
 	assert_eq(overlay_stack, [StringName("settings_menu_overlay")], "Selector should return overlay stack copy")
 	assert_eq(top_overlay, StringName("settings_menu_overlay"), "Top overlay should be settings menu overlay")
 	assert_eq(close_mode, U_NavigationReducer.CloseMode.RETURN_TO_PREVIOUS_OVERLAY, "Settings overlay should return to previous overlay")
@@ -191,7 +202,13 @@ func test_navigation_slice_initializes_in_state_store() -> void:
 	var navigation_slice: Dictionary = _store.get_slice(StringName("navigation"))
 	assert_eq(navigation_slice.get("shell"), StringName("main_menu"), "Navigation slice should initialize with default shell")
 
-	_store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	_store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	_store.dispatch(U_NavigationActions.open_pause())
 	var updated_slice: Dictionary = _store.get_slice(StringName("navigation"))
 	assert_true(updated_slice.get("overlay_stack", []).size() > 0, "Navigation slice should update via dispatched actions")
+
+func _get_expected_default_gameplay_scene() -> StringName:
+	var config: RS_GameConfig = load("res://resources/core/cfg_game_config.tres") as RS_GameConfig
+	if config == null:
+		return StringName("demo_room")
+	return config.get_default_gameplay_scene_id()

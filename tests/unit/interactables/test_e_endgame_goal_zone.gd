@@ -1,14 +1,14 @@
 extends BaseTest
 
-const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
-const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
-const RS_SCENE_INITIAL_STATE := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
-const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
-const RS_OBJECTIVES_INITIAL_STATE := preload("res://scripts/resources/state/rs_objectives_initial_state.gd")
-const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
-const U_OBJECTIVES_ACTIONS := preload("res://scripts/state/actions/u_objectives_actions.gd")
-const RS_ENDGAME_GOAL_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_endgame_goal_interaction_config.gd")
-const RS_VICTORY_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_victory_interaction_config.gd")
+const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
+const RS_STATE_STORE_SETTINGS := preload("res://scripts/core/resources/state/rs_state_store_settings.gd")
+const RS_SCENE_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_scene_initial_state.gd")
+const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_gameplay_initial_state.gd")
+const RS_OBJECTIVES_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_objectives_initial_state.gd")
+const U_GAMEPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
+const U_OBJECTIVES_ACTIONS := preload("res://scripts/core/state/actions/u_objectives_actions.gd")
+const RS_ENDGAME_GOAL_INTERACTION_CONFIG := preload("res://scripts/core/resources/interactions/rs_endgame_goal_interaction_config.gd")
+const RS_VICTORY_INTERACTION_CONFIG := preload("res://scripts/core/resources/interactions/rs_victory_interaction_config.gd")
 
 var _store: M_StateStore = null
 

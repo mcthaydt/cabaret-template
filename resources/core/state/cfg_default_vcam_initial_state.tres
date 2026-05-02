@@ -1,0 +1,6 @@
+[gd_resource type="Resource" script_class="RS_VCamInitialState" format=3 uid="uid://bgnybbenm5glv"]
+
+[ext_resource type="Script" uid="uid://rxfa6jrhu7c3" path="res://scripts/core/resources/state/rs_vcam_initial_state.gd" id="1_vcam_state"]
+
+[resource]
+script = ExtResource("1_vcam_state")

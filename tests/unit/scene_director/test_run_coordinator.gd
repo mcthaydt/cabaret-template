@@ -1,12 +1,12 @@
 extends GutTest
 
-const M_RUN_COORDINATOR := preload("res://scripts/managers/m_run_coordinator_manager.gd")
-const I_STATE_STORE := preload("res://scripts/interfaces/i_state_store.gd")
-const I_OBJECTIVES_MANAGER := preload("res://scripts/interfaces/i_objectives_manager.gd")
-const U_RUN_ACTIONS := preload("res://scripts/state/actions/u_run_actions.gd")
-const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
-const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const U_INTERACT_BLOCKER := preload("res://scripts/utils/u_interact_blocker.gd")
+const M_RUN_COORDINATOR := preload("res://scripts/core/managers/m_run_coordinator_manager.gd")
+const I_STATE_STORE := preload("res://scripts/core/interfaces/i_state_store.gd")
+const I_OBJECTIVES_MANAGER := preload("res://scripts/core/interfaces/i_objectives_manager.gd")
+const U_RUN_ACTIONS := preload("res://scripts/core/state/actions/u_run_actions.gd")
+const U_GAMEPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
+const U_NAVIGATION_ACTIONS := preload("res://scripts/core/state/actions/u_navigation_actions.gd")
+const U_INTERACT_BLOCKER := preload("res://scripts/core/utils/u_interact_blocker.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 
 class RunStoreStub extends I_STATE_STORE:
@@ -90,7 +90,7 @@ func test_run_reset_dispatches_gameplay_reset_then_retry_and_resets_objectives()
 	if retry_index >= 0:
 		assert_eq(
 			actions[retry_index].get("scene_id", StringName("")),
-			coordinator.game_config.retry_scene_id
+			coordinator.game_config.get_retry_scene_id()
 		)
 	assert_eq(objectives_manager.reset_calls, 1)
 	assert_eq(objectives_manager.last_set_id, StringName("default_progression"))
@@ -108,6 +108,7 @@ func test_run_reset_without_objectives_manager_still_resets_and_retries() -> voi
 	var actions: Array[Dictionary] = _store.get_dispatched_actions()
 	assert_true(_find_action_index(actions, U_GAMEPLAY_ACTIONS.ACTION_RESET_PROGRESS) >= 0)
 	assert_true(_find_action_index(actions, U_NAVIGATION_ACTIONS.ACTION_RETRY) >= 0)
+	assert_engine_error("objectives_manager not available during run/reset")
 
 func test_reentrant_run_reset_requests_are_ignored_while_in_flight() -> void:
 	var coordinator := M_RUN_COORDINATOR.new()
@@ -122,6 +123,7 @@ func test_reentrant_run_reset_requests_are_ignored_while_in_flight() -> void:
 	var actions: Array[Dictionary] = _store.get_dispatched_actions()
 	assert_eq(_count_actions(actions, U_GAMEPLAY_ACTIONS.ACTION_RESET_PROGRESS), 1)
 	assert_eq(_count_actions(actions, U_NAVIGATION_ACTIONS.ACTION_RETRY), 1)
+	assert_engine_error("objectives_manager not available during run/reset")
 
 func _find_action_index(actions: Array[Dictionary], action_type: StringName) -> int:
 	for i in range(actions.size()):

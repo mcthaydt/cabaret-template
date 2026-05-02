@@ -1,8 +1,0 @@
-[gd_resource type="Resource" script_class="RS_MovementSettings" format=3 uid="uid://86yp0ka600um"]
-
-[ext_resource type="Script" uid="uid://cgg18lw8rwn8m" path="res://scripts/resources/ecs/rs_movement_settings.gd" id="1_0"]
-
-[resource]
-script = ExtResource("1_0")
-air_control_scale = 0.6
-slope_limit_degrees = 35.0

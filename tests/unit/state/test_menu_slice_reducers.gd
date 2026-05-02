@@ -2,8 +2,8 @@ extends GutTest
 
 ## Tests for MenuReducer pure functions
 
-const StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
-const MenuReducer := preload("res://scripts/state/reducers/u_menu_reducer.gd")
+const StateHandoff := preload("res://scripts/core/state/utils/u_state_handoff.gd")
+const MenuReducer := preload("res://scripts/core/state/reducers/u_menu_reducer.gd")
 
 func before_each() -> void:
 	U_StateEventBus.reset()

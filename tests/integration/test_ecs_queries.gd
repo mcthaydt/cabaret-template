@@ -1,13 +1,13 @@
 extends BaseTest
 
-const BASE_SCENE := preload("res://scenes/templates/tmpl_base_scene.tscn")
+const BASE_SCENE := preload("res://scenes/core/templates/tmpl_base_scene.tscn")
 const MOVEMENT_TYPE := StringName("C_MovementComponent")
 const INPUT_TYPE := StringName("C_InputComponent")
 const FLOATING_TYPE := StringName("C_FloatingComponent")
 
-const MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
-const INPUT_COMPONENT := preload("res://scripts/ecs/components/c_input_component.gd")
-const MOVEMENT_SETTINGS := preload("res://resources/base_settings/gameplay/cfg_movement_default.tres")
+const MOVEMENT_COMPONENT := preload("res://scripts/core/ecs/components/c_movement_component.gd")
+const INPUT_COMPONENT := preload("res://scripts/core/ecs/components/c_input_component.gd")
+const MOVEMENT_SETTINGS := preload("res://resources/core/base_settings/gameplay/cfg_movement_default.tres")
 const U_ServiceLocator = preload("res://scripts/core/u_service_locator.gd")
 
 var _state_store: M_StateStore = null

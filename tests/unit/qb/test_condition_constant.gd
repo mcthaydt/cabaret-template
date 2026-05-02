@@ -1,6 +1,6 @@
 extends BaseTest
 
-const CONDITION_CONSTANT := preload("res://scripts/resources/qb/conditions/rs_condition_constant.gd")
+const CONDITION_CONSTANT := preload("res://scripts/core/resources/qb/conditions/rs_condition_constant.gd")
 
 func test_returns_configured_score_regardless_of_context() -> void:
 	var condition: Variant = CONDITION_CONSTANT.new()

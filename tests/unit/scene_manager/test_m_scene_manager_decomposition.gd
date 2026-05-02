@@ -8,13 +8,13 @@ extends GutTest
 ## These methods were extracted from the 155-line _perform_transition god method
 ## as part of cleanup-v7 C6 Commit 4.
 
-const M_SceneManager = preload("res://scripts/managers/m_scene_manager.gd")
-const M_StateStore = preload("res://scripts/state/m_state_store.gd")
-const RS_SceneInitialState = preload("res://scripts/resources/state/rs_scene_initial_state.gd")
-const RS_StateStoreSettings = preload("res://scripts/resources/state/rs_state_store_settings.gd")
+const M_SceneManager = preload("res://scripts/core/managers/m_scene_manager.gd")
+const M_StateStore = preload("res://scripts/core/state/m_state_store.gd")
+const RS_SceneInitialState = preload("res://scripts/core/resources/state/rs_scene_initial_state.gd")
+const RS_StateStoreSettings = preload("res://scripts/core/resources/state/rs_state_store_settings.gd")
 const U_ServiceLocator = preload("res://scripts/core/u_service_locator.gd")
 const MockCameraManager = preload("res://tests/mocks/mock_camera_manager.gd")
-const U_TransitionState = preload("res://scripts/scene_management/helpers/u_transition_state.gd")
+const U_TransitionState = preload("res://scripts/core/scene_management/helpers/u_transition_state.gd")
 
 var _manager: M_SceneManager
 var _store: M_StateStore
@@ -176,7 +176,7 @@ func test_finalize_blend_uses_camera_manager_is_blend_active() -> void:
 # --- _perform_transition line count test ---
 
 func test_perform_transition_under_40_lines() -> void:
-	var script := load("res://scripts/managers/m_scene_manager.gd") as GDScript
+	var script := load("res://scripts/core/managers/m_scene_manager.gd") as GDScript
 	var source: String = script.source_code
 	var lines := source.split("\n")
 

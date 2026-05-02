@@ -3,12 +3,12 @@ extends GutTest
 ## Integration test: Settings overlay with return to Pause (Phase 6.5)
 ## Tests generic overlay navigation using push_overlay_with_return / pop_overlay_with_return
 
-const M_SCENE_MANAGER := preload("res://scripts/managers/m_scene_manager.gd")
-const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
-const M_CURSOR_MANAGER := preload("res://scripts/managers/m_cursor_manager.gd")
-const S_PAUSE_SYSTEM := preload("res://scripts/managers/m_time_manager.gd")
-const RS_SCENE_INITIAL_STATE := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
-const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/resources/state/rs_navigation_initial_state.gd")
+const M_SCENE_MANAGER := preload("res://scripts/core/managers/m_scene_manager.gd")
+const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
+const M_CURSOR_MANAGER := preload("res://scripts/core/managers/m_cursor_manager.gd")
+const S_PAUSE_SYSTEM := preload("res://scripts/core/managers/m_time_manager.gd")
+const RS_SCENE_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_scene_initial_state.gd")
+const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_navigation_initial_state.gd")
 
 var _root_node: Node
 var _state_store: M_STATE_STORE
@@ -69,7 +69,7 @@ func after_each() -> void:
 
 func test_settings_with_return_to_pause_using_new_api() -> void:
 	# Given: In gameplay with pause overlay visible
-	_scene_manager.transition_to_scene(StringName("gameplay_base"), "instant", M_SCENE_MANAGER.Priority.HIGH)
+	_scene_manager.transition_to_scene(StringName("demo_room"), "instant", M_SCENE_MANAGER.Priority.HIGH)
 	await wait_physics_frames(5)
 	_scene_manager.push_overlay(StringName("pause_menu"))
 	await get_tree().process_frame

@@ -1,10 +1,10 @@
 extends BaseTest
 
 # F8 Phase 1 Decomposition tests — test that S_VCamSystem has been decomposed
-# and pipeline logic extracted to U_VCamPipelineBuilder.
+# and pipeline logic extracted to U_VCamPipelineHelper.
 
-const S_VCAM_SYSTEM_SCRIPT := "res://scripts/ecs/systems/s_vcam_system.gd"
-const PIPELINE_BUILDER_SCRIPT := "res://scripts/ecs/systems/helpers/u_vcam_pipeline_builder.gd"
+const S_VCAM_SYSTEM_SCRIPT := "res://scripts/core/ecs/systems/s_vcam_system.gd"
+const PIPELINE_BUILDER_SCRIPT := "res://scripts/core/ecs/systems/helpers/u_vcam_pipeline_helper.gd"
 
 
 func _load_script(path: String) -> Script:
@@ -68,25 +68,25 @@ func _source_has_method(path: String, method_name: String) -> bool:
 
 func test_pipeline_builder_class_exists() -> void:
 	var script: Script = _load_script(PIPELINE_BUILDER_SCRIPT)
-	assert_not_null(script, "U_VCamPipelineBuilder script should exist at %s" % PIPELINE_BUILDER_SCRIPT)
+	assert_not_null(script, "U_VCamPipelineHelper script should exist at %s" % PIPELINE_BUILDER_SCRIPT)
 
 
 func test_pipeline_builder_has_prepare_method() -> void:
 	var script: Script = _load_script(PIPELINE_BUILDER_SCRIPT)
 	if script == null:
-		assert_not_null(script, "U_VCamPipelineBuilder script should exist")
+		assert_not_null(script, "U_VCamPipelineHelper script should exist")
 		return
 	assert_true(script.source_code.find("func prepare_vcam_pipeline_state(") >= 0,
-		"U_VCamPipelineBuilder should have prepare_vcam_pipeline_state method")
+		"U_VCamPipelineHelper should have prepare_vcam_pipeline_state method")
 
 
 func test_pipeline_builder_has_evaluate_method() -> void:
 	var script: Script = _load_script(PIPELINE_BUILDER_SCRIPT)
 	if script == null:
-		assert_not_null(script, "U_VCamPipelineBuilder script should exist")
+		assert_not_null(script, "U_VCamPipelineHelper script should exist")
 		return
 	assert_true(script.source_code.find("func evaluate_vcam_mode_result(") >= 0,
-		"U_VCamPipelineBuilder should have evaluate_vcam_mode_result method")
+		"U_VCamPipelineHelper should have evaluate_vcam_mode_result method")
 
 
 # --- System line count ceiling tests ---
@@ -146,10 +146,10 @@ func test_clear_smoothing_state_for_vcam_callable_retained() -> void:
 func test_pipeline_builder_under_400_lines() -> void:
 	var line_count: int = _count_source_lines(PIPELINE_BUILDER_SCRIPT)
 	if line_count < 0:
-		assert_not_null(_load_script(PIPELINE_BUILDER_SCRIPT), "U_VCamPipelineBuilder should exist")
+		assert_not_null(_load_script(PIPELINE_BUILDER_SCRIPT), "U_VCamPipelineHelper should exist")
 		return
 	assert_lt(line_count, 400,
-		"U_VCamPipelineBuilder should be under 400 lines, got %d" % line_count)
+		"U_VCamPipelineHelper should be under 400 lines, got %d" % line_count)
 
 
 # --- Thin wrapper removal tests ---

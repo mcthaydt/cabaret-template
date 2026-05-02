@@ -2,7 +2,7 @@ extends GutTest
 
 ## Tests for GameplayReducer pure functions
 
-const StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
+const StateHandoff := preload("res://scripts/core/state/utils/u_state_handoff.gd")
 
 func before_each() -> void:
 	U_StateEventBus.reset()
@@ -110,7 +110,7 @@ func test_reset_progress_restores_initial_fields() -> void:
 		"player_health": 12.0,
 		"player_max_health": 100.0,
 		"death_count": 5,
-		"completed_areas": ["alleyway", "interior_house"],
+		"completed_areas": ["demo_room", "scene2"],
 		"ai_demo_flags": {"power_core_activated": true, "nav_goal_reached": true},
 		"last_victory_objective": StringName("final_goal"),
 		"game_completed": true,

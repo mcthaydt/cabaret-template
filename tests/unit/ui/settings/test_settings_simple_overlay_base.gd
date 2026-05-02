@@ -1,10 +1,10 @@
 extends GutTest
 
-const BASE_OVERLAY_SCRIPT := "res://scripts/ui/settings/base_settings_simple_overlay.gd"
-const AUDIO_OVERLAY_SCRIPT := "res://scripts/ui/settings/ui_audio_settings_overlay.gd"
-const DISPLAY_OVERLAY_SCRIPT := "res://scripts/ui/settings/ui_display_settings_overlay.gd"
-const LOCALIZATION_OVERLAY_SCRIPT := "res://scripts/ui/settings/ui_localization_settings_overlay.gd"
-const VFX_OVERLAY_SCRIPT := "res://scripts/ui/settings/ui_vfx_settings_overlay.gd"
+const BASE_OVERLAY_SCRIPT := "res://scripts/core/ui/settings/base_settings_simple_overlay.gd"
+const AUDIO_OVERLAY_SCRIPT := "res://scripts/core/ui/settings/ui_audio_settings_overlay.gd"
+const DISPLAY_OVERLAY_SCRIPT := "res://scripts/core/ui/settings/ui_display_settings_overlay.gd"
+const LOCALIZATION_OVERLAY_SCRIPT := "res://scripts/core/ui/settings/ui_localization_settings_overlay.gd"
+const VFX_OVERLAY_SCRIPT := "res://scripts/core/ui/settings/ui_vfx_settings_overlay.gd"
 
 const MAX_CONCRETE_LINES := 15
 
@@ -59,7 +59,7 @@ func test_base_has_shared_methods() -> void:
 	file.close()
 	assert_true("_on_panel_ready" in source, "Base should define _on_panel_ready")
 	assert_true("_on_back_pressed" in source, "Base should define _on_back_pressed")
-	assert_true("_apply_theme_tokens" in source, "Base should define _apply_theme_tokens")
+	assert_true("_apply_overlay_theme" in source, "Base should define _apply_overlay_theme")
 	assert_true("_close_overlay" in source, "Base should define _close_overlay")
 
 

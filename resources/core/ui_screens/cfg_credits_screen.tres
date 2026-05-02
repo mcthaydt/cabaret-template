@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="RS_UIScreenDefinition" format=3 uid="uid://bqaoplnhmxva6"]
+
+[ext_resource type="Script" uid="uid://deyqeb28ec6aq" path="res://scripts/core/resources/ui/rs_ui_screen_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+screen_id = &"credits"
+scene_id = &"credits"
+allowed_shells = Array[StringName]([&"endgame"])
+close_mode = 2

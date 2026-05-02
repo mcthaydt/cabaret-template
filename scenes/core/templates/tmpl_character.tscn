@@ -1,0 +1,122 @@
+[gd_scene format=3 uid="uid://cyu3l6we2jq23"]
+
+[ext_resource type="Script" uid="uid://dk064bbaa0fjh" path="res://scripts/core/ecs/components/c_movement_component.gd" id="1_6m9bm"]
+[ext_resource type="Script" uid="uid://cmo0nwrics1c2" path="res://scripts/core/ecs/components/c_jump_component.gd" id="2_h3hux"]
+[ext_resource type="Script" uid="uid://bob8u843dmbh7" path="res://scripts/core/scene_structure/marker_components_group.gd" id="3_8l4b7"]
+[ext_resource type="Script" uid="uid://861c8cv2he7d" path="res://scripts/core/ecs/components/c_rotate_to_input_component.gd" id="4_4etni"]
+[ext_resource type="Script" uid="uid://cljhkpb2gl28" path="res://scripts/core/ecs/components/c_floating_component.gd" id="5_f1jtd"]
+[ext_resource type="Script" uid="uid://c1mqvaup4ikhu" path="res://scripts/core/ecs/components/c_align_with_surface_component.gd" id="6_xa0wx"]
+[ext_resource type="Script" uid="uid://bnkguf4u53t5" path="res://scripts/core/ecs/components/c_landing_indicator_component.gd" id="8_weo2m"]
+[ext_resource type="Resource" uid="uid://86yp0ka600um" path="res://resources/core/base_settings/gameplay/cfg_movement_default.tres" id="9_mov"]
+[ext_resource type="Resource" uid="uid://cu511auq5q2ql" path="res://resources/core/base_settings/gameplay/cfg_jump_default.tres" id="10_jump"]
+[ext_resource type="Resource" uid="uid://ccxuebxikqsev" path="res://resources/core/base_settings/gameplay/cfg_rotate_default.tres" id="11_rot"]
+[ext_resource type="Resource" uid="uid://c0ka0i1askexa" path="res://resources/core/base_settings/gameplay/cfg_floating_default.tres" id="12_float"]
+[ext_resource type="Resource" uid="uid://dhkl8uuw4aeeh" path="res://resources/core/base_settings/gameplay/cfg_align_default.tres" id="13_align"]
+[ext_resource type="Resource" uid="uid://bge6h6phsahy3" path="res://resources/core/base_settings/gameplay/cfg_landing_indicator_default.tres" id="14_land"]
+[ext_resource type="Script" uid="uid://de8ypfw5vqclq" path="res://scripts/core/ecs/base_ecs_entity.gd" id="15_ecsentity"]
+[ext_resource type="Script" uid="uid://cklaxcd71gb4k" path="res://scripts/core/ecs/components/c_health_component.gd" id="17_health"]
+[ext_resource type="Resource" uid="uid://bay3xmfxc8da0" path="res://resources/core/base_settings/gameplay/cfg_health_settings.tres" id="18_health_settings"]
+[ext_resource type="Script" uid="uid://dx3dwbjtpqx2k" path="res://scripts/core/ecs/components/c_spawn_state_component.gd" id="19_spawn_state"]
+[ext_resource type="Script" uid="uid://dwnrju73j7uj" path="res://scripts/core/ecs/components/c_character_state_component.gd" id="20_character_state"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_16kfq"]
+radius = 0.12
+height = 0.33
+
+[node name="E_CharacterRoot" type="Node3D" unique_id=1565336801]
+script = ExtResource("15_ecsentity")
+tags = Array[StringName]([&"character"])
+
+[node name="Player_Body" type="CharacterBody3D" parent="." unique_id=312897681]
+
+[node name="CameraFollowAnchor" type="Node3D" parent="Player_Body" unique_id=1697731006]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.64, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Player_Body" unique_id=1174621009]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.165, 0)
+shape = SubResource("CapsuleShape3D_16kfq")
+
+[node name="HoverRays" type="Node3D" parent="Player_Body" unique_id=125732774]
+
+[node name="Center" type="RayCast3D" parent="Player_Body/HoverRays" unique_id=2090294656]
+target_position = Vector3(0, -0.28, 0)
+
+[node name="Forward" type="RayCast3D" parent="Player_Body/HoverRays" unique_id=1587196027]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.1)
+target_position = Vector3(0, -0.28, 0)
+
+[node name="Back" type="RayCast3D" parent="Player_Body/HoverRays" unique_id=1819381193]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.1)
+target_position = Vector3(0, -0.28, 0)
+
+[node name="Left" type="RayCast3D" parent="Player_Body/HoverRays" unique_id=38065460]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.1, 0, 0)
+target_position = Vector3(0, -0.28, 0)
+
+[node name="Right" type="RayCast3D" parent="Player_Body/HoverRays" unique_id=1313980861]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1, 0, 0)
+target_position = Vector3(0, -0.28, 0)
+
+[node name="ForwardLeft" type="RayCast3D" parent="Player_Body/HoverRays" unique_id=2113602555]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.07, 0, 0.07)
+target_position = Vector3(0, -0.28, 0)
+
+[node name="ForwardRight" type="RayCast3D" parent="Player_Body/HoverRays" unique_id=1382398280]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.07, 0, 0.07)
+target_position = Vector3(0, -0.28, 0)
+
+[node name="BackLeft" type="RayCast3D" parent="Player_Body/HoverRays" unique_id=1041709853]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.07, 0, -0.07)
+target_position = Vector3(0, -0.28, 0)
+
+[node name="BackRight" type="RayCast3D" parent="Player_Body/HoverRays" unique_id=326573186]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.07, 0, -0.07)
+target_position = Vector3(0, -0.28, 0)
+
+[node name="Components" type="Node" parent="." unique_id=1373490017]
+script = ExtResource("3_8l4b7")
+
+[node name="C_SpawnStateComponent" type="Node" parent="Components" unique_id=1074141787]
+script = ExtResource("19_spawn_state")
+character_body_path = NodePath("../../Player_Body")
+
+[node name="C_CharacterStateComponent" type="Node" parent="Components" unique_id=1700763230]
+script = ExtResource("20_character_state")
+
+[node name="C_MovementComponent" type="Node" parent="Components" unique_id=1558546231]
+script = ExtResource("1_6m9bm")
+settings = ExtResource("9_mov")
+
+[node name="C_JumpComponent" type="Node" parent="Components" unique_id=1702918766]
+script = ExtResource("2_h3hux")
+settings = ExtResource("10_jump")
+character_body_path = NodePath("../../Player_Body")
+
+[node name="C_RotateToInputComponent" type="Node" parent="Components" unique_id=1653027987]
+script = ExtResource("4_4etni")
+settings = ExtResource("11_rot")
+target_node_path = NodePath("../../Player_Body")
+
+[node name="C_FloatingComponent" type="Node" parent="Components" unique_id=1372834135]
+script = ExtResource("5_f1jtd")
+settings = ExtResource("12_float")
+character_body_path = NodePath("../../Player_Body")
+raycast_root_path = NodePath("../../Player_Body/HoverRays")
+
+[node name="C_AlignWithSurfaceComponent" type="Node" parent="Components" unique_id=896656910]
+script = ExtResource("6_xa0wx")
+settings = ExtResource("13_align")
+character_body_path = NodePath("../../Player_Body")
+visual_alignment_path = NodePath("../../Player_Body/Body_Mesh")
+
+[node name="C_LandingIndicatorComponent" type="Node" parent="Components" unique_id=268464891]
+script = ExtResource("8_weo2m")
+settings = ExtResource("14_land")
+character_body_path = NodePath("../../Player_Body")
+origin_marker_path = NodePath("../../Player_Body/HoverRays/Center")
+landing_marker_path = NodePath("../../Player_Body/Body_Mesh/GroundIndicator")
+
+[node name="C_HealthComponent" type="Node" parent="Components" unique_id=561485255]
+script = ExtResource("17_health")
+settings = ExtResource("18_health_settings")
+character_body_path = NodePath("../../Player_Body")

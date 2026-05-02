@@ -1,7 +1,7 @@
 extends BaseTest
 
 const U_SAVE_TEST_UTILS := preload("res://tests/unit/save/u_save_test_utils.gd")
-const U_SAVE_FILE_IO := preload("res://scripts/managers/helpers/u_save_file_io.gd")
+const U_SAVE_FILE_IO := preload("res://scripts/core/managers/helpers/u_save_file_io.gd")
 
 const TEST_DIR := U_SAVE_TEST_UTILS.TEST_DIR
 const TEST_SAVE_DIR := TEST_DIR + "saves/"
@@ -253,7 +253,7 @@ func test_invalid_dictionary_type_emits_error() -> void:
 func _create_file_io_helper() -> Variant:
 	# This will load the file IO helper once it's implemented
 	# For now, we're writing the tests first (TDD Red phase)
-	var io_class: GDScript = load("res://scripts/managers/helpers/u_save_file_io.gd")
+	var io_class: GDScript = load("res://scripts/core/managers/helpers/u_save_file_io.gd")
 	var io: Variant = io_class.new()
 	# Enable silent mode to suppress informational warnings in tests
 	io.silent_mode = true

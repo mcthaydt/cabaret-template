@@ -1,6 +1,6 @@
 extends GutTest
 
-const BASE_EVENT_BUS := preload("res://scripts/events/base_event_bus.gd")
+const BASE_EVENT_BUS := preload("res://scripts/core/events/base_event_bus.gd")
 
 const EVENT_NAME := StringName("test_event")
 const OTHER_EVENT := StringName("other_event")

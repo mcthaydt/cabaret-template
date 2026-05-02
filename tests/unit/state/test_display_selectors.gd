@@ -160,6 +160,33 @@ func test_get_mobile_resolution_scale_returns_value_and_defaults() -> void:
 	missing_field["display"].erase("mobile_resolution_scale")
 	assert_almost_eq(U_DisplaySelectors.get_mobile_resolution_scale(missing_field), 0.35, 0.0001)
 
+func test_is_scanlines_enabled_returns_value_and_defaults() -> void:
+	var state := _make_state()
+	state["display"]["scanlines_enabled"] = true
+	assert_true(U_DisplaySelectors.is_scanlines_enabled(state))
+	assert_false(U_DisplaySelectors.is_scanlines_enabled({}))
+	var missing_field := _make_state()
+	missing_field["display"].erase("scanlines_enabled")
+	assert_false(U_DisplaySelectors.is_scanlines_enabled(missing_field))
+
+func test_get_line_mask_intensity_returns_value_and_defaults() -> void:
+	var state := _make_state()
+	state["display"]["line_mask_intensity"] = 0.4
+	assert_almost_eq(U_DisplaySelectors.get_line_mask_intensity(state), 0.4, 0.0001)
+	assert_almost_eq(U_DisplaySelectors.get_line_mask_intensity({}), 0.0, 0.0001)
+	var missing_field := _make_state()
+	missing_field["display"].erase("line_mask_intensity")
+	assert_almost_eq(U_DisplaySelectors.get_line_mask_intensity(missing_field), 0.0, 0.0001)
+
+func test_get_scanline_count_returns_value_and_defaults() -> void:
+	var state := _make_state()
+	state["display"]["scanline_count"] = 720.0
+	assert_almost_eq(U_DisplaySelectors.get_scanline_count(state), 720.0, 0.0001)
+	assert_almost_eq(U_DisplaySelectors.get_scanline_count({}), 480.0, 0.0001)
+	var missing_field := _make_state()
+	missing_field["display"].erase("scanline_count")
+	assert_almost_eq(U_DisplaySelectors.get_scanline_count(missing_field), 480.0, 0.0001)
+
 func _make_state() -> Dictionary:
 	return {
 		"display": DEFAULTS.duplicate(true)

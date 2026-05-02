@@ -1,0 +1,6 @@
+[gd_resource type="Resource" script_class="RS_CharacterLightingConfig" format=3 uid="uid://k15wvehd8l3t"]
+
+[ext_resource type="Script" uid="uid://b844542sxxag4" path="res://scripts/core/resources/managers/rs_character_lighting_config.gd" id="1_character_lighting_config_script"]
+
+[resource]
+script = ExtResource("1_character_lighting_config_script")

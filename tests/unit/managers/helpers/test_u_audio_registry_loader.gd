@@ -36,8 +36,8 @@ func test_get_music_track_returns_null_for_invalid_id() -> void:
 
 func test_get_ambient_track_returns_definition() -> void:
 	U_AudioRegistryLoader.initialize()
-	var ambient = U_AudioRegistryLoader.get_ambient_track(StringName("exterior"))
-	assert_not_null(ambient, "Should return ambient track definition for exterior")
+	var ambient = U_AudioRegistryLoader.get_ambient_track(StringName("demo_room"))
+	assert_not_null(ambient, "Should return ambient track definition for demo_room")
 
 func test_get_ambient_track_returns_null_for_invalid_id() -> void:
 	U_AudioRegistryLoader.initialize()
@@ -72,7 +72,7 @@ func test_music_track_has_correct_structure() -> void:
 
 func test_ambient_track_has_correct_structure() -> void:
 	U_AudioRegistryLoader.initialize()
-	var ambient = U_AudioRegistryLoader.get_ambient_track(StringName("exterior"))
+	var ambient = U_AudioRegistryLoader.get_ambient_track(StringName("demo_room"))
 	assert_not_null(ambient.ambient_id, "Ambient should have ambient_id")
 	assert_not_null(ambient.stream, "Ambient should have stream")
 

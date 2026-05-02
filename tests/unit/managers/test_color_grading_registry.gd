@@ -9,15 +9,15 @@ extends GutTest
 ## - Preloaded resources are non-null for all five registered scenes
 ## - Re-initializing does not break subsequent lookups
 
-const U_COLOR_GRADING_REGISTRY := preload("res://scripts/managers/helpers/display/u_color_grading_registry.gd")
-const RS_SCENE_COLOR_GRADING := preload("res://scripts/resources/display/rs_scene_color_grading.gd")
+const U_COLOR_GRADING_REGISTRY := preload("res://scripts/core/managers/helpers/display/u_color_grading_registry.gd")
+const RS_SCENE_COLOR_GRADING := preload("res://scripts/core/resources/display/rs_scene_color_grading.gd")
 
 func before_each() -> void:
 	U_COLOR_GRADING_REGISTRY.initialize()
 
 
 func test_known_scene_returns_non_null_grade() -> void:
-	var grade := U_COLOR_GRADING_REGISTRY.get_color_grading_for_scene(StringName("alleyway"))
+	var grade := U_COLOR_GRADING_REGISTRY.get_color_grading_for_scene(StringName("demo_room"))
 	assert_not_null(grade, "Known scene 'alleyway' should return a non-null grade")
 
 
@@ -28,8 +28,8 @@ func test_known_scene_grade_is_correct_type() -> void:
 
 func test_all_registered_scenes_return_non_null_grades() -> void:
 	var known_ids := [
-		StringName("gameplay_base"),
-		StringName("alleyway"),
+		StringName("demo_room"),
+		StringName("demo_room"),
 		StringName("exterior"),
 		StringName("bar"),
 		StringName("interior_house"),

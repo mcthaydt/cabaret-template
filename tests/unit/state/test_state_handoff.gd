@@ -4,7 +4,7 @@ extends GutTest
 ## 
 ## StateHandoff preserves state across scene changes without autoloads
 
-const StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
+const StateHandoff := preload("res://scripts/core/state/utils/u_state_handoff.gd")
 
 func before_each() -> void:
 	# Reset state bus between tests

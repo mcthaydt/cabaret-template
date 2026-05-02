@@ -1,6 +1,6 @@
 extends GutTest
 
-const U_DEBUG_LOG_THROTTLE_PATH := "res://scripts/utils/debug/u_debug_log_throttle.gd"
+const U_DEBUG_LOG_THROTTLE_PATH := "res://scripts/core/utils/debug/u_debug_log_throttle.gd"
 
 
 func _new_throttle() -> Variant:
@@ -56,3 +56,12 @@ func test_clear_resets_all_keys() -> void:
 	assert_true(throttle.consume_budget(&"npc", 1.0))
 	throttle.clear()
 	assert_true(throttle.consume_budget(&"npc", 1.0))
+
+
+func test_log_message_method_exists_and_does_not_throw() -> void:
+	var throttle: Variant = _new_throttle()
+	if throttle == null:
+		return
+	assert_true(throttle.has_method("log_message"), "U_DebugLogThrottle must expose log_message()")
+	throttle.log_message("test message from throttle")
+	assert_true(true, "log_message should complete without error")

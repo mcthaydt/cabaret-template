@@ -1,8 +1,8 @@
 extends BaseTest
 
-const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component.gd")
-const BASE_ECS_COMPONENT := preload("res://scripts/ecs/base_ecs_component.gd")
-const RS_VCAM_RESPONSE := preload("res://scripts/resources/display/vcam/rs_vcam_response.gd")
+const C_VCAM_COMPONENT := preload("res://scripts/core/ecs/components/c_vcam_component.gd")
+const BASE_ECS_COMPONENT := preload("res://scripts/core/ecs/base_ecs_component.gd")
+const RS_VCAM_RESPONSE := preload("res://scripts/core/resources/display/vcam/rs_vcam_response.gd")
 
 func test_extends_base_ecs_component() -> void:
 	var component := C_VCAM_COMPONENT.new()

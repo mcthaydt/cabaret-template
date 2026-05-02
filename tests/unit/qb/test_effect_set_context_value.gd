@@ -1,6 +1,6 @@
 extends BaseTest
 
-const EFFECT_SET_CONTEXT_VALUE := preload("res://scripts/resources/qb/effects/rs_effect_set_context_value.gd")
+const EFFECT_SET_CONTEXT_VALUE := preload("res://scripts/core/resources/qb/effects/rs_effect_set_context_value.gd")
 
 func test_writes_typed_value_to_context_dictionary_key() -> void:
 	var effect: Variant = EFFECT_SET_CONTEXT_VALUE.new()

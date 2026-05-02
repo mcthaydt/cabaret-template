@@ -1,0 +1,53 @@
+[gd_scene format=3 uid="uid://d8f3hr42dgv4"]
+
+[ext_resource type="Shader" uid="uid://cbb5bncshtrb" path="res://assets/core/shaders/sh_colorblind_daltonize.gdshader" id="7_color_blind"]
+[ext_resource type="Shader" uid="uid://bxrit4lj4tadw" path="res://assets/core/shaders/sh_grain_dither.gdshader" id="8_grain_dither"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_grain_dither"]
+shader = ExtResource("8_grain_dither")
+shader_parameter/film_grain_enabled = 0
+shader_parameter/dither_enabled = 0
+shader_parameter/scanlines_enabled = 0
+shader_parameter/line_mask_intensity = 0.35
+shader_parameter/scanline_count = 480.0
+shader_parameter/fg_intensity = 0.1
+shader_parameter/fg_grain_size = 1.0
+shader_parameter/fg_time = 0.0
+shader_parameter/dither_intensity = 0.5
+shader_parameter/dither_levels = 8
+shader_parameter/dither_luma_weight = 0.5
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_color_blind"]
+shader = ExtResource("7_color_blind")
+shader_parameter/mode = 0
+shader_parameter/intensity = 1.0
+
+[node name="PostProcessOverlay" type="Node" unique_id=59672493]
+
+[node name="GrainDitherLayer" type="CanvasLayer" parent="." unique_id=2035614286]
+layer = 2
+follow_viewport_enabled = true
+
+[node name="GrainDitherRect" type="ColorRect" parent="GrainDitherLayer" unique_id=992826814]
+visible = false
+material = SubResource("ShaderMaterial_grain_dither")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="ColorBlindLayer" type="CanvasLayer" parent="." unique_id=1289700024]
+layer = 5
+follow_viewport_enabled = true
+
+[node name="ColorBlindRect" type="ColorRect" parent="ColorBlindLayer" unique_id=1293833393]
+visible = false
+material = SubResource("ShaderMaterial_color_blind")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2

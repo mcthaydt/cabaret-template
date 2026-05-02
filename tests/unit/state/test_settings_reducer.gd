@@ -1,7 +1,7 @@
 extends GutTest
 
-const SETTINGS_REDUCER := preload("res://scripts/state/reducers/u_settings_reducer.gd")
-const INPUT_REDUCER := preload("res://scripts/state/reducers/u_input_reducer.gd")
+const SETTINGS_REDUCER := preload("res://scripts/core/state/reducers/u_settings_reducer.gd")
+const INPUT_REDUCER := preload("res://scripts/core/state/reducers/u_input_reducer.gd")
 
 func test_profile_switch_updates_active_profile_id() -> void:
 	var state := _make_state()

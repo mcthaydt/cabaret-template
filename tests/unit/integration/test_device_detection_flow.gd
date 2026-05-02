@@ -1,6 +1,6 @@
 extends BaseTest
 
-const C_PLAYER_TAG_COMPONENT := preload("res://scripts/ecs/components/c_player_tag_component.gd")
+const C_PLAYER_TAG_COMPONENT := preload("res://scripts/core/ecs/components/c_player_tag_component.gd")
 
 
 func before_each() -> void:

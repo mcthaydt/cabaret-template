@@ -17,39 +17,39 @@ extends GutTest
 
 func test_look_up_is_excluded_from_rebind() -> void:
 	assert_true(
-		U_RebindActionListBuilder.EXCLUDED_ACTIONS.has("look_up"),
+		U_RebindActionListHelper.EXCLUDED_ACTIONS.has("look_up"),
 		"look_up should be in EXCLUDED_ACTIONS"
 	)
 
 func test_look_down_is_excluded_from_rebind() -> void:
 	assert_true(
-		U_RebindActionListBuilder.EXCLUDED_ACTIONS.has("look_down"),
+		U_RebindActionListHelper.EXCLUDED_ACTIONS.has("look_down"),
 		"look_down should be in EXCLUDED_ACTIONS"
 	)
 
 func test_look_up_not_in_camera_category() -> void:
-	var camera_actions: Array = U_RebindActionListBuilder.ACTION_CATEGORIES.get("camera", [])
+	var camera_actions: Array = U_RebindActionListHelper.ACTION_CATEGORIES.get("camera", [])
 	assert_false(
 		camera_actions.has("look_up"),
 		"look_up should not be in the camera category"
 	)
 
 func test_look_down_not_in_camera_category() -> void:
-	var camera_actions: Array = U_RebindActionListBuilder.ACTION_CATEGORIES.get("camera", [])
+	var camera_actions: Array = U_RebindActionListHelper.ACTION_CATEGORIES.get("camera", [])
 	assert_false(
 		camera_actions.has("look_down"),
 		"look_down should not be in the camera category"
 	)
 
 func test_look_left_still_in_camera_category() -> void:
-	var camera_actions: Array = U_RebindActionListBuilder.ACTION_CATEGORIES.get("camera", [])
+	var camera_actions: Array = U_RebindActionListHelper.ACTION_CATEGORIES.get("camera", [])
 	assert_true(
 		camera_actions.has("look_left"),
 		"look_left should remain in the camera category"
 	)
 
 func test_look_right_still_in_camera_category() -> void:
-	var camera_actions: Array = U_RebindActionListBuilder.ACTION_CATEGORIES.get("camera", [])
+	var camera_actions: Array = U_RebindActionListHelper.ACTION_CATEGORIES.get("camera", [])
 	assert_true(
 		camera_actions.has("look_right"),
 		"look_right should remain in the camera category"
@@ -158,7 +158,9 @@ func test_profile_events_used_over_inputmap_for_look() -> void:
 
 func test_default_gamepad_profile_has_stick_events() -> void:
 	# Verify the actual default gamepad profile has the correct stick mappings.
-	var profile: RS_InputProfile = load("res://resources/input/profiles/cfg_default_gamepad.tres")
+	var script := preload("res://scripts/core/resources/input/profiles/default_gamepad_profile.gd")
+	var instance := script.new()
+	var profile: RS_InputProfile = instance.build()
 	assert_not_null(profile, "Default gamepad profile should exist")
 
 	# Movement should use left stick

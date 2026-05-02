@@ -93,17 +93,17 @@ On boot, `scripts/root.gd` registers manager nodes in `U_ServiceLocator` for fas
 - Review `resources/input/profiles/` and tune defaults under `resources/input/*`
 - Replace placeholder art under `assets/`
 - Skim the conventions docs:
-  - `docs/general/STYLE_GUIDE.md`
-  - `docs/general/SCENE_ORGANIZATION_GUIDE.md`
-  - `docs/general/DEV_PITFALLS.md`
+  - `docs/guides/STYLE_GUIDE.md`
+  - `docs/guides/SCENE_ORGANIZATION_GUIDE.md`
+  - `docs/guides/pitfalls/` (per-topic pitfalls: `GODOT_ENGINE.md`, `GDSCRIPT_4_6.md`, `TESTING.md`, `ECS.md`, `STATE.md`, `MOBILE.md`)
 
 ### Add a new gameplay scene
 
 1. Duplicate `scenes/gameplay/gameplay_base.tscn`.
-2. Keep the standard scene tree structure (see `docs/general/SCENE_ORGANIZATION_GUIDE.md`).
+2. Keep the standard scene tree structure (see `docs/guides/SCENE_ORGANIZATION_GUIDE.md`).
 3. Register it via a resource entry:
    - Create an `RS_SceneRegistryEntry` under `resources/scene_registry/`
-   - See `docs/scene_manager/ADDING_SCENES_GUIDE.md`
+   - See `docs/systems/scene_manager/ADDING_SCENES_GUIDE.md`
 
 ### Add an ECS component
 
@@ -146,9 +146,9 @@ GODOT_BIN="/path/to/Godot" tools/run_gut_suite.sh -gdir=res://tests/unit
 
 ## Docs (Start Here)
 
-- General pitfalls: `docs/general/DEV_PITFALLS.md`
-- Naming/prefix conventions: `docs/general/STYLE_GUIDE.md`
-- Scene tree conventions: `docs/general/SCENE_ORGANIZATION_GUIDE.md`
+- Per-topic pitfalls: `docs/guides/pitfalls/` (`GODOT_ENGINE.md`, `GDSCRIPT_4_6.md`, `TESTING.md`, `ECS.md`, `STATE.md`, `MOBILE.md`)
+- Naming/prefix conventions: `docs/guides/STYLE_GUIDE.md`
+- Scene tree conventions: `docs/guides/SCENE_ORGANIZATION_GUIDE.md`
 - Manager dependency graph: `docs/architecture/dependency_graph.md`
 - ECS ↔ state contract: `docs/architecture/ecs_state_contract.md`
-- Scene registry workflow: `docs/scene_manager/ADDING_SCENES_GUIDE.md`
+- Scene registry workflow: `docs/systems/scene_manager/ADDING_SCENES_GUIDE.md`

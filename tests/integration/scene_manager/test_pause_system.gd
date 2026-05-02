@@ -10,14 +10,14 @@ extends GutTest
 ## - Nested pause menus (gameplay → pause → settings)
 ## - Resume functionality
 
-const M_SCENE_MANAGER := preload("res://scripts/managers/m_scene_manager.gd")
-const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
-const M_CURSOR_MANAGER := preload("res://scripts/managers/m_cursor_manager.gd")
-const S_PAUSE_SYSTEM := preload("res://scripts/managers/m_time_manager.gd")
-const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
-const RS_SCENE_INITIAL_STATE := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
-const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/resources/state/rs_navigation_initial_state.gd")
-const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
+const M_SCENE_MANAGER := preload("res://scripts/core/managers/m_scene_manager.gd")
+const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
+const M_CURSOR_MANAGER := preload("res://scripts/core/managers/m_cursor_manager.gd")
+const S_PAUSE_SYSTEM := preload("res://scripts/core/managers/m_time_manager.gd")
+const U_SCENE_REGISTRY := preload("res://scripts/core/scene_management/u_scene_registry.gd")
+const RS_SCENE_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_scene_initial_state.gd")
+const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_navigation_initial_state.gd")
+const U_NAVIGATION_ACTIONS := preload("res://scripts/core/state/actions/u_navigation_actions.gd")
 
 var _root_node: Node
 var _state_store: M_STATE_STORE
@@ -299,7 +299,7 @@ func test_gameplay_scenes_do_not_track_history() -> void:
 	# Given: Navigate main_menu → gameplay_base
 	_scene_manager.transition_to_scene(StringName("main_menu"), "instant", M_SCENE_MANAGER.Priority.HIGH)
 	await wait_physics_frames(5)
-	_scene_manager.transition_to_scene(StringName("gameplay_base"), "instant", M_SCENE_MANAGER.Priority.HIGH)
+	_scene_manager.transition_to_scene(StringName("demo_room"), "instant", M_SCENE_MANAGER.Priority.HIGH)
 	await wait_physics_frames(5)
 
 	# When: Check if can go back
@@ -314,7 +314,7 @@ func test_history_navigation_skips_gameplay_scenes() -> void:
 	await wait_physics_frames(5)
 	_scene_manager.transition_to_scene(StringName("settings_menu"), "instant", M_SCENE_MANAGER.Priority.HIGH)
 	await wait_physics_frames(5)
-	_scene_manager.transition_to_scene(StringName("gameplay_base"), "instant", M_SCENE_MANAGER.Priority.HIGH)
+	_scene_manager.transition_to_scene(StringName("demo_room"), "instant", M_SCENE_MANAGER.Priority.HIGH)
 	await wait_physics_frames(5)
 	_scene_manager.transition_to_scene(StringName("settings_menu"), "instant", M_SCENE_MANAGER.Priority.HIGH)
 	await wait_physics_frames(5)
@@ -336,8 +336,8 @@ func test_history_navigation_skips_gameplay_scenes() -> void:
 func test_navigation_action_triggers_pause_during_gameplay() -> void:
 	# T074: Updated to use navigation actions instead of direct ESC input
 	# Given: In gameplay shell with no overlays
-	_state_store.dispatch(U_NAVIGATION_ACTIONS.start_game(StringName("gameplay_base")))
-	_scene_manager.transition_to_scene(StringName("gameplay_base"), "instant", M_SCENE_MANAGER.Priority.HIGH)
+	_state_store.dispatch(U_NAVIGATION_ACTIONS.start_game(StringName("demo_room")))
+	_scene_manager.transition_to_scene(StringName("demo_room"), "instant", M_SCENE_MANAGER.Priority.HIGH)
 	await wait_physics_frames(5)
 	get_tree().paused = false
 	assert_eq(_ui_overlay_stack.get_child_count(), 0, "No overlays initially")

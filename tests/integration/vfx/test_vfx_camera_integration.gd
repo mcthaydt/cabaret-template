@@ -9,23 +9,23 @@ extends BaseTest
 ## - Trauma decay reduces shake magnitude over time
 ## - Multiple damage events accumulate trauma (clamped to 1.0)
 
-const M_VFX_MANAGER := preload("res://scripts/managers/m_vfx_manager.gd")
-const M_CAMERA_MANAGER := preload("res://scripts/managers/m_camera_manager.gd")
-const M_SCREEN_SHAKE := preload("res://scripts/managers/helpers/u_screen_shake.gd")
-const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
+const M_VFX_MANAGER := preload("res://scripts/core/managers/m_vfx_manager.gd")
+const M_CAMERA_MANAGER := preload("res://scripts/core/managers/m_camera_manager.gd")
+const M_SCREEN_SHAKE := preload("res://scripts/core/managers/helpers/u_screen_shake.gd")
+const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
 
-const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
-const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
-const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/resources/state/rs_navigation_initial_state.gd")
-const RS_SCENE_INITIAL_STATE := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
-const RS_VFX_INITIAL_STATE := preload("res://scripts/resources/state/rs_vfx_initial_state.gd")
+const RS_STATE_STORE_SETTINGS := preload("res://scripts/core/resources/state/rs_state_store_settings.gd")
+const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_gameplay_initial_state.gd")
+const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_navigation_initial_state.gd")
+const RS_SCENE_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_scene_initial_state.gd")
+const RS_VFX_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_vfx_initial_state.gd")
 
-const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
-const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
+const U_ECS_EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
+const U_ECS_EVENT_NAMES := preload("res://scripts/core/events/ecs/u_ecs_event_names.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
-const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
-const U_VFX_ACTIONS := preload("res://scripts/state/actions/u_vfx_actions.gd")
+const U_STATE_HANDOFF := preload("res://scripts/core/state/utils/u_state_handoff.gd")
+const U_SCENE_ACTIONS := preload("res://scripts/core/state/actions/u_scene_actions.gd")
+const U_VFX_ACTIONS := preload("res://scripts/core/state/actions/u_vfx_actions.gd")
 
 var _store: M_StateStore
 var _camera_manager: M_CameraManager

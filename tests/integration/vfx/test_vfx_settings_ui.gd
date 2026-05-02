@@ -12,16 +12,16 @@ extends BaseTest
 ## - State updates do not override local edits
 ## - VFX settings persist to save file and restore from save file
 
-const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
-const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
-const RS_VFX_INITIAL_STATE := preload("res://scripts/resources/state/rs_vfx_initial_state.gd")
+const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
+const RS_STATE_STORE_SETTINGS := preload("res://scripts/core/resources/state/rs_state_store_settings.gd")
+const RS_VFX_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_vfx_initial_state.gd")
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
-const U_VFX_ACTIONS := preload("res://scripts/state/actions/u_vfx_actions.gd")
-const U_VFX_SELECTORS := preload("res://scripts/state/selectors/u_vfx_selectors.gd")
+const U_STATE_HANDOFF := preload("res://scripts/core/state/utils/u_state_handoff.gd")
+const U_VFX_ACTIONS := preload("res://scripts/core/state/actions/u_vfx_actions.gd")
+const U_VFX_SELECTORS := preload("res://scripts/core/state/selectors/u_vfx_selectors.gd")
 
-const VFX_SETTINGS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/settings/ui_vfx_settings_overlay.tscn")
+const VFX_SETTINGS_OVERLAY_SCENE := preload("res://scenes/core/ui/overlays/settings/ui_vfx_settings_overlay.tscn")
 
 const TEST_SAVE_PATH := "user://test_vfx_settings_ui.json"
 

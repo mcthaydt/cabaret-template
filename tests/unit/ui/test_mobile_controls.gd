@@ -1,10 +1,13 @@
 extends GutTest
 
-const MobileControlsScene := preload("res://scenes/ui/hud/ui_mobile_controls.tscn")
-const DefaultTouchscreenProfile := preload("res://resources/input/profiles/cfg_default_touchscreen.tres")
+const MobileControlsScene := preload("res://scenes/core/ui/hud/ui_mobile_controls.tscn")
+const DefaultTouchscreenProfileScript = preload("res://scripts/core/resources/input/profiles/default_touchscreen_profile.gd")
+var DefaultTouchscreenProfile: RS_InputProfile
 
 func before_each() -> void:
 	U_StateHandoff.clear_all()
+	var script_instance := DefaultTouchscreenProfileScript.new()
+	DefaultTouchscreenProfile = script_instance.build() as RS_InputProfile
 
 func after_each() -> void:
 	U_StateHandoff.clear_all()
@@ -65,7 +68,7 @@ func test_applies_custom_positions_from_state() -> void:
 
 func test_visibility_follows_device_pause_and_transition_state() -> void:
 	var store := await _create_state_store()
-	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	var controls := await _create_controls(func(instance):
 		instance.force_enable = true
 	)
@@ -76,7 +79,7 @@ func test_visibility_follows_device_pause_and_transition_state() -> void:
 	await wait_process_frames(2)
 	assert_false(controls.visible, "Controls hide on non-gameplay scenes (main_menu)")
 
-	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	await wait_process_frames(2)
 	assert_true(controls.visible, "Controls show when active scene is gameplay (alleyway)")
 
@@ -96,17 +99,17 @@ func test_visibility_follows_device_pause_and_transition_state() -> void:
 	await wait_process_frames(2)
 	assert_true(controls.visible, "Controls show again after pause overlay closes")
 
-	store.dispatch(U_SceneActions.transition_started(StringName("gameplay_base"), "fade"))
+	store.dispatch(U_SceneActions.transition_started(StringName("demo_room"), "fade"))
 	await wait_process_frames(1)
 	assert_false(controls.visible, "Controls hide during scene transitions")
 
-	store.dispatch(U_SceneActions.transition_completed(StringName("gameplay_base")))
+	store.dispatch(U_SceneActions.transition_completed(StringName("demo_room")))
 	await wait_process_frames(1)
 	assert_true(controls.visible, "Controls show after transition completes")
 
 func test_signpost_dialog_temporarily_hides_controls_until_message_expires() -> void:
 	var store := await _create_state_store()
-	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	var controls := await _create_controls(func(instance):
 		instance.force_enable = true
 	)
@@ -159,7 +162,7 @@ func test_controls_clamped_within_viewport_bounds() -> void:
 
 func test_input_activity_ignored_when_overlay_active() -> void:
 	var store := await _create_state_store()
-	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	var controls := await _create_controls(func(instance):
 		instance.force_enable = true
 	)
@@ -178,7 +181,7 @@ func test_input_activity_ignored_when_overlay_active() -> void:
 
 func test_gamepad_used_in_menu_keeps_controls_hidden_after_close() -> void:
 	var store := await _create_state_store()
-	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	var controls := await _create_controls(func(instance):
 		instance.force_enable = true
 	)
@@ -199,7 +202,7 @@ func test_gamepad_used_in_menu_keeps_controls_hidden_after_close() -> void:
 
 func test_double_tap_empty_space_triggers_one_shot_camera_center() -> void:
 	var store := await _create_state_store()
-	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	store.dispatch(U_InputActions.device_changed(M_InputDeviceManager.DeviceType.TOUCHSCREEN, -1, 0.0))
 	var controls := await _create_controls(func(instance):
 		instance.force_enable = true
@@ -215,7 +218,7 @@ func test_double_tap_empty_space_triggers_one_shot_camera_center() -> void:
 
 func test_double_tap_over_virtual_controls_does_not_trigger_camera_center() -> void:
 	var store := await _create_state_store()
-	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	store.dispatch(U_InputActions.device_changed(M_InputDeviceManager.DeviceType.TOUCHSCREEN, -1, 0.0))
 	var controls := await _create_controls(func(instance):
 		instance.force_enable = true
@@ -232,7 +235,7 @@ func test_double_tap_over_virtual_controls_does_not_trigger_camera_center() -> v
 
 func test_double_tap_outside_timing_or_distance_thresholds_does_not_trigger_camera_center() -> void:
 	var store := await _create_state_store()
-	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	store.dispatch(U_InputActions.device_changed(M_InputDeviceManager.DeviceType.TOUCHSCREEN, -1, 0.0))
 	var controls := await _create_controls(func(instance):
 		instance.force_enable = true
@@ -258,7 +261,7 @@ func test_double_tap_outside_timing_or_distance_thresholds_does_not_trigger_came
 
 func test_drag_look_reports_delta_and_active_state() -> void:
 	var store := await _create_state_store()
-	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	store.dispatch(U_InputActions.device_changed(M_InputDeviceManager.DeviceType.TOUCHSCREEN, -1, 0.0))
 	var controls := await _create_controls(func(instance):
 		instance.force_enable = true
@@ -280,7 +283,7 @@ func test_drag_look_reports_delta_and_active_state() -> void:
 
 func test_drag_look_applies_sensitivity() -> void:
 	var store := await _create_state_store()
-	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	store.dispatch(U_InputActions.device_changed(M_InputDeviceManager.DeviceType.TOUCHSCREEN, -1, 0.0))
 	store.dispatch(U_InputActions.update_touchscreen_settings({
 		"look_drag_sensitivity": 2.0,
@@ -314,7 +317,7 @@ func _create_state_store() -> M_StateStore:
 	store.menu_initial_state = RS_MenuInitialState.new()
 	store.gameplay_initial_state = RS_GameplayInitialState.new()
 	store.scene_initial_state = RS_SceneInitialState.new()
-	store.scene_initial_state.current_scene_id = StringName("gameplay_base")
+	store.scene_initial_state.current_scene_id = StringName("demo_room")
 	store.settings_initial_state = RS_SettingsInitialState.new()
 	store.navigation_initial_state = RS_NavigationInitialState.new()
 	add_child_autofree(store)

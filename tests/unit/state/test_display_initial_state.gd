@@ -147,3 +147,29 @@ func test_to_dictionary_respects_different_presets() -> void:
 
 	# THEN: Should have intensity values from heavy preset
 	assert_eq(dict["film_grain_intensity"], 0.35, "Should have heavy preset film grain intensity")
+
+func test_has_scanlines_enabled_field() -> void:
+	assert_true("scanlines_enabled" in initial_state,
+		"RS_DisplayInitialState should have scanlines_enabled field")
+	assert_eq(initial_state.scanlines_enabled, false)
+
+func test_to_dictionary_includes_scanline_fields() -> void:
+	var dict: Dictionary = initial_state.to_dictionary()
+	assert_true(dict.has("scanlines_enabled"), "to_dictionary should include scanlines_enabled")
+	assert_true(dict.has("line_mask_intensity"), "to_dictionary should include line_mask_intensity")
+	assert_true(dict.has("scanline_count"), "to_dictionary should include scanline_count")
+
+func test_to_dictionary_loads_line_mask_intensity_from_preset() -> void:
+	initial_state.post_processing_preset = "medium"
+	var dict: Dictionary = initial_state.to_dictionary()
+	var medium_values := U_PostProcessingPresetValues.get_preset_values("medium")
+	assert_almost_eq(
+		float(dict["line_mask_intensity"]),
+		float(medium_values.get("line_mask_intensity", 0.0)),
+		0.0001,
+		"line_mask_intensity should come from medium preset"
+	)
+
+func test_mobile_override_forces_scanlines_disabled() -> void:
+	assert_eq(initial_state.scanlines_enabled, false,
+		"scanlines_enabled defaults to false")

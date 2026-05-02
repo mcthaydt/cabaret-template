@@ -1,9 +1,9 @@
 extends GutTest
 
-const ButtonPromptScene := preload("res://scenes/ui/hud/ui_button_prompt.tscn")
+const ButtonPromptScene := preload("res://scenes/core/ui/hud/ui_button_prompt.tscn")
 const DeviceType := M_InputDeviceManager.DeviceType
-const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
-const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 
 class LocalizationManagerStub extends Node:
 	var translations: Dictionary = {}
@@ -65,25 +65,25 @@ func _register_default_prompts() -> void:
 	U_ButtonPromptRegistry.register_prompt(
 		StringName("interact"),
 		DeviceType.KEYBOARD_MOUSE,
-		"res://assets/button_prompts/keyboard/key_e.png",
+		"res://assets/core/button_prompts/keyboard/key_e.png",
 		"E"
 	)
 	U_ButtonPromptRegistry.register_prompt(
 		StringName("interact"),
 		DeviceType.GAMEPAD,
-		"res://assets/button_prompts/gamepad/button_west.png",
+		"res://assets/core/button_prompts/gamepad/button_west.png",
 		"West"
 	)
 	U_ButtonPromptRegistry.register_prompt(
 		StringName("jump"),
 		DeviceType.KEYBOARD_MOUSE,
-		"res://assets/button_prompts/keyboard/key_space.png",
+		"res://assets/core/button_prompts/keyboard/key_space.png",
 		"Space"
 	)
 	U_ButtonPromptRegistry.register_prompt(
 		StringName("jump"),
 		DeviceType.GAMEPAD,
-		"res://assets/button_prompts/gamepad/button_south.png",
+		"res://assets/core/button_prompts/gamepad/button_south.png",
 		"South"
 	)
 
@@ -124,7 +124,7 @@ func test_show_prompt_updates_icon_and_text() -> void:
 
 func test_missing_icon_falls_back_to_text_label() -> void:
 	var action := StringName("custom_action")
-	U_ButtonPromptRegistry.register_prompt(action, DeviceType.GAMEPAD, "res://assets/button_prompts/gamepad/missing_button.png")
+	U_ButtonPromptRegistry.register_prompt(action, DeviceType.GAMEPAD, "res://assets/core/button_prompts/gamepad/missing_button.png")
 
 	_device_manager._on_joy_connection_changed(0, true)
 	await _await_frames(1)
@@ -354,7 +354,7 @@ func test_button_prompt_applies_theme_tokens_when_active_config_set() -> void:
 	)
 
 func test_button_prompt_scene_has_no_inline_theme_overrides() -> void:
-	var scene_text := FileAccess.get_file_as_string("res://scenes/ui/hud/ui_button_prompt.tscn")
+	var scene_text := FileAccess.get_file_as_string("res://scenes/core/ui/hud/ui_button_prompt.tscn")
 	assert_ne(scene_text, "", "Scene file should load as text")
 	assert_eq(
 		scene_text.find("theme_override_"),

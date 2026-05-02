@@ -1,6 +1,6 @@
 extends BaseTest
 
-const CONDITION_COMPONENT_FIELD := preload("res://scripts/resources/qb/conditions/rs_condition_component_field.gd")
+const CONDITION_COMPONENT_FIELD := preload("res://scripts/core/resources/qb/conditions/rs_condition_component_field.gd")
 
 class MockHealthComponent extends RefCounted:
 	var health_percent: float = 0.5

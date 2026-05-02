@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="RS_WallCutoutConfig" format=3 uid="uid://dulckjmx7vnff"]
+
+[ext_resource type="Script" uid="uid://cq4ijj18w6shp" path="res://scripts/core/resources/ecs/rs_wall_cutout_config.gd" id="1_wall_cutout_config_script"]
+
+[resource]
+script = ExtResource("1_wall_cutout_config_script")
+disc_max_radius = 0.75

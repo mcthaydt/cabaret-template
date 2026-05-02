@@ -1,10 +1,10 @@
 extends BaseTest
 
-const ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
-const LandingIndicatorComponentScript := preload("res://scripts/ecs/components/c_landing_indicator_component.gd")
-const LandingIndicatorSystemScript := preload("res://scripts/ecs/systems/s_landing_indicator_system.gd")
-const ALIGN_COMPONENT := preload("res://scripts/ecs/components/c_align_with_surface_component.gd")
-const ALIGN_SYSTEM := preload("res://scripts/ecs/systems/s_align_with_surface_system.gd")
+const ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
+const LandingIndicatorComponentScript := preload("res://scripts/core/ecs/components/c_landing_indicator_component.gd")
+const LandingIndicatorSystemScript := preload("res://scripts/core/ecs/systems/s_landing_indicator_system.gd")
+const ALIGN_COMPONENT := preload("res://scripts/core/ecs/components/c_align_with_surface_component.gd")
+const ALIGN_SYSTEM := preload("res://scripts/core/ecs/systems/s_align_with_surface_system.gd")
 
 class FakeSpaceState extends Object:
 	var has_hit: bool = false
@@ -41,27 +41,12 @@ class FakeSpaceState extends Object:
 			}
 		return {}
 
-class FakeWorld3D extends Object:
-	var direct_space_state: Object
-
-	func _get(property: StringName):
-		if property == StringName("direct_space_state"):
-			return direct_space_state
-		return null
-
 class FakeBody extends CharacterBody3D:
 	var _space_state: FakeSpaceState
-	var _fake_world: FakeWorld3D
 
 	func _init() -> void:
 		up_direction = Vector3.UP
 		_space_state = FakeSpaceState.new()
-		_fake_world = FakeWorld3D.new()
-		_fake_world.direct_space_state = _space_state
-
-	@warning_ignore("native_method_override")
-	func get_world_3d():
-		return _fake_world
 
 	func set_raycast_hit(point: Vector3, normal: Vector3) -> void:
 		_space_state.set_hit(point, normal)

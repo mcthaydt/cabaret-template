@@ -1,38 +1,34 @@
 extends BaseTest
 
-const U_INTERACTION_CONFIG_RESOLVER := preload("res://scripts/gameplay/helpers/u_interaction_config_resolver.gd")
-const RS_DOOR_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_door_interaction_config.gd")
-const RS_CHECKPOINT_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_checkpoint_interaction_config.gd")
-const RS_HAZARD_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_hazard_interaction_config.gd")
-const RS_VICTORY_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_victory_interaction_config.gd")
-const RS_SIGNPOST_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_signpost_interaction_config.gd")
-const RS_ENDGAME_GOAL_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_endgame_goal_interaction_config.gd")
-const RS_SCENE_TRIGGER_SETTINGS := preload("res://scripts/resources/ecs/rs_scene_trigger_settings.gd")
-const DOOR_HINT_CONFIG_PATH := "res://resources/interactions/doors/cfg_door_exterior_to_bar.tres"
-const DOOR_ALLEYWAY_TO_BAR_HINT_CONFIG_PATH := "res://resources/interactions/doors/cfg_door_alleyway_to_bar.tres"
-const DOOR_BAR_TO_ALLEYWAY_HINT_CONFIG_PATH := "res://resources/interactions/doors/cfg_door_bar_to_alleyway.tres"
-const SIGNPOST_HINT_CONFIG_PATH := "res://resources/interactions/signposts/cfg_signpost_exterior_tutorial.tres"
-const SIGNPOST_BAR_HINT_CONFIG_PATH := "res://resources/interactions/signposts/cfg_signpost_bar_tutorial.tres"
+const U_INTERACTION_CONFIG_RESOLVER := preload("res://scripts/core/gameplay/helpers/u_interaction_config_resolver.gd")
+const RS_DOOR_INTERACTION_CONFIG := preload("res://scripts/core/resources/interactions/rs_door_interaction_config.gd")
+const RS_CHECKPOINT_INTERACTION_CONFIG := preload("res://scripts/core/resources/interactions/rs_checkpoint_interaction_config.gd")
+const RS_HAZARD_INTERACTION_CONFIG := preload("res://scripts/core/resources/interactions/rs_hazard_interaction_config.gd")
+const RS_VICTORY_INTERACTION_CONFIG := preload("res://scripts/core/resources/interactions/rs_victory_interaction_config.gd")
+const RS_SIGNPOST_INTERACTION_CONFIG := preload("res://scripts/core/resources/interactions/rs_signpost_interaction_config.gd")
+const RS_ENDGAME_GOAL_INTERACTION_CONFIG := preload("res://scripts/core/resources/interactions/rs_endgame_goal_interaction_config.gd")
+const RS_SCENE_TRIGGER_SETTINGS := preload("res://scripts/core/resources/ecs/rs_scene_trigger_settings.gd")
+const DOOR_HINT_CONFIG_PATH := "res://resources/demo/interactions/doors/cfg_door_exterior_to_bar.tres"
+const DOOR_ALLEYWAY_TO_BAR_HINT_CONFIG_PATH := "res://resources/demo/interactions/doors/cfg_door_alleyway_to_bar.tres"
+const DOOR_BAR_TO_ALLEYWAY_HINT_CONFIG_PATH := "res://resources/demo/interactions/doors/cfg_door_bar_to_alleyway.tres"
+const SIGNPOST_HINT_CONFIG_PATH := "res://resources/demo/interactions/signposts/cfg_signpost_exterior_tutorial.tres"
+const SIGNPOST_BAR_HINT_CONFIG_PATH := "res://resources/demo/interactions/signposts/cfg_signpost_bar_tutorial.tres"
 
 const SCENE_PATHS := [
-	"res://scenes/gameplay/gameplay_exterior.tscn",
-	"res://scenes/gameplay/gameplay_alleyway.tscn",
-	"res://scenes/gameplay/gameplay_bar.tscn",
-	"res://scenes/gameplay/gameplay_interior_house.tscn",
-	"res://scenes/prefabs/prefab_door_trigger.tscn",
-	"res://scenes/prefabs/prefab_checkpoint_safe_zone.tscn",
-	"res://scenes/prefabs/prefab_spike_trap.tscn",
-	"res://scenes/prefabs/prefab_death_zone.tscn",
-	"res://scenes/prefabs/prefab_goal_zone.tscn",
+	"res://scenes/core/prefabs/prefab_door_trigger.tscn",
+	"res://scenes/core/prefabs/prefab_checkpoint_safe_zone.tscn",
+	"res://scenes/core/prefabs/prefab_spike_trap.tscn",
+	"res://scenes/core/prefabs/prefab_death_zone.tscn",
+	"res://scenes/core/prefabs/prefab_goal_zone.tscn",
 ]
 
 const CONTROLLER_TO_CONFIG_SCRIPT := {
-	"res://scripts/gameplay/inter_door_trigger.gd": RS_DOOR_INTERACTION_CONFIG,
-	"res://scripts/gameplay/inter_checkpoint_zone.gd": RS_CHECKPOINT_INTERACTION_CONFIG,
-	"res://scripts/gameplay/inter_hazard_zone.gd": RS_HAZARD_INTERACTION_CONFIG,
-	"res://scripts/gameplay/inter_victory_zone.gd": RS_VICTORY_INTERACTION_CONFIG,
-	"res://scripts/gameplay/inter_signpost.gd": RS_SIGNPOST_INTERACTION_CONFIG,
-	"res://scripts/gameplay/inter_endgame_goal_zone.gd": RS_ENDGAME_GOAL_INTERACTION_CONFIG,
+	"res://scripts/core/gameplay/inter_door_trigger.gd": RS_DOOR_INTERACTION_CONFIG,
+	"res://scripts/core/gameplay/inter_checkpoint_zone.gd": RS_CHECKPOINT_INTERACTION_CONFIG,
+	"res://scripts/core/gameplay/inter_hazard_zone.gd": RS_HAZARD_INTERACTION_CONFIG,
+	"res://scripts/core/gameplay/inter_victory_zone.gd": RS_VICTORY_INTERACTION_CONFIG,
+	"res://scripts/core/gameplay/inter_signpost.gd": RS_SIGNPOST_INTERACTION_CONFIG,
+	"res://scripts/core/gameplay/inter_endgame_goal_zone.gd": RS_ENDGAME_GOAL_INTERACTION_CONFIG,
 }
 
 func test_interaction_controllers_have_typed_config_assignments_in_scenes() -> void:
@@ -57,7 +53,7 @@ func test_interaction_controllers_have_typed_config_assignments_in_scenes() -> v
 		instance.free()
 
 func test_scene_config_validation_fails_when_config_missing_or_wrong_type() -> void:
-	var packed := load("res://scenes/prefabs/prefab_door_trigger.tscn") as PackedScene
+	var packed := load("res://scenes/core/prefabs/prefab_door_trigger.tscn") as PackedScene
 	assert_not_null(packed)
 	if packed == null:
 		return

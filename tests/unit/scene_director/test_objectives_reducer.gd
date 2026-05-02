@@ -1,7 +1,7 @@
 extends GutTest
 
-const OBJECTIVES_ACTIONS := preload("res://scripts/state/actions/u_objectives_actions.gd")
-const OBJECTIVES_REDUCER := preload("res://scripts/state/reducers/u_objectives_reducer.gd")
+const OBJECTIVES_ACTIONS := preload("res://scripts/core/state/actions/u_objectives_actions.gd")
+const OBJECTIVES_REDUCER := preload("res://scripts/core/state/reducers/u_objectives_reducer.gd")
 
 func test_activate_sets_status_to_active() -> void:
 	var state := _base_state()

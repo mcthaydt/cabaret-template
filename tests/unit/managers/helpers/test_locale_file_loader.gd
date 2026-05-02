@@ -2,7 +2,7 @@ extends GutTest
 
 ## Tests for U_LocaleFileLoader helper (Phase 2A)
 
-const U_LOCALE_FILE_LOADER := preload("res://scripts/managers/helpers/u_locale_file_loader.gd")
+const U_LOCALE_FILE_LOADER := preload("res://scripts/core/managers/helpers/u_locale_file_loader.gd")
 
 func test_load_locale_returns_dictionary() -> void:
 	var result: Dictionary = U_LOCALE_FILE_LOADER.load_locale(&"en")

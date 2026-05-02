@@ -1,4 +1,4 @@
-extends "res://scripts/interfaces/i_audio_manager.gd"
+extends "res://scripts/core/interfaces/i_audio_manager.gd"
 class_name MockAudioManager
 
 ## Lightweight mock audio manager for testing.

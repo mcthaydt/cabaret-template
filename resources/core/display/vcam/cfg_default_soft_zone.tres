@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="RS_VCamSoftZone" format=3 uid="uid://di7grdc78eh1y"]
+
+[ext_resource type="Script" uid="uid://r0ndoc5qfki1" path="res://scripts/core/resources/display/vcam/rs_vcam_soft_zone.gd" id="1_hb3af"]
+
+[resource]
+script = ExtResource("1_hb3af")
+dead_zone_width = 0.08
+dead_zone_height = 0.07
+soft_zone_width = 0.24
+soft_zone_height = 0.21
+damping = 1.33
+hysteresis_margin = 0.013

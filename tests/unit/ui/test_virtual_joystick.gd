@@ -1,6 +1,6 @@
 extends GutTest
 
-const VirtualJoystickScene := preload("res://scenes/ui/widgets/ui_virtual_joystick.tscn")
+const VirtualJoystickScene := preload("res://scenes/core/ui/widgets/ui_virtual_joystick.tscn")
 
 func before_each() -> void:
 	U_StateHandoff.clear_all()

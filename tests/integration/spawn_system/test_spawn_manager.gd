@@ -5,12 +5,12 @@ extends GutTest
 ## Tests spawn point discovery, player positioning, and validation logic
 ## in realistic scene configurations.
 
-const M_SPAWN_MANAGER := preload("res://scripts/managers/m_spawn_manager.gd")
-const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
-const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
-const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
-const SP_SPAWN_POINT := preload("res://scripts/scene_management/sp_spawn_point.gd")
-const RS_SPAWN_METADATA := preload("res://scripts/resources/scene_management/rs_spawn_metadata.gd")
+const M_SPAWN_MANAGER := preload("res://scripts/core/managers/m_spawn_manager.gd")
+const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
+const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_gameplay_initial_state.gd")
+const U_GAMEPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
+const SP_SPAWN_POINT := preload("res://scripts/core/scene_management/sp_spawn_point.gd")
+const RS_SPAWN_METADATA := preload("res://scripts/core/resources/scene_management/rs_spawn_metadata.gd")
 const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")
 
 var spawn_manager: M_SpawnManager

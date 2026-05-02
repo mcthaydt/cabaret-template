@@ -1,6 +1,0 @@
-[gd_resource type="Resource" script_class="RS_LandingParticlesSettings" format=3 uid="uid://oxvahsme8310"]
-
-[ext_resource type="Script" uid="uid://bvvuhn6qopp4g" path="res://scripts/resources/ecs/rs_landing_particles_settings.gd" id="1_0"]
-
-[resource]
-script = ExtResource("1_0")

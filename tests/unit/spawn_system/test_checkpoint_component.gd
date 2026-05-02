@@ -5,7 +5,7 @@ extends GutTest
 ## Tests checkpoint component for marking mid-scene spawn points
 ## independent of door transitions.
 
-const C_CHECKPOINT_COMPONENT := preload("res://scripts/ecs/components/c_checkpoint_component.gd")
+const C_CHECKPOINT_COMPONENT := preload("res://scripts/core/ecs/components/c_checkpoint_component.gd")
 
 var checkpoint: C_CHECKPOINT_COMPONENT
 

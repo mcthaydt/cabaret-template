@@ -20,7 +20,7 @@ func after_each() -> void:
 
 func test_focus_wraps_from_first_to_last_control() -> void:
 	# GIVEN: Display settings tab with multiple focusable controls
-	var scene := load("res://scenes/ui/overlays/settings/ui_display_settings_tab.tscn")
+	var scene := load("res://scenes/core/ui/overlays/settings/ui_display_settings_tab.tscn")
 	_tab = scene.instantiate()
 	add_child_autofree(_tab)
 	await get_tree().process_frame
@@ -41,7 +41,7 @@ func test_focus_wraps_from_first_to_last_control() -> void:
 
 func test_focus_wraps_from_last_to_first_control() -> void:
 	# GIVEN: Display settings tab with multiple focusable controls
-	var scene := load("res://scenes/ui/overlays/settings/ui_display_settings_tab.tscn")
+	var scene := load("res://scenes/core/ui/overlays/settings/ui_display_settings_tab.tscn")
 	_tab = scene.instantiate()
 	add_child_autofree(_tab)
 	await get_tree().process_frame
@@ -61,16 +61,25 @@ func test_focus_wraps_from_last_to_first_control() -> void:
 		assert_eq(down_node, first_control, "Down from last control should focus first control (wrapping)")
 
 func _find_first_focusable(root: Node) -> Control:
-	# Find WindowSizeOption which should be the first focusable control
-	var window_size_option := root.find_child("WindowSizeOption", true, false)
-	if window_size_option is Control:
-		return window_size_option as Control
+	var focusables := _get_all_focusables(root)
+	if focusables.size() > 0:
+		return focusables[0]
 	return null
 
 func _find_last_focusable(root: Node) -> Control:
-	# Find ApplyButton which should be the last focusable control
-	# (buttons are now included in the focusables array)
-	var apply_button := root.find_child("ApplyButton", true, false)
-	if apply_button is Control:
-		return apply_button as Control
+	var focusables := _get_all_focusables(root)
+	if focusables.size() > 0:
+		return focusables[focusables.size() - 1]
 	return null
+
+func _get_all_focusables(root: Node) -> Array[Control]:
+	var focusables: Array[Control] = []
+	_collect_focusables(root, focusables)
+	return focusables
+
+func _collect_focusables(node: Node, out: Array[Control]) -> void:
+	if node is Control and node.focus_mode == Control.FOCUS_ALL:
+		out.append(node as Control)
+	for child in node.get_children():
+		if child is Node:
+			_collect_focusables(child, out)

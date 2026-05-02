@@ -1,6 +1,0 @@
-[gd_resource type="Resource" script_class="RS_DisplayConfig" format=3 uid="uid://d2yp3yjc5j4hb"]
-
-[ext_resource type="Script" uid="uid://yw6blwr36gvi" path="res://scripts/resources/managers/rs_display_config.gd" id="1_display_config_script"]
-
-[resource]
-script = ExtResource("1_display_config_script")

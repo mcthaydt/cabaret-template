@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://dyjqcg3o35ety"]
+
+[ext_resource type="Script" uid="uid://dr2u7w3ufadya" path="res://scripts/core/gameplay/inter_hazard_zone.gd" id="1_controller"]
+[ext_resource type="Resource" uid="uid://dckux76yd7ug0" path="res://resources/core/interactions/hazards/cfg_hazard_default.tres" id="3_hazard_config"]
+
+[node name="E_DeathZone" type="Node3D" unique_id=71030271]
+script = ExtResource("1_controller")
+config = ExtResource("3_hazard_config")
+entity_id = &"deathzone"
+tags = Array[StringName]([&"hazard", &"death"])

@@ -4,7 +4,7 @@ extends GutTest
 ## This prevents race condition where M_GameplayInitializerManager checks for spawn status
 ## before M_SceneManager has recorded it, causing double spawn calls.
 
-const M_SceneManager = preload("res://scripts/managers/m_scene_manager.gd")
+const M_SceneManager = preload("res://scripts/core/managers/m_scene_manager.gd")
 
 ## Test that M_SceneManager tracks spawn before scene enters the tree
 func test_spawn_flag_set_before_scene_added_to_tree() -> void:

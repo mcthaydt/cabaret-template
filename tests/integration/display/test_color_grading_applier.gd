@@ -9,19 +9,19 @@ extends BaseTest
 ## - ColorGradingLayer is created under PostProcessOverlay after first apply
 ## - Shader uniforms on ColorGradingRect reflect the loaded grade
 
-const M_DISPLAY_MANAGER := preload("res://scripts/managers/m_display_manager.gd")
-const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
-const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
-const RS_DISPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_display_initial_state.gd")
+const M_DISPLAY_MANAGER := preload("res://scripts/core/managers/m_display_manager.gd")
+const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
+const RS_STATE_STORE_SETTINGS := preload("res://scripts/core/resources/state/rs_state_store_settings.gd")
+const RS_DISPLAY_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_display_initial_state.gd")
 
-const U_COLOR_GRADING_REGISTRY := preload("res://scripts/managers/helpers/display/u_color_grading_registry.gd")
-const U_COLOR_GRADING_SELECTORS := preload("res://scripts/state/selectors/u_color_grading_selectors.gd")
-const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
+const U_COLOR_GRADING_REGISTRY := preload("res://scripts/core/managers/helpers/display/u_color_grading_registry.gd")
+const U_COLOR_GRADING_SELECTORS := preload("res://scripts/core/state/selectors/u_color_grading_selectors.gd")
+const U_NAVIGATION_ACTIONS := preload("res://scripts/core/state/actions/u_navigation_actions.gd")
+const U_SCENE_ACTIONS := preload("res://scripts/core/state/actions/u_scene_actions.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
+const U_STATE_HANDOFF := preload("res://scripts/core/state/utils/u_state_handoff.gd")
 
-const POST_PROCESS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/ui_post_process_overlay.tscn")
+const POST_PROCESS_OVERLAY_SCENE := preload("res://scenes/core/ui/overlays/ui_post_process_overlay.tscn")
 
 var _store: M_StateStore
 var _display_manager: M_DisplayManager
@@ -46,7 +46,7 @@ func before_each() -> void:
 	add_child_autofree(_display_manager)
 	await get_tree().process_frame
 
-	_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("gameplay"), StringName("gameplay_base")))
+	_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("gameplay"), StringName("demo_room")))
 	await get_tree().physics_frame
 
 
@@ -83,7 +83,7 @@ func _get_color_grading_param(param: StringName) -> Variant:
 
 
 func _get_expected_alleyway_grade_dict() -> Dictionary:
-	var grade := U_COLOR_GRADING_REGISTRY.get_color_grading_for_scene(StringName("alleyway"))
+	var grade := U_COLOR_GRADING_REGISTRY.get_color_grading_for_scene(StringName("demo_room"))
 	if grade == null:
 		return {}
 	return grade.to_dictionary()
@@ -106,7 +106,7 @@ func test_color_grading_rect_has_shader_material() -> void:
 # --- Known scene grade load (source-derived from alleyway grade resource) ---
 
 func test_scene_swap_loads_filter_mode_for_known_scene() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.scene_swapped(StringName("alleyway")))
+	_store.dispatch(U_SCENE_ACTIONS.scene_swapped(StringName("demo_room")))
 	await get_tree().process_frame
 
 	var expected_grade: Dictionary = _get_expected_alleyway_grade_dict()
@@ -120,7 +120,7 @@ func test_scene_swap_loads_filter_mode_for_known_scene() -> void:
 
 
 func test_scene_swap_loads_exposure_for_known_scene() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.scene_swapped(StringName("alleyway")))
+	_store.dispatch(U_SCENE_ACTIONS.scene_swapped(StringName("demo_room")))
 	await get_tree().process_frame
 
 	var expected_grade: Dictionary = _get_expected_alleyway_grade_dict()
@@ -135,7 +135,7 @@ func test_scene_swap_loads_exposure_for_known_scene() -> void:
 
 
 func test_scene_swap_loads_contrast_for_known_scene() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.scene_swapped(StringName("alleyway")))
+	_store.dispatch(U_SCENE_ACTIONS.scene_swapped(StringName("demo_room")))
 	await get_tree().process_frame
 
 	var expected_grade: Dictionary = _get_expected_alleyway_grade_dict()
@@ -150,7 +150,7 @@ func test_scene_swap_loads_contrast_for_known_scene() -> void:
 
 
 func test_scene_swap_populates_all_color_grading_keys_in_state() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.scene_swapped(StringName("alleyway")))
+	_store.dispatch(U_SCENE_ACTIONS.scene_swapped(StringName("demo_room")))
 	await get_tree().process_frame
 
 	var state := _store.get_state()
@@ -192,7 +192,7 @@ func test_scene_swap_unknown_scene_still_populates_color_grading_state() -> void
 # --- Shader uniform propagation ---
 
 func test_scene_swap_updates_shader_exposure_uniform() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.scene_swapped(StringName("alleyway")))
+	_store.dispatch(U_SCENE_ACTIONS.scene_swapped(StringName("demo_room")))
 	await get_tree().process_frame
 
 	var expected_grade: Dictionary = _get_expected_alleyway_grade_dict()
@@ -208,7 +208,7 @@ func test_scene_swap_updates_shader_exposure_uniform() -> void:
 
 
 func test_scene_swap_updates_shader_filter_mode_uniform() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.scene_swapped(StringName("alleyway")))
+	_store.dispatch(U_SCENE_ACTIONS.scene_swapped(StringName("demo_room")))
 	await get_tree().process_frame
 
 	var expected_grade: Dictionary = _get_expected_alleyway_grade_dict()

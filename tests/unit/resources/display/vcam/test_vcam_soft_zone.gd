@@ -1,6 +1,6 @@
 extends GutTest
 
-const SOFT_ZONE_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_soft_zone.gd")
+const SOFT_ZONE_SCRIPT := preload("res://scripts/core/resources/display/vcam/rs_vcam_soft_zone.gd")
 
 func _new_soft_zone() -> Resource:
 	return SOFT_ZONE_SCRIPT.new()

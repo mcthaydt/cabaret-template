@@ -137,7 +137,7 @@ func test_dispatch_produces_paired_action_and_slice_signals() -> void:
 	# after the dispatch, making the pairing testable in a single frame.
 	var action: Dictionary = U_NavigationActions.set_shell(
 		StringName("gameplay"),
-		StringName("alleyway")
+		StringName("demo_room")
 	)
 	action["immediate"] = true
 	store.dispatch(action)

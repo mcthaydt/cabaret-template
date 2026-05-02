@@ -1,8 +1,8 @@
 extends GutTest
 
-const LOADING_SCREEN_SCENE := preload("res://scenes/ui/hud/ui_loading_screen.tscn")
-const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
-const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
+const LOADING_SCREEN_SCENE := preload("res://scenes/core/ui/hud/ui_loading_screen.tscn")
+const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 
 var _loading_screen: Control = null
 
@@ -108,7 +108,7 @@ func test_loading_screen_applies_theme_tokens_when_active_config_set() -> void:
 			)
 
 func test_loading_screen_scene_has_no_inline_theme_overrides() -> void:
-	var scene_text := FileAccess.get_file_as_string("res://scenes/ui/hud/ui_loading_screen.tscn")
+	var scene_text := FileAccess.get_file_as_string("res://scenes/core/ui/hud/ui_loading_screen.tscn")
 	assert_ne(scene_text, "", "Scene file should load as text")
 	assert_eq(
 		scene_text.find("theme_override_"),

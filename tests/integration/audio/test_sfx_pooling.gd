@@ -4,8 +4,8 @@ extends BaseTest
 ##
 ## Validates pooled 3D SFX playback via U_SFXSpawner inside M_AudioManager.
 
-const M_AUDIO_MANAGER := preload("res://scripts/managers/m_audio_manager.gd")
-const U_SFX_SPAWNER := preload("res://scripts/managers/helpers/u_sfx_spawner.gd")
+const M_AUDIO_MANAGER := preload("res://scripts/core/managers/m_audio_manager.gd")
+const U_SFX_SPAWNER := preload("res://scripts/core/managers/helpers/u_sfx_spawner.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_AUDIO_TEST_HELPERS := preload("res://tests/helpers/u_audio_test_helpers.gd")
 

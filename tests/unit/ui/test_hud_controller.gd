@@ -1,12 +1,13 @@
 extends GutTest
 
-const HUD_SCENE := preload("res://scenes/ui/hud/ui_hud_overlay.tscn")
-const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
-const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
-const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
-const RS_SCENE_INITIAL_STATE := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
-const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/resources/state/rs_navigation_initial_state.gd")
-const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
+const HUD_SCENE := preload("res://scenes/core/ui/hud/ui_hud_overlay.tscn")
+const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
+const RS_STATE_STORE_SETTINGS := preload("res://scripts/core/resources/state/rs_state_store_settings.gd")
+const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_gameplay_initial_state.gd")
+const RS_SCENE_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_scene_initial_state.gd")
+const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_navigation_initial_state.gd")
+const U_SCENE_ACTIONS := preload("res://scripts/core/state/actions/u_scene_actions.gd")
+const U_GAMEPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
 
 func _create_store() -> M_StateStore:
 	var store := M_STATE_STORE.new()
@@ -47,7 +48,7 @@ func test_health_bar_hides_when_menus_open() -> void:
 	var store := _create_store()
 	await get_tree().process_frame
 	_ensure_hud_layer()
-	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	await wait_process_frames(1)
 
 	var hud := HUD_SCENE.instantiate()
@@ -61,9 +62,9 @@ func test_health_bar_hides_when_menus_open() -> void:
 	assert_not_null(health_bar, "Health bar should exist")
 
 	# Health bar should be visible during normal gameplay (no overlays)
-	assert_true(health_container.visible, "Health container should be visible when no menus are open")
-
-	# Simulate opening a menu by pushing an overlay via navigation actions
+	store.dispatch(U_GAMEPLAY_ACTIONS.take_damage("player", 5.0))
+	await wait_process_frames(2)
+	assert_true(health_container.visible, "Health container should be visible when no menus are open")	# Simulate opening a menu by pushing an overlay via navigation actions
 	store.dispatch(U_NavigationActions.open_pause())
 	# Wait for signal batching to flush
 	await wait_process_frames(5)
@@ -79,8 +80,10 @@ func test_health_bar_hides_when_menus_open() -> void:
 	store.dispatch(U_NavigationActions.close_pause())
 	await wait_process_frames(5)
 
-	# Health bar should be visible again
-	assert_true(health_container.visible, "Health container should be visible again when menu is closed")
+	# Health bar should be visible again when re-showing after damage
+	store.dispatch(U_GAMEPLAY_ACTIONS.take_damage("player", 5.0))
+	await wait_process_frames(2)
+	assert_true(health_container.visible, "Health container should be visible again when menu is closed and damage taken")
 
 ## Test health bar stays hidden when transitioning from gameplay to main menu
 ## Reproduces bug: health bar flashes when quitting to main menu from pause
@@ -90,7 +93,7 @@ func test_health_bar_hidden_when_transitioning_to_main_menu() -> void:
 
 	# Start in gameplay with pause menu open
 	_ensure_hud_layer()
-	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	await wait_process_frames(1)
 
 	var hud := HUD_SCENE.instantiate()
@@ -122,7 +125,7 @@ func test_hud_visibility_tracks_transition_state_and_shell() -> void:
 	var store := _create_store()
 	await get_tree().process_frame
 	_ensure_hud_layer()
-	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	await wait_process_frames(2)
 
 	var hud := HUD_SCENE.instantiate()
@@ -141,6 +144,34 @@ func test_hud_visibility_tracks_transition_state_and_shell() -> void:
 	await wait_process_frames(2)
 	assert_false(hud.visible, "HUD should stay hidden in non-gameplay shells")
 
-	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	await wait_process_frames(2)
 	assert_true(hud.visible, "HUD should reappear when gameplay shell resumes and transition is complete")
+
+func test_health_bar_shows_only_briefly_after_damage() -> void:
+	var store := _create_store()
+	await get_tree().process_frame
+	_ensure_hud_layer()
+	store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
+	await wait_process_frames(1)
+
+	var hud := HUD_SCENE.instantiate()
+	add_child(hud)
+	autofree(hud)
+	await get_tree().process_frame
+
+	var health_container: HBoxContainer = hud.get_node("MarginContainer/VBoxContainer/HealthContainer")
+	assert_not_null(health_container, "Health container should exist")
+
+	# Health bar should be hidden during normal gameplay when no recent damage
+	assert_false(health_container.visible, "Health container should be hidden during normal gameplay without recent damage")
+
+	# Taking damage should briefly show the health bar
+	store.dispatch(U_GAMEPLAY_ACTIONS.take_damage("player", 10.0))
+	await wait_process_frames(2)
+	assert_true(health_container.visible, "Health container should be visible after taking damage")
+
+	# After the display duration, health bar should hide again
+	await get_tree().create_timer(UI_HudController.HEALTH_BAR_DAMAGE_DISPLAY_DURATION_SEC + 0.2).timeout
+	await wait_process_frames(2)
+	assert_false(health_container.visible, "Health container should hide after damage display duration expires")

@@ -1,32 +1,32 @@
 extends BaseTest
 
-const MOBILE_CONTROLS_SCENE := preload("res://scenes/ui/hud/ui_mobile_controls.tscn")
-const TOUCHSCREEN_SETTINGS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/ui_touchscreen_settings_overlay.tscn")
+const MOBILE_CONTROLS_SCENE := preload("res://scenes/core/ui/hud/ui_mobile_controls.tscn")
+const TOUCHSCREEN_SETTINGS_OVERLAY_SCENE := preload("res://scenes/core/ui/overlays/ui_touchscreen_settings_overlay.tscn")
 
-const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
-const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
-const RS_BOOT_INITIAL_STATE := preload("res://scripts/resources/state/rs_boot_initial_state.gd")
-const RS_MENU_INITIAL_STATE := preload("res://scripts/resources/state/rs_menu_initial_state.gd")
-const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/resources/state/rs_navigation_initial_state.gd")
-const RS_SETTINGS_INITIAL_STATE := preload("res://scripts/resources/state/rs_settings_initial_state.gd")
-const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
-const RS_SCENE_INITIAL_STATE := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
-const RS_DEBUG_INITIAL_STATE := preload("res://scripts/resources/state/rs_debug_initial_state.gd")
+const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
+const RS_STATE_STORE_SETTINGS := preload("res://scripts/core/resources/state/rs_state_store_settings.gd")
+const RS_BOOT_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_boot_initial_state.gd")
+const RS_MENU_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_menu_initial_state.gd")
+const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_navigation_initial_state.gd")
+const RS_SETTINGS_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_settings_initial_state.gd")
+const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_gameplay_initial_state.gd")
+const RS_SCENE_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_scene_initial_state.gd")
+const RS_DEBUG_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_debug_initial_state.gd")
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
-const U_INPUT_ACTIONS := preload("res://scripts/state/actions/u_input_actions.gd")
-const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
+const U_STATE_HANDOFF := preload("res://scripts/core/state/utils/u_state_handoff.gd")
+const U_INPUT_ACTIONS := preload("res://scripts/core/state/actions/u_input_actions.gd")
+const U_NAVIGATION_ACTIONS := preload("res://scripts/core/state/actions/u_navigation_actions.gd")
 
-const M_ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
-const S_TOUCHSCREEN_SYSTEM := preload("res://scripts/ecs/systems/s_touchscreen_system.gd")
-const S_INPUT_SYSTEM := preload("res://scripts/ecs/systems/s_input_system.gd")
-const S_VCAM_SYSTEM := preload("res://scripts/ecs/systems/s_vcam_system.gd")
-const I_VCAM_MANAGER := preload("res://scripts/interfaces/i_vcam_manager.gd")
-const BASE_ECS_ENTITY := preload("res://scripts/ecs/base_ecs_entity.gd")
-const C_INPUT_COMPONENT := preload("res://scripts/ecs/components/c_input_component.gd")
-const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component.gd")
-const RS_VCAM_MODE_ORBIT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_orbit.gd")
+const M_ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
+const S_TOUCHSCREEN_SYSTEM := preload("res://scripts/core/ecs/systems/s_touchscreen_system.gd")
+const S_INPUT_SYSTEM := preload("res://scripts/core/ecs/systems/s_input_system.gd")
+const S_VCAM_SYSTEM := preload("res://scripts/core/ecs/systems/s_vcam_system.gd")
+const I_VCAM_MANAGER := preload("res://scripts/core/interfaces/i_vcam_manager.gd")
+const BASE_ECS_ENTITY := preload("res://scripts/core/ecs/base_ecs_entity.gd")
+const C_INPUT_COMPONENT := preload("res://scripts/core/ecs/components/c_input_component.gd")
+const C_VCAM_COMPONENT := preload("res://scripts/core/ecs/components/c_vcam_component.gd")
+const RS_VCAM_MODE_ORBIT := preload("res://scripts/core/resources/display/vcam/rs_vcam_mode_orbit.gd")
 
 class VCamManagerStub extends I_VCamManager:
 	var active_vcam_id: StringName = StringName("")
@@ -144,7 +144,7 @@ func test_touchscreen_settings_overlay_updates_drag_look_sensitivity() -> void:
 	await _await_frames(1)
 	if is_instance_valid(overlay):
 		overlay.queue_free()
-	store.dispatch(U_NAVIGATION_ACTIONS.start_game(StringName("alleyway")))
+	store.dispatch(U_NAVIGATION_ACTIONS.start_game(StringName("demo_room")))
 	store.dispatch(U_INPUT_ACTIONS.device_changed(M_InputDeviceManager.DeviceType.TOUCHSCREEN, -1))
 	await _await_frames(2)
 
@@ -191,7 +191,7 @@ func _setup_mobile_vcam_fixture(mode: Resource, include_input_system: bool) -> D
 	store.gameplay_initial_state = gameplay_initial
 	var navigation_initial := RS_NAVIGATION_INITIAL_STATE.new()
 	navigation_initial.shell = StringName("gameplay")
-	navigation_initial.base_scene_id = StringName("alleyway")
+	navigation_initial.base_scene_id = StringName("demo_room")
 	store.navigation_initial_state = navigation_initial
 	store.scene_initial_state = RS_SCENE_INITIAL_STATE.new()
 	store.settings_initial_state = RS_SETTINGS_INITIAL_STATE.new()
@@ -256,7 +256,7 @@ func _setup_mobile_vcam_fixture(mode: Resource, include_input_system: bool) -> D
 	add_child_autofree(controls)
 	await _await_frames(3)
 
-	store.dispatch(U_NAVIGATION_ACTIONS.start_game(StringName("alleyway")))
+	store.dispatch(U_NAVIGATION_ACTIONS.start_game(StringName("demo_room")))
 	store.dispatch(U_INPUT_ACTIONS.device_changed(M_InputDeviceManager.DeviceType.TOUCHSCREEN, -1))
 	await _await_frames(2)
 

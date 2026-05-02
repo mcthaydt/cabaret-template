@@ -1,8 +1,0 @@
-[gd_resource type="Resource" script_class="RS_StateSliceConfig" format=3 uid="uid://d152t2bhumb5c"]
-
-[ext_resource type="Script" uid="uid://dmshv6lysaekd" path="res://scripts/resources/state/rs_state_slice_config.gd" id="1_slice_config"]
-
-[resource]
-script = ExtResource("1_slice_config")
-slice_name = &"navigation"
-is_transient = true

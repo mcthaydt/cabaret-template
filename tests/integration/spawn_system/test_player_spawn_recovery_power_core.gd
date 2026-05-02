@@ -1,14 +1,14 @@
 extends GutTest
 
-const SCENE_PATH := "res://scenes/gameplay/gameplay_power_core.tscn"
-const M_SPAWN_MANAGER := preload("res://scripts/managers/m_spawn_manager.gd")
-const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
-const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
-const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
-const C_FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")
-const C_INPUT_COMPONENT := preload("res://scripts/ecs/components/c_input_component.gd")
-const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
-const C_SPAWN_RECOVERY_COMPONENT := preload("res://scripts/ecs/components/c_spawn_recovery_component.gd")
+const SCENE_PATH := "res://scenes/demo/gameplay/gameplay_demo_room.tscn"
+const M_SPAWN_MANAGER := preload("res://scripts/core/managers/m_spawn_manager.gd")
+const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
+const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_gameplay_initial_state.gd")
+const U_ECS_UTILS := preload("res://scripts/core/utils/ecs/u_ecs_utils.gd")
+const C_FLOATING_COMPONENT := preload("res://scripts/core/ecs/components/c_floating_component.gd")
+const C_INPUT_COMPONENT := preload("res://scripts/core/ecs/components/c_input_component.gd")
+const C_MOVEMENT_COMPONENT := preload("res://scripts/core/ecs/components/c_movement_component.gd")
+const C_SPAWN_RECOVERY_COMPONENT := preload("res://scripts/core/ecs/components/c_spawn_recovery_component.gd")
 
 var _store: M_StateStore
 var _spawn_manager: M_SpawnManager
@@ -29,7 +29,7 @@ func before_each() -> void:
 	await get_tree().process_frame
 
 	var scene_resource: PackedScene = load(SCENE_PATH) as PackedScene
-	assert_not_null(scene_resource, "Expected gameplay_power_core scene to load")
+	assert_not_null(scene_resource, "Expected gameplay_demo_room scene to load")
 	if scene_resource == null:
 		return
 
@@ -53,10 +53,10 @@ func test_player_recovers_to_default_spawn_when_falling_below_map() -> void:
 	var body := _scene.get_node_or_null("Entities/E_Player/Player_Body") as CharacterBody3D
 	var recovery_system := _scene.get_node_or_null("Systems/Movement/S_SpawnRecoverySystem")
 	var spawn_point := _scene.get_node_or_null("Entities/SpawnPoints/sp_default") as Node3D
-	assert_not_null(entity, "Expected player entity in gameplay_power_core")
-	assert_not_null(body, "Expected player body in gameplay_power_core")
-	assert_not_null(recovery_system, "Expected S_SpawnRecoverySystem in gameplay_power_core")
-	assert_not_null(spawn_point, "Expected default spawn point in gameplay_power_core")
+	assert_not_null(entity, "Expected player entity in gameplay_demo_room")
+	assert_not_null(body, "Expected player body in gameplay_demo_room")
+	assert_not_null(recovery_system, "Expected S_SpawnRecoverySystem in gameplay_demo_room")
+	assert_not_null(spawn_point, "Expected default spawn point in gameplay_demo_room")
 	if entity == null or body == null or recovery_system == null or spawn_point == null:
 		return
 
@@ -79,6 +79,7 @@ func test_player_recovers_to_default_spawn_when_falling_below_map() -> void:
 	recovery_settings.set("unsupported_delay_sec", 0.0)
 	recovery_settings.set("recovery_cooldown_sec", 1.0)
 	recovery_settings.set("startup_grace_period_sec", 1.0)
+	recovery_settings.set("spawn_point_id", StringName("sp_default"))
 
 	var now: float = U_ECS_UTILS.get_current_time()
 	if movement.settings != null:

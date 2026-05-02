@@ -1,7 +1,7 @@
 extends GutTest
 
-const HUD_SCENE := preload("res://scenes/ui/hud/ui_hud_overlay.tscn")
-const I_LOCALIZATION_MANAGER := preload("res://scripts/interfaces/i_localization_manager.gd")
+const HUD_SCENE := preload("res://scenes/core/ui/hud/ui_hud_overlay.tscn")
+const I_LOCALIZATION_MANAGER := preload("res://scripts/core/interfaces/i_localization_manager.gd")
 
 ## Minimal mock for the localization manager — returns translated string or falls back to key.
 class MockLocManager extends I_LocalizationManager:
@@ -37,7 +37,7 @@ func before_each() -> void:
 	_store.navigation_initial_state = RS_NavigationInitialState.new()
 	add_child_autofree(_store)
 	await get_tree().process_frame
-	_store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	_store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	await get_tree().process_frame
 
 	# Add HUD

@@ -9,18 +9,18 @@ extends BaseTest
 ## - Clear preview restores persisted settings
 ## - Overlay visibility responds to navigation shell
 
-const M_DISPLAY_MANAGER := preload("res://scripts/managers/m_display_manager.gd")
-const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
-const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
-const RS_DISPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_display_initial_state.gd")
+const M_DISPLAY_MANAGER := preload("res://scripts/core/managers/m_display_manager.gd")
+const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
+const RS_STATE_STORE_SETTINGS := preload("res://scripts/core/resources/state/rs_state_store_settings.gd")
+const RS_DISPLAY_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_display_initial_state.gd")
 
-const U_DISPLAY_ACTIONS := preload("res://scripts/state/actions/u_display_actions.gd")
-const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const U_POST_PROCESS_LAYER := preload("res://scripts/managers/helpers/display/u_post_process_layer.gd")
+const U_DISPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_display_actions.gd")
+const U_NAVIGATION_ACTIONS := preload("res://scripts/core/state/actions/u_navigation_actions.gd")
+const U_POST_PROCESS_LAYER := preload("res://scripts/core/managers/helpers/display/u_post_process_layer.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
+const U_STATE_HANDOFF := preload("res://scripts/core/state/utils/u_state_handoff.gd")
 
-const POST_PROCESS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/ui_post_process_overlay.tscn")
+const POST_PROCESS_OVERLAY_SCENE := preload("res://scenes/core/ui/overlays/ui_post_process_overlay.tscn")
 
 var _store: M_StateStore
 var _display_manager: M_DisplayManager
@@ -44,7 +44,7 @@ func before_each() -> void:
 	add_child_autofree(_display_manager)
 	await get_tree().process_frame
 
-	_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("gameplay"), StringName("gameplay_base")))
+	_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("gameplay"), StringName("demo_room")))
 	await get_tree().physics_frame
 
 func after_each() -> void:
@@ -186,7 +186,7 @@ func test_overlay_visibility_respects_navigation_shell() -> void:
 	await get_tree().physics_frame
 	assert_false(grain_dither_layer.visible, "Overlay should hide when shell is not gameplay")
 
-	_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("gameplay"), StringName("gameplay_base")))
+	_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("gameplay"), StringName("demo_room")))
 	await get_tree().physics_frame
 	assert_true(grain_dither_layer.visible, "Overlay should show when shell is gameplay")
 
@@ -222,3 +222,26 @@ func test_multiple_effects_share_single_grain_dither_rect() -> void:
 	assert_true(rect.visible, "Grain+dither rect should be visible with all effects on")
 	assert_eq(int(_get_grain_dither_param(StringName("film_grain_enabled"))), 1)
 	assert_eq(int(_get_grain_dither_param(StringName("dither_enabled"))), 1)
+
+func test_scanlines_toggle_updates_shader_parameter() -> void:
+	_store.dispatch(U_DISPLAY_ACTIONS.set_post_processing_enabled(true))
+	_store.dispatch(U_DISPLAY_ACTIONS.set_scanlines_enabled(true))
+	await get_tree().process_frame
+
+	var rect := _get_grain_dither_rect()
+	assert_not_null(rect, "Grain+dither rect should exist")
+	assert_true(rect.visible, "Grain+dither rect should be visible when scanlines enabled")
+	assert_eq(int(_get_grain_dither_param(StringName("scanlines_enabled"))), 1,
+		"scanlines_enabled flag should be 1 in grain+dither shader")
+
+func test_line_mask_intensity_and_count_update_shader_parameters() -> void:
+	_store.dispatch(U_DISPLAY_ACTIONS.set_post_processing_enabled(true))
+	_store.dispatch(U_DISPLAY_ACTIONS.set_scanlines_enabled(true))
+	_store.dispatch(U_DISPLAY_ACTIONS.set_line_mask_intensity(0.4))
+	_store.dispatch(U_DISPLAY_ACTIONS.set_scanline_count(720.0))
+	await get_tree().process_frame
+
+	assert_almost_eq(float(_get_grain_dither_param(StringName("line_mask_intensity"))), 0.4, 0.001,
+		"line_mask_intensity should update shader parameter")
+	assert_almost_eq(float(_get_grain_dither_param(StringName("scanline_count"))), 720.0, 0.1,
+		"scanline_count should update shader parameter")

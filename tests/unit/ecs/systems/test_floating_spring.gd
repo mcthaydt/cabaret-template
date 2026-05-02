@@ -1,6 +1,6 @@
 extends BaseTest
 
-const S_FLOATING_SYSTEM := preload("res://scripts/ecs/systems/s_floating_system.gd")
+const S_FLOATING_SYSTEM := preload("res://scripts/core/ecs/systems/s_floating_system.gd")
 
 # ---------------------------------------------------------------------------
 # Helpers

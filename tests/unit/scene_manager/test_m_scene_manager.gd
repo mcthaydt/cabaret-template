@@ -5,14 +5,14 @@ extends GutTest
 ## Tests scene transition coordination, queue management, and state integration.
 ## Tests follow TDD discipline: written BEFORE implementation.
 
-const M_SceneManager = preload("res://scripts/managers/m_scene_manager.gd")
-const M_StateStore = preload("res://scripts/state/m_state_store.gd")
-const RS_SceneInitialState = preload("res://scripts/resources/state/rs_scene_initial_state.gd")
-const RS_NavigationInitialState = preload("res://scripts/resources/state/rs_navigation_initial_state.gd")
-const RS_StateStoreSettings = preload("res://scripts/resources/state/rs_state_store_settings.gd")
-const U_SceneActions = preload("res://scripts/state/actions/u_scene_actions.gd")
+const M_SceneManager = preload("res://scripts/core/managers/m_scene_manager.gd")
+const M_StateStore = preload("res://scripts/core/state/m_state_store.gd")
+const RS_SceneInitialState = preload("res://scripts/core/resources/state/rs_scene_initial_state.gd")
+const RS_NavigationInitialState = preload("res://scripts/core/resources/state/rs_navigation_initial_state.gd")
+const RS_StateStoreSettings = preload("res://scripts/core/resources/state/rs_state_store_settings.gd")
+const U_SceneActions = preload("res://scripts/core/state/actions/u_scene_actions.gd")
 const U_ServiceLocator = preload("res://scripts/core/u_service_locator.gd")
-const UI_HUD_CONTROLLER = preload("res://scripts/ui/hud/ui_hud_controller.gd")
+const UI_HUD_CONTROLLER = preload("res://scripts/core/ui/hud/ui_hud_controller.gd")
 
 var _manager: M_SceneManager
 var _store: M_StateStore
@@ -118,7 +118,7 @@ func test_transition_to_scene_dispatches_started_action() -> void:
 		actions_received.append(action)
 	)
 
-	_manager.transition_to_scene(StringName("gameplay_base"), "fade")
+	_manager.transition_to_scene(StringName("demo_room"), "fade")
 	await get_tree().physics_frame
 
 	var found_started_action: bool = false
@@ -192,7 +192,7 @@ func test_get_current_scene() -> void:
 func test_is_transitioning() -> void:
 	assert_false(_manager.is_transitioning(), "Should not be transitioning initially")
 
-	_manager.transition_to_scene(StringName("gameplay_base"), "fade")
+	_manager.transition_to_scene(StringName("demo_room"), "fade")
 	# During transition, is_transitioning should return true
 	# (this depends on implementation timing, may need adjustment)
 	await get_tree().process_frame
@@ -222,7 +222,7 @@ func test_suppress_pause_for_current_frame_expires_next_frame() -> void:
 
 ## Regression: queue_free during gameplay transition should not leave scene slice stuck transitioning
 func test_queue_free_during_gameplay_transition_clears_transition_state() -> void:
-	_manager.transition_to_scene(StringName("gameplay_base"), "instant")
+	_manager.transition_to_scene(StringName("demo_room"), "instant")
 	await get_tree().process_frame
 
 	if _manager != null and is_instance_valid(_manager):
@@ -342,7 +342,7 @@ func test_multiple_overlays_stack() -> void:
 func test_scene_loads_into_active_scene_container() -> void:
 	var initial_children: int = _active_scene_container.get_child_count()
 
-	_manager.transition_to_scene(StringName("gameplay_base"), "instant")
+	_manager.transition_to_scene(StringName("demo_room"), "instant")
 	await wait_physics_frames(3)
 
 	var final_children: int = _active_scene_container.get_child_count()

@@ -1,6 +1,6 @@
 extends BaseTest
 
-const PATH_RESOLVER := preload("res://scripts/utils/qb/u_path_resolver.gd")
+const PATH_RESOLVER := preload("res://scripts/core/utils/qb/u_path_resolver.gd")
 
 class MockObject extends RefCounted:
 	var nested: Dictionary = {

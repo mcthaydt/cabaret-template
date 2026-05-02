@@ -1,11 +1,10 @@
 extends BaseTest
 
-const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
-const SCENE_BASE := preload("res://scenes/templates/tmpl_base_scene.tscn")
-const SCENE_EXTERIOR := preload("res://scenes/gameplay/gameplay_exterior.tscn")
-const SCENE_INTERIOR := preload("res://scenes/gameplay/gameplay_interior_house.tscn")
-const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
-const M_SPAWN_MANAGER := preload("res://scripts/managers/m_spawn_manager.gd")
+const U_ECS_UTILS := preload("res://scripts/core/utils/ecs/u_ecs_utils.gd")
+const SCENE_BASE := preload("res://scenes/core/templates/tmpl_base_scene.tscn")
+const SCENE_DEMO_ROOM := preload("res://scenes/demo/gameplay/gameplay_demo_room.tscn")
+const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
+const M_SPAWN_MANAGER := preload("res://scripts/core/managers/m_spawn_manager.gd")
 
 var _state_store: M_StateStore = null
 var _spawn_manager: M_SpawnManager = null
@@ -90,37 +89,16 @@ func test_tmpl_base_scene_registers_player_and_camera() -> void:
 
 	_assert_expected_entities(scene, expected)
 
-func test_gameplay_exterior_entities_register_ids_and_tags() -> void:
-	var scene := SCENE_EXTERIOR.instantiate()
+func test_gameplay_demo_room_entities_register_ids_and_tags() -> void:
+	var scene := SCENE_DEMO_ROOM.instantiate()
 	add_child_autofree(scene)
 	await _await_ecs_registration()
 
 	_assert_core_system_exists(scene, StringName("S_VCamSystem"))
 
 	var expected: Dictionary = {
-		StringName("door_to_house"): [StringName("trigger"), StringName("door")],
-		StringName("deathzone_exterior"): [StringName("hazard"), StringName("death")],
-		StringName("spiketrap_a"): [StringName("hazard"), StringName("trap")],
-		StringName("spiketrap_b"): [StringName("hazard"), StringName("trap")],
-		StringName("checkpoint_exterior"): [StringName("checkpoint"), StringName("objective")],
-		StringName("tutorial_exterior"): [StringName("interactable"), StringName("tutorial")],
-		StringName("finalgoal"): [StringName("objective"), StringName("endgame")]
-	}
-
-	_assert_expected_entities(scene, expected)
-
-func test_gameplay_interior_entities_register_ids_and_tags() -> void:
-	var scene := SCENE_INTERIOR.instantiate()
-	add_child_autofree(scene)
-	await _await_ecs_registration()
-
-	_assert_core_system_exists(scene, StringName("S_VCamSystem"))
-
-	var expected: Dictionary = {
-		StringName("door_to_exterior"): [StringName("trigger"), StringName("door")],
-		StringName("deathzone_interior"): [StringName("hazard"), StringName("death")],
-		StringName("goalzone_interior"): [StringName("objective"), StringName("goal")],
-		StringName("tutorial_interior"): [StringName("interactable"), StringName("tutorial")]
+		StringName("player"): [StringName("player"), StringName("character")],
+		StringName("camera"): [StringName("camera")]
 	}
 
 	_assert_expected_entities(scene, expected)

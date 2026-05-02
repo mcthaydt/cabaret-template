@@ -1,13 +1,13 @@
 extends GutTest
 
-const U_PAUSE_SYSTEM := preload("res://scripts/managers/helpers/time/u_pause_system.gd")
-const U_TIMESCALE_CONTROLLER := preload("res://scripts/managers/helpers/time/u_timescale_controller.gd")
-const U_WORLD_CLOCK := preload("res://scripts/managers/helpers/time/u_world_clock.gd")
-const M_TIME_MANAGER := preload("res://scripts/managers/m_time_manager.gd")
+const U_PAUSE_SYSTEM := preload("res://scripts/core/managers/helpers/time/u_pause_system.gd")
+const U_TIMESCALE_CONTROLLER := preload("res://scripts/core/managers/helpers/time/u_timescale_controller.gd")
+const U_WORLD_CLOCK := preload("res://scripts/core/managers/helpers/time/u_world_clock.gd")
+const M_TIME_MANAGER := preload("res://scripts/core/managers/m_time_manager.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_TIME_ACTIONS := preload("res://scripts/state/actions/u_time_actions.gd")
-const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+const U_TIME_ACTIONS := preload("res://scripts/core/state/actions/u_time_actions.gd")
+const U_GAMEPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
 
 var _time_manager: Node = null
 var _store: Node = null
@@ -339,7 +339,7 @@ func test_set_world_time_speed_dispatches_speed_update_to_store() -> void:
 
 func test_world_clock_stops_when_paused() -> void:
 	var scene_state := {
-		"current_scene_id": StringName("gameplay_base"),
+		"current_scene_id": StringName("demo_room"),
 		"scene_stack": [],
 	}
 	await _setup_time_manager_with_store(scene_state)
@@ -374,7 +374,7 @@ func test_pause_state_dispatches_time_and_gameplay_mirror_actions() -> void:
 
 func test_world_clock_minute_tick_dispatches_world_time_snapshot() -> void:
 	var scene_state := {
-		"current_scene_id": StringName("gameplay_base"),
+		"current_scene_id": StringName("demo_room"),
 		"scene_stack": [],
 	}
 	await _setup_time_manager_with_store(scene_state)

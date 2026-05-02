@@ -1,8 +1,8 @@
 extends GutTest
 
-const RS_UI_MOTION_PRESET := preload("res://scripts/resources/ui/rs_ui_motion_preset.gd")
-const RS_UI_MOTION_SET := preload("res://scripts/resources/ui/rs_ui_motion_set.gd")
-const U_UI_MOTION := preload("res://scripts/ui/utils/u_ui_motion.gd")
+const RS_UI_MOTION_PRESET := preload("res://scripts/core/resources/ui/rs_ui_motion_preset.gd")
+const RS_UI_MOTION_SET := preload("res://scripts/core/resources/ui/rs_ui_motion_set.gd")
+const U_UI_MOTION := preload("res://scripts/core/ui/utils/u_ui_motion.gd")
 
 func test_play_returns_tween_for_valid_presets() -> void:
 	var node := Control.new()
@@ -68,6 +68,36 @@ func test_play_parallel_presets() -> void:
 	await tween.finished
 	assert_almost_eq(node.modulate.a, 1.0, 0.01, "Alpha tween should finish at target")
 	assert_almost_eq(node.scale.x, 1.5, 0.01, "Scale tween should finish at target")
+
+func test_play_position_y_preserves_control_layout_offset() -> void:
+	var node := Control.new()
+	node.position.y = 24.0
+	add_child_autofree(node)
+	var preset := _make_preset("position:y", 18.0, 0.0, 0.03)
+
+	var tween: Tween = U_UI_MOTION.play(node, [preset])
+	assert_not_null(tween, "Tween should be created for position:y slide preset")
+	await tween.finished
+
+	assert_almost_eq(node.position.y, 24.0, 0.01,
+		"position:y slide presets should finish at the Control's original layout offset")
+
+func test_play_repeated_position_y_preserves_original_layout_offset() -> void:
+	var node := Control.new()
+	node.position.y = 24.0
+	add_child_autofree(node)
+	var preset := _make_preset("position:y", 18.0, 0.0, 0.1)
+
+	var first_tween: Tween = U_UI_MOTION.play(node, [preset])
+	assert_not_null(first_tween, "First tween should be created")
+	await wait_seconds(0.02)
+
+	var second_tween: Tween = U_UI_MOTION.play(node, [preset])
+	assert_not_null(second_tween, "Second tween should be created while first is active")
+	await second_tween.finished
+
+	assert_almost_eq(node.position.y, 24.0, 0.01,
+		"repeated position:y slide presets should not preserve the slide offset as final layout")
 
 func test_play_interval_preset() -> void:
 	var node := Control.new()

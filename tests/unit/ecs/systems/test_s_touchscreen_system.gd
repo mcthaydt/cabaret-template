@@ -1,6 +1,6 @@
 extends BaseTest
 
-const MobileControlsScene := preload("res://scenes/ui/hud/ui_mobile_controls.tscn")
+const MobileControlsScene := preload("res://scenes/core/ui/hud/ui_mobile_controls.tscn")
 
 func before_each() -> void:
 	U_StateHandoff.clear_all()
@@ -82,7 +82,7 @@ func test_double_tap_empty_space_dispatches_one_shot_camera_center() -> void:
 	var controls: UI_MobileControls = context["controls"]
 	var manager: M_ECSManager = context["manager"]
 
-	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	store.dispatch(U_InputActions.device_changed(M_InputDeviceManager.DeviceType.TOUCHSCREEN, -1))
 	await _await_frames(2)
 
@@ -113,7 +113,7 @@ func test_drag_look_dispatches_look_input_and_active_flag() -> void:
 	var controls: UI_MobileControls = context["controls"]
 	var manager: M_ECSManager = context["manager"]
 
-	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	store.dispatch(U_InputActions.device_changed(M_InputDeviceManager.DeviceType.TOUCHSCREEN, -1))
 	await _await_frames(2)
 
@@ -141,7 +141,7 @@ func test_drag_look_applies_touchscreen_sensitivity() -> void:
 	var controls: UI_MobileControls = context["controls"]
 	var manager: M_ECSManager = context["manager"]
 
-	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	store.dispatch(U_InputActions.device_changed(M_InputDeviceManager.DeviceType.TOUCHSCREEN, -1))
 	store.dispatch(U_InputActions.update_touchscreen_settings({
 		"look_drag_sensitivity": 1.5,
@@ -166,7 +166,7 @@ func test_drag_look_delta_is_one_shot_per_tick() -> void:
 	var controls: UI_MobileControls = context["controls"]
 	var manager: M_ECSManager = context["manager"]
 
-	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	store.dispatch(U_InputActions.device_changed(M_InputDeviceManager.DeviceType.TOUCHSCREEN, -1))
 	await _await_frames(2)
 
@@ -194,7 +194,7 @@ func _setup_touchscreen_scene() -> Dictionary:
 	store.menu_initial_state = RS_MenuInitialState.new()
 	store.gameplay_initial_state = RS_GameplayInitialState.new()
 	store.scene_initial_state = RS_SceneInitialState.new()
-	store.scene_initial_state.current_scene_id = StringName("gameplay_base")
+	store.scene_initial_state.current_scene_id = StringName("demo_room")
 	store.settings_initial_state = RS_SettingsInitialState.new()
 	store.debug_initial_state = RS_DebugInitialState.new()
 	add_child_autofree(store)

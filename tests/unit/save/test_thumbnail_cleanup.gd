@@ -1,6 +1,6 @@
 extends BaseTest
 
-const M_SAVE_MANAGER := preload("res://scripts/managers/m_save_manager.gd")
+const M_SAVE_MANAGER := preload("res://scripts/core/managers/m_save_manager.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 
 const TEST_SAVE_DIR: String = "user://test_saves/"

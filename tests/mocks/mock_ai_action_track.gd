@@ -1,4 +1,4 @@
-extends "res://scripts/interfaces/i_ai_action.gd"
+extends "res://scripts/core/interfaces/i_ai_action.gd"
 
 static var call_log: Array = []
 

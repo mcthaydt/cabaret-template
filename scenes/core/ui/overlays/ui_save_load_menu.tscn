@@ -1,0 +1,111 @@
+[gd_scene format=3 uid="uid://cj4k2r8yam5tn"]
+
+[ext_resource type="Script" uid="uid://dlx1igmp1y6cb" path="res://scripts/core/ui/overlays/ui_save_load_menu.gd" id="1_save_load_menu_script"]
+[ext_resource type="Resource" uid="uid://b72010a71rlh7" path="res://resources/core/ui/motions/cfg_motion_fade_slide.tres" id="2_motion_set"]
+[ext_resource type="Script" uid="uid://cvi7rh32jhp6d" path="res://scripts/core/ui/helpers/u_localization_root.gd" id="localization_root"]
+[ext_resource type="Script" uid="uid://dfg7i5kfpjwg1" path="res://scripts/core/ui/helpers/u_ui_scale_root.gd" id="ui_scale_root"]
+
+[node name="SaveLoadMenu" type="Control" unique_id=1330759390]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_save_load_menu_script")
+background_color = Color(0.114, 0.114, 0.129, 0.7)
+motion_set = ExtResource("2_motion_set")
+
+[node name="UIScaleRoot" type="Node" parent="." unique_id=246660970]
+script = ExtResource("ui_scale_root")
+
+[node name="LocalizationRoot" type="Node" parent="." unique_id=506002898]
+script = ExtResource("localization_root")
+
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=2127717955]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MainPanelMotionHost" type="Control" parent="CenterContainer" unique_id=358572372]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(760, 520)
+layout_mode = 2
+
+[node name="MainPanel" type="PanelContainer" parent="CenterContainer/MainPanelMotionHost" unique_id=552026337]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MainPanelPadding" type="MarginContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel" unique_id=62389276]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="MainPanelContent" type="VBoxContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding" unique_id=422360036]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="ModeLabel" type="Label" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=338046529]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_alignment = 1
+
+[node name="ErrorLabel" type="Label" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=1468956519]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="LoadingSpinner" type="HBoxContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=1236267438]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+alignment = 1
+
+[node name="SpinnerLabel" type="Label" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/LoadingSpinner" unique_id=1561445743]
+unique_name_in_owner = true
+layout_mode = 2
+text = "⏳"
+horizontal_alignment = 1
+
+[node name="LoadingLabel" type="Label" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/LoadingSpinner" unique_id=1689970062]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="HSeparator" type="HSeparator" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=110234731]
+layout_mode = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=974110492]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 240)
+layout_mode = 2
+size_flags_vertical = 3
+follow_focus = true
+
+[node name="SlotListContainer" type="VBoxContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/ScrollContainer" unique_id=1458560988]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="HSeparator2" type="HSeparator" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=1809346524]
+layout_mode = 2
+
+[node name="BackButton" type="Button" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=1730398041]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="ConfirmationDialog" type="ConfirmationDialog" parent="." unique_id=947930633]
+unique_name_in_owner = true
+title = ""
+initial_position = 2
+size = Vector2i(300, 100)

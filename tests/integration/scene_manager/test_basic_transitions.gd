@@ -6,12 +6,12 @@ extends GutTest
 ## Validates M_SceneManager, U_SceneRegistry, scene slice state, and transition effects.
 ## Tests follow TDD discipline: written BEFORE implementation.
 
-const M_SceneManager = preload("res://scripts/managers/m_scene_manager.gd")
-const M_StateStore = preload("res://scripts/state/m_state_store.gd")
-const RS_SceneInitialState = preload("res://scripts/resources/state/rs_scene_initial_state.gd")
-const RS_StateStoreSettings = preload("res://scripts/resources/state/rs_state_store_settings.gd")
-const U_SceneRegistry = preload("res://scripts/scene_management/u_scene_registry.gd")
-const U_SceneActions = preload("res://scripts/state/actions/u_scene_actions.gd")
+const M_SceneManager = preload("res://scripts/core/managers/m_scene_manager.gd")
+const M_StateStore = preload("res://scripts/core/state/m_state_store.gd")
+const RS_SceneInitialState = preload("res://scripts/core/resources/state/rs_scene_initial_state.gd")
+const RS_StateStoreSettings = preload("res://scripts/core/resources/state/rs_state_store_settings.gd")
+const U_SceneRegistry = preload("res://scripts/core/scene_management/u_scene_registry.gd")
+const U_SceneActions = preload("res://scripts/core/state/actions/u_scene_actions.gd")
 
 var _root_scene: Node
 var _manager: M_SceneManager
@@ -140,7 +140,7 @@ func test_is_transitioning_flag() -> void:
 ## Test overlay stack with pause menu
 func test_pause_menu_overlay_stack() -> void:
 	# Load gameplay scene
-	_manager.transition_to_scene(StringName("gameplay_base"), "instant")
+	_manager.transition_to_scene(StringName("demo_room"), "instant")
 	await wait_physics_frames(2)
 
 	# Push pause menu overlay
@@ -155,7 +155,7 @@ func test_pause_menu_overlay_stack() -> void:
 	assert_eq(scene_stack1[0], StringName("pause_menu"), "Should be pause_menu")
 
 	# Current scene should remain gameplay
-	assert_eq(scene_state1.get("current_scene_id"), StringName("gameplay_base"), "Current scene should still be gameplay")
+	assert_eq(scene_state1.get("current_scene_id"), StringName("demo_room"), "Current scene should still be gameplay")
 
 	# Pop pause menu
 	_manager.pop_overlay()
@@ -169,7 +169,7 @@ func test_pause_menu_overlay_stack() -> void:
 
 ## Test nested overlays (pause → settings → back through stack)
 func test_nested_overlays() -> void:
-	_manager.transition_to_scene(StringName("gameplay_base"), "instant")
+	_manager.transition_to_scene(StringName("demo_room"), "instant")
 	await wait_physics_frames(2)
 
 	# Push pause menu

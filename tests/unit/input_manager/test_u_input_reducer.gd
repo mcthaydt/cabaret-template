@@ -1,6 +1,6 @@
 extends GutTest
 
-const INPUT_REDUCER := preload("res://scripts/state/reducers/u_input_reducer.gd")
+const INPUT_REDUCER := preload("res://scripts/core/state/reducers/u_input_reducer.gd")
 
 func test_update_move_input_replaces_vector() -> void:
 	var state := _make_gameplay_state()

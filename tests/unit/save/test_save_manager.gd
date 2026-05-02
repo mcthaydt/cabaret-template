@@ -1,11 +1,11 @@
 extends BaseTest
 
-const M_SAVE_MANAGER := preload("res://scripts/managers/m_save_manager.gd")
+const M_SAVE_MANAGER := preload("res://scripts/core/managers/m_save_manager.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
-const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
-const U_SAVE_ACTIONS := preload("res://scripts/state/actions/u_save_actions.gd")
+const U_STATE_HANDOFF := preload("res://scripts/core/state/utils/u_state_handoff.gd")
+const U_SAVE_ACTIONS := preload("res://scripts/core/state/actions/u_save_actions.gd")
 const U_SAVE_TEST_UTILS := preload("res://tests/unit/save/u_save_test_utils.gd")
-const U_SAVE_FILE_IO := preload("res://scripts/managers/helpers/u_save_file_io.gd")
+const U_SAVE_FILE_IO := preload("res://scripts/core/managers/helpers/u_save_file_io.gd")
 
 const TEST_SAVE_DIR := U_SAVE_TEST_UTILS.TEST_SAVE_DIR
 
@@ -182,7 +182,7 @@ func test_build_metadata_includes_required_fields() -> void:
 		"target_spawn_point": "sp_test"
 	})
 	_mock_store.set_slice(StringName("scene"), {
-		"current_scene_id": "gameplay_base"
+		"current_scene_id": "demo_room"
 	})
 
 	# Call internal metadata builder
@@ -211,14 +211,14 @@ func test_build_metadata_derives_area_name_from_scene_registry() -> void:
 		"playtime_seconds": 0,
 	})
 	_mock_store.set_slice(StringName("scene"), {
-		"current_scene_id": "gameplay_base"
+		"current_scene_id": "demo_room"
 	})
 
 	var metadata: Dictionary = _save_manager.call("_build_metadata", StringName("slot_01"))
 
 	# Should derive area_name from scene registry
 	assert_not_null(metadata.get("area_name", null), "Should derive area_name from scene_id")
-	# gameplay_base should format to "Gameplay Base" or use display_name from registry
+	# demo_room should format to "Gameplay Base" or use display_name from registry
 	assert_true(metadata["area_name"] is String, "area_name should be a string")
 	assert_gt(metadata["area_name"].length(), 0, "area_name should not be empty")
 
@@ -230,7 +230,7 @@ func test_build_metadata_formats_timestamp_as_iso8601() -> void:
 	await get_tree().process_frame
 
 	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 0})
-	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "demo_room"})
 
 	var metadata: Dictionary = _save_manager.call("_build_metadata", StringName("slot_01"))
 
@@ -247,7 +247,7 @@ func test_build_metadata_uses_save_version_1() -> void:
 	await get_tree().process_frame
 
 	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 0})
-	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "demo_room"})
 
 	var metadata: Dictionary = _save_manager.call("_build_metadata", StringName("slot_01"))
 
@@ -298,7 +298,7 @@ func test_build_metadata_handles_missing_gameplay_fields() -> void:
 
 	# Set empty gameplay slice
 	_mock_store.set_slice(StringName("gameplay"), {})
-	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "demo_room"})
 
 	var metadata: Dictionary = _save_manager.call("_build_metadata", StringName("slot_01"))
 
@@ -343,7 +343,7 @@ func test_save_to_slot_returns_ok_when_successful() -> void:
 
 	# Setup mock state
 	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
-	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "demo_room"})
 
 	# Should return OK on successful save
 	var result: Error = _save_manager.save_to_slot(StringName("slot_01"))
@@ -358,7 +358,7 @@ func test_save_to_slot_rejects_when_already_saving() -> void:
 
 	# Setup mock state
 	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
-	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "demo_room"})
 
 	# Manually set _is_saving to true (simulate concurrent save)
 	_save_manager.set("_is_saving", true)
@@ -376,7 +376,7 @@ func test_save_to_slot_dispatches_save_started_action() -> void:
 
 	# Setup mock state
 	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
-	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "demo_room"})
 
 	# Listen for save_started via action_dispatched (channel taxonomy: managers dispatch to Redux)
 	var action_data: Array = [false, null]  # [received, action]
@@ -406,7 +406,7 @@ func test_save_to_slot_dispatches_save_completed_action() -> void:
 
 	# Setup mock state
 	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
-	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "demo_room"})
 
 	# Listen for save_completed via action_dispatched (channel taxonomy)
 	var action_data: Array = [false, null]  # [received, action]
@@ -436,7 +436,7 @@ func test_autosave_dispatches_save_completed_action_with_is_autosave_true() -> v
 
 	# Setup mock state
 	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
-	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "demo_room"})
 
 	var action_data: Array = [false, null]  # [received, action]
 	_mock_store.action_dispatched.connect(func(action: Dictionary) -> void:
@@ -463,7 +463,7 @@ func test_save_to_slot_dispatches_save_failed_action_with_is_autosave_flag() -> 
 
 	# Setup mock state
 	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
-	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "demo_room"})
 
 	# Force write failure by pointing to a non-existent nested directory.
 	var missing_dir: String = "user://phase2_missing_%d/nested/" % Time.get_ticks_msec()
@@ -496,7 +496,7 @@ func test_save_to_slot_sets_and_clears_is_saving_lock() -> void:
 
 	# Setup mock state
 	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
-	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "demo_room"})
 
 	# Verify initial state
 	assert_false(_save_manager.call("_is_saving_locked"), "_is_saving should be false initially")
@@ -521,7 +521,7 @@ func test_save_to_slot_writes_file_with_header_and_state() -> void:
 		"last_checkpoint": "cp_test"
 	})
 	_mock_store.set_slice(StringName("scene"), {
-		"current_scene_id": "gameplay_base"
+		"current_scene_id": "demo_room"
 	})
 
 	# Perform save
@@ -546,7 +546,7 @@ func test_save_to_slot_writes_file_with_header_and_state() -> void:
 	assert_eq(int(header.get("save_version")), 1, "Header should have save_version=1")
 	assert_eq(header.get("slot_id"), StringName("slot_01"), "Header should have correct slot_id")
 	assert_eq(int(header.get("playtime_seconds")), 3600, "Header should have playtime from state")
-	assert_eq(header.get("current_scene_id"), "gameplay_base", "Header should have scene_id from state")
+	assert_eq(header.get("current_scene_id"), "demo_room", "Header should have scene_id from state")
 
 	# Verify state was included
 	var state: Dictionary = loaded_data["state"]
@@ -567,7 +567,7 @@ func test_save_to_slot_calls_get_persistable_state() -> void:
 		"player_health": 75.0      # persistable
 	})
 	_mock_store.set_slice(StringName("scene"), {
-		"current_scene_id": "gameplay_base",  # persistable
+		"current_scene_id": "demo_room",  # persistable
 		"is_transitioning": true               # transient (if defined in slice config)
 	})
 
@@ -603,7 +603,7 @@ func test_request_autosave_saves_to_autosave_slot() -> void:
 
 	# Setup state
 	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 42})
-	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "demo_room"})
 
 	# Request autosave
 	_save_manager.request_autosave()
@@ -636,7 +636,7 @@ func test_delete_slot_removes_save_files() -> void:
 
 	# Setup and save to create files
 	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
-	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "demo_room"})
 	_save_manager.save_to_slot(StringName("slot_01"))
 
 	# Verify files exist
@@ -687,7 +687,7 @@ func test_get_slot_metadata_reads_from_existing_file() -> void:
 		"target_spawn_point": "sp_boss"
 	})
 	_mock_store.set_slice(StringName("scene"), {
-		"current_scene_id": "interior_house"
+		"current_scene_id": "demo_room"
 	})
 	_save_manager.save_to_slot(StringName("slot_02"))
 
@@ -698,7 +698,7 @@ func test_get_slot_metadata_reads_from_existing_file() -> void:
 	assert_false(metadata.is_empty(), "Metadata should not be empty for existing slot")
 	assert_eq(metadata.get("slot_id"), StringName("slot_02"), "Metadata should include slot_id")
 	assert_eq(int(metadata.get("playtime_seconds")), 7200, "Metadata should include playtime")
-	assert_eq(metadata.get("current_scene_id"), "interior_house", "Metadata should include scene_id")
+	assert_eq(metadata.get("current_scene_id"), "demo_room", "Metadata should include scene_id")
 	assert_eq(metadata.get("last_checkpoint"), "cp_final", "Metadata should include checkpoint")
 	assert_eq(metadata.get("target_spawn_point"), "sp_boss", "Metadata should include spawn point")
 	assert_true(metadata.has("timestamp"), "Metadata should include timestamp")
@@ -713,7 +713,7 @@ func test_get_all_slot_metadata_includes_existing_slots_with_data() -> void:
 
 	# Save to slot_01
 	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
-	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "demo_room"})
 	_save_manager.save_to_slot(StringName("slot_01"))
 
 	# Get all metadata
@@ -782,7 +782,7 @@ func test_load_from_slot_sets_and_clears_is_loading_lock() -> void:
 
 	# Create a valid save first
 	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
-	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "demo_room"})
 	_save_manager.save_to_slot(StringName("slot_01"))
 
 	# Add transition method to mock scene manager
@@ -799,8 +799,8 @@ func test_load_from_slot_sets_and_clears_is_loading_lock() -> void:
 	assert_true(_save_manager.call("_is_loading_locked"), "_is_loading should stay true during transition")
 
 	# Simulate transition completion by dispatching the action
-	const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
-	_mock_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	const U_SCENE_ACTIONS := preload("res://scripts/core/state/actions/u_scene_actions.gd")
+	_mock_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 
 	# Now lock should be cleared
 	assert_false(_save_manager.call("_is_loading_locked"), "_is_loading should be false after transition completes")
@@ -814,7 +814,7 @@ func test_load_from_slot_lock_stays_set_during_transition() -> void:
 
 	# Create a valid save
 	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
-	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "alleyway"})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "demo_room"})
 	_save_manager.save_to_slot(StringName("slot_01"))
 
 	# Setup mock scene manager
@@ -839,9 +839,9 @@ func test_load_from_slot_lock_clears_only_for_matching_scene() -> void:
 
 	await get_tree().process_frame
 
-	# Create a save for "alleyway" scene
+	# Create a save for "demo_room" scene
 	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
-	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "alleyway"})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "demo_room"})
 	_save_manager.save_to_slot(StringName("slot_01"))
 
 	# Setup mock scene manager
@@ -855,14 +855,14 @@ func test_load_from_slot_lock_clears_only_for_matching_scene() -> void:
 	assert_true(_save_manager.call("_is_loading_locked"), "Lock should be set")
 
 	# Dispatch transition_completed for WRONG scene
-	const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
-	_mock_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("interior_house")))
+	const U_SCENE_ACTIONS := preload("res://scripts/core/state/actions/u_scene_actions.gd")
+	_mock_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("main_menu")))
 
 	# Lock should STILL be set (wrong scene)
 	assert_true(_save_manager.call("_is_loading_locked"), "Lock should stay set when wrong scene completes")
 
 	# Dispatch transition_completed for CORRECT scene
-	_mock_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
+	_mock_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 
 	# Now lock should be cleared
 	assert_false(_save_manager.call("_is_loading_locked"), "Lock should clear when correct scene completes")
@@ -881,7 +881,7 @@ func test_load_from_slot_preserves_state_to_handoff() -> void:
 		"last_checkpoint": "cp_saved"
 	})
 	_mock_store.set_slice(StringName("scene"), {
-		"current_scene_id": "interior_house"
+		"current_scene_id": "demo_room"
 	})
 	_save_manager.save_to_slot(StringName("slot_01"))
 
@@ -911,7 +911,7 @@ func test_load_from_slot_triggers_scene_transition() -> void:
 
 	# Create a save with a specific scene
 	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
-	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "alleyway"})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "demo_room"})
 	_save_manager.save_to_slot(StringName("slot_01"))
 
 	# Add transition method to mock scene manager and track calls
@@ -926,7 +926,7 @@ func test_load_from_slot_triggers_scene_transition() -> void:
 
 	# Verify scene transition was requested
 	assert_true(_mock_scene_manager.get("_transition_called"), "Scene transition should be called")
-	assert_eq(_mock_scene_manager.get("_transition_target"), StringName("alleyway"), "Should transition to saved scene_id")
+	assert_eq(_mock_scene_manager.get("_transition_target"), StringName("demo_room"), "Should transition to saved scene_id")
 
 ## Phase 8: Error Handling and Corruption Recovery Tests
 
@@ -942,7 +942,7 @@ func test_load_rejects_save_with_invalid_header_type() -> void:
 		"header": "this should be a dictionary",
 		"state": {
 			"gameplay": {"playtime_seconds": 100},
-			"scene": {"current_scene_id": "gameplay_base"}
+			"scene": {"current_scene_id": "demo_room"}
 		}
 	}
 
@@ -972,7 +972,7 @@ func test_load_rejects_save_with_invalid_state_type() -> void:
 	var invalid_save := {
 		"header": {
 			"save_version": 1,
-			"current_scene_id": "gameplay_base"
+			"current_scene_id": "demo_room"
 		},
 		"state": [1, 2, 3]  # Should be Dictionary
 	}
@@ -1069,7 +1069,7 @@ func test_load_accepts_save_with_minimal_valid_structure() -> void:
 	var minimal_save := {
 		"header": {
 			"save_version": 1,
-			"current_scene_id": "gameplay_base"
+			"current_scene_id": "demo_room"
 			# Other header fields are optional for load validation
 		},
 		"state": {
@@ -1100,7 +1100,7 @@ func test_load_falls_back_to_backup_when_main_file_invalid() -> void:
 
 	# Create a valid save first
 	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
-	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "demo_room"})
 	_save_manager.save_to_slot(StringName("slot_01"))
 
 	# Get file paths
@@ -1143,7 +1143,7 @@ func test_load_fails_when_both_main_and_backup_corrupted() -> void:
 
 	# Create a valid save with backup
 	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
-	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "demo_room"})
 	_save_manager.save_to_slot(StringName("slot_01"))
 	_save_manager.save_to_slot(StringName("slot_01"))  # Create backup
 
@@ -1184,7 +1184,7 @@ func test_save_does_not_persist_overlay_stack() -> void:
 	# Setup state with scene.scene_stack (simulating save while overlay is open)
 	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
 	_mock_store.set_slice(StringName("scene"), {
-		"current_scene_id": "gameplay_base",
+		"current_scene_id": "demo_room",
 		"scene_stack": [StringName("save_load_menu")],  # This should NOT be saved!
 		"is_transitioning": false,
 		"transition_type": ""
@@ -1221,14 +1221,14 @@ func test_load_clears_overlay_state_from_loaded_scene() -> void:
 	var save_with_overlay := {
 		"header": {
 			"save_version": 1,
-			"current_scene_id": "gameplay_base",
+			"current_scene_id": "demo_room",
 			"timestamp": "2025-12-26T10:00:00Z",
 			"playtime_seconds": 100
 		},
 		"state": {
 			"gameplay": {"playtime_seconds": 100},
 			"scene": {
-				"current_scene_id": "gameplay_base",
+				"current_scene_id": "demo_room",
 				"scene_stack": [StringName("save_load_menu")],  # Bug: this was saved
 				"is_transitioning": false
 			}
@@ -1266,7 +1266,7 @@ func test_load_uses_loading_transition_type() -> void:
 
 	# Create a save for any scene
 	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
-	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "demo_room"})
 	_save_manager.save_to_slot(StringName("slot_01"))
 
 	# Setup mock scene manager to track transition calls
@@ -1282,7 +1282,7 @@ func test_load_uses_loading_transition_type() -> void:
 
 	# Verify scene transition was called
 	assert_true(_mock_scene_manager.get("_transition_called"), "Scene transition should be called")
-	assert_eq(_mock_scene_manager.get("_transition_target"), StringName("gameplay_base"), "Should transition to saved scene")
+	assert_eq(_mock_scene_manager.get("_transition_target"), StringName("demo_room"), "Should transition to saved scene")
 
 	# The key assertion: should always use "loading", not "fade"
 	var transition_type: String = _mock_scene_manager.get("_transition_type")
@@ -1313,7 +1313,7 @@ func test_is_locked_returns_true_when_saving() -> void:
 
 	# Setup state
 	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
-	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "demo_room"})
 
 	# Use array to capture state (workaround for GDScript lambda capture-by-value)
 	var event_state: Array = [false, false]  # [save_started, lock_during_save]
@@ -1339,7 +1339,7 @@ func test_is_locked_returns_true_when_loading() -> void:
 
 	# Setup state and save
 	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
-	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "demo_room"})
 	_save_manager.save_to_slot(StringName("slot_01"))
 
 	# Setup mock scene manager
@@ -1369,14 +1369,14 @@ func test_load_clears_navigation_overlay_stack_from_legacy_saves() -> void:
 	var legacy_save_with_overlays := {
 		"header": {
 			"save_version": 1,
-			"current_scene_id": "gameplay_base",
+			"current_scene_id": "demo_room",
 			"timestamp": "2025-12-26T10:00:00Z",
 			"playtime_seconds": 100
 		},
 		"state": {
 			"gameplay": {"playtime_seconds": 100},
 			"scene": {
-				"current_scene_id": "gameplay_base",
+				"current_scene_id": "demo_room",
 				"is_transitioning": false
 			},
 			"navigation": {

@@ -1,8 +1,8 @@
 extends GutTest
 
-const PauseMenuScene := preload("res://scenes/ui/menus/ui_pause_menu.tscn")
-const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
-const RS_UI_THEME_CONFIG := preload("res://scripts/resources/ui/rs_ui_theme_config.gd")
+const PauseMenuScene := preload("res://scenes/core/ui/menus/ui_pause_menu.tscn")
+const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
+const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 
 func before_each() -> void:
 	U_UI_THEME_BUILDER.active_config = null
@@ -194,7 +194,7 @@ func _create_state_store() -> M_StateStore:
 	return store
 
 func _prepare_paused_state(store: M_StateStore) -> void:
-	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	store.dispatch(U_NavigationActions.open_pause())
 
 func _instantiate_pause_menu() -> Control:

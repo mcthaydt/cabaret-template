@@ -1,6 +1,6 @@
 extends GutTest
 
-const OverlayScene := preload("res://scenes/ui/overlays/ui_input_rebinding_overlay.tscn")
+const OverlayScene := preload("res://scenes/core/ui/overlays/ui_input_rebinding_overlay.tscn")
 const TEST_SAVEGAME_PATH := "user://test_savegame.json"
 var _store: M_StateStore
 var _manager: M_InputProfileManager

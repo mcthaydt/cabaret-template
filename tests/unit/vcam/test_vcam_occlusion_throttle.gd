@@ -1,13 +1,13 @@
 extends GutTest
 
 const U_VCAM_SILHOUETTE_HELPER := preload(
-	"res://scripts/managers/helpers/u_vcam_silhouette_helper.gd"
+	"res://scripts/core/managers/helpers/u_vcam_silhouette_helper.gd"
 )
 
 # These tests validate the occlusion throttle constants and the silhouette
 # set-equality early-out that M_VCamManager uses to skip redundant detection.
 
-const M_VCAM_MANAGER := preload("res://scripts/managers/m_vcam_manager.gd")
+const M_VCAM_MANAGER := preload("res://scripts/core/managers/m_vcam_manager.gd")
 
 # --- Throttle constant tests ---
 

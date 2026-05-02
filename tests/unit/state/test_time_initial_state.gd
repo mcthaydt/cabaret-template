@@ -1,6 +1,6 @@
 extends GutTest
 
-const RS_TIME_INITIAL_STATE := preload("res://scripts/resources/state/rs_time_initial_state.gd")
+const RS_TIME_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_time_initial_state.gd")
 
 var initial_state: Resource = null
 

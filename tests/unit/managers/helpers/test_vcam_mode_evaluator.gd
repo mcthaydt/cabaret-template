@@ -1,7 +1,7 @@
 extends GutTest
 
-const EVALUATOR_SCRIPT := preload("res://scripts/managers/helpers/u_vcam_mode_evaluator.gd")
-const MODE_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_orbit.gd")
+const EVALUATOR_SCRIPT := preload("res://scripts/core/managers/helpers/u_vcam_mode_evaluator.gd")
+const MODE_SCRIPT := preload("res://scripts/core/resources/display/vcam/rs_vcam_mode_orbit.gd")
 
 func _new_mode() -> Resource:
 	return MODE_SCRIPT.new()

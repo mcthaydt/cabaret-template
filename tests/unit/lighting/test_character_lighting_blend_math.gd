@@ -1,6 +1,6 @@
 extends GutTest
 
-const BLEND_MATH_PATH := "res://scripts/utils/lighting/u_character_lighting_blend_math.gd"
+const BLEND_MATH_PATH := "res://scripts/core/utils/lighting/u_character_lighting_blend_math.gd"
 
 
 func _blend_script() -> Script:

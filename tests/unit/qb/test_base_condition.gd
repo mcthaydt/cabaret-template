@@ -1,6 +1,6 @@
 extends BaseTest
 
-const CONDITION_CONSTANT := preload("res://scripts/resources/qb/conditions/rs_condition_constant.gd")
+const CONDITION_CONSTANT := preload("res://scripts/core/resources/qb/conditions/rs_condition_constant.gd")
 
 func _make_curve(points: Array[Vector2]) -> Curve:
 	var curve := Curve.new()

@@ -5,19 +5,19 @@ extends GutTest
 ## Tests for namespace-aware objective set storage. Multiple objective sets
 ## can be active simultaneously without replacing each other.
 
-const M_OBJECTIVES_MANAGER := preload("res://scripts/managers/m_objectives_manager.gd")
-const I_STATE_STORE := preload("res://scripts/interfaces/i_state_store.gd")
-const I_CONDITION := preload("res://scripts/interfaces/i_condition.gd")
-const OBJECTIVE_DEFINITION := preload("res://scripts/resources/scene_director/rs_objective_definition.gd")
-const OBJECTIVE_SET := preload("res://scripts/resources/scene_director/rs_objective_set.gd")
-const OBJECTIVES_REDUCER := preload("res://scripts/state/reducers/u_objectives_reducer.gd")
-const OBJECTIVES_ACTIONS := preload("res://scripts/state/actions/u_objectives_actions.gd")
-const OBJECTIVES_SELECTORS := preload("res://scripts/state/selectors/u_objectives_selectors.gd")
-const GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
-const NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
+const M_OBJECTIVES_MANAGER := preload("res://scripts/core/managers/m_objectives_manager.gd")
+const I_STATE_STORE := preload("res://scripts/core/interfaces/i_state_store.gd")
+const I_CONDITION := preload("res://scripts/core/interfaces/i_condition.gd")
+const OBJECTIVE_DEFINITION := preload("res://scripts/core/resources/scene_director/rs_objective_definition.gd")
+const OBJECTIVE_SET := preload("res://scripts/core/resources/scene_director/rs_objective_set.gd")
+const OBJECTIVES_REDUCER := preload("res://scripts/core/state/reducers/u_objectives_reducer.gd")
+const OBJECTIVES_ACTIONS := preload("res://scripts/core/state/actions/u_objectives_actions.gd")
+const OBJECTIVES_SELECTORS := preload("res://scripts/core/state/selectors/u_objectives_selectors.gd")
+const GAMEPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
+const NAVIGATION_ACTIONS := preload("res://scripts/core/state/actions/u_navigation_actions.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
-const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
+const U_ECS_EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
+const U_ECS_EVENT_NAMES := preload("res://scripts/core/events/ecs/u_ecs_event_names.gd")
 
 class ObjectivesStoreStub extends I_StateStore:
 	signal action_dispatched(action: Dictionary)

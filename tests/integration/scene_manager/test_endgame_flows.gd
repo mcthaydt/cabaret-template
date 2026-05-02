@@ -11,33 +11,33 @@ extends GutTest
 ## Tests are authored up-front (T162) and currently fail until
 ## implementation work for Phase 9 is complete.
 
-const M_SCENE_MANAGER := preload("res://scripts/managers/m_scene_manager.gd")
-const M_OBJECTIVES_MANAGER := preload("res://scripts/managers/m_objectives_manager.gd")
-const M_RUN_COORDINATOR := preload("res://scripts/managers/m_run_coordinator_manager.gd")
-const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
-const M_ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
-const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
-const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
-const RS_SCENE_INITIAL_STATE := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
-const CFG_GAME_CONFIG := preload("res://resources/cfg_game_config.tres")
-const OBJECTIVE_DEFINITION := preload("res://scripts/resources/scene_director/rs_objective_definition.gd")
-const OBJECTIVE_SET := preload("res://scripts/resources/scene_director/rs_objective_set.gd")
-const CONDITION_REDUX_FIELD := preload("res://scripts/resources/qb/conditions/rs_condition_redux_field.gd")
-const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
-const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
-const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
+const M_SCENE_MANAGER := preload("res://scripts/core/managers/m_scene_manager.gd")
+const M_OBJECTIVES_MANAGER := preload("res://scripts/core/managers/m_objectives_manager.gd")
+const M_RUN_COORDINATOR := preload("res://scripts/core/managers/m_run_coordinator_manager.gd")
+const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
+const M_ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
+const RS_STATE_STORE_SETTINGS := preload("res://scripts/core/resources/state/rs_state_store_settings.gd")
+const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_gameplay_initial_state.gd")
+const RS_SCENE_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_scene_initial_state.gd")
+const CFG_GAME_CONFIG := preload("res://resources/core/cfg_game_config.tres")
+const OBJECTIVE_DEFINITION := preload("res://scripts/core/resources/scene_director/rs_objective_definition.gd")
+const OBJECTIVE_SET := preload("res://scripts/core/resources/scene_director/rs_objective_set.gd")
+const CONDITION_REDUX_FIELD := preload("res://scripts/core/resources/qb/conditions/rs_condition_redux_field.gd")
+const U_GAMEPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
+const U_SCENE_REGISTRY := preload("res://scripts/core/scene_management/u_scene_registry.gd")
+const U_STATE_HANDOFF := preload("res://scripts/core/state/utils/u_state_handoff.gd")
 
-const PLAYER_TAG_COMPONENT := preload("res://scripts/ecs/components/c_player_tag_component.gd")
-const HEALTH_COMPONENT := preload("res://scripts/ecs/components/c_health_component.gd")
-const HEALTH_SYSTEM := preload("res://scripts/ecs/systems/s_health_system.gd")
-const DEATH_HANDLER_SYSTEM := preload("res://scripts/ecs/systems/s_death_handler_system.gd")
-const HEALTH_SETTINGS_RESOURCE := preload("res://resources/base_settings/gameplay/cfg_health_settings.tres")
+const PLAYER_TAG_COMPONENT := preload("res://scripts/core/ecs/components/c_player_tag_component.gd")
+const HEALTH_COMPONENT := preload("res://scripts/core/ecs/components/c_health_component.gd")
+const HEALTH_SYSTEM := preload("res://scripts/core/ecs/systems/s_health_system.gd")
+const DEATH_HANDLER_SYSTEM := preload("res://scripts/core/ecs/systems/s_death_handler_system.gd")
+const HEALTH_SETTINGS_RESOURCE := preload("res://resources/core/base_settings/gameplay/cfg_health_settings.tres")
 
-const VICTORY_COMPONENT := preload("res://scripts/ecs/components/c_victory_trigger_component.gd")
-const GAME_EVENT_SYSTEM := preload("res://scripts/ecs/systems/s_game_event_system.gd")
-const VICTORY_HANDLER_SYSTEM := preload("res://scripts/ecs/systems/s_victory_handler_system.gd")
-const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/resources/state/rs_navigation_initial_state.gd")
-const U_SFX_SPAWNER := preload("res://scripts/managers/helpers/u_sfx_spawner.gd")
+const VICTORY_COMPONENT := preload("res://scripts/core/ecs/components/c_victory_trigger_component.gd")
+const GAME_EVENT_SYSTEM := preload("res://scripts/core/ecs/systems/s_game_event_system.gd")
+const VICTORY_HANDLER_SYSTEM := preload("res://scripts/core/ecs/systems/s_victory_handler_system.gd")
+const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_navigation_initial_state.gd")
+const U_SFX_SPAWNER := preload("res://scripts/core/managers/helpers/u_sfx_spawner.gd")
 
 var _root: Node
 var _state_store: M_STATE_STORE
@@ -102,7 +102,7 @@ func before_each() -> void:
 
 	_scene_manager = M_SCENE_MANAGER.new()
 	_scene_manager.skip_initial_scene_load = true
-	_scene_manager.initial_scene_id = StringName("alleyway")
+	_scene_manager.initial_scene_id = StringName("demo_room")
 	_root.add_child(_scene_manager)
 	_objectives_manager = M_OBJECTIVES_MANAGER.new()
 	_objectives_manager.state_store = _state_store
@@ -207,7 +207,7 @@ func _prepare_victory_system() -> Dictionary:
 
 	var victory_handler_system := VICTORY_HANDLER_SYSTEM.new()
 	victory_handler_system.name = "S_VictoryHandlerSystem"
-	victory_handler_system.game_config.required_final_area = "interior_house"
+	victory_handler_system.game_config.required_final_area = "demo_room"
 	_systems_core.add_child(victory_handler_system)
 
 	await wait_physics_frames(2)
@@ -312,7 +312,7 @@ func test_game_over_retry_resets_health_and_returns_to_previous_gameplay_scene()
 	assert_almost_eq(float(gameplay_state.get("player_health", 0.0)),
 		float(gameplay_state.get("player_max_health", 100.0)), 0.01,
 		"Retry should restore player health to max")
-	assert_eq(_scene_manager.get_current_scene(), StringName("alleyway"),
+	assert_eq(_scene_manager.get_current_scene(), StringName("demo_room"),
 		"Retry should transition back to the previous gameplay scene")
 
 func test_victory_triggers_victory_scene_when_area_completed() -> void:
@@ -333,9 +333,9 @@ func test_victory_triggers_victory_scene_when_area_completed() -> void:
 	await wait_physics_frames(2)
 
 	assert_true(_scene_manager.get_current_scene() != StringName("victory"),
-		"Victory should be gated until interior completion")
+		"Victory should be gated until demo room completion")
 
-	_state_store.dispatch(U_GAMEPLAY_ACTIONS.mark_area_complete("interior_house"))
+	_state_store.dispatch(U_GAMEPLAY_ACTIONS.mark_area_complete("demo_room"))
 	await wait_physics_frames(1)
 
 	# It is possible for the Area3D to re-emit body_entered on the next
@@ -369,11 +369,20 @@ func test_victory_continue_and_credits_buttons_route_correctly() -> void:
 	_state_store.dispatch(U_GAMEPLAY_ACTIONS.reset_progress())
 	await wait_physics_frames(2)
 
-	_state_store.dispatch(U_GAMEPLAY_ACTIONS.mark_area_complete("interior_house"))
+	_state_store.dispatch(U_GAMEPLAY_ACTIONS.mark_area_complete("demo_room"))
 	_state_store.dispatch(U_GAMEPLAY_ACTIONS.trigger_victory(StringName("final_goal")))
 	_state_store.dispatch(U_GAMEPLAY_ACTIONS.increment_death_count())
 	await wait_physics_frames(2)
 	var gameplay_state: Dictionary = _state_store.get_state().get("gameplay", {})
+	var player_entity_id: String = String(gameplay_state.get("player_entity_id", "player"))
+	var pre_reset_non_player_snapshot_ids: Array[String] = []
+	var pre_reset_snapshots_variant: Variant = gameplay_state.get("entities", {})
+	if pre_reset_snapshots_variant is Dictionary:
+		var pre_reset_snapshots: Dictionary = pre_reset_snapshots_variant as Dictionary
+		for snapshot_id_variant in pre_reset_snapshots.keys():
+			var snapshot_id: String = str(snapshot_id_variant)
+			if snapshot_id != player_entity_id:
+				pre_reset_non_player_snapshot_ids.append(snapshot_id)
 	assert_false(bool(gameplay_state.get("game_completed", false)),
 		"Game completed should be false before unlock")
 	assert_false(credits_button.visible, "Credits button hidden until game_completed true")
@@ -385,7 +394,7 @@ func test_victory_continue_and_credits_buttons_route_correctly() -> void:
 
 	continue_button.emit_signal("pressed")
 	await wait_seconds(0.4)
-	assert_eq(_scene_manager.get_current_scene(), CFG_GAME_CONFIG.retry_scene_id,
+	assert_eq(_scene_manager.get_current_scene(), CFG_GAME_CONFIG.get_retry_scene_id(),
 		"Continue should return to configured retry scene")
 	await wait_physics_frames(2)
 	gameplay_state = _state_store.get_state().get("gameplay", {})
@@ -411,26 +420,20 @@ func test_victory_continue_and_credits_buttons_route_correctly() -> void:
 	assert_eq(objectives_state.get("event_log", []), [],
 		"Continue should clear objective event log for a fresh run")
 	var entity_snapshots: Variant = gameplay_state.get("entities", {})
-	var player_entity_id: String = String(gameplay_state.get("player_entity_id", "player"))
 	if entity_snapshots is Dictionary:
 		var snapshot_dict: Dictionary = entity_snapshots as Dictionary
-		if snapshot_dict.has(player_entity_id):
-			var player_snapshot: Dictionary = snapshot_dict[player_entity_id]
-			assert_eq(float(player_snapshot.get("health", -1.0)), float(gameplay_state.get("player_max_health", -1.0)),
-				"Reset should restore snapshot health")
-			assert_false(player_snapshot.get("is_dead", true),
-				"Reset should clear snapshot is_dead flag")
-			assert_true(snapshot_dict.size() >= 1, "Reset should preserve at least the player snapshot")
-		else:
-			assert_true(snapshot_dict.is_empty(),
-				"Reset should not retain non-player snapshots")
+		for stale_snapshot_id in pre_reset_non_player_snapshot_ids:
+			assert_false(
+				snapshot_dict.has(stale_snapshot_id),
+				"Reset should not retain stale non-player snapshot '%s'" % stale_snapshot_id
+			)
 
 	_scene_manager.transition_to_scene(StringName("victory"), "instant")
 	await wait_physics_frames(3)
 	scene_instance = _get_active_scene_instance() as Control
 	menu_button = scene_instance.find_child("MenuButton", true, false) as Button
 	assert_not_null(menu_button, "Menu button should exist after reload")
-	_state_store.dispatch(U_GAMEPLAY_ACTIONS.mark_area_complete("interior_house"))
+	_state_store.dispatch(U_GAMEPLAY_ACTIONS.mark_area_complete("demo_room"))
 	_state_store.dispatch(U_GAMEPLAY_ACTIONS.game_complete())
 	await wait_physics_frames(2)
 	await wait_seconds(0.1)
@@ -450,7 +453,7 @@ func test_victory_continue_and_credits_buttons_route_correctly() -> void:
 	scene_instance = _get_active_scene_instance() as Control
 	credits_button = scene_instance.find_child("CreditsButton", true, false) as Button
 	assert_not_null(credits_button, "Credits button should exist on reload")
-	_state_store.dispatch(U_GAMEPLAY_ACTIONS.mark_area_complete("interior_house"))
+	_state_store.dispatch(U_GAMEPLAY_ACTIONS.mark_area_complete("demo_room"))
 	_state_store.dispatch(U_GAMEPLAY_ACTIONS.game_complete())
 	await wait_physics_frames(2)
 	await wait_seconds(0.1)

@@ -6,12 +6,12 @@ extends GutTest
 ## Validates effect selection, execution, minimum duration, and progress updates.
 ## Tests follow TDD discipline: written BEFORE implementation.
 
-const M_SceneManager = preload("res://scripts/managers/m_scene_manager.gd")
-const M_StateStore = preload("res://scripts/state/m_state_store.gd")
-const RS_SceneInitialState = preload("res://scripts/resources/state/rs_scene_initial_state.gd")
-const RS_StateStoreSettings = preload("res://scripts/resources/state/rs_state_store_settings.gd")
-const U_SceneRegistry = preload("res://scripts/scene_management/u_scene_registry.gd")
-const U_SceneActions = preload("res://scripts/state/actions/u_scene_actions.gd")
+const M_SceneManager = preload("res://scripts/core/managers/m_scene_manager.gd")
+const M_StateStore = preload("res://scripts/core/state/m_state_store.gd")
+const RS_SceneInitialState = preload("res://scripts/core/resources/state/rs_scene_initial_state.gd")
+const RS_StateStoreSettings = preload("res://scripts/core/resources/state/rs_state_store_settings.gd")
+const U_SceneRegistry = preload("res://scripts/core/scene_management/u_scene_registry.gd")
+const U_SceneActions = preload("res://scripts/core/state/actions/u_scene_actions.gd")
 
 var _root_scene: Node
 var _manager: M_SceneManager
@@ -113,7 +113,7 @@ func test_ui_to_ui_uses_instant_transition() -> void:
 ## Test fade transition for menu → gameplay (T138, T141)
 func test_fade_transition_for_menu_to_gameplay() -> void:
 	# Transition with fade effect
-	_manager.transition_to_scene(StringName("gameplay_base"), "fade")
+	_manager.transition_to_scene(StringName("demo_room"), "fade")
 
 	# Check transitioning flag is set
 	await get_tree().physics_frame
@@ -129,7 +129,7 @@ func test_fade_transition_for_menu_to_gameplay() -> void:
 	var state: Dictionary = _store.get_state()
 	var scene_state: Dictionary = state.get("scene", {})
 	assert_false(scene_state.get("is_transitioning", false), "Fade should complete")
-	assert_eq(scene_state.get("current_scene_id"), StringName("gameplay_base"), "Should reach gameplay scene")
+	assert_eq(scene_state.get("current_scene_id"), StringName("demo_room"), "Should reach gameplay scene")
 
 ## Test fade effect plays smoothly without jarring cuts (T141)
 func test_fade_effect_is_smooth() -> void:

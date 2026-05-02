@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="RS_UIMotionSet" format=3 uid="uid://b72010a71rlh7"]
+
+[ext_resource type="Script" uid="uid://cu5sr5qe1yst4" path="res://scripts/core/resources/ui/rs_ui_motion_set.gd" id="1_motion_set"]
+[ext_resource type="Script" uid="uid://bywbkktihcmqf" path="res://scripts/core/resources/ui/rs_ui_motion_preset.gd" id="2_motion_preset"]
+
+[sub_resource type="Resource" id="MotionPreset_enter_fade"]
+script = ExtResource("2_motion_preset")
+property_path = "modulate:a"
+from_value = 0.0
+to_value = 1.0
+duration_sec = 0.28
+
+[sub_resource type="Resource" id="MotionPreset_enter_slide"]
+script = ExtResource("2_motion_preset")
+property_path = "position:y"
+from_value = 18.0
+to_value = 0.0
+duration_sec = 0.32
+parallel = true
+
+[sub_resource type="Resource" id="MotionPreset_exit_fade"]
+script = ExtResource("2_motion_preset")
+property_path = "modulate:a"
+from_value = 1.0
+to_value = 0.0
+duration_sec = 0.22
+
+[sub_resource type="Resource" id="MotionPreset_exit_slide"]
+script = ExtResource("2_motion_preset")
+property_path = "position:y"
+from_value = 0.0
+to_value = -14.0
+duration_sec = 0.22
+parallel = true
+
+[resource]
+script = ExtResource("1_motion_set")
+enter = Array[Resource]([SubResource("MotionPreset_enter_fade"), SubResource("MotionPreset_enter_slide")])
+exit = Array[Resource]([SubResource("MotionPreset_exit_fade"), SubResource("MotionPreset_exit_slide")])

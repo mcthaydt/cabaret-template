@@ -1,7 +1,7 @@
 extends GutTest
 
 const U_VCAM_COLLISION_DETECTOR := preload(
-	"res://scripts/managers/helpers/u_vcam_collision_detector.gd"
+	"res://scripts/core/managers/helpers/u_vcam_collision_detector.gd"
 )
 
 # --- Guard tests ---

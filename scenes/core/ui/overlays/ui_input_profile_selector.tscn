@@ -1,0 +1,115 @@
+[gd_scene format=3 uid="uid://cwfxmqu368b47"]
+
+[ext_resource type="Script" uid="uid://bh0dirqu8u1ph" path="res://scripts/core/ui/overlays/ui_input_profile_selector.gd" id="1"]
+[ext_resource type="Resource" uid="uid://b72010a71rlh7" path="res://resources/core/ui/motions/cfg_motion_fade_slide.tres" id="2_motion_set"]
+[ext_resource type="Script" uid="uid://cvi7rh32jhp6d" path="res://scripts/core/ui/helpers/u_localization_root.gd" id="localization_root"]
+[ext_resource type="Script" uid="uid://dfg7i5kfpjwg1" path="res://scripts/core/ui/helpers/u_ui_scale_root.gd" id="ui_scale_root"]
+
+[node name="InputProfileSelector" type="Control" unique_id=358970070]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+background_color = Color(0.114, 0.114, 0.129, 0.5)
+background_shader_preset = "scanline_drift"
+background_shader_intensity = 0.24
+background_shader_speed = 0.8
+motion_set = ExtResource("2_motion_set")
+
+[node name="UIScaleRoot" type="Node" parent="." unique_id=1762069587]
+script = ExtResource("ui_scale_root")
+
+[node name="LocalizationRoot" type="Node" parent="." unique_id=1977515207]
+script = ExtResource("localization_root")
+
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=142530297]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MainPanelMotionHost" type="Control" parent="CenterContainer" unique_id=179189488]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(620, 500)
+layout_mode = 2
+
+[node name="MainPanel" type="PanelContainer" parent="CenterContainer/MainPanelMotionHost" unique_id=1936237452]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MainPanelPadding" type="MarginContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel" unique_id=500437174]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="MainPanelContent" type="VBoxContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding" unique_id=1446412379]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="HeadingLabel" type="Label" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=529720151]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_alignment = 1
+
+[node name="ProfileRow" type="HBoxContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=1979611833]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="ProfileLabel" type="Label" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/ProfileRow" unique_id=28240624]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+
+[node name="ProfileButton" type="Button" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/ProfileRow" unique_id=408754869]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="PreviewContainer" type="VBoxContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=1315313494]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="HeaderLabel" type="Label" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/PreviewContainer" unique_id=575829372]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 2
+
+[node name="DescriptionLabel" type="Label" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/PreviewContainer" unique_id=926130402]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 2
+
+[node name="BindingsContainer" type="VBoxContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/PreviewContainer" unique_id=545592420]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Spacer" type="Control" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=534096530]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ButtonRow" type="HBoxContainer" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent" unique_id=1996638810]
+unique_name_in_owner = true
+layout_mode = 2
+alignment = 2
+
+[node name="CancelButton" type="Button" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/ButtonRow" unique_id=1645839423]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="ResetButton" type="Button" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/ButtonRow" unique_id=1372962006]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="ApplyButton" type="Button" parent="CenterContainer/MainPanelMotionHost/MainPanel/MainPanelPadding/MainPanelContent/ButtonRow" unique_id=54814959]
+unique_name_in_owner = true
+layout_mode = 2

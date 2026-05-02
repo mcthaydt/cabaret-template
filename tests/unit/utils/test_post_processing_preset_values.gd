@@ -2,9 +2,9 @@ extends GutTest
 
 ## Tests for post-processing preset intensity values
 
-const CFG_LIGHT_PRESET := preload("res://resources/display/cfg_post_processing_presets/cfg_post_processing_light.tres")
-const CFG_MEDIUM_PRESET := preload("res://resources/display/cfg_post_processing_presets/cfg_post_processing_medium.tres")
-const CFG_HEAVY_PRESET := preload("res://resources/display/cfg_post_processing_presets/cfg_post_processing_heavy.tres")
+const CFG_LIGHT_PRESET := preload("res://resources/core/display/cfg_post_processing_presets/cfg_post_processing_light.tres")
+const CFG_MEDIUM_PRESET := preload("res://resources/core/display/cfg_post_processing_presets/cfg_post_processing_medium.tres")
+const CFG_HEAVY_PRESET := preload("res://resources/core/display/cfg_post_processing_presets/cfg_post_processing_heavy.tres")
 
 
 func test_light_preset_has_lower_intensities() -> void:
@@ -73,3 +73,24 @@ func test_loaded_presets_match_canonical_resources() -> void:
 	assert_eq(light.get("film_grain_intensity"), CFG_LIGHT_PRESET.film_grain_intensity)
 	assert_eq(medium.get("film_grain_intensity"), CFG_MEDIUM_PRESET.film_grain_intensity)
 	assert_eq(heavy.get("film_grain_intensity"), CFG_HEAVY_PRESET.film_grain_intensity)
+
+func test_presets_expose_scanline_fields() -> void:
+	var light := U_PostProcessingPresetValues.get_preset_values("light")
+	var medium := U_PostProcessingPresetValues.get_preset_values("medium")
+	var heavy := U_PostProcessingPresetValues.get_preset_values("heavy")
+
+	assert_true(light.has("line_mask_intensity"), "light should expose line_mask_intensity")
+	assert_true(medium.has("line_mask_intensity"), "medium should expose line_mask_intensity")
+	assert_true(heavy.has("line_mask_intensity"), "heavy should expose line_mask_intensity")
+
+	assert_almost_eq(float(light.get("line_mask_intensity")), 0.0, 0.0001,
+		"light line_mask_intensity should be 0 (off)")
+	assert_true(float(medium.get("line_mask_intensity")) > 0.0,
+		"medium line_mask_intensity should be positive")
+	assert_true(float(heavy.get("line_mask_intensity")) > 0.0,
+		"heavy line_mask_intensity should be positive")
+
+func test_medium_preset_scanline_count_matches_resource() -> void:
+	var medium := U_PostProcessingPresetValues.get_preset_values("medium")
+	assert_almost_eq(float(medium.get("scanline_count")), CFG_MEDIUM_PRESET.scanline_count, 0.0001,
+		"scanline_count should match preset resource")

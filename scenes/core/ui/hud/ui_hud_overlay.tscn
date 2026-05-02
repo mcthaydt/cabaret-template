@@ -1,0 +1,154 @@
+[gd_scene format=3 uid="uid://c8v4h1sdtyhps"]
+
+[ext_resource type="Script" uid="uid://c53v7ibat7r27" path="res://scripts/core/ui/hud/ui_hud_controller.gd" id="1_hud"]
+[ext_resource type="PackedScene" uid="uid://bq8y7b2npl2g0" path="res://scenes/core/ui/hud/ui_button_prompt.tscn" id="2_button_prompt"]
+[ext_resource type="Texture2D" uid="uid://c4jh8p28av3c" path="res://assets/core/textures/tex_spinner_autosave.svg" id="3_spinner_icon"]
+[ext_resource type="Script" uid="uid://cvi7rh32jhp6d" path="res://scripts/core/ui/helpers/u_localization_root.gd" id="localization_root"]
+[ext_resource type="Script" uid="uid://dfg7i5kfpjwg1" path="res://scripts/core/ui/helpers/u_ui_scale_root.gd" id="ui_scale_root"]
+
+[node name="HUD" type="CanvasLayer" unique_id=510794979]
+layer = 6
+visible = false
+script = ExtResource("1_hud")
+
+[node name="UIScaleRoot" type="Node" parent="." unique_id=984066284]
+script = ExtResource("ui_scale_root")
+
+[node name="LocalizationRoot" type="Node" parent="." unique_id=1647258844]
+script = ExtResource("localization_root")
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=2131435564]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=1541655827]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+
+[node name="PauseLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1244268701]
+visible = false
+layout_mode = 2
+
+[node name="HealthContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=987654321]
+layout_mode = 2
+
+[node name="LifeLabel" type="Label" parent="MarginContainer/VBoxContainer/HealthContainer" unique_id=987654322]
+layout_mode = 2
+text = "LIFE"
+vertical_alignment = 1
+
+[node name="HealthBar" type="ProgressBar" parent="MarginContainer/VBoxContainer/HealthContainer" unique_id=51153183]
+custom_minimum_size = Vector2(240, 12)
+layout_mode = 2
+size_flags_vertical = 4
+value = 100.0
+show_percentage = false
+
+[node name="HealthLabel" type="Label" parent="MarginContainer/VBoxContainer/HealthContainer/HealthBar" unique_id=1471968397]
+visible = false
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ToastContainer" type="Control" parent="MarginContainer" unique_id=1644489618]
+visible = false
+modulate = Color(1, 1, 1, 0)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 0
+mouse_filter = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="MarginContainer/ToastContainer" unique_id=1198822627]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -220.0
+offset_bottom = 50.0
+grow_horizontal = 0
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/ToastContainer/PanelContainer" unique_id=1964910810]
+layout_mode = 2
+
+[node name="CheckpointToast" type="Label" parent="MarginContainer/ToastContainer/PanelContainer/MarginContainer" unique_id=401933528]
+layout_mode = 2
+text = "Checkpoint"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AutosaveSpinnerContainer" type="Control" parent="MarginContainer" unique_id=834185648]
+visible = false
+layout_mode = 2
+mouse_filter = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="MarginContainer/AutosaveSpinnerContainer" unique_id=1109652772]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -9.0
+offset_top = 8.0
+offset_right = 9.0
+offset_bottom = 26.0
+grow_horizontal = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/AutosaveSpinnerContainer/PanelContainer" unique_id=1227246974]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/AutosaveSpinnerContainer/PanelContainer/MarginContainer" unique_id=87671901]
+layout_mode = 2
+alignment = 1
+
+[node name="SpinnerIcon" type="TextureRect" parent="MarginContainer/AutosaveSpinnerContainer/PanelContainer/MarginContainer/HBoxContainer" unique_id=1921384230]
+custom_minimum_size = Vector2(18, 18)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("3_spinner_icon")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SpinnerLabel" type="Label" parent="MarginContainer/AutosaveSpinnerContainer/PanelContainer/MarginContainer/HBoxContainer" unique_id=970001622]
+visible = false
+layout_mode = 2
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="InteractPrompt" parent="MarginContainer" unique_id=1511130595 instance=ExtResource("2_button_prompt")]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 8
+
+[node name="SignpostPanelContainer" type="Control" parent="." unique_id=222387715]
+visible = false
+layout_mode = 3
+anchor_left = 0.2
+anchor_top = 1.0
+anchor_right = 0.8
+anchor_bottom = 1.0
+offset_top = -156.0
+offset_bottom = -28.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="SignpostPanelContainer" unique_id=538381762]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="MarginContainer" type="MarginContainer" parent="SignpostPanelContainer/PanelContainer" unique_id=87579318]
+layout_mode = 2
+
+[node name="SignpostMessage" type="Label" parent="SignpostPanelContainer/PanelContainer/MarginContainer" unique_id=1136726508]
+custom_minimum_size = Vector2(0, 72)
+layout_mode = 2
+size_flags_vertical = 3
+text = "Signpost Message"
+autowrap_mode = 3

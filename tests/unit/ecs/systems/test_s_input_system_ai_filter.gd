@@ -1,13 +1,13 @@
 extends BaseTest
 
-const S_INPUT_SYSTEM_PATH := "res://scripts/ecs/systems/s_input_system.gd"
-const BASE_ECS_SYSTEM := preload("res://scripts/ecs/base_ecs_system.gd")
+const S_INPUT_SYSTEM_PATH := "res://scripts/core/ecs/systems/s_input_system.gd"
+const BASE_ECS_SYSTEM := preload("res://scripts/core/ecs/base_ecs_system.gd")
 const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
-const C_INPUT_COMPONENT := preload("res://scripts/ecs/components/c_input_component.gd")
-const C_PLAYER_TAG_COMPONENT := preload("res://scripts/ecs/components/c_player_tag_component.gd")
-const I_INPUT_SOURCE := preload("res://scripts/interfaces/i_input_source.gd")
-const M_INPUT_DEVICE_MANAGER := preload("res://scripts/managers/m_input_device_manager.gd")
+const C_INPUT_COMPONENT := preload("res://scripts/core/ecs/components/c_input_component.gd")
+const C_PLAYER_TAG_COMPONENT := preload("res://scripts/core/ecs/components/c_player_tag_component.gd")
+const I_INPUT_SOURCE := preload("res://scripts/core/interfaces/i_input_source.gd")
+const M_INPUT_DEVICE_MANAGER := preload("res://scripts/core/managers/m_input_device_manager.gd")
 
 class InputSourceStub extends I_INPUT_SOURCE:
 	var move_input: Vector2 = Vector2.ZERO

@@ -1,0 +1,88 @@
+[gd_scene format=3 uid="uid://dbcudtme76aba"]
+
+[ext_resource type="Script" uid="uid://b3p32f3kdfv3m" path="res://scripts/core/ui/menus/ui_game_over.gd" id="1"]
+[ext_resource type="Resource" uid="uid://b72010a71rlh7" path="res://resources/core/ui/motions/cfg_motion_fade_slide.tres" id="2_motion_set"]
+[ext_resource type="Script" uid="uid://cvi7rh32jhp6d" path="res://scripts/core/ui/helpers/u_localization_root.gd" id="localization_root"]
+[ext_resource type="Script" uid="uid://dfg7i5kfpjwg1" path="res://scripts/core/ui/helpers/u_ui_scale_root.gd" id="ui_scale_root"]
+
+[node name="GameOver" type="Control" unique_id=1010098499]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+background_shader_preset = "arcade_noise"
+background_shader_intensity = 0.62
+background_shader_speed = 1.4
+motion_set = ExtResource("2_motion_set")
+
+[node name="UIScaleRoot" type="Node" parent="." unique_id=129891169]
+script = ExtResource("ui_scale_root")
+
+[node name="LocalizationRoot" type="Node" parent="." unique_id=223588856]
+script = ExtResource("localization_root")
+
+[node name="Background" type="ColorRect" parent="." unique_id=201975315]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.114, 0.114, 0.129, 1)
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=1045201865]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CenterContainer" type="CenterContainer" parent="MarginContainer" unique_id=1283819116]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="MainPanel" type="PanelContainer" parent="MarginContainer/CenterContainer" unique_id=1155898884]
+custom_minimum_size = Vector2(520, 300)
+layout_mode = 2
+
+[node name="MainPanelPadding" type="MarginContainer" parent="MarginContainer/CenterContainer/MainPanel" unique_id=1986656038]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/CenterContainer/MainPanel/MainPanelPadding" unique_id=1583525779]
+layout_mode = 2
+alignment = 1
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/CenterContainer/MainPanel/MainPanelPadding/VBoxContainer" unique_id=422821144]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Game Over"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DeathCountLabel" type="Label" parent="MarginContainer/CenterContainer/MainPanel/MainPanelPadding/VBoxContainer" unique_id=533989872]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Deaths: 0"
+horizontal_alignment = 1
+
+[node name="ButtonRow" type="HBoxContainer" parent="MarginContainer/CenterContainer/MainPanel/MainPanelPadding/VBoxContainer" unique_id=938016071]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="RetryButton" type="Button" parent="MarginContainer/CenterContainer/MainPanel/MainPanelPadding/VBoxContainer/ButtonRow" unique_id=1632387851]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Retry"
+
+[node name="MenuButton" type="Button" parent="MarginContainer/CenterContainer/MainPanel/MainPanelPadding/VBoxContainer/ButtonRow" unique_id=1687885361]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Menu"

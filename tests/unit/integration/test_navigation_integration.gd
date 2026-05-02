@@ -1,7 +1,7 @@
 extends BaseTest
 
-const M_TIME_MANAGER := preload("res://scripts/managers/m_time_manager.gd")
-const GAMEPLAY_SCENE_ID := StringName("alleyway")
+const M_TIME_MANAGER := preload("res://scripts/core/managers/m_time_manager.gd")
+const GAMEPLAY_SCENE_ID := StringName("demo_room")
 
 var _store: M_StateStore
 var _active_scene_container: Node

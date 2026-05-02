@@ -1,6 +1,6 @@
 extends GutTest
 
-const U_VCAM_LOOK_INPUT := preload("res://scripts/ecs/systems/helpers/u_vcam_look_input.gd")
+const U_VCAM_LOOK_INPUT := preload("res://scripts/core/ecs/systems/helpers/u_vcam_look_input.gd")
 
 func _new_response_values(
 	deadzone: float = 0.02,

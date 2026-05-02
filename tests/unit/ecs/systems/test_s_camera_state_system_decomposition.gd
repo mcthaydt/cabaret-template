@@ -3,8 +3,8 @@ extends BaseTest
 # F8 Phase 1 Decomposition tests — test that S_CameraStateSystem has been decomposed
 # and FOV/trauma/config/camera-state-apply logic extracted to U_CameraStateRuleApplier.
 
-const S_CAMERA_STATE_SYSTEM_SCRIPT := "res://scripts/ecs/systems/s_camera_state_system.gd"
-const RULE_APPLIER_SCRIPT := "res://scripts/ecs/systems/helpers/u_camera_state_rule_applier.gd"
+const S_CAMERA_STATE_SYSTEM_SCRIPT := "res://scripts/core/ecs/systems/s_camera_state_system.gd"
+const RULE_APPLIER_SCRIPT := "res://scripts/core/ecs/systems/helpers/u_camera_state_rule_applier.gd"
 
 # Methods that should move from system to rule applier
 const MOVED_METHODS := [

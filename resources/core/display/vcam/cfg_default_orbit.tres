@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="RS_VCamModeOrbit" format=3 uid="uid://dbvjq84mnk1xy"]
+
+[ext_resource type="Script" uid="uid://w4gk12wwllwi" path="res://scripts/core/resources/display/vcam/rs_vcam_mode_orbit.gd" id="1_0x2n8"]
+
+[resource]
+script = ExtResource("1_0x2n8")
+distance = 3.0
+authored_pitch = -30.0
+rotation_speed = 1.2
+fov = 39.5978

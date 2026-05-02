@@ -10,46 +10,45 @@ extends BaseTest
 ## - Event-driven gameplay SFX systems + pooled 3D spawner
 ## - Footstep system surface selection + timing
 
-const M_AUDIO_MANAGER := preload("res://scripts/managers/m_audio_manager.gd")
-const M_ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
-const U_SFX_SPAWNER := preload("res://scripts/managers/helpers/u_sfx_spawner.gd")
-const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
+const M_AUDIO_MANAGER := preload("res://scripts/core/managers/m_audio_manager.gd")
+const M_ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
+const U_SFX_SPAWNER := preload("res://scripts/core/managers/helpers/u_sfx_spawner.gd")
+const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
 
-const C_FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")
-const C_SURFACE_DETECTOR_COMPONENT := preload("res://scripts/ecs/components/c_surface_detector_component.gd")
+const C_FLOATING_COMPONENT := preload("res://scripts/core/ecs/components/c_floating_component.gd")
+const C_SURFACE_DETECTOR_COMPONENT := preload("res://scripts/core/ecs/components/c_surface_detector_component.gd")
 
-const RS_AUDIO_INITIAL_STATE := preload("res://scripts/resources/state/rs_audio_initial_state.gd")
-const RS_FLOATING_SETTINGS := preload("res://scripts/resources/ecs/rs_floating_settings.gd")
-const RS_FOOTSTEP_SOUND_SETTINGS := preload("res://scripts/resources/ecs/rs_footstep_sound_settings.gd")
-const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
-const S_CHECKPOINT_SOUND_SYSTEM := preload("res://scripts/ecs/systems/s_checkpoint_sound_system.gd")
-const S_DEATH_SOUND_SYSTEM := preload("res://scripts/ecs/systems/s_death_sound_system.gd")
-const S_FOOTSTEP_SOUND_SYSTEM := preload("res://scripts/ecs/systems/s_footstep_sound_system.gd")
-const S_JUMP_SOUND_SYSTEM := preload("res://scripts/ecs/systems/s_jump_sound_system.gd")
-const S_LANDING_SOUND_SYSTEM := preload("res://scripts/ecs/systems/s_landing_sound_system.gd")
-const S_VICTORY_SOUND_SYSTEM := preload("res://scripts/ecs/systems/s_victory_sound_system.gd")
+const RS_AUDIO_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_audio_initial_state.gd")
+const RS_FLOATING_SETTINGS := preload("res://scripts/core/resources/ecs/rs_floating_settings.gd")
+const RS_FOOTSTEP_SOUND_SETTINGS := preload("res://scripts/core/resources/ecs/rs_footstep_sound_settings.gd")
+const RS_STATE_STORE_SETTINGS := preload("res://scripts/core/resources/state/rs_state_store_settings.gd")
+const S_CHECKPOINT_SOUND_SYSTEM := preload("res://scripts/core/ecs/systems/s_checkpoint_sound_system.gd")
+const S_DEATH_SOUND_SYSTEM := preload("res://scripts/core/ecs/systems/s_death_sound_system.gd")
+const S_FOOTSTEP_SOUND_SYSTEM := preload("res://scripts/core/ecs/systems/s_footstep_sound_system.gd")
+const S_JUMP_SOUND_SYSTEM := preload("res://scripts/core/ecs/systems/s_jump_sound_system.gd")
+const S_LANDING_SOUND_SYSTEM := preload("res://scripts/core/ecs/systems/s_landing_sound_system.gd")
+const S_VICTORY_SOUND_SYSTEM := preload("res://scripts/core/ecs/systems/s_victory_sound_system.gd")
 
-const RS_CHECKPOINT_SOUND_SETTINGS := preload("res://scripts/resources/ecs/rs_checkpoint_sound_settings.gd")
-const RS_DEATH_SOUND_SETTINGS := preload("res://scripts/resources/ecs/rs_death_sound_settings.gd")
-const RS_JUMP_SOUND_SETTINGS := preload("res://scripts/resources/ecs/rs_jump_sound_settings.gd")
-const RS_LANDING_SOUND_SETTINGS := preload("res://scripts/resources/ecs/rs_landing_sound_settings.gd")
-const RS_VICTORY_SOUND_SETTINGS := preload("res://scripts/resources/ecs/rs_victory_sound_settings.gd")
+const RS_CHECKPOINT_SOUND_SETTINGS := preload("res://scripts/core/resources/ecs/rs_checkpoint_sound_settings.gd")
+const RS_DEATH_SOUND_SETTINGS := preload("res://scripts/core/resources/ecs/rs_death_sound_settings.gd")
+const RS_JUMP_SOUND_SETTINGS := preload("res://scripts/core/resources/ecs/rs_jump_sound_settings.gd")
+const RS_LANDING_SOUND_SETTINGS := preload("res://scripts/core/resources/ecs/rs_landing_sound_settings.gd")
+const RS_VICTORY_SOUND_SETTINGS := preload("res://scripts/core/resources/ecs/rs_victory_sound_settings.gd")
 
-const U_AUDIO_ACTIONS := preload("res://scripts/state/actions/u_audio_actions.gd")
-const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
-const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
+const U_AUDIO_ACTIONS := preload("res://scripts/core/state/actions/u_audio_actions.gd")
+const U_ECS_EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
+const U_NAVIGATION_ACTIONS := preload("res://scripts/core/state/actions/u_navigation_actions.gd")
+const U_SCENE_ACTIONS := preload("res://scripts/core/state/actions/u_scene_actions.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
-const U_UISOUND_PLAYER := preload("res://scripts/ui/utils/u_ui_sound_player.gd")
+const U_STATE_HANDOFF := preload("res://scripts/core/state/utils/u_state_handoff.gd")
+const U_UISOUND_PLAYER := preload("res://scripts/core/ui/utils/u_ui_sound_player.gd")
 const U_AUDIO_TEST_HELPERS := preload("res://tests/helpers/u_audio_test_helpers.gd")
 
-const STREAM_MAIN_MENU := preload("res://assets/audio/music/mus_main_menu.mp3")
-const STREAM_ALLEYWAY := preload("res://assets/audio/music/mus_alleyway.mp3")
-const STREAM_PAUSE := preload("res://assets/audio/music/mus_pause.mp3")
+const STREAM_MAIN_MENU := preload("res://assets/core/audio/music/mus_main_menu.mp3")
+const STREAM_ALLEYWAY := preload("res://assets/demo/audio/music/mus_alleyway.mp3")
+const STREAM_PAUSE := preload("res://assets/core/audio/music/mus_pause.mp3")
 
 const STREAM_AMBIENT_EXTERIOR := preload("res://tests/assets/audio/ambient/amb_placeholder_exterior.wav")
-const STREAM_AMBIENT_INTERIOR := preload("res://tests/assets/audio/ambient/amb_placeholder_interior.wav")
 
 var _store: M_StateStore
 var _audio_manager: M_AudioManager
@@ -265,13 +264,13 @@ func test_scene_transition_action_switches_to_main_menu_music() -> void:
 
 
 func test_scene_transition_action_switches_to_alleyway_music() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	await get_tree().process_frame
 	assert_true(_is_music_stream_playing(STREAM_ALLEYWAY))
 
 
 func test_open_pause_switches_to_pause_music() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	await get_tree().process_frame
 
 	_store.dispatch(U_NAVIGATION_ACTIONS.open_pause())
@@ -280,7 +279,7 @@ func test_open_pause_switches_to_pause_music() -> void:
 
 
 func test_close_pause_restores_previous_music() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	await get_tree().process_frame
 	_store.dispatch(U_NAVIGATION_ACTIONS.open_pause())
 	await get_tree().process_frame
@@ -301,21 +300,21 @@ func _is_ambient_stream_playing(stream: AudioStream) -> bool:
 
 
 func test_ambient_manager_starts_exterior_ambient_on_scene_transition() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	await get_tree().process_frame
 	assert_true(_is_ambient_stream_playing(STREAM_AMBIENT_EXTERIOR))
 
 
-func test_ambient_manager_switches_to_interior_ambient_on_scene_transition() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
+func test_ambient_manager_keeps_demo_room_ambient_on_repeated_scene_transition() -> void:
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	await get_tree().process_frame
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("interior_house")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	await get_tree().process_frame
-	assert_true(_is_ambient_stream_playing(STREAM_AMBIENT_INTERIOR))
+	assert_true(_is_ambient_stream_playing(STREAM_AMBIENT_EXTERIOR))
 
 
 func test_ambient_manager_stops_ambient_when_no_ambient_for_scene() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	await get_tree().process_frame
 	assert_true(_is_ambient_stream_playing(STREAM_AMBIENT_EXTERIOR))
 
@@ -323,7 +322,6 @@ func test_ambient_manager_stops_ambient_when_no_ambient_for_scene() -> void:
 	# Wait for fade out to complete (2.0s duration + buffer)
 	await get_tree().create_timer(2.1).timeout
 	assert_false(_is_ambient_stream_playing(STREAM_AMBIENT_EXTERIOR))
-	assert_false(_is_ambient_stream_playing(STREAM_AMBIENT_INTERIOR))
 
 
 func test_jump_sfx_system_spawns_sound_on_entity_jumped_event() -> void:

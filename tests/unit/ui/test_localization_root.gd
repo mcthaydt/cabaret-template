@@ -2,7 +2,7 @@ extends GutTest
 
 ## Unit tests for U_LocalizationRoot helper node.
 
-const U_LOCALIZATION_ROOT := preload("res://scripts/ui/helpers/u_localization_root.gd")
+const U_LOCALIZATION_ROOT := preload("res://scripts/core/ui/helpers/u_localization_root.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 
 class LocalizationManagerStub extends Node:

@@ -1,7 +1,7 @@
 extends BaseTest
 
-const ENTITY_QUERY := preload("res://scripts/ecs/u_entity_query.gd")
-const ECS_COMPONENT := preload("res://scripts/ecs/base_ecs_component.gd")
+const ENTITY_QUERY := preload("res://scripts/core/ecs/u_entity_query.gd")
+const ECS_COMPONENT := preload("res://scripts/core/ecs/base_ecs_component.gd")
 
 const OPTIONAL_TYPE := StringName("C_OptionalComponent")
 

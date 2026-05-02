@@ -5,9 +5,9 @@ extends GutTest
 ## Tests BaseTransitionEffect base class and implementations (Trans_Instant, Trans_Fade).
 ## Uses U_TransitionTestHelpers for standardized completion tracking.
 
-const BaseTransitionEffect = preload("res://scripts/scene_management/transitions/base_transition_effect.gd")
-const Trans_Instant = preload("res://scripts/scene_management/transitions/trans_instant.gd")
-const Trans_Fade = preload("res://scripts/scene_management/transitions/trans_fade.gd")
+const BaseTransitionEffect = preload("res://scripts/core/scene_management/transitions/base_transition_effect.gd")
+const Trans_Instant = preload("res://scripts/core/scene_management/transitions/trans_instant.gd")
+const Trans_Fade = preload("res://scripts/core/scene_management/transitions/trans_fade.gd")
 const U_TransitionTestHelpers = preload("res://tests/helpers/u_transition_test_helpers.gd")
 
 var _transition_overlay: CanvasLayer

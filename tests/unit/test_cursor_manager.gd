@@ -1,6 +1,6 @@
 extends BaseTest
 
-const CURSOR_MANAGER := preload("res://scripts/managers/m_cursor_manager.gd")
+const CURSOR_MANAGER := preload("res://scripts/core/managers/m_cursor_manager.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 
 var _signal_fired := false

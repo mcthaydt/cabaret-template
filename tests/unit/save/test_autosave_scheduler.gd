@@ -1,6 +1,6 @@
 extends BaseTest
 
-const M_AUTOSAVE_SCHEDULER := preload("res://scripts/managers/helpers/u_autosave_scheduler.gd")
+const M_AUTOSAVE_SCHEDULER := preload("res://scripts/core/managers/helpers/u_autosave_scheduler.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const MOCK_SAVE_MANAGER := preload("res://tests/mocks/mock_save_manager.gd")
 
@@ -118,7 +118,7 @@ func test_scene_transition_completed_triggers_autosave_request() -> void:
 	# Dispatch scene transition completed action
 	_mock_store.dispatch({
 		"type": StringName("scene/transition_completed"),
-		"payload": {"scene_id": StringName("gameplay_base")}
+		"payload": {"scene_id": StringName("demo_room")}
 	})
 
 	await get_tree().process_frame
@@ -279,7 +279,7 @@ func test_coalescing_multiple_requests_into_one_write() -> void:
 	# Two transition_completed events to gameplay scenes
 	_mock_store.dispatch({
 		"type": StringName("scene/transition_completed"),
-		"payload": {"scene_id": StringName("alleyway")}
+		"payload": {"scene_id": StringName("demo_room")}
 	})
 	_mock_store.dispatch({
 		"type": StringName("scene/transition_completed"),
@@ -311,3 +311,68 @@ func test_autosave_blocked_when_not_in_gameplay_shell() -> void:
 
 	# Verify autosave was NOT requested (blocked by shell check)
 	assert_eq(_mock_save_manager.autosave_request_count, 0, "Autosave should be blocked when not in gameplay shell")
+
+## Regression: post-render autosave callback (RenderingServer.frame_post_draw path)
+## frame_post_draw is not emitted in headless, so these tests drive the callback directly.
+
+func test_on_post_render_autosave_saves_when_transition_is_pending() -> void:
+	_scheduler = M_AUTOSAVE_SCHEDULER.new()
+	add_child(_scheduler)
+	autofree(_scheduler)
+
+	_mock_store.set_slice(StringName("navigation"), {"shell": "gameplay"})
+	_mock_store.set_slice(StringName("gameplay"), {"death_in_progress": false})
+	_mock_store.set_slice(StringName("scene"), {"is_transitioning": false})
+
+	await get_tree().process_frame
+
+	# Queue a transition autosave (sets _is_dirty)
+	_mock_store.dispatch({
+		"type": StringName("scene/transition_completed"),
+		"payload": {"scene_id": StringName("demo_room")}
+	})
+
+	# Simulate frame_post_draw firing
+	_scheduler._on_post_render_autosave()
+
+	assert_eq(_mock_save_manager.autosave_request_count, 1,
+		"_on_post_render_autosave should trigger autosave when transition is pending")
+
+func test_on_post_render_autosave_skips_when_no_pending_autosave() -> void:
+	_scheduler = M_AUTOSAVE_SCHEDULER.new()
+	add_child(_scheduler)
+	autofree(_scheduler)
+
+	await get_tree().process_frame
+
+	# Fire callback with no pending autosave
+	_scheduler._on_post_render_autosave()
+
+	assert_eq(_mock_save_manager.autosave_request_count, 0,
+		"_on_post_render_autosave should not save when no transition autosave is pending")
+
+func test_post_render_autosave_does_not_double_save_after_deferred_fallback() -> void:
+	# In headless the deferred path also fires; ensure only one save results.
+	_scheduler = M_AUTOSAVE_SCHEDULER.new()
+	add_child(_scheduler)
+	autofree(_scheduler)
+
+	_mock_store.set_slice(StringName("navigation"), {"shell": "gameplay"})
+	_mock_store.set_slice(StringName("gameplay"), {"death_in_progress": false})
+	_mock_store.set_slice(StringName("scene"), {"is_transitioning": false})
+
+	await get_tree().process_frame
+
+	_mock_store.dispatch({
+		"type": StringName("scene/transition_completed"),
+		"payload": {"scene_id": StringName("demo_room")}
+	})
+
+	# Simulate frame_post_draw arriving before the deferred fallback runs
+	_scheduler._on_post_render_autosave()
+	assert_eq(_mock_save_manager.autosave_request_count, 1, "First save via post-render callback")
+
+	# Deferred fallback runs — dirty flag already cleared, must not save again
+	await get_tree().process_frame
+	assert_eq(_mock_save_manager.autosave_request_count, 1,
+		"Deferred fallback must not produce a second save after post-render already saved")

@@ -7,10 +7,10 @@ extends GutTest
 ## U_SettingsSelectors (new), U_AudioSelectors (slice accessor), U_DisplaySelectors (slice accessor),
 ## U_LocalizationSelectors (slice accessor), and any other selectors needed for manager migration.
 
-const U_SETTINGS_SELECTORS := preload("res://scripts/state/selectors/u_settings_selectors.gd")
-const U_AUDIO_SELECTORS := preload("res://scripts/state/selectors/u_audio_selectors.gd")
-const U_DISPLAY_SELECTORS := preload("res://scripts/state/selectors/u_display_selectors.gd")
-const U_LOCALIZATION_SELECTORS := preload("res://scripts/state/selectors/u_localization_selectors.gd")
+const U_SETTINGS_SELECTORS := preload("res://scripts/core/state/selectors/u_settings_selectors.gd")
+const U_AUDIO_SELECTORS := preload("res://scripts/core/state/selectors/u_audio_selectors.gd")
+const U_DISPLAY_SELECTORS := preload("res://scripts/core/state/selectors/u_display_selectors.gd")
+const U_LOCALIZATION_SELECTORS := preload("res://scripts/core/state/selectors/u_localization_selectors.gd")
 
 
 # ── U_GameplaySelectors: full-state variants ───────────────────────────────

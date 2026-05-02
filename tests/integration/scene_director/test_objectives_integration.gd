@@ -1,22 +1,22 @@
 extends GutTest
 
-const M_SCENE_MANAGER := preload("res://scripts/managers/m_scene_manager.gd")
-const M_OBJECTIVES_MANAGER := preload("res://scripts/managers/m_objectives_manager.gd")
-const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
-const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
-const RS_SCENE_INITIAL_STATE := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
-const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
-const OBJECTIVE_DEFINITION := preload("res://scripts/resources/scene_director/rs_objective_definition.gd")
-const OBJECTIVE_SET := preload("res://scripts/resources/scene_director/rs_objective_set.gd")
-const CONDITION_REDUX_FIELD := preload("res://scripts/resources/qb/conditions/rs_condition_redux_field.gd")
-const CONDITION_EVENT_PAYLOAD := preload("res://scripts/resources/qb/conditions/rs_condition_event_payload.gd")
-const EFFECT_DISPATCH_ACTION := preload("res://scripts/resources/qb/effects/rs_effect_dispatch_action.gd")
-const CFG_OBJSET_DEFAULT := preload("res://resources/scene_director/sets/cfg_objset_default.tres")
+const M_SCENE_MANAGER := preload("res://scripts/core/managers/m_scene_manager.gd")
+const M_OBJECTIVES_MANAGER := preload("res://scripts/core/managers/m_objectives_manager.gd")
+const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
+const RS_STATE_STORE_SETTINGS := preload("res://scripts/core/resources/state/rs_state_store_settings.gd")
+const RS_SCENE_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_scene_initial_state.gd")
+const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_gameplay_initial_state.gd")
+const OBJECTIVE_DEFINITION := preload("res://scripts/core/resources/scene_director/rs_objective_definition.gd")
+const OBJECTIVE_SET := preload("res://scripts/core/resources/scene_director/rs_objective_set.gd")
+const CONDITION_REDUX_FIELD := preload("res://scripts/core/resources/qb/conditions/rs_condition_redux_field.gd")
+const CONDITION_EVENT_PAYLOAD := preload("res://scripts/core/resources/qb/conditions/rs_condition_event_payload.gd")
+const EFFECT_DISPATCH_ACTION := preload("res://scripts/core/resources/qb/effects/rs_effect_dispatch_action.gd")
+const CFG_OBJSET_DEFAULT := preload("res://resources/core/scene_director/sets/cfg_objset_default.tres")
 const U_SCENE_TEST_HELPERS := preload("res://tests/helpers/u_scene_test_helpers.gd")
-const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
-const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
-const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
-const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
+const U_ECS_EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.gd")
+const U_ECS_EVENT_NAMES := preload("res://scripts/core/events/ecs/u_ecs_event_names.gd")
+const U_GAMEPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_gameplay_actions.gd")
+const U_STATE_HANDOFF := preload("res://scripts/core/state/utils/u_state_handoff.gd")
 
 var _root: Node
 var _state_store: M_STATE_STORE
@@ -122,7 +122,7 @@ func test_default_objective_set_requires_final_trigger_before_victory_transition
 	)
 	assert_eq(
 		_scene_manager.get_current_scene(),
-		StringName("alleyway"),
+		StringName("demo_room"),
 		"Default objective set should route back to alleyway after bar objective completion"
 	)
 
@@ -134,7 +134,7 @@ func test_default_objective_set_requires_final_trigger_before_victory_transition
 		"active",
 		"Victory event without final trigger payload should not complete final objective"
 	)
-	assert_eq(_scene_manager.get_current_scene(), StringName("alleyway"))
+	assert_eq(_scene_manager.get_current_scene(), StringName("demo_room"))
 
 	_state_store.dispatch(U_GAMEPLAY_ACTIONS.trigger_victory(StringName("final_goal")))
 	await U_SCENE_TEST_HELPERS.wait_for_transition_idle(_scene_manager)

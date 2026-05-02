@@ -5,7 +5,7 @@ extends BaseTest
 ## Phase 2: Updated to test scene-driven pause architecture
 ## Tests that validate state store integration with M_TimeManager via scene slice
 
-const M_TIME_MANAGER := preload("res://scripts/managers/m_time_manager.gd")
+const M_TIME_MANAGER := preload("res://scripts/core/managers/m_time_manager.gd")
 
 var store: M_StateStore
 var pause_system: Node  # Will be M_TIME_MANAGER once implemented

@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://d14323kd04ar0"]
+
+[ext_resource type="Script" uid="uid://uwm2e02q83qx" path="res://scripts/core/ui/settings/ui_audio_settings_tab.gd" id="1_ui_audio_settings_tab_script"]
+[ext_resource type="Script" uid="uid://cvi7rh32jhp6d" path="res://scripts/core/ui/helpers/u_localization_root.gd" id="localization_root"]
+
+[node name="AudioSettingsTab" type="VBoxContainer" unique_id=691694341]
+script = ExtResource("1_ui_audio_settings_tab_script")
+
+[node name="LocalizationRoot" type="Node" parent="." unique_id=1009346827]
+script = ExtResource("localization_root")

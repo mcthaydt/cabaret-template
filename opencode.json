@@ -1,0 +1,23 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": ["superpowers@git+https://github.com/obra/superpowers.git"],
+  "mcp": {
+    "godot": {
+      "type": "local",
+      "command": ["npx", "-y", "@coding-solo/godot-mcp"],
+      "enabled": true,
+      "environment": {
+        "GODOT_PATH": "/Applications/Godot.app/Contents/MacOS/Godot",
+        "DEBUG": "true"
+      }
+    },
+    "pixellab": {
+      "type": "remote",
+      "url": "https://api.pixellab.ai/mcp",
+      "enabled": true,
+      "headers": {
+        "Authorization": "Bearer {env:PIXELLAB_SECRET}"
+      }
+    }
+  }
+}

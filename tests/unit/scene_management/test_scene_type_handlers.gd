@@ -5,11 +5,11 @@ extends GutTest
 ## Tests verify that each handler correctly implements the I_SCENE_TYPE_HANDLER interface
 ## with appropriate scene-type-specific behavior.
 
-const U_SCENE_REGISTRY = preload("res://scripts/scene_management/u_scene_registry.gd")
-const H_GameplaySceneHandler = preload("res://scripts/scene_management/handlers/h_gameplay_scene_handler.gd")
-const H_MenuSceneHandler = preload("res://scripts/scene_management/handlers/h_menu_scene_handler.gd")
-const H_UISceneHandler = preload("res://scripts/scene_management/handlers/h_ui_scene_handler.gd")
-const H_EndGameSceneHandler = preload("res://scripts/scene_management/handlers/h_endgame_scene_handler.gd")
+const U_SCENE_REGISTRY = preload("res://scripts/core/scene_management/u_scene_registry.gd")
+const H_GameplaySceneHandler = preload("res://scripts/core/scene_management/handlers/h_gameplay_scene_handler.gd")
+const H_MenuSceneHandler = preload("res://scripts/core/scene_management/handlers/h_menu_scene_handler.gd")
+const H_UISceneHandler = preload("res://scripts/core/scene_management/handlers/h_ui_scene_handler.gd")
+const H_EndGameSceneHandler = preload("res://scripts/core/scene_management/handlers/h_endgame_scene_handler.gd")
 
 var gameplay_handler: H_GameplaySceneHandler
 var menu_handler: H_MenuSceneHandler
@@ -56,7 +56,7 @@ func test_gameplay_handler_requires_state_store() -> void:
 
 
 func test_gameplay_handler_returns_start_game_action() -> void:
-	var action := gameplay_handler.get_navigation_action(StringName("gameplay_base"))
+	var action := gameplay_handler.get_navigation_action(StringName("demo_room"))
 	assert_true(action.has("type"), "Navigation action should have 'type' field")
 	assert_eq(action["type"], StringName("navigation/start_game"),
 		"Gameplay handler should return start_game action")

@@ -1,8 +1,8 @@
 extends BaseTest
 
-const CONDITION_COMPOSITE := preload("res://scripts/resources/qb/conditions/rs_condition_composite.gd")
-const CONDITION_CONSTANT := preload("res://scripts/resources/qb/conditions/rs_condition_constant.gd")
-const I_CONDITION := preload("res://scripts/interfaces/i_condition.gd")
+const CONDITION_COMPOSITE := preload("res://scripts/core/resources/qb/conditions/rs_condition_composite.gd")
+const CONDITION_CONSTANT := preload("res://scripts/core/resources/qb/conditions/rs_condition_constant.gd")
+const I_CONDITION := preload("res://scripts/core/interfaces/i_condition.gd")
 
 func _make_constant(score: float) -> I_Condition:
 	var condition: Variant = CONDITION_CONSTANT.new()
@@ -60,7 +60,7 @@ func test_any_mode_picks_max_score() -> void:
 	assert_almost_eq(condition.evaluate({}), 0.6, 0.0001)
 
 func test_any_mode_picks_max_from_valid_children() -> void:
-	# With typed arrays, null entries are filtered by the coerce setter.
+	# With typed arrays, null entries are filtered by the sanitize setter.
 	# This test verifies ANY mode picks the max score from valid children.
 	var condition: Variant = _make_composite(
 		CONDITION_COMPOSITE.CompositeMode.ANY,

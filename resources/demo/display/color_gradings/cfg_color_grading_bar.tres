@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="RS_SceneColorGrading" format=3 uid="uid://ck87fcune26es"]
+
+[ext_resource type="Script" uid="uid://4gxo5ajyta5u" path="res://scripts/core/resources/display/rs_scene_color_grading.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+scene_id = &"bar"
+filter_preset = "vivid_warm"
+filter_intensity = 0.24
+exposure = -1.21
+brightness = 0.11
+contrast = 1.19
+brilliance = 0.06
+highlights = -0.31
+shadows = -0.13
+saturation = 1.07
+vibrance = -0.25
+warmth = 0.37
+tint = -0.5
+sharpness = 0.56

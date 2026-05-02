@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="RS_ObjectiveDefinition" format=3 uid="uid://b2tqdtxcmwnyj"]
+
+[ext_resource type="Script" uid="uid://c01hdmwtkd014" path="res://scripts/core/resources/qb/conditions/rs_condition_event_payload.gd" id="1_event_payload"]
+[ext_resource type="Script" uid="uid://d1pyjxgvw256f" path="res://scripts/core/resources/scene_director/rs_objective_definition.gd" id="2_8mdsu"]
+[ext_resource type="Script" uid="uid://b0lcjld33hohy" path="res://scripts/core/resources/qb/effects/rs_effect_dispatch_action.gd" id="3_dispatch_action"]
+[ext_resource type="Script" uid="uid://c3bnu5ue4okdf" path="res://scripts/core/interfaces/i_condition.gd" id="4_icond"]
+[ext_resource type="Script" uid="uid://dhp1tdn8axoos" path="res://scripts/core/interfaces/i_effect.gd" id="5_ieffect"]
+
+[sub_resource type="Resource" id="Resource_to_alleyway"]
+script = ExtResource("3_dispatch_action")
+action_type = &"gameplay/trigger_victory_routing"
+payload = {
+"target_scene": &"demo_room"
+}
+
+[sub_resource type="Resource" id="Resource_goal_bar_triggered"]
+script = ExtResource("1_event_payload")
+field_path = "trigger_node.objective_id"
+match_mode = "equals"
+match_value_string = "goal_bar"
+
+[resource]
+script = ExtResource("2_8mdsu")
+objective_id = &"bar_complete"
+description = "Reach the demo goal trigger, then return to the demo room."
+conditions = Array[ExtResource("4_icond")]([SubResource("Resource_goal_bar_triggered")])
+completion_effects = Array[ExtResource("5_ieffect")]([SubResource("Resource_to_alleyway")])
+auto_activate = true

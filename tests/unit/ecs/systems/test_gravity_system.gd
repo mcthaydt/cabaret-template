@@ -1,10 +1,10 @@
 extends BaseTest
 
-const ECS_MANAGER = preload("res://scripts/managers/m_ecs_manager.gd")
-const GravitySystemScript = preload("res://scripts/ecs/systems/s_gravity_system.gd")
-const MovementComponentScript = preload("res://scripts/ecs/components/c_movement_component.gd")
-const FloatingComponentScript = preload("res://scripts/ecs/components/c_floating_component.gd")
-const ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
+const ECS_MANAGER = preload("res://scripts/core/managers/m_ecs_manager.gd")
+const GravitySystemScript = preload("res://scripts/core/ecs/systems/s_gravity_system.gd")
+const MovementComponentScript = preload("res://scripts/core/ecs/components/c_movement_component.gd")
+const FloatingComponentScript = preload("res://scripts/core/ecs/components/c_floating_component.gd")
+const ECS_UTILS := preload("res://scripts/core/utils/ecs/u_ecs_utils.gd")
 
 class FakeBody extends CharacterBody3D:
 	var grounded := false

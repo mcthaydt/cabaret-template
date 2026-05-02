@@ -5,22 +5,22 @@ extends BaseTest
 ## Focuses on M_AudioManager's dual-player crossfade behavior and
 ## music switching triggers from Redux actions.
 
-const M_AUDIO_MANAGER := preload("res://scripts/managers/m_audio_manager.gd")
-const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
-const RS_AUDIO_INITIAL_STATE := preload("res://scripts/resources/state/rs_audio_initial_state.gd")
-const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
+const M_AUDIO_MANAGER := preload("res://scripts/core/managers/m_audio_manager.gd")
+const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
+const RS_AUDIO_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_audio_initial_state.gd")
+const RS_STATE_STORE_SETTINGS := preload("res://scripts/core/resources/state/rs_state_store_settings.gd")
 
-const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
+const U_NAVIGATION_ACTIONS := preload("res://scripts/core/state/actions/u_navigation_actions.gd")
+const U_SCENE_ACTIONS := preload("res://scripts/core/state/actions/u_scene_actions.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
+const U_STATE_HANDOFF := preload("res://scripts/core/state/utils/u_state_handoff.gd")
 const U_TRANSITION_TEST_HELPERS := preload("res://tests/helpers/u_transition_test_helpers.gd")
 const U_AUDIO_TEST_HELPERS := preload("res://tests/helpers/u_audio_test_helpers.gd")
 
-const STREAM_MAIN_MENU := preload("res://assets/audio/music/mus_main_menu.mp3")
-const STREAM_ALLEYWAY := preload("res://assets/audio/music/mus_alleyway.mp3")
-const STREAM_INTERIOR := preload("res://assets/audio/music/mus_interior.mp3")
-const STREAM_PAUSE := preload("res://assets/audio/music/mus_pause.mp3")
+const STREAM_MAIN_MENU := preload("res://assets/core/audio/music/mus_main_menu.mp3")
+const STREAM_ALLEYWAY := preload("res://assets/demo/audio/music/mus_alleyway.mp3")
+const STREAM_PAUSE := preload("res://assets/core/audio/music/mus_pause.mp3")
+const STREAM_CREDITS := preload("res://assets/core/audio/music/mus_credits.mp3")
 
 var _store: M_StateStore
 var _audio_manager: M_AudioManager
@@ -103,7 +103,7 @@ func test_play_music_swaps_active_to_player_b() -> void:
 func test_second_play_music_swaps_active_back_to_player_a() -> void:
 	_audio_manager.play_music(StringName("main_menu"), 0.01)
 	await _await_music_tween(0.5)
-	_audio_manager.play_music(StringName("alleyway"), 0.01)
+	_audio_manager.play_music(StringName("demo_room"), 0.01)
 	await get_tree().process_frame
 	assert_eq(_audio_manager._music_crossfader._active_player, _player_a())
 
@@ -152,7 +152,7 @@ func test_old_player_stops_after_crossfade() -> void:
 	await _await_music_tween(0.5)
 	var old_player: AudioStreamPlayer = _audio_manager._music_crossfader._active_player
 
-	_audio_manager.play_music(StringName("alleyway"), 0.05)
+	_audio_manager.play_music(StringName("demo_room"), 0.05)
 	await get_tree().process_frame
 	assert_true(old_player.playing, "Old player should still be playing during fade")
 
@@ -190,7 +190,7 @@ func test_retrigger_kills_previous_tween_and_starts_new_one() -> void:
 	var tween_1: Tween = _audio_manager._music_crossfader._tween
 	assert_not_null(tween_1)
 
-	_audio_manager.play_music(StringName("alleyway"), 0.5)
+	_audio_manager.play_music(StringName("demo_room"), 0.5)
 	await get_tree().process_frame
 	var tween_2: Tween = _audio_manager._music_crossfader._tween
 	assert_not_null(tween_2)
@@ -202,7 +202,7 @@ func test_crossfade_keeps_old_playing_until_tween_finishes() -> void:
 	await _await_music_tween(0.5)
 	var old_player: AudioStreamPlayer = _audio_manager._music_crossfader._active_player
 
-	_audio_manager.play_music(StringName("alleyway"), 0.2)
+	_audio_manager.play_music(StringName("demo_room"), 0.2)
 	await get_tree().process_frame
 	assert_true(old_player.playing)
 
@@ -215,7 +215,7 @@ func test_crossfade_fades_out_old_player_volume_mid_fade() -> void:
 	var old_player: AudioStreamPlayer = _audio_manager._music_crossfader._active_player
 	assert_almost_eq(old_player.volume_db, 0.0, 0.1)
 
-	_audio_manager.play_music(StringName("alleyway"), 0.4)
+	_audio_manager.play_music(StringName("demo_room"), 0.4)
 	await get_tree().process_frame
 	await get_tree().create_timer(0.1).timeout
 
@@ -247,10 +247,10 @@ func test_scene_transition_completed_triggers_music_for_scene() -> void:
 	await get_tree().process_frame
 	assert_true(_is_playing_stream(STREAM_MAIN_MENU))
 
-func test_scene_transition_to_interior_house_plays_interior_music() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("interior_house")))
+func test_scene_transition_to_demo_room_plays_demo_room_music() -> void:
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	await get_tree().process_frame
-	assert_true(_is_playing_stream(STREAM_INTERIOR))
+	assert_true(_is_playing_stream(STREAM_ALLEYWAY))
 
 
 func test_transition_to_unknown_scene_does_not_stop_current_music() -> void:
@@ -264,16 +264,16 @@ func test_transition_to_unknown_scene_does_not_stop_current_music() -> void:
 
 
 func test_open_pause_stores_pre_pause_music_id() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	await get_tree().process_frame
 
 	_store.dispatch(U_NAVIGATION_ACTIONS.open_pause())
 	await get_tree().process_frame
-	assert_eq(_audio_manager._pre_pause_music_id, StringName("alleyway"))
+	assert_eq(_audio_manager._pre_pause_music_id, StringName("demo_room"))
 
 
 func test_open_pause_switches_to_pause_track() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	await get_tree().process_frame
 
 	_store.dispatch(U_NAVIGATION_ACTIONS.open_pause())
@@ -282,7 +282,7 @@ func test_open_pause_switches_to_pause_track() -> void:
 
 
 func test_close_pause_restores_pre_pause_track() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	await get_tree().process_frame
 	_store.dispatch(U_NAVIGATION_ACTIONS.open_pause())
 	await get_tree().process_frame
@@ -310,24 +310,24 @@ func test_close_pause_stops_pause_music_if_no_pre_pause_track() -> void:
 
 
 func test_scene_change_while_paused_updates_return_track_only() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	await get_tree().process_frame
 	_store.dispatch(U_NAVIGATION_ACTIONS.open_pause())
 	await get_tree().process_frame
 	assert_true(_is_playing_stream(STREAM_PAUSE))
 
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("interior_house")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("credits")))
 	await get_tree().process_frame
 	assert_true(_is_playing_stream(STREAM_PAUSE), "Pause music should keep playing while paused")
-	assert_eq(_audio_manager._pre_pause_music_id, StringName("interior"))
+	assert_eq(_audio_manager._pre_pause_music_id, StringName("credits"))
 
 
 func test_transition_to_main_menu_clears_pre_pause_state() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("demo_room")))
 	await get_tree().process_frame
 	_store.dispatch(U_NAVIGATION_ACTIONS.open_pause())
 	await get_tree().process_frame
-	assert_eq(_audio_manager._pre_pause_music_id, StringName("alleyway"))
+	assert_eq(_audio_manager._pre_pause_music_id, StringName("demo_room"))
 
 	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("main_menu")))
 	await get_tree().process_frame

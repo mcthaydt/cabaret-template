@@ -1,9 +1,9 @@
 extends BaseTest
 
-const ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
-const InputComponentScript := preload("res://scripts/ecs/components/c_input_component.gd")
-const RotateComponentScript := preload("res://scripts/ecs/components/c_rotate_to_input_component.gd")
-const RotateSystemScript := preload("res://scripts/ecs/systems/s_rotate_to_input_system.gd")
+const ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
+const InputComponentScript := preload("res://scripts/core/ecs/components/c_input_component.gd")
+const RotateComponentScript := preload("res://scripts/core/ecs/components/c_rotate_to_input_component.gd")
+const RotateSystemScript := preload("res://scripts/core/ecs/systems/s_rotate_to_input_system.gd")
 
 func _pump() -> void:
 	await get_tree().process_frame

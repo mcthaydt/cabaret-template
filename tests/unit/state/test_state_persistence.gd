@@ -5,7 +5,7 @@ extends GutTest
 
 var store: M_StateStore
 var test_save_path: String = "user://test_state_save.json"
-const RS_TIME_INITIAL_STATE := preload("res://scripts/resources/state/rs_time_initial_state.gd")
+const RS_TIME_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_time_initial_state.gd")
 
 func before_each() -> void:
 	U_StateEventBus.reset()
@@ -186,7 +186,7 @@ func test_scene_slice_transient_fields_excluded_from_save() -> void:
 
 	# Dispatch scene action to set transient fields
 	var action: Dictionary = U_SceneActions.transition_started(
-		StringName("gameplay_base"),
+		StringName("demo_room"),
 		"fade"
 	)
 	scene_store.dispatch(action)

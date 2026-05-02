@@ -1,6 +1,6 @@
 extends GutTest
 
-const U_LOCALIZATION_PREVIEW_CONTROLLER := preload("res://scripts/managers/helpers/localization/u_localization_preview_controller.gd")
+const U_LOCALIZATION_PREVIEW_CONTROLLER := preload("res://scripts/core/managers/helpers/localization/u_localization_preview_controller.gd")
 
 func test_start_preview_applies_temporary_effective_settings() -> void:
 	var controller := U_LOCALIZATION_PREVIEW_CONTROLLER.new()

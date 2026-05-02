@@ -1,6 +1,6 @@
 extends BaseTest
 
-const VICTORY_HANDLER_SYSTEM := preload("res://scripts/ecs/systems/s_victory_handler_system.gd")
+const VICTORY_HANDLER_SYSTEM := preload("res://scripts/core/ecs/systems/s_victory_handler_system.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")
 
@@ -66,7 +66,7 @@ func test_victory_execution_flow_dispatches_actions_and_sets_triggered() -> void
 	assert_true(action_types.has(U_GameplayActions.ACTION_TRIGGER_VICTORY))
 	assert_true(action_types.has(U_GameplayActions.ACTION_MARK_AREA_COMPLETE))
 
-func test_game_complete_requires_bar_area_before_dispatch() -> void:
+func test_game_complete_requires_configured_final_area_before_dispatch() -> void:
 	var fixture: Dictionary = await _setup_fixture()
 	var store: MockStateStore = fixture["store"] as MockStateStore
 	var trigger := _create_trigger()
@@ -78,20 +78,20 @@ func test_game_complete_requires_bar_area_before_dispatch() -> void:
 	})
 	await _pump()
 
-	assert_false(trigger.is_triggered, "GAME_COMPLETE should be gated when bar area is missing")
+	assert_false(trigger.is_triggered, "GAME_COMPLETE should be gated when final area is missing")
 	var action_types_blocked: Array[StringName] = []
 	for action in store.get_dispatched_actions():
 		action_types_blocked.append(action.get("type", StringName()))
 	assert_false(action_types_blocked.has(U_GameplayActions.ACTION_GAME_COMPLETE))
 
 	store.clear_dispatched_actions()
-	store.set_slice(StringName("gameplay"), {"completed_areas": ["bar"]})
+	store.set_slice(StringName("gameplay"), {"completed_areas": ["demo_room"]})
 	U_ECSEventBus.publish(U_ECSEventNames.EVENT_VICTORY_EXECUTION_REQUESTED, {
 		"trigger_node": trigger,
 	})
 	await _pump()
 
-	assert_true(trigger.is_triggered, "GAME_COMPLETE should execute when bar area is complete")
+	assert_true(trigger.is_triggered, "GAME_COMPLETE should execute when final area is complete")
 	var action_types_allowed: Array[StringName] = []
 	for action in store.get_dispatched_actions():
 		action_types_allowed.append(action.get("type", StringName()))

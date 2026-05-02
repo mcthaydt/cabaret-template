@@ -1,12 +1,12 @@
 extends BaseTest
 
-const M_VCAM_MANAGER := preload("res://scripts/managers/m_vcam_manager.gd")
-const C_VCAM_COMPONENT := preload("res://scripts/ecs/components/c_vcam_component.gd")
+const M_VCAM_MANAGER := preload("res://scripts/core/managers/m_vcam_manager.gd")
+const C_VCAM_COMPONENT := preload("res://scripts/core/ecs/components/c_vcam_component.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const MOCK_CAMERA_MANAGER := preload("res://tests/mocks/mock_camera_manager.gd")
-const RS_VCAM_MODE_ORBIT := preload("res://scripts/resources/display/vcam/rs_vcam_mode_orbit.gd")
+const RS_VCAM_MODE_ORBIT := preload("res://scripts/core/resources/display/vcam/rs_vcam_mode_orbit.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_VCAM_ACTIONS := preload("res://scripts/state/actions/u_vcam_actions.gd")
+const U_VCAM_ACTIONS := preload("res://scripts/core/state/actions/u_vcam_actions.gd")
 
 class MobileSilhouetteStub extends M_VCAM_MANAGER:
 	var test_follow_target: Node3D = null

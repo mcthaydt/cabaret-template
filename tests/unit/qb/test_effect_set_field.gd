@@ -1,6 +1,6 @@
 extends BaseTest
 
-const EFFECT_SET_FIELD := preload("res://scripts/resources/qb/effects/rs_effect_set_field.gd")
+const EFFECT_SET_FIELD := preload("res://scripts/core/resources/qb/effects/rs_effect_set_field.gd")
 
 func _make_effect() -> Variant:
 	var effect: Variant = EFFECT_SET_FIELD.new()

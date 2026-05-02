@@ -1,6 +1,6 @@
 extends GutTest
 
-const U_VCAM_LANDING_IMPACT := preload("res://scripts/ecs/systems/helpers/u_vcam_landing_impact.gd")
+const U_VCAM_LANDING_IMPACT := preload("res://scripts/core/ecs/systems/helpers/u_vcam_landing_impact.gd")
 
 class CameraStateStub extends RefCounted:
 	var landing_impact_offset: Vector3 = Vector3.ZERO

@@ -2,16 +2,16 @@ extends BaseTest
 
 ## Integration tests for UI_LocalizationSettingsTab preview + apply/cancel/confirm flow.
 
-const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
-const M_LOCALIZATION_MANAGER := preload("res://scripts/managers/m_localization_manager.gd")
-const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
-const RS_LOCALIZATION_INITIAL_STATE := preload("res://scripts/resources/state/rs_localization_initial_state.gd")
-const U_LOCALIZATION_ACTIONS := preload("res://scripts/state/actions/u_localization_actions.gd")
-const U_LOCALIZATION_SELECTORS := preload("res://scripts/state/selectors/u_localization_selectors.gd")
+const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
+const M_LOCALIZATION_MANAGER := preload("res://scripts/core/managers/m_localization_manager.gd")
+const RS_STATE_STORE_SETTINGS := preload("res://scripts/core/resources/state/rs_state_store_settings.gd")
+const RS_LOCALIZATION_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_localization_initial_state.gd")
+const U_LOCALIZATION_ACTIONS := preload("res://scripts/core/state/actions/u_localization_actions.gd")
+const U_LOCALIZATION_SELECTORS := preload("res://scripts/core/state/selectors/u_localization_selectors.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
+const U_STATE_HANDOFF := preload("res://scripts/core/state/utils/u_state_handoff.gd")
 
-const LOCALIZATION_SETTINGS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/settings/ui_localization_settings_overlay.tscn")
+const LOCALIZATION_SETTINGS_OVERLAY_SCENE := preload("res://scenes/core/ui/overlays/settings/ui_localization_settings_overlay.tscn")
 
 var _store: M_StateStore
 var _loc_manager: M_LocalizationManager
@@ -50,7 +50,7 @@ func _instantiate_overlay() -> UI_LocalizationSettingsOverlay:
 	await _await_overlay_ready(overlay)
 	return overlay
 
-func _await_overlay_ready(overlay: UI_LocalizationSettingsOverlay, max_frames: int = 30) -> void:
+func _await_overlay_ready(overlay: UI_LocalizationSettingsOverlay, max_frames: int = 60) -> void:
 	for _i in range(max_frames):
 		await get_tree().process_frame
 		var tab := _get_tab(overlay)
@@ -58,7 +58,7 @@ func _await_overlay_ready(overlay: UI_LocalizationSettingsOverlay, max_frames: i
 			return
 
 func _get_tab(overlay: Node) -> UI_LocalizationSettingsTab:
-	return overlay.get_node_or_null("CenterContainer/Panel/VBox/LocalizationSettingsTab") as UI_LocalizationSettingsTab
+	return overlay.get_node_or_null("CenterContainer/Panel/VBox/SettingsScrollContainer/LocalizationSettingsTab") as UI_LocalizationSettingsTab
 
 func _collect_localization_action_types(actions: Array[Dictionary]) -> Array[StringName]:
 	var types: Array[StringName] = []
@@ -78,7 +78,7 @@ func test_preview_updates_manager_without_dispatch_until_apply() -> void:
 		dispatched.append(action)
 	)
 
-	tab._dyslexia_toggle.button_pressed = true
+	tab._get_dyslexia_toggle().button_pressed = true
 	await get_tree().process_frame
 
 	assert_true(_loc_manager.is_preview_active(), "Editing should enable localization preview mode")
@@ -100,11 +100,11 @@ func test_apply_same_locale_dispatches_and_clears_preview() -> void:
 		dispatched.append(action)
 	)
 
-	tab._dyslexia_toggle.button_pressed = true
+	tab._get_dyslexia_toggle().button_pressed = true
 	await get_tree().process_frame
 	assert_true(_loc_manager.is_preview_active(), "Preview should be active after local edit")
 
-	tab._apply_button.emit_signal("pressed")
+	tab._get_apply_button().emit_signal("pressed")
 	await get_tree().process_frame
 
 	assert_false(_loc_manager.is_preview_active(), "Apply should clear preview mode")
@@ -127,11 +127,11 @@ func test_cancel_discards_changes_and_clears_preview() -> void:
 		dispatched.append(action)
 	)
 
-	tab._dyslexia_toggle.button_pressed = true
+	tab._get_dyslexia_toggle().button_pressed = true
 	await get_tree().process_frame
 	assert_true(_loc_manager.is_preview_active(), "Preview should be active after local edit")
 
-	tab._cancel_button.emit_signal("pressed")
+	tab._get_cancel_button().emit_signal("pressed")
 	await get_tree().process_frame
 
 	assert_false(_loc_manager.is_preview_active(), "Cancel should clear preview mode")
@@ -158,7 +158,7 @@ func test_reset_restores_defaults_and_persists_immediately() -> void:
 		dispatched.append(action)
 	)
 
-	tab._reset_button.emit_signal("pressed")
+	tab._get_reset_button().emit_signal("pressed")
 	await get_tree().process_frame
 
 	assert_false(_loc_manager.is_preview_active(), "Reset should clear preview mode")
@@ -181,17 +181,20 @@ func test_apply_locale_change_requires_confirm_and_keep_persists_selection() -> 
 
 	var es_index: int = tab.SUPPORTED_LOCALES.find(&"es")
 	assert_true(es_index >= 0, "Spanish locale option should exist")
-	tab._language_option.select(es_index)
-	tab._language_option.emit_signal("item_selected", es_index)
+	tab._get_language_option().select(es_index)
+	tab._get_language_option().emit_signal("item_selected", es_index)
 	await get_tree().process_frame
 
-	tab._apply_button.emit_signal("pressed")
+	tab._get_apply_button().emit_signal("pressed")
+	await get_tree().process_frame
 	await get_tree().process_frame
 
 	assert_true(tab._language_confirm_active, "Locale changes should activate confirm dialog flow")
-	assert_true(tab._language_confirm_dialog.visible, "Confirm dialog should be visible after locale change apply")
+	var confirm_dialog := tab._get_language_confirm_dialog()
+	assert_not_null(confirm_dialog, "Confirm dialog should exist")
+	assert_true(confirm_dialog.visible, "Confirm dialog should be visible after locale change apply")
 	assert_eq(
-		tab._language_confirm_dialog.title,
+		confirm_dialog.title,
 		"Confirmar Cambio de Idioma",
 		"Confirm dialog title should localize to pending locale"
 	)
@@ -202,7 +205,7 @@ func test_apply_locale_change_requires_confirm_and_keep_persists_selection() -> 
 	assert_eq(ok_button.text, "Mantener", "Confirm OK button should localize to pending locale")
 	assert_eq(cancel_button.text, "Revertir", "Confirm cancel button should localize to pending locale")
 	assert_true(
-		tab._language_confirm_dialog.dialog_text.find("Mantener este idioma") >= 0,
+		confirm_dialog.dialog_text.find("Mantener este idioma") >= 0,
 		"Confirm dialog body text should localize to pending locale"
 	)
 	assert_eq(
@@ -211,7 +214,7 @@ func test_apply_locale_change_requires_confirm_and_keep_persists_selection() -> 
 		"Pending locale should be applied before confirmation countdown"
 	)
 
-	tab._language_confirm_dialog.emit_signal("confirmed")
+	confirm_dialog.emit_signal("confirmed")
 	await get_tree().process_frame
 
 	assert_false(tab._language_confirm_active, "Keep should finalize confirm flow")
@@ -227,21 +230,24 @@ func test_language_confirm_cancel_reverts_to_previous_locale_and_dyslexia() -> v
 	var tab := _get_tab(overlay)
 	assert_not_null(tab, "LocalizationSettingsTab should exist")
 
-	tab._dyslexia_toggle.button_pressed = true
+	tab._get_dyslexia_toggle().button_pressed = true
 	await get_tree().process_frame
 
 	var es_index: int = tab.SUPPORTED_LOCALES.find(&"es")
 	assert_true(es_index >= 0, "Spanish locale option should exist")
-	tab._language_option.select(es_index)
-	tab._language_option.emit_signal("item_selected", es_index)
+	tab._get_language_option().select(es_index)
+	tab._get_language_option().emit_signal("item_selected", es_index)
 	await get_tree().process_frame
 
-	tab._apply_button.emit_signal("pressed")
+	tab._get_apply_button().emit_signal("pressed")
+	await get_tree().process_frame
 	await get_tree().process_frame
 	assert_true(tab._language_confirm_active, "Confirm flow should start for locale changes")
 	assert_eq(U_LOCALIZATION_SELECTORS.get_locale(_store.get_state()), &"es", "Pending locale should be active")
 
-	tab._language_confirm_dialog.emit_signal("canceled")
+	var confirm_dialog := tab._get_language_confirm_dialog()
+	assert_not_null(confirm_dialog, "Confirm dialog should exist")
+	confirm_dialog.emit_signal("canceled")
 	await get_tree().physics_frame
 	await get_tree().process_frame
 
@@ -262,16 +268,16 @@ func test_language_confirm_timer_reverts_to_previous_locale_and_dyslexia() -> vo
 	var tab := _get_tab(overlay)
 	assert_not_null(tab, "LocalizationSettingsTab should exist")
 
-	tab._dyslexia_toggle.button_pressed = true
+	tab._get_dyslexia_toggle().button_pressed = true
 	await get_tree().process_frame
 
 	var pt_index: int = tab.SUPPORTED_LOCALES.find(&"pt")
 	assert_true(pt_index >= 0, "Portuguese locale option should exist")
-	tab._language_option.select(pt_index)
-	tab._language_option.emit_signal("item_selected", pt_index)
+	tab._get_language_option().select(pt_index)
+	tab._get_language_option().emit_signal("item_selected", pt_index)
 	await get_tree().process_frame
 
-	tab._apply_button.emit_signal("pressed")
+	tab._get_apply_button().emit_signal("pressed")
 	await get_tree().process_frame
 	assert_true(tab._language_confirm_active, "Confirm flow should start for locale changes")
 	assert_eq(U_LOCALIZATION_SELECTORS.get_locale(_store.get_state()), &"pt", "Pending locale should be active")
@@ -303,7 +309,7 @@ func test_state_changes_refresh_ui_when_not_editing() -> void:
 	await get_tree().process_frame
 
 	var pt_index: int = tab.SUPPORTED_LOCALES.find(&"pt")
-	assert_eq(tab._language_option.selected, pt_index, "Language option should update from store state")
+	assert_eq(tab._get_language_option().selected, pt_index, "Language option should update from store state")
 
 func test_state_changes_do_not_override_local_edits() -> void:
 	var overlay := await _instantiate_overlay()
@@ -312,8 +318,8 @@ func test_state_changes_do_not_override_local_edits() -> void:
 
 	var es_index: int = tab.SUPPORTED_LOCALES.find(&"es")
 	assert_true(es_index >= 0, "Spanish locale option should exist")
-	tab._language_option.select(es_index)
-	tab._language_option.emit_signal("item_selected", es_index)
+	tab._get_language_option().select(es_index)
+	tab._get_language_option().emit_signal("item_selected", es_index)
 	await get_tree().process_frame
 
 	_store.dispatch(U_LOCALIZATION_ACTIONS.set_locale(&"pt"))
@@ -321,7 +327,7 @@ func test_state_changes_do_not_override_local_edits() -> void:
 	await get_tree().process_frame
 
 	assert_eq(
-		tab._language_option.selected,
+		tab._get_language_option().selected,
 		es_index,
 		"Store updates should not override unsaved local edits"
 	)

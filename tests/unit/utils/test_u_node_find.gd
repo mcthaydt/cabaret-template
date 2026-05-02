@@ -1,6 +1,6 @@
 extends GutTest
 
-const U_NODE_FIND := preload("res://scripts/utils/ecs/u_node_find.gd")
+const U_NODE_FIND := preload("res://scripts/core/utils/ecs/u_node_find.gd")
 
 
 func test_find_character_body_recursive_returns_direct_body() -> void:

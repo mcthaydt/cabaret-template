@@ -2,7 +2,7 @@ extends GutTest
 
 ## Integration test: Health bar color adapts to color blind palette.
 
-const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 
 var _store: M_StateStore = null
 var _hud: UI_HudController = null
@@ -35,7 +35,7 @@ func before_each() -> void:
 	_store.settings.enable_persistence = false
 	_store.settings.enable_debug_logging = false
 	_store.settings.enable_debug_overlay = false
-	_store.gameplay_initial_state = load("res://resources/state/cfg_default_gameplay_initial_state.tres")
+	_store.gameplay_initial_state = load("res://resources/core/state/cfg_default_gameplay_initial_state.tres")
 	_store.display_initial_state = RS_DisplayInitialState.new()
 	add_child_autofree(_store)
 	await get_tree().process_frame
@@ -44,7 +44,7 @@ func before_each() -> void:
 	U_ServiceLocator.register(StringName("state_store"), _store)
 
 	# Add PostProcessOverlay before DisplayManager to avoid GameViewport lookup errors
-	const POST_PROCESS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/ui_post_process_overlay.tscn")
+	const POST_PROCESS_OVERLAY_SCENE := preload("res://scenes/core/ui/overlays/ui_post_process_overlay.tscn")
 	var post_process_overlay := POST_PROCESS_OVERLAY_SCENE.instantiate()
 	post_process_overlay.name = "PostProcessOverlay"
 	add_child_autofree(post_process_overlay)
@@ -57,7 +57,7 @@ func before_each() -> void:
 	await get_tree().process_frame  # Extra frame for DisplayManager initialization
 
 	# Set navigation shell to "gameplay" so health bar is visible
-	_store.dispatch(U_NavigationActions.set_shell(StringName("gameplay"), StringName("gameplay_base")))
+	_store.dispatch(U_NavigationActions.set_shell(StringName("gameplay"), StringName("demo_room")))
 	await get_tree().process_frame
 
 	# Set initial color blind mode (normal) to ensure display state is initialized
@@ -70,7 +70,7 @@ func before_each() -> void:
 	await get_tree().process_frame
 
 	# Load HUD scene
-	var hud_scene := load("res://scenes/ui/hud/ui_hud_overlay.tscn") as PackedScene
+	var hud_scene := load("res://scenes/core/ui/hud/ui_hud_overlay.tscn") as PackedScene
 	_hud = hud_scene.instantiate() as UI_HudController
 	add_child_autofree(_hud)
 	await get_tree().process_frame
@@ -98,7 +98,7 @@ func test_health_bar_uses_success_color_from_normal_palette() -> void:
 	await get_tree().process_frame  # Extra frame for theme update
 
 	# Load the normal palette to get expected color
-	var normal_palette := load("res://resources/ui_themes/cfg_palette_normal.tres") as Resource
+	var normal_palette := load("res://resources/core/ui_themes/cfg_palette_normal.tres") as Resource
 	var expected_color: Color = normal_palette.success
 
 	# Act: Get the health bar's fill color (check for override first)
@@ -127,7 +127,7 @@ func test_health_bar_uses_success_color_from_deuteranopia_palette() -> void:
 	await get_tree().process_frame  # Extra frame for theme update
 
 	# Load the deuteranopia palette to get expected color
-	var deut_palette := load("res://resources/ui_themes/cfg_palette_deuteranopia.tres") as Resource
+	var deut_palette := load("res://resources/core/ui_themes/cfg_palette_deuteranopia.tres") as Resource
 	var expected_color: Color = deut_palette.success
 
 	# Act: Get the health bar's fill color (check for override first)
@@ -150,7 +150,7 @@ func test_health_bar_uses_warning_color_when_health_is_medium() -> void:
 	await get_tree().process_frame
 
 	# Load the normal palette to get expected color
-	var normal_palette := load("res://resources/ui_themes/cfg_palette_normal.tres") as Resource
+	var normal_palette := load("res://resources/core/ui_themes/cfg_palette_normal.tres") as Resource
 	var expected_color: Color = normal_palette.warning
 
 	# Act: Get the health bar's fill color (check for override first)
@@ -173,7 +173,7 @@ func test_health_bar_uses_danger_color_when_health_is_low() -> void:
 	await get_tree().process_frame
 
 	# Load the normal palette to get expected color
-	var normal_palette := load("res://resources/ui_themes/cfg_palette_normal.tres") as Resource
+	var normal_palette := load("res://resources/core/ui_themes/cfg_palette_normal.tres") as Resource
 	var expected_color: Color = normal_palette.danger
 
 	# Act: Get the health bar's fill color (check for override first)
@@ -196,7 +196,7 @@ func test_health_bar_color_updates_when_color_blind_mode_changes() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame  # Extra frame for theme update
 
-	var normal_palette := load("res://resources/ui_themes/cfg_palette_normal.tres") as Resource
+	var normal_palette := load("res://resources/core/ui_themes/cfg_palette_normal.tres") as Resource
 	var normal_color: Color = normal_palette.success
 
 	var health_bar: ProgressBar = _hud.health_bar
@@ -214,7 +214,7 @@ func test_health_bar_color_updates_when_color_blind_mode_changes() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame  # Extra frame for theme update
 
-	var prot_palette := load("res://resources/ui_themes/cfg_palette_protanopia.tres") as Resource
+	var prot_palette := load("res://resources/core/ui_themes/cfg_palette_protanopia.tres") as Resource
 	var prot_color: Color = prot_palette.success
 
 	# Get fill style again after update

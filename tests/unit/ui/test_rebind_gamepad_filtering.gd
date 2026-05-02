@@ -5,8 +5,8 @@ extends GutTest
 ## is a keyboard profile, the overlay falls back to InputMap events to find
 ## gamepad bindings instead of showing keyboard keys.
 
-const OverlayScene := preload("res://scenes/ui/overlays/ui_input_rebinding_overlay.tscn")
-const U_UI_THEME_BUILDER := preload("res://scripts/ui/utils/u_ui_theme_builder.gd")
+const OverlayScene := preload("res://scenes/core/ui/overlays/ui_input_rebinding_overlay.tscn")
+const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 
 var _store: TestStateStore
 var _profile_manager: GamepadFilterProfileStub

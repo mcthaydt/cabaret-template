@@ -1,22 +1,22 @@
 extends BaseTest
 
-const CAMERA_STATE_SYSTEM := preload("res://scripts/ecs/systems/s_camera_state_system.gd")
+const CAMERA_STATE_SYSTEM := preload("res://scripts/core/ecs/systems/s_camera_state_system.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")
 const MOCK_CAMERA_MANAGER := preload("res://tests/mocks/mock_camera_manager.gd")
 
-const BASE_ECS_ENTITY := preload("res://scripts/ecs/base_ecs_entity.gd")
-const C_CAMERA_STATE_COMPONENT := preload("res://scripts/ecs/components/c_camera_state_component.gd")
-const C_MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
+const BASE_ECS_ENTITY := preload("res://scripts/core/ecs/base_ecs_entity.gd")
+const C_CAMERA_STATE_COMPONENT := preload("res://scripts/core/ecs/components/c_camera_state_component.gd")
+const C_MOVEMENT_COMPONENT := preload("res://scripts/core/ecs/components/c_movement_component.gd")
 
-const RULE_RESOURCE := preload("res://scripts/resources/qb/rs_rule.gd")
-const CONDITION_CONSTANT := preload("res://scripts/resources/qb/conditions/rs_condition_constant.gd")
-const CONDITION_ENTITY_TAG := preload("res://scripts/resources/qb/conditions/rs_condition_entity_tag.gd")
-const EFFECT_SET_FIELD := preload("res://scripts/resources/qb/effects/rs_effect_set_field.gd")
-const SPEED_FOV_RULE := preload("res://resources/qb/camera/cfg_camera_speed_fov_rule.tres")
+const RULE_RESOURCE := preload("res://scripts/core/resources/qb/rs_rule.gd")
+const CONDITION_CONSTANT := preload("res://scripts/core/resources/qb/conditions/rs_condition_constant.gd")
+const CONDITION_ENTITY_TAG := preload("res://scripts/core/resources/qb/conditions/rs_condition_entity_tag.gd")
+const EFFECT_SET_FIELD := preload("res://scripts/core/resources/qb/effects/rs_effect_set_field.gd")
+const SPEED_FOV_RULE_BUILDER := preload("res://scripts/core/qb/rules/br_camera_speed_fov_rule.gd")
 
-const I_CONDITION := preload("res://scripts/interfaces/i_condition.gd")
-const I_EFFECT := preload("res://scripts/interfaces/i_effect.gd")
+const I_CONDITION := preload("res://scripts/core/interfaces/i_condition.gd")
+const I_EFFECT := preload("res://scripts/core/interfaces/i_effect.gd")
 
 func before_each() -> void:
 	U_ECSEventBus.reset()
@@ -452,7 +452,7 @@ func test_camera_context_includes_vcam_runtime_fields_for_qb_rules() -> void:
 	assert_false(contexts.is_empty())
 	var context: Dictionary = contexts[0] as Dictionary
 	# Dictionary keys are StringName after RSRuleContext migration, use U_RuleUtils for lookups
-	var U_RULE_UTILS := load("res://scripts/utils/ecs/u_rule_utils.gd")
+	var U_RULE_UTILS := load("res://scripts/core/utils/ecs/u_rule_utils.gd")
 	var rule_utils: RefCounted = U_RULE_UTILS.new()
 	assert_eq(String(rule_utils.call("get_context_value", context, "vcam_active_mode")), "orbit")
 	assert_eq(bool(rule_utils.call("get_context_value", context, "vcam_is_blending")), true)
@@ -571,7 +571,13 @@ func _register_camera_entity(ecs_manager: MockECSManager, spec: Dictionary) -> D
 	}
 
 func _compute_speed_fov_rule_bonus(speed_magnitude: float) -> float:
-	var rule_resource: Resource = SPEED_FOV_RULE
+	var builder_script: Script = SPEED_FOV_RULE_BUILDER
+	if builder_script == null:
+		return 0.0
+	var builder: Variant = builder_script.new()
+	if builder == null or not (builder is Object) or not builder.has_method("build"):
+		return 0.0
+	var rule_resource: Resource = builder.call("build") as Resource
 	if rule_resource == null:
 		return 0.0
 

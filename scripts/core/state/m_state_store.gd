@@ -1,0 +1,761 @@
+@icon("res://assets/core/editor_icons/icn_manager.svg")
+
+extends I_StateStore
+class_name M_StateStore
+
+## Centralized Redux-style state store for game state management.
+##
+## Manages state slices (boot, menu, gameplay) with immutable updates,
+## action/reducer patterns, and signal-based reactivity.
+##
+## Usage:
+##   var store := U_StateUtils.get_store(self)
+##   store.dispatch(U_GameplayActions.pause_game())
+##   var state: Dictionary = store.get_state()
+
+const U_SIGNAL_BATCHER := preload("res://scripts/core/state/utils/u_signal_batcher.gd")
+const U_STATE_HANDOFF := preload("res://scripts/core/state/utils/u_state_handoff.gd")
+const U_STATE_SLICE_MANAGER := preload("res://scripts/core/state/utils/u_state_slice_manager.gd")
+const U_STATE_REPOSITORY := preload("res://scripts/core/state/utils/u_state_repository.gd")
+const U_STATE_VALIDATOR := preload("res://scripts/core/state/utils/u_state_validator.gd")
+const U_ACTION_HISTORY_BUFFER := preload("res://scripts/core/state/utils/u_action_history_buffer.gd")
+const U_STORE_PERFORMANCE_METRICS := preload("res://scripts/core/state/utils/u_store_performance_metrics.gd")
+const U_GLOBAL_SETTINGS_APPLIER := preload("res://scripts/core/state/utils/u_global_settings_applier.gd")
+const U_GLOBAL_SETTINGS_SERIALIZATION := preload("res://scripts/core/utils/u_global_settings_serialization.gd")
+const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
+const U_BOOT_REDUCER := preload("res://scripts/core/state/reducers/u_boot_reducer.gd")
+const U_MENU_REDUCER := preload("res://scripts/core/state/reducers/u_menu_reducer.gd")
+const U_GAMEPLAY_REDUCER := preload("res://scripts/core/state/reducers/u_gameplay_reducer.gd")
+const U_NAVIGATION_REDUCER := preload("res://scripts/core/state/reducers/u_navigation_reducer.gd")
+const U_SCENE_REDUCER := preload("res://scripts/core/state/reducers/u_scene_reducer.gd")
+const U_SETTINGS_REDUCER := preload("res://scripts/core/state/reducers/u_settings_reducer.gd")
+const U_DEBUG_REDUCER := preload("res://scripts/core/state/reducers/u_debug_reducer.gd")
+const U_VFX_REDUCER := preload("res://scripts/core/state/reducers/u_vfx_reducer.gd")
+const U_AUDIO_REDUCER := preload("res://scripts/core/state/reducers/u_audio_reducer.gd")
+const U_INPUT_CAPTURE_GUARD := preload("res://scripts/core/utils/input/u_input_capture_guard.gd")
+const RS_BOOT_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_boot_initial_state.gd")
+const RS_MENU_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_menu_initial_state.gd")
+const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_navigation_initial_state.gd")
+const RS_SCENE_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_scene_initial_state.gd")
+const RS_SETTINGS_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_settings_initial_state.gd")
+const RS_DEBUG_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_debug_initial_state.gd")
+const RS_VFX_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_vfx_initial_state.gd")
+const RS_AUDIO_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_audio_initial_state.gd")
+const RS_DISPLAY_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_display_initial_state.gd")
+const RS_LOCALIZATION_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_localization_initial_state.gd")
+const RS_TIME_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_time_initial_state.gd")
+
+signal slice_updated(slice_name: StringName, slice_state: Dictionary)
+signal action_dispatched(action: Dictionary)
+signal validation_failed(action: Dictionary, error: String)
+signal state_loaded(filepath: String)
+signal store_ready()
+
+const ACTION_FLAG_IMMEDIATE := "immediate"
+
+const PROJECT_SETTING_HISTORY_SIZE := "state/debug/history_size"
+const PROJECT_SETTING_ENABLE_HISTORY := "state/debug/enable_history"
+const PROJECT_SETTING_ENABLE_PERSISTENCE := "state/runtime/enable_persistence"
+
+@export var settings: RS_StateStoreSettings
+@export var boot_initial_state: RS_BootInitialState
+@export var menu_initial_state: RS_MenuInitialState
+@export var navigation_initial_state: Resource
+@export var gameplay_initial_state: RS_GameplayInitialState
+@export var scene_initial_state: RS_SceneInitialState
+@export var settings_initial_state: RS_SettingsInitialState
+@export var debug_initial_state: RS_DebugInitialState
+@export var vcam_initial_state: Resource
+@export var vfx_initial_state: RS_VFXInitialState
+@export var audio_initial_state: RS_AudioInitialState
+@export var display_initial_state: Resource
+@export var objectives_initial_state: Resource
+@export var scene_director_initial_state: Resource
+@export var localization_initial_state: Resource
+@export var time_initial_state: Resource
+
+var _state: Dictionary = {}
+var _subscribers: Array[Callable] = []
+var _slice_configs: Dictionary = {}
+var _signal_batcher: U_SignalBatcher = null
+var _pending_immediate_updates: Dictionary = {}
+var _action_history_buffer := U_ACTION_HISTORY_BUFFER.new()
+var _debug_overlay: CanvasLayer = null
+var _is_ready: bool = false
+var _performance_metrics := U_STORE_PERFORMANCE_METRICS.new()
+
+## A2: Version-tracked state snapshot cache
+## Avoids redundant deep copies when get_state() is called multiple times between dispatches
+var _state_version: int = 0
+var _cached_state_snapshot: Dictionary = {}
+var _cached_state_version: int = -1
+var _global_settings_loading: bool = false
+var _global_settings_save_debounce: bool = false
+var _global_settings_last_hash: int = 0
+var _color_grading_debug_overlay: CanvasLayer = null
+
+func _ready() -> void:
+	# Store must continue flushing batched slice_updated signals while paused so
+	# pause menus and overlay reconciliation remain responsive.
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	var service_name := StringName("state_store")
+	if not U_SERVICE_LOCATOR.has(service_name):
+		U_SERVICE_LOCATOR.register(service_name, self)
+	_initialize_settings()
+	_initialize_slices()
+
+	# Initialize signal batcher before any dispatch calls.
+	# apply_global_settings_from_disk() and _sync_navigation_initial_scene()
+	# both dispatch actions during _ready(), so the batcher must exist first.
+	_signal_batcher = U_SIGNAL_BATCHER.new()
+
+	# Validate all slice dependencies after registration
+	if not validate_slice_dependencies():
+		push_warning("M_StateStore: Some slice dependencies are invalid")
+
+	# Restore state from StateHandoff AFTER slices are initialized
+	_restore_from_handoff()
+
+	# Auto-load persisted state if enabled and file exists
+	_try_autoload_state()
+
+	# Apply global settings after load/restore so preferences override saved state.
+	apply_global_settings_from_disk()
+
+	# Align initial navigation base scene with localization state (first-run language picker).
+	_sync_navigation_initial_scene()
+
+	set_physics_process(true)  # Enable physics processing for signal batching
+
+	# Drain batched emissions from init-time dispatches before any external subscriber can connect.
+	# History/interceptors already captured these actions synchronously; downstream managers read
+	# current slice state directly on startup, so emitting to zero subscribers here is safe.
+	_flush_signal_batcher()
+
+	_is_ready = true
+	store_ready.emit()
+
+func _sync_navigation_initial_scene() -> void:
+	var nav_slice: Dictionary = _state.get("navigation", {})
+	if nav_slice.is_empty():
+		return
+	var current_shell: StringName = nav_slice.get("shell", StringName(""))
+	# Respect explicitly configured non-main-menu shells (for gameplay/integration fixtures).
+	if current_shell != StringName("main_menu"):
+		return
+	var current_scene: StringName = nav_slice.get("base_scene_id", StringName(""))
+	# Preserve explicit main_menu shell scene overrides (for standalone settings flows/tests).
+	if current_scene != StringName("") and current_scene != StringName("main_menu") and current_scene != StringName("language_selector"):
+		return
+	var localization_slice: Dictionary = _state.get("localization", {})
+	var has_selected_language: bool = bool(localization_slice.get("has_selected_language", false))
+	var target_scene: StringName = StringName("main_menu") if has_selected_language else StringName("language_selector")
+	# No-op if already in the correct state.
+	if current_scene == target_scene:
+		return
+	var clear_overlays: bool = not has_selected_language
+	dispatch(U_NavigationActions.sync_initial_scene(target_scene, clear_overlays))
+
+func _exit_tree() -> void:
+	# Preserve state for scene transitions via StateHandoff
+	_preserve_to_handoff()
+
+	if _global_settings_save_debounce:
+		_flush_global_settings_save()
+
+	# Save state to disk on shutdown if persistence enabled
+	_save_state_if_enabled()
+
+func is_ready() -> bool:
+	return _is_ready
+
+func _save_state_if_enabled() -> void:
+	var enable_logging := settings != null and settings.enable_debug_logging
+	U_STATE_REPOSITORY.save_state_if_enabled(settings, _state, _slice_configs, enable_logging)
+
+func _try_autoload_state() -> void:
+	var enable_logging := settings != null and settings.enable_debug_logging
+	U_STATE_REPOSITORY.try_autoload_state(settings, _state, _slice_configs, enable_logging)
+
+func apply_global_settings_from_disk() -> void:
+	if not _is_global_settings_persistence_enabled():
+		return
+
+	var result := U_GLOBAL_SETTINGS_SERIALIZATION.load_settings_with_meta()
+	var settings_variant: Variant = result.get("settings", {})
+	if not (settings_variant is Dictionary):
+		return
+
+	var loaded_settings := settings_variant as Dictionary
+	if loaded_settings.is_empty():
+		_global_settings_last_hash = U_GLOBAL_SETTINGS_SERIALIZATION.build_settings_from_state(_state).hash()
+		return
+
+	_global_settings_loading = true
+	U_GLOBAL_SETTINGS_APPLIER.apply(self, loaded_settings)
+	_global_settings_loading = false
+	_global_settings_last_hash = U_GLOBAL_SETTINGS_SERIALIZATION.build_settings_from_state(_state).hash()
+
+	if bool(result.get("migrated", false)):
+		U_GLOBAL_SETTINGS_SERIALIZATION.save_settings(loaded_settings)
+
+func _is_global_settings_persistence_enabled() -> bool:
+	return settings != null and settings.enable_global_settings_persistence
+
+func _maybe_schedule_global_settings_save(action: Dictionary) -> void:
+	if not _is_global_settings_persistence_enabled():
+		return
+	if _global_settings_loading:
+		return
+	if action == null or action.is_empty():
+		return
+
+	var action_type: Variant = action.get("type", StringName(""))
+	if U_GLOBAL_SETTINGS_SERIALIZATION.is_global_settings_action(action_type):
+		_schedule_global_settings_save()
+
+func _schedule_global_settings_save() -> void:
+	if _global_settings_save_debounce:
+		return
+	_global_settings_save_debounce = true
+	if OS.has_feature("headless") or DisplayServer.get_name() == "headless":
+		_flush_global_settings_save()
+	else:
+		call_deferred("_flush_global_settings_save")
+
+func _flush_global_settings_save() -> void:
+	_global_settings_save_debounce = false
+	if not _is_global_settings_persistence_enabled():
+		return
+
+	var snapshot := U_GLOBAL_SETTINGS_SERIALIZATION.build_settings_from_state(_state)
+	if snapshot.is_empty():
+		return
+	var snapshot_hash := snapshot.hash()
+	if snapshot_hash == _global_settings_last_hash:
+		return
+	var saved := U_GLOBAL_SETTINGS_SERIALIZATION.save_settings(snapshot)
+	if saved:
+		_global_settings_last_hash = snapshot_hash
+
+func _physics_process(__delta: float) -> void:
+	# Flush batched signals once per physics frame
+	_flush_signal_batcher()
+
+func _process(__delta: float) -> void:
+	# Do not flush on idle; tests expect a single batched emission per frame.
+	# Physics flush handles batching even when tree is paused (PROCESS_MODE_ALWAYS).
+	pass
+
+func _on_debug_overlay_tree_exiting() -> void:
+	_debug_overlay = null
+
+func _flush_signal_batcher() -> int:
+	if _signal_batcher == null:
+		return 0
+	var pending_count := _signal_batcher.get_pending_count()
+	if pending_count == 0:
+		return 0
+	_signal_batcher.flush(func(slice_name: StringName, slice_state: Dictionary) -> void:
+		slice_updated.emit(slice_name, slice_state)
+		_performance_metrics.record_signal_emitted()
+	)
+	return pending_count
+
+## Handle input for debug overlay toggle via action
+##
+## Debug overlay spawns when the `toggle_debug_overlay` action is pressed.
+## Supports both action events (InputEventAction) and Input singleton state.
+func _input(event: InputEvent) -> void:
+	# Check if debug overlay is enabled via project settings
+	const PROJECT_SETTING_ENABLE_DEBUG_OVERLAY := "state/debug/enable_debug_overlay"
+	if ProjectSettings.has_setting(PROJECT_SETTING_ENABLE_DEBUG_OVERLAY):
+		if not ProjectSettings.get_setting(PROJECT_SETTING_ENABLE_DEBUG_OVERLAY, true):
+			return  # Debug overlay disabled in project settings
+	
+	if U_INPUT_CAPTURE_GUARD.is_capture_active():
+		return  # Suppress overlay toggle while input capture is active.
+	
+	# Toggle debug overlay with action (prefer explicit InputEventAction, fallback to Input state)
+	var toggle_pressed: bool = false
+	if event is InputEventAction:
+		var aev := event as InputEventAction
+		toggle_pressed = aev.action == "toggle_debug_overlay" and aev.pressed
+	else:
+		# Fallback to Input singleton so hardware mapping still works
+		toggle_pressed = Input.is_action_just_pressed("toggle_debug_overlay")
+
+	# Act on toggle
+	if toggle_pressed:
+		if _debug_overlay == null or not is_instance_valid(_debug_overlay):
+			# Spawn debug overlay
+			var overlay_scene := load("res://scenes/core/debug/debug_state_overlay.tscn")
+			if overlay_scene:
+				_debug_overlay = overlay_scene.instantiate()
+				add_child(_debug_overlay)
+				register_debug_overlay(_debug_overlay)
+		else:
+			# Despawn debug overlay
+			_debug_overlay.queue_free()
+			register_debug_overlay(null)
+
+	# Check if color grading debug overlay is enabled via project settings
+	const PROJECT_SETTING_ENABLE_COLOR_GRADING_DEBUG_OVERLAY := "state/debug/enable_color_grading_debug_overlay"
+	var color_grading_debug_enabled := true
+	if ProjectSettings.has_setting(PROJECT_SETTING_ENABLE_COLOR_GRADING_DEBUG_OVERLAY):
+		color_grading_debug_enabled = ProjectSettings.get_setting(PROJECT_SETTING_ENABLE_COLOR_GRADING_DEBUG_OVERLAY, true)
+
+	if color_grading_debug_enabled and not U_INPUT_CAPTURE_GUARD.is_capture_active():
+		# Toggle color grading debug overlay with action
+		var color_grading_toggle_pressed: bool = false
+		if event is InputEventAction:
+			var aev := event as InputEventAction
+			color_grading_toggle_pressed = aev.action == "toggle_color_grading_debug" and aev.pressed
+		else:
+			# Fallback to Input singleton
+			color_grading_toggle_pressed = Input.is_action_just_pressed("toggle_color_grading_debug")
+
+		if color_grading_toggle_pressed:
+			if _color_grading_debug_overlay == null or not is_instance_valid(_color_grading_debug_overlay):
+				# Spawn color grading debug overlay
+				var color_grading_overlay_scene := load("res://scenes/core/debug/debug_color_grading_overlay.tscn")
+				if color_grading_overlay_scene:
+					_color_grading_debug_overlay = color_grading_overlay_scene.instantiate()
+					add_child(_color_grading_debug_overlay)
+					register_color_grading_debug_overlay(_color_grading_debug_overlay)
+					# Unlock cursor for overlay interaction
+					var cursor_manager := U_SERVICE_LOCATOR.get_service(StringName("cursor_manager"))
+					if cursor_manager and cursor_manager.has_method("set_cursor_state"):
+						cursor_manager.set_cursor_state(false, true)
+			else:
+				# Despawn color grading debug overlay and restore cursor state
+				_color_grading_debug_overlay.queue_free()
+				register_color_grading_debug_overlay(null)
+				# Re-lock cursor for gameplay
+				var cursor_manager := U_SERVICE_LOCATOR.get_service(StringName("cursor_manager"))
+				if cursor_manager and cursor_manager.has_method("set_cursor_state"):
+					cursor_manager.set_cursor_state(true, false)
+
+func register_debug_overlay(overlay: CanvasLayer) -> void:
+	if overlay != null and is_instance_valid(overlay):
+		_debug_overlay = overlay
+		if not overlay.tree_exiting.is_connected(_on_debug_overlay_tree_exiting):
+			overlay.tree_exiting.connect(_on_debug_overlay_tree_exiting, CONNECT_ONE_SHOT)
+		return
+	_debug_overlay = null
+
+func get_debug_overlay() -> CanvasLayer:
+	if _debug_overlay != null and is_instance_valid(_debug_overlay):
+		return _debug_overlay
+	return null
+
+func _on_color_grading_debug_overlay_tree_exiting() -> void:
+	_color_grading_debug_overlay = null
+
+func register_color_grading_debug_overlay(overlay: CanvasLayer) -> void:
+	if overlay != null and is_instance_valid(overlay):
+		_color_grading_debug_overlay = overlay
+		if not overlay.tree_exiting.is_connected(_on_color_grading_debug_overlay_tree_exiting):
+			overlay.tree_exiting.connect(_on_color_grading_debug_overlay_tree_exiting, CONNECT_ONE_SHOT)
+		return
+	_color_grading_debug_overlay = null
+
+func get_color_grading_debug_overlay() -> CanvasLayer:
+	if _color_grading_debug_overlay != null and is_instance_valid(_color_grading_debug_overlay):
+		return _color_grading_debug_overlay
+	return null
+
+func _initialize_settings() -> void:
+	if settings == null:
+		settings = RS_StateStoreSettings.new()
+
+	# Load from project settings if available
+	if ProjectSettings.has_setting(PROJECT_SETTING_HISTORY_SIZE):
+		var history_size: int = ProjectSettings.get_setting(PROJECT_SETTING_HISTORY_SIZE, 1000)
+		if settings.max_history_size != history_size:
+			settings.max_history_size = history_size
+	
+	# Check if history is enabled
+	var enable_history: bool = settings.enable_history
+	if ProjectSettings.has_setting(PROJECT_SETTING_ENABLE_HISTORY):
+		enable_history = bool(ProjectSettings.get_setting(PROJECT_SETTING_ENABLE_HISTORY, enable_history))
+
+	# Disable action history on mobile to avoid expensive deep copies
+	const U_MOBILE := preload("res://scripts/core/utils/display/u_mobile_platform_detector.gd")
+	if U_MOBILE.is_mobile():
+		enable_history = false
+	_action_history_buffer.configure(settings.max_history_size, enable_history)
+
+func _initialize_slices() -> void:
+	U_STATE_SLICE_MANAGER.initialize_slices(
+		_slice_configs,
+		_state,
+		boot_initial_state,
+		menu_initial_state,
+		navigation_initial_state,
+		settings_initial_state,
+		gameplay_initial_state,
+		scene_initial_state,
+		debug_initial_state,
+		vcam_initial_state,
+		vfx_initial_state,
+		audio_initial_state,
+		display_initial_state,
+		objectives_initial_state,
+		scene_director_initial_state,
+		localization_initial_state,
+		time_initial_state
+	)
+
+## Normalize a deserialized state dictionary for tests.
+##
+## This is a thin wrapper around U_StateValidator.normalize_loaded_state()
+## so tests can exercise normalization logic without reaching into the validator
+## directly. Production code should continue to use U_StateRepository for
+## save/load flows.
+func _normalize_loaded_state(state: Dictionary) -> void:
+	U_STATE_VALIDATOR.normalize_loaded_state(state)
+
+## Normalize a single spawn reference for tests.
+##
+## Delegates to U_StateValidator.normalize_spawn_reference() so tests can
+## validate spawn normalization behavior via the store instance.
+func _normalize_spawn_reference(
+	value: Variant,
+	allow_empty: bool,
+	emit_warning: bool = true
+) -> StringName:
+	return U_STATE_VALIDATOR.normalize_spawn_reference(value, allow_empty, emit_warning)
+
+## Dispatch an action to update state
+func dispatch(action: Dictionary) -> void:
+	# Performance tracking start
+	var perf_start: int = _performance_metrics.start_dispatch()
+	var is_immediate: bool = bool(action.get(ACTION_FLAG_IMMEDIATE, false))
+	if _signal_batcher == null:
+		_signal_batcher = U_SIGNAL_BATCHER.new()
+	_pending_immediate_updates.clear()
+	
+	# Validate action using ActionRegistry
+	if not U_ActionRegistry.validate_action(action):
+		var error_msg: String = "Action validation failed"
+		if not action.has("type"):
+			error_msg = "Action missing 'type' field"
+		elif not U_ActionRegistry.is_registered(action.get("type")):
+			error_msg = "Unregistered action type: %s" % action.get("type")
+		
+		validation_failed.emit(action, error_msg)
+		return
+
+	# Process action through reducers to update state and detect changes
+	U_STATE_SLICE_MANAGER.apply_reducers(
+		_state,
+		_slice_configs,
+		action,
+		_signal_batcher,
+		_pending_immediate_updates
+	)
+
+	# Invalidate cached get_state() snapshot (A2: version tracking)
+	_state_version += 1
+
+	# Record action in history AFTER reducer runs (includes state_after)
+	_action_history_buffer.record_action(action, _state)
+
+	# Create deep copy of action for subscribers
+	var action_copy: Dictionary = action.duplicate(true)
+
+	# A1+A2: Share a single state snapshot across all subscribers using the
+	# versioned cache. Subscribers MUST treat state as read-only; mutations
+	# to the shared copy do not affect _state. Using get_state() populates the
+	# cache so subsequent get_state() calls in the same frame reuse the deep
+	# copy instead of creating a redundant one. Zero-subscriber dispatches
+	# skip the snapshot build entirely.
+	if not _subscribers.is_empty():
+		var state_snapshot := get_state()
+		for subscriber in _subscribers:
+			subscriber.call(action_copy, state_snapshot)
+
+	# Emit unbatched signal
+	action_dispatched.emit(action_copy)
+	
+	# Flush batched slice updates immediately when requested.
+	if is_immediate:
+		var emitted_count := _flush_signal_batcher()
+		if emitted_count == 0 and not _pending_immediate_updates.is_empty():
+			for slice_name in _pending_immediate_updates.keys():
+				var snapshot_variant: Variant = _pending_immediate_updates[slice_name]
+				if snapshot_variant is Dictionary:
+					var snapshot_dict := (snapshot_variant as Dictionary).duplicate(true)
+					slice_updated.emit(slice_name, snapshot_dict)
+					_performance_metrics.record_signal_emitted()
+	_pending_immediate_updates.clear()
+	
+	# Performance tracking end
+	_performance_metrics.finish_dispatch(perf_start)
+	_maybe_schedule_global_settings_save(action_copy)
+
+## Apply reducers to update state based on action
+## Kept for backward compatibility; now delegates to U_StateSliceManager.
+func _apply_reducers(action: Dictionary) -> bool:
+	return U_STATE_SLICE_MANAGER.apply_reducers(
+		_state,
+		_slice_configs,
+		action,
+		_signal_batcher,
+		_pending_immediate_updates
+	)
+
+## Subscribe to state changes
+## Returns unsubscribe callable
+##
+## Subscribers persist until explicitly unsubscribed. ECS systems should
+## cache store reference and unsubscribe in _exit_tree() to prevent leaks.
+func subscribe(callback: Callable) -> Callable:
+	if callback == Callable() or not callback.is_valid():
+		push_error("M_StateStore.subscribe: Invalid callback")
+		return Callable()
+
+	_subscribers.append(callback)
+
+	# Return unsubscribe function
+	var unsubscribe_fn := func() -> void:
+		_subscribers.erase(callback)
+
+	return unsubscribe_fn
+
+## Unsubscribe from state changes
+func unsubscribe(callback: Callable) -> void:
+	_subscribers.erase(callback)
+
+## Get current state (cached deep copy — only rebuilds when state version changes)
+##
+## Returns a shallow copy of the cached snapshot so callers cannot corrupt
+## the cache by mutating the returned dictionary. The nested slice dictionaries
+## are still shared references from the deep copy, which is safe because
+## reducers always produce new slice dictionaries on change.
+func get_state() -> Dictionary:
+	if _cached_state_version != _state_version:
+		_cached_state_snapshot = _state.duplicate(true)
+		_cached_state_version = _state_version
+	return _cached_state_snapshot.duplicate(false)
+
+## Get state with transient fields filtered out
+##
+## Returns a deep copy of state suitable for persistence, with:
+## - Transient slices removed (where config.is_transient == true)
+## - Transient fields removed (as defined in slice configs)
+## - Gameplay slice fully preserved (includes input fields)
+##
+## Used by M_SaveManager to prepare state for saving.
+func get_persistable_state() -> Dictionary:
+	const U_STATE_PERSISTENCE := preload("res://scripts/core/state/utils/u_state_persistence.gd")
+	return U_STATE_PERSISTENCE.filter_transient_fields(_state, _slice_configs)
+
+## Get slice configs for advanced state manipulation
+##
+## Returns a reference to the internal slice configs dictionary.
+## Used by save/load systems that need direct access to transient field definitions.
+##
+## WARNING: This is a reference, not a copy. Do not modify.
+func get_slice_configs() -> Dictionary:
+	return _slice_configs
+
+## Get specific slice state (deep copy)
+##
+## Optional caller_slice parameter enables dependency validation:
+## If provided, checks that caller_slice has declared slice_name as a dependency.
+## Logs error if accessing undeclared dependency.
+func get_slice(slice_name: StringName, caller_slice: StringName = StringName()) -> Dictionary:
+	# Validate dependencies if caller is specified
+	if caller_slice != StringName():
+		var caller_config: RS_StateSliceConfig = _slice_configs.get(caller_slice)
+		if caller_config != null:
+			if not caller_config.dependencies.has(slice_name) and caller_slice != slice_name:
+				push_error("M_StateStore.get_slice: Slice '", caller_slice, "' accessing '", slice_name, "' without declaring dependency")
+				if settings != null and settings.strict_slice_dependencies:
+					return {}
+
+	return _state.get(slice_name, {}).duplicate(true)
+
+## Register a state slice with its configuration
+##
+## Slices register via M_StateStore._ready() using @export resources.
+## Each slice needs:
+##   - RS_*InitialState resource (e.g., RS_GameplayInitialState)
+##   - *_reducer.gd static class (e.g., GameplayReducer)
+##   - RS_StateSliceConfig in register_slice() call
+##
+## Example registration pattern:
+##   var gameplay_config := RS_StateSliceConfig.new(StringName("gameplay"))
+##   gameplay_config.reducer = Callable(GameplayReducer, "reduce")
+##   gameplay_config.initial_state = gameplay_initial_state.to_dictionary()
+##   gameplay_config.dependencies = []  # Other slices this slice depends on
+##   register_slice(gameplay_config)
+func register_slice(config: RS_StateSliceConfig) -> void:
+	U_STATE_SLICE_MANAGER.register_slice(_slice_configs, _state, config)
+
+func validate_slice_dependencies() -> bool:
+	return U_STATE_SLICE_MANAGER.validate_slice_dependencies(_slice_configs)
+
+## Record action in history with timestamp and state snapshot
+## Get complete action history (deep copy)
+##
+## Returns array of history entries with format:
+##   {action: Dictionary, timestamp: float, state_after: Dictionary}
+##
+## History is limited to max_history_size entries (circular buffer).
+func get_action_history() -> Array:
+	return _action_history_buffer.get_action_history()
+
+## Get last N actions from history (deep copy)
+##
+## Returns the most recent N action history entries.
+## If N exceeds history size, returns all available entries.
+func get_last_n_actions(n: int) -> Array:
+	return _action_history_buffer.get_last_n_actions(n)
+
+## Save current state to JSON file
+##
+## Excludes transient fields as defined in slice configs.
+## Returns OK on success, or an Error code on failure.
+func save_state(filepath: String) -> Error:
+	return U_STATE_REPOSITORY.save_state(filepath, _state, _slice_configs)
+
+## Load state from JSON file
+##
+## Merges loaded state with current state, preserving transient fields.
+## Returns OK on success, or an Error code on failure.
+func load_state(filepath: String) -> Error:
+	var previous_state: Dictionary = _state.duplicate(true)
+	var err: Error = U_STATE_REPOSITORY.load_state(filepath, _state, _slice_configs)
+	if err == OK:
+		var any_changed: bool = false
+		for slice_name_variant in _state.keys():
+			var slice_name: StringName = StringName(slice_name_variant)
+			var before_slice: Variant = previous_state.get(slice_name, null)
+			var after_slice: Variant = _state.get(slice_name, null)
+			if before_slice == after_slice:
+				continue
+			any_changed = true
+			if after_slice is Dictionary:
+				# INVARIANT: Direct emission — load_state is a bulk restoration path, not a
+				# user action. Going through dispatch would pollute action history with
+				# implementation details and dispatch N actions for a single logical
+				# operation. Safe because: (1) _state_version is bumped below, (2)
+				# state_loaded signal notifies consumers of the bulk load, (3) this path
+				# is only reachable from M_SaveManager, not from gameplay dispatches.
+				slice_updated.emit(slice_name, (after_slice as Dictionary).duplicate(true))
+
+		if any_changed:
+			_state_version += 1
+
+		state_loaded.emit(filepath)
+	return err
+
+## Apply loaded state directly from a dictionary
+##
+## Used by M_SaveManager to apply save file state without going through file I/O.
+## Merges loaded state with current state (loaded takes precedence).
+## Respects transient slice and field configurations.
+## Emits slice_updated for each modified slice.
+func apply_loaded_state(loaded_state: Dictionary) -> void:
+	var any_changed: bool = false
+	for slice_name in loaded_state:
+		var config: RS_StateSliceConfig = _slice_configs.get(slice_name)
+
+		# Skip transient slices
+		if config != null and config.is_transient:
+			continue
+
+		var loaded_slice: Dictionary = loaded_state[slice_name]
+		if not loaded_slice is Dictionary:
+			continue
+
+		# Filter out transient fields from loaded data
+		var filtered_slice := loaded_slice.duplicate(true)
+		if config != null and String(slice_name) != "gameplay":
+			for transient_field in config.transient_fields:
+				if filtered_slice.has(transient_field):
+					filtered_slice.erase(transient_field)
+
+		# Merge with current state (loaded takes precedence)
+		if _state.has(slice_name):
+			var previous_slice: Dictionary = (_state[slice_name] as Dictionary).duplicate(true)
+			var current_slice: Dictionary = _state[slice_name]
+			for key in filtered_slice:
+				current_slice[key] = filtered_slice[key]
+			_state[slice_name] = current_slice
+			if previous_slice == _state[slice_name]:
+				continue
+		else:
+			_state[slice_name] = filtered_slice
+
+		# Emit slice_updated signal
+		# INVARIANT: Direct emission — apply_loaded_state is a bulk restoration path, not
+		# a user action. Going through dispatch would pollute action history and dispatch
+		# N actions for a single logical load. Safe because: (1) _state_version is bumped
+		# below, (2) the caller (M_SaveManager) owns the load lifecycle, (3) this path is
+		# only reachable from save-file application, not from gameplay dispatches.
+		any_changed = true
+		slice_updated.emit(slice_name, _state[slice_name])
+
+	if any_changed:
+		_state_version += 1
+
+## Preserve state to StateHandoff for scene transitions
+func _preserve_to_handoff() -> void:
+	for slice_name in _state:
+		var slice_state: Dictionary = _state[slice_name]
+		var preserved := slice_state.duplicate(true)
+		var config: RS_StateSliceConfig = _slice_configs.get(slice_name)
+		if config != null and config.is_transient:
+			continue
+		if config != null:
+			for transient_field in config.transient_fields:
+				if preserved.has(transient_field):
+					preserved.erase(transient_field)
+		U_STATE_HANDOFF.preserve_slice(slice_name, preserved)
+	
+## Restore state from StateHandoff after scene transitions
+# INVARIANT: Direct mutation — _restore_from_handoff is a bulk restoration path
+# that runs during _ready(), before store_ready fires. No slice_updated emission
+# because no subscribers exist yet at this point. No dispatch because this is not
+# a user action (going through dispatch would pollute action history with
+# implementation-detail actions). Safe because: (1) this runs before any
+# subscriber registration, (2) _state_version is bumped by the first real
+# dispatch after the store is ready, (3) the handoff restores cross-scene
+# continuity state that the initial slice setup cannot provide.
+func _restore_from_handoff() -> void:
+	for slice_name in _slice_configs:
+		var config: RS_StateSliceConfig = _slice_configs.get(slice_name)
+		if config != null and config.is_transient:
+			continue
+		var restored_state: Dictionary = U_STATE_HANDOFF.restore_slice(slice_name)
+		
+		if not restored_state.is_empty():
+			# Merge restored state with current state (restored takes precedence)
+			if _state.has(slice_name):
+				var current_state: Dictionary = _state[slice_name]
+				for key in restored_state:
+					current_state[key] = restored_state[key]
+				_state[slice_name] = current_state
+			else:
+				_state[slice_name] = restored_state.duplicate(true)
+			
+			# Clear the handoff state after restoring
+			U_STATE_HANDOFF.clear_slice(slice_name)
+
+## Get performance metrics (T414)
+##
+## Returns dictionary with:
+##   - dispatch_count: Total number of actions dispatched
+##   - avg_dispatch_time_ms: Average dispatch time in milliseconds
+##   - last_dispatch_time_ms: Last dispatch time in milliseconds
+##   - signal_emit_count: Total number of signals emitted
+func get_performance_metrics() -> Dictionary:
+	return _performance_metrics.get_performance_metrics()
+
+## Reset performance metrics (useful for profiling specific sections)
+func reset_performance_metrics() -> void:
+	_performance_metrics.reset()

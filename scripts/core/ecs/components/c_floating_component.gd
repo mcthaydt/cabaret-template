@@ -1,0 +1,105 @@
+@icon("res://assets/core/editor_icons/icn_component.svg")
+extends BaseECSComponent
+class_name C_FloatingComponent
+
+const COMPONENT_TYPE := StringName("C_FloatingComponent")
+
+@export var settings: RS_FloatingSettings
+@export_node_path('CharacterBody3D') var character_body_path: NodePath
+@export_node_path('Node3D') var raycast_root_path: NodePath
+
+## Raw physics support state (instant, can flicker from spring oscillations)
+var is_supported: bool = false
+var _last_support_time: float = - INF
+var _last_support_normal: Vector3 = Vector3.UP
+var _last_support_normal_time: float = - INF
+
+## Stable ground state (filtered with hysteresis to ignore bounces)
+var grounded_stable: bool = false
+var _consecutive_grounded_frames: int = 0
+var _consecutive_airborne_frames: int = 0
+
+func _init() -> void:
+	component_type = COMPONENT_TYPE
+
+func _validate_required_settings() -> bool:
+	if settings == null:
+		push_error("C_FloatingComponent missing settings; assign an RS_FloatingSettings resource.")
+		return false
+	return true
+
+func get_character_body() -> CharacterBody3D:
+	if character_body_path.is_empty():
+		return null
+	return get_node_or_null(character_body_path) as CharacterBody3D
+
+func get_raycast_root() -> Node3D:
+	if raycast_root_path.is_empty():
+		return null
+	return get_node_or_null(raycast_root_path) as Node3D
+
+func get_raycast_nodes() -> Array:
+	var rays: Array = []
+	var root: Node3D = get_raycast_root()
+	if root == null:
+		return rays
+
+	# Collect RayCast3D nodes recursively to avoid missing diagonals nested in groups
+	_collect_rays_recursive(root, rays)
+	return rays
+
+func _collect_rays_recursive(node: Node, rays: Array) -> void:
+	if node is RayCast3D:
+		rays.append(node)
+	for child in node.get_children():
+		var n := child as Node
+		if n != null:
+			_collect_rays_recursive(n, rays)
+
+func update_support_state(supported: bool, current_time: float) -> void:
+	is_supported = supported
+	if supported:
+		_last_support_time = current_time
+
+func reset_recent_support(current_time: float, grace_time: float) -> void:
+	is_supported = false
+	_last_support_time = current_time - grace_time - 0.01
+	# Also reset stable state when jumping
+	grounded_stable = false
+	_consecutive_grounded_frames = 0
+	_consecutive_airborne_frames = 0
+
+func has_recent_support(current_time: float, tolerance: float) -> bool:
+	if is_supported:
+		return true
+	return current_time - _last_support_time <= tolerance
+
+func set_last_support_normal(normal: Vector3, current_time: float) -> void:
+	if normal.length() > 0.0:
+		_last_support_normal = normal.normalized()
+		_last_support_normal_time = current_time
+
+func get_recent_support_normal(current_time: float, tolerance: float) -> Vector3:
+	if _last_support_normal_time == - INF:
+		return Vector3.ZERO
+	if current_time - _last_support_normal_time <= tolerance:
+		return _last_support_normal
+	return Vector3.ZERO
+
+## Update stable ground state with hysteresis to filter spring oscillations
+## Requires consecutive frames of same state before transitioning
+func update_stable_ground_state(current_support: bool, frames_required: int) -> void:
+	if current_support:
+		_consecutive_grounded_frames += 1
+		_consecutive_airborne_frames = 0
+
+		# Transition to stable grounded after N consecutive grounded frames
+		if not grounded_stable and _consecutive_grounded_frames >= frames_required:
+			grounded_stable = true
+	else:
+		_consecutive_airborne_frames += 1
+		_consecutive_grounded_frames = 0
+
+		# Transition to stable airborne after N consecutive airborne frames
+		if grounded_stable and _consecutive_airborne_frames >= frames_required:
+			grounded_stable = false

@@ -1,7 +1,7 @@
 extends BaseTest
 
 const U_SAVE_TEST_UTILS := preload("res://tests/unit/save/u_save_test_utils.gd")
-const U_SCREENSHOT_CAPTURE := preload("res://scripts/managers/helpers/u_screenshot_capture.gd")
+const U_SCREENSHOT_CAPTURE := preload("res://scripts/core/managers/helpers/u_screenshot_capture.gd")
 
 const TEST_DIR := U_SAVE_TEST_UTILS.TEST_DIR
 

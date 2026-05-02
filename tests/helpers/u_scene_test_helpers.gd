@@ -2,9 +2,9 @@ extends RefCounted
 class_name U_SceneTestHelpers
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const M_CURSOR_MANAGER := preload("res://scripts/managers/m_cursor_manager.gd")
-const M_SPAWN_MANAGER := preload("res://scripts/managers/m_spawn_manager.gd")
-const M_CAMERA_MANAGER := preload("res://scripts/managers/m_camera_manager.gd")
+const M_CURSOR_MANAGER := preload("res://scripts/core/managers/m_cursor_manager.gd")
+const M_SPAWN_MANAGER := preload("res://scripts/core/managers/m_spawn_manager.gd")
+const M_CAMERA_MANAGER := preload("res://scripts/core/managers/m_camera_manager.gd")
 
 static func create_root_with_containers(register_overlays: bool = false) -> Dictionary:
 	var root := Node.new()

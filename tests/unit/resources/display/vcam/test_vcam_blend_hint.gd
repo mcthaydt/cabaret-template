@@ -1,6 +1,6 @@
 extends GutTest
 
-const BLEND_HINT_SCRIPT := preload("res://scripts/resources/display/vcam/rs_vcam_blend_hint.gd")
+const BLEND_HINT_SCRIPT := preload("res://scripts/core/resources/display/vcam/rs_vcam_blend_hint.gd")
 
 func _new_blend_hint() -> Resource:
 	return BLEND_HINT_SCRIPT.new()

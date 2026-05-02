@@ -14,7 +14,7 @@ class_name MockECSManager
 ## - get_registered_systems(): Verify system registration
 ## - reset(): Clear all state
 
-const U_ENTITY_QUERY := preload("res://scripts/ecs/u_entity_query.gd")
+const U_ENTITY_QUERY := preload("res://scripts/core/ecs/u_entity_query.gd")
 
 var _components: Dictionary = {}  # StringName → Array[BaseECSComponent]
 var _entity_components: Dictionary = {}  # Node → Dictionary[StringName, BaseECSComponent]

@@ -1,9 +1,9 @@
 extends BaseTest
 
-const BASE_SCENE := preload("res://scenes/templates/tmpl_base_scene.tscn")
-const ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
-const ECS_SYSTEM := preload("res://scripts/ecs/base_ecs_system.gd")
-const ECS_COMPONENT := preload("res://scripts/ecs/base_ecs_component.gd")
+const BASE_SCENE := preload("res://scenes/core/templates/tmpl_base_scene.tscn")
+const ECS_MANAGER := preload("res://scripts/core/managers/m_ecs_manager.gd")
+const ECS_SYSTEM := preload("res://scripts/core/ecs/base_ecs_system.gd")
+const ECS_COMPONENT := preload("res://scripts/core/ecs/base_ecs_component.gd")
 const U_ServiceLocator = preload("res://scripts/core/u_service_locator.gd")
 
 var _state_store: M_StateStore = null

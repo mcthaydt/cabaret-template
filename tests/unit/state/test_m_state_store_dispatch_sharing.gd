@@ -48,7 +48,7 @@ func test_all_subscribers_receive_same_snapshot_reference() -> void:
 	_register_test_action(&"test/dispatch_sharing_1")
 
 	# Use Array wrappers for lambda capture (GDScript pitfall:
-	# lambdas cannot reassign primitives — see DEV_PITFALLS.md)
+	# lambdas cannot reassign primitives; see docs/guides/pitfalls/GDSCRIPT_4_6.md)
 	var call_count: Array[int] = [0]
 	var received_snapshots: Array[Dictionary] = []
 
@@ -159,7 +159,7 @@ func test_benchmark_dispatch_reference_identity() -> void:
 	"""Dispatch 100 actions with 2 subscribers; each dispatch's snapshot is
 	shared across both subscribers (not 2 distinct copies per dispatch).
 
-	Uses Array wrappers for lambda capture per DEV_PITFALLS.md.
+	Uses Array wrappers for lambda capture per docs/guides/pitfalls/GDSCRIPT_4_6.md.
 	"""
 	_register_test_action(&"test/dispatch_sharing_4")
 

@@ -5,7 +5,7 @@ extends GutTest
 ## Tests the centralized tween factory and test helper utilities.
 ## Follows TDD: These tests are written before the implementation.
 
-const U_TweenManager = preload("res://scripts/scene_management/u_tween_manager.gd")
+const U_TweenManager = preload("res://scripts/core/scene_management/u_tween_manager.gd")
 const U_TransitionTestHelpers = preload("res://tests/helpers/u_transition_test_helpers.gd")
 
 var _test_node: Node

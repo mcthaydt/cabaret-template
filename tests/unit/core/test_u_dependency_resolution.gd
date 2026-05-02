@@ -6,9 +6,9 @@ extends BaseTest
 ## implementation exists. They should FAIL until U_DependencyResolution is
 ## implemented in Commit 2 (GREEN).
 
-const DEP_RES_PATH := "res://scripts/utils/core/u_dependency_resolution.gd"
+const DEP_RES_PATH := "res://scripts/core/utils/core/u_dependency_resolution.gd"
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const I_STATE_STORE := preload("res://scripts/interfaces/i_state_store.gd")
+const I_STATE_STORE := preload("res://scripts/core/interfaces/i_state_store.gd")
 
 var _dep_res: Variant = null
 
