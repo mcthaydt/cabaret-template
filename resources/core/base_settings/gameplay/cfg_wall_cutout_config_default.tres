@@ -4,3 +4,5 @@
 
 [resource]
 script = ExtResource("1_wall_cutout_config_script")
+disc_radius = 0.5
+disc_max_radius = 0.75

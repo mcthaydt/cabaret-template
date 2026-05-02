@@ -11,7 +11,7 @@ class_name RS_WallCutoutConfig
 
 @export_group("Disc Shape")
 ## Radius of the cutout disc as a fraction of viewport height (0..1).
-@export var disc_radius: float = 0.18
+@export var disc_radius: float = 0.5
 
 ## Maximum radius after runtime projected-player scaling.
 @export var disc_max_radius: float = 0.55

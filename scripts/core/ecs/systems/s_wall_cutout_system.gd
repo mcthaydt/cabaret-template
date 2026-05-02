@@ -160,8 +160,8 @@ func _resolve_player_position_from_state(state: Dictionary) -> Dictionary:
 
 func _resolve_config_values() -> Dictionary:
 	var defaults := {
-		"disc_radius": 0.12,
-		"disc_max_radius": 0.55,
+		"disc_radius": 0.5,
+		"disc_max_radius": 0.75,
 		"disc_falloff": 0.05,
 		"disc_center_height_offset": 0.5,
 		"disc_player_height_meters": DEBUG_PLAYER_VISUAL_HEIGHT_METERS,
