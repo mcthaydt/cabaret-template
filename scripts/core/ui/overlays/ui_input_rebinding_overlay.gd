@@ -495,7 +495,7 @@ func _sync_focus_tracking_from_control(control: Control) -> void:
 			row_buttons.append(replace_button)
 		if reset_button != null and not reset_button.disabled:
 			row_buttons.append(reset_button)
-		_row_button_index = row_buttons.find(control) if row_buttons.has(control) else 0
+		_row_button_index = row_buttons.find(control) if (control is Button and row_buttons.has(control)) else 0
 		_refresh_action_row_highlight()
 		return
 

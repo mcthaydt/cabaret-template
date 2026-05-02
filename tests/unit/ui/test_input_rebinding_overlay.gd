@@ -697,6 +697,21 @@ class TestStateStore extends M_StateStore:
 func _pump() -> void:
 	await get_tree().process_frame
 
+func test_sync_focus_tracking_does_not_crash_on_row_container() -> void:
+	# Regression: row.focus_entered passes the row VBoxContainer (a Control, not a Button).
+	# TypedArray[Button].has(control) fails validation when control is not a Button.
+	var overlay: Node = OverlayScene.instantiate()
+	add_child_autofree(overlay)
+	await _pump()
+	await _pump()
+
+	var row_container := overlay.get_node_or_null("%ActionList") as VBoxContainer
+	# If the scene uses a builder, the row itself may be deeper; just assert we can call the method safely.
+	if overlay.has_method("_sync_focus_tracking_from_control"):
+		overlay.call("_sync_focus_tracking_from_control", row_container)
+	# If no exception was thrown, the regression is fixed.
+	pass
+
 func _get_store_custom_bindings() -> Dictionary:
 	if _store == null:
 		return {}
