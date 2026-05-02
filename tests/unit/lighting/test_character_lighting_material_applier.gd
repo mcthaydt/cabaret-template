@@ -260,14 +260,19 @@ func test_collect_sprite_targets_skips_null_texture_sprites() -> void:
 		return
 	var applier: Variant = script_obj.new()
 	var character_root := _create_character_root()
+	var texture := _create_test_texture()
 
 	var no_texture_sprite := Sprite3D.new()
 	no_texture_sprite.name = "NoTexSprite"
 	character_root.add_child(no_texture_sprite)
 	autofree(no_texture_sprite)
 
+	var valid_sprite := _create_sprite_with_texture(texture)
+	character_root.add_child(valid_sprite)
+	autofree(valid_sprite)
+
 	var result: Array = applier.collect_sprite_targets(character_root)
-	assert_eq(result.size(), 0)
+	assert_eq(result.size(), 1, "Should only return sprites with textures, not null-texture sprites.")
 
 func test_apply_sprite_lighting_sets_shader_material_and_params() -> void:
 	var script_obj := _applier_script()
@@ -290,8 +295,30 @@ func test_apply_sprite_lighting_sets_shader_material_and_params() -> void:
 	var shader_code: String = shader.code
 	assert_true(shader_code.find("unshaded") >= 0, "Sprite shader must remain unshaded.")
 	assert_eq(override_material.get_shader_parameter(PARAM_ALBEDO_TEXTURE), texture)
+	assert_eq(override_material.get_shader_parameter(PARAM_BASE_TINT), Color(1.0, 1.0, 1.0, 1.0))
 	assert_eq(override_material.get_shader_parameter(PARAM_EFFECTIVE_TINT), Color(0.5, 0.6, 0.7, 1.0))
 	assert_almost_eq(float(override_material.get_shader_parameter(PARAM_EFFECTIVE_INTENSITY)), 1.75, 0.0001)
+
+func test_apply_sprite_lighting_preserves_base_tint_when_color_is_white() -> void:
+	var script_obj := _applier_script()
+	if script_obj == null:
+		return
+	var applier: Variant = script_obj.new()
+	var character_root := _create_character_root()
+	var texture := _create_test_texture()
+
+	var sprite := _create_sprite_with_texture(texture)
+	character_root.add_child(sprite)
+	autofree(sprite)
+
+	applier.apply_sprite_lighting(character_root, Color(1.0, 1.0, 1.0, 1.0), Color(0.5, 0.6, 0.7, 1.0), 1.75)
+
+	var override_material := sprite.material_override as ShaderMaterial
+	assert_not_null(override_material)
+	assert_eq(override_material.get_shader_parameter(PARAM_BASE_TINT), Color(1.0, 1.0, 1.0, 1.0),
+		"base_tint should remain the caller value when no albedo_color forwarding is needed.")
+	assert_eq(override_material.get_shader_parameter(PARAM_ALBEDO_TEXTURE), texture,
+		"albedo_texture should be the actual texture, not a fallback.")
 
 func test_restore_sprite_materials_clears_material_override() -> void:
 	var script_obj := _applier_script()
