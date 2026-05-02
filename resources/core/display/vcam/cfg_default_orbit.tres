@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1_0x2n8")
-distance = 4.0
+distance = 3.0
 authored_pitch = -30.0
 rotation_speed = 1.2
 fov = 39.5978
