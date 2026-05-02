@@ -2,7 +2,7 @@
 
 ## Overview
 
-Comprehensive reorganization of the cabaret-ball Godot project to improve folder structure clarity, enforce consistent naming conventions, and improve developer navigability.
+Comprehensive reorganization of the automata-ball Godot project to improve folder structure clarity, enforce consistent naming conventions, and improve developer navigability.
 
 **Scope**: 614 GDScript files, 76 scene files, 200+ file references
 **Status**: Complete (23/23 tasks complete)

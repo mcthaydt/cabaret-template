@@ -1,6 +1,6 @@
 # Audio Manager Overview
 
-**Project**: Cabaret Template (Godot 4.5)
+**Project**: Automata Template (Godot 4.5)
 **Created**: 2026-01-01
 **Last Updated**: 2026-01-10
 **Status**: IN PROGRESS (Phase 0–9 complete)

@@ -1,6 +1,6 @@
 # VFX Manager - Implementation Plan
 
-**Project**: Cabaret Template (Godot 4.6)
+**Project**: Automata Template (Godot 4.6)
 **Status**: Implemented baseline (vCam-alignment addendum documented)
 **Estimated Duration**: 14 days
 **Test Count**: 103 tests (90 unit + 13 integration)

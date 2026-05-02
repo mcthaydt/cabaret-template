@@ -5,6 +5,7 @@ class_name UI_LoadingScreen
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
 const U_TWEEN_MANAGER := preload("res://scripts/core/scene_management/u_tween_manager.gd")
+const CFG_GAME_CONFIG := preload("res://resources/core/cfg_game_config.tres")
 const MENU_FULLSCREEN_SHADER := preload("res://assets/core/shaders/sh_menu_fullscreen_shader.gdshader")
 
 const BACKGROUND_SHADER_PRESET_NONE := "none"
@@ -44,11 +45,16 @@ var _background_shader_material: ShaderMaterial = null
 
 func _ready() -> void:
 	_cache_nodes()
+	_populate_logo_label()
 	_apply_theme_tokens()
 	_setup_background_shader()
 	if not visibility_changed.is_connected(_on_visibility_changed):
 		visibility_changed.connect(_on_visibility_changed)
 	_on_visibility_changed()
+
+func _populate_logo_label() -> void:
+	if _logo_label != null:
+		_logo_label.text = CFG_GAME_CONFIG.game_name
 
 func _exit_tree() -> void:
 	if _fade_tween != null and _fade_tween.is_valid():

@@ -1,6 +1,6 @@
 # Audio Manager PRD
 
-**Project**: Cabaret Template (Godot 4.5)
+**Project**: Automata Template (Godot 4.5)
 **Owner**: Development Team
 **Feature Branch**: `feature/audio-manager`
 **Created**: 2026-01-01

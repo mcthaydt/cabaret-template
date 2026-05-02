@@ -1,6 +1,6 @@
 # Display Manager Overview
 
-**Project**: Cabaret Template (Godot 4.6)
+**Project**: Automata Template (Godot 4.6)
 **Created**: 2026-01-02
 **Updated**: 2026-02-06
 **Status**: IMPLEMENTATION (Phase 11 Complete)

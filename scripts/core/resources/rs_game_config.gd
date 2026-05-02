@@ -64,6 +64,28 @@ var _required_final_area: String = "demo_room"
 		if value == "":
 			push_error("RS_GameConfig: required_final_area must not be empty. Resource: %s" % resource_path)
 
+## Display name of the game (shown in UI labels, splash screen, loading screen).
+var _game_name: String = "Automata Template"
+
+@export var game_name: String = "Automata Template":
+	get:
+		return _game_name
+	set(value):
+		_game_name = value
+		if value == "":
+			push_error("RS_GameConfig: game_name must not be empty. Resource: %s" % resource_path)
+
+## Studio or publisher name (shown in copyright lines).
+var _studio_name: String = "Ruken"
+
+@export var studio_name: String = "Ruken":
+	get:
+		return _studio_name
+	set(value):
+		_studio_name = value
+		if value == "":
+			push_error("RS_GameConfig: studio_name must not be empty. Resource: %s" % resource_path)
+
 func get_default_gameplay_scene_id() -> StringName:
 	return default_gameplay_scene_id
 

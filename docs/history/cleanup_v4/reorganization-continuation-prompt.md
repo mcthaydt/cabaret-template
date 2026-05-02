@@ -2,7 +2,7 @@
 
 ## Context
 
-**Goal**: Reorganize cabaret-ball Godot project for improved folder clarity, consistent naming, and developer navigability.
+**Goal**: Reorganize automata-ball Godot project for improved folder clarity, consistent naming, and developer navigability.
 **Scope**: 614 scripts, 76 scenes, 23 tasks across 5 phases.
 
 ---

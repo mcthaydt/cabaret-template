@@ -1,6 +1,6 @@
 # Localization Manager - Implementation Plan
 
-**Project**: Cabaret Template (Godot 4.6)
+**Project**: Automata Template (Godot 4.6)
 **Status**: Historical implementation plan (baseline complete); refactor complete (Phases 2-9 complete, see `localization-manager-refactor-tasks.md`)
 **Methodology**: Test-Driven Development (Red-Green-Refactor)
 

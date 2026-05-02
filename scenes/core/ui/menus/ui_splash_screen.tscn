@@ -20,7 +20,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.05, 0.05, 0.05, 1)
 
-[node name="CrispyCabaretPanel" type="Control" parent="." unique_id=1566854205]
+[node name="GameLogoPanel" type="Control" parent="." unique_id=1566854205]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
@@ -29,7 +29,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="CrispyLabel" type="Label" parent="CrispyCabaretPanel" unique_id=428996429]
+[node name="GameNameLabel" type="Label" parent="GameLogoPanel" unique_id=428996429]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -42,7 +42,6 @@ offset_right = 200.0
 offset_bottom = 30.0
 grow_horizontal = 2
 grow_vertical = 2
-text = "Crispy Cabaret"
 horizontal_alignment = 1
 vertical_alignment = 1
 

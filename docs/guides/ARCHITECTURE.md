@@ -1,6 +1,6 @@
 # Architecture Guide
 
-This guide is the high-level routing map for the Cabaret Template architecture. Topic-specific runtime contracts live in `docs/systems/**`; this file explains where the main pieces are and how they connect.
+This guide is the high-level routing map for the Automata Template architecture. Topic-specific runtime contracts live in `docs/systems/**`; this file explains where the main pieces are and how they connect.
 
 ## Project Shape
 

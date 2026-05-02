@@ -9,7 +9,7 @@ status: "Phase 2 - Implementation"
 
 ## Overview
 
-This document defines the **single authority pattern** for pause and cursor state management in Cabaret Ball. Prior to Phase 2, both `M_PauseManager` and `M_SceneManager` controlled pause/cursor state, leading to conflicts and inconsistent behavior.
+This document defines the **single authority pattern** for pause and cursor state management in Automata Ball. Prior to Phase 2, both `M_PauseManager` and `M_SceneManager` controlled pause/cursor state, leading to conflicts and inconsistent behavior.
 
 **Phase 2 Goal**: Establish `M_PauseManager` as the **sole authority** for both engine pause and cursor coordination.
 

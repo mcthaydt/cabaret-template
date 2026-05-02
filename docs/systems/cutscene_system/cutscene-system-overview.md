@@ -1,6 +1,6 @@
 # Cutscene System Overview
 
-**Project**: Cabaret Template (Godot 4.6)
+**Project**: Automata Template (Godot 4.6)
 **Created**: 2026-03-31
 **Last Updated**: 2026-03-31
 **Status**: PRE-IMPLEMENTATION (design phase)

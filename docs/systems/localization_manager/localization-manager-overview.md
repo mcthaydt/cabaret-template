@@ -1,6 +1,6 @@
 # Localization Manager Overview
 
-**Project**: Cabaret Template (Godot 4.6)
+**Project**: Automata Template (Godot 4.6)
 **Created**: 2026-02-13
 **Last Updated**: 2026-02-17
 **Status**: IMPLEMENTED. Refactor complete (Phases 0-9 complete on 2026-02-17).

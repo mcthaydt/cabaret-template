@@ -12,6 +12,7 @@ const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_l
 const U_UI_MENU_BUILDER := preload("res://scripts/core/ui/helpers/u_ui_menu_builder.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
+const CFG_GAME_CONFIG := preload("res://resources/core/cfg_game_config.tres")
 
 @onready var _scroll_container: ScrollContainer = %ScrollContainer
 @onready var _skip_button: Button = %SkipButton
@@ -100,6 +101,8 @@ func _on_locale_changed(_locale: StringName) -> void:
 func _localize_labels() -> void:
 	if _menu_builder != null:
 		_menu_builder.localize_labels()
+	if _header_label != null:
+		_header_label.text = CFG_GAME_CONFIG.game_name
 	if _team_label != null:
 		_team_label.text = U_LOCALIZATION_UTILS.localize(&"menu.credits.team")
 	if _names_label != null:
@@ -107,7 +110,8 @@ func _localize_labels() -> void:
 	if _thanks_label != null:
 		_thanks_label.text = U_LOCALIZATION_UTILS.localize(&"menu.credits.thanks")
 	if _footer_label != null:
-		_footer_label.text = U_LOCALIZATION_UTILS.localize(&"menu.credits.copyright")
+		var current_year: int = Time.get_date_dict_from_system().get("year", 2025)
+		_footer_label.text = "© %d %s" % [current_year, CFG_GAME_CONFIG.studio_name]
 
 func _exit_tree() -> void:
 	if _auto_return_timer != null:

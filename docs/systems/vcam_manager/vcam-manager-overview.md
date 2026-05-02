@@ -1,6 +1,6 @@
 # vCam Manager Overview
 
-**Project**: Cabaret Template (Godot 4.6)
+**Project**: Automata Template (Godot 4.6)
 **Created**: 2026-03-06
 **Updated**: 2026-03-22
 **Status**: Baseline vCam delivery is complete through Phase 13 (2026-03-22). Refactor `PRE-1`, `PRE-2`, Phases `1A`-`1I`, Phases `2A`-`2H`, Phases `3A`-`3B`, and Phases `5A`-`5D` are complete. Runtime mode support is orbit-only with helper-based system decomposition and blend-manager extraction in place.

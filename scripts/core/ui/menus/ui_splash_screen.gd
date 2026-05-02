@@ -4,7 +4,7 @@ class_name UI_SplashScreen
 
 ## Boot splash screen with background scene preloading.
 ##
-## Shows Crispy Cabaret logo then Godot Engine logo (2s min each).
+## Shows game logo then Godot Engine logo (2s min each).
 ## During display, preloads the default gameplay scene in the background
 ## so it's cached by the time the player reaches the main menu.
 
@@ -14,15 +14,15 @@ const U_SCENE_REGISTRY := preload("res://scripts/core/scene_management/u_scene_r
 const U_DEBUG_SELECTORS := preload("res://scripts/core/state/selectors/u_debug_selectors.gd")
 const CFG_GAME_CONFIG := preload("res://resources/core/cfg_game_config.tres")
 
-enum Phase { CRISPY_CABARET, GODOT_ENGINE, DONE }
+enum Phase { GAME_LOGO, GODOT_ENGINE, DONE }
 
 const MIN_DISPLAY_TIME := 2.0
 
-@onready var _crispy_panel: Control = %CrispyCabaretPanel
+@onready var _game_logo_panel: Control = %GameLogoPanel
 @onready var _godot_panel: Control = %GodotEnginePanel
 @onready var _skip_label: Label = %SkipLabel
 
-var _current_phase: Phase = Phase.CRISPY_CABARET
+var _current_phase: Phase = Phase.GAME_LOGO
 var _phase_timer: float = 0.0
 var _can_skip: bool = false
 var _preload_started: bool = false
@@ -30,6 +30,7 @@ var _gameplay_scene_path: String = ""
 
 func _ready() -> void:
 	_start_gameplay_preload()
+	_populate_game_name_label()
 	var store: Variant = U_DependencyResolution.resolve_state_store(null, null, self)
 	if store != null:
 		var state: Dictionary = store.get_state()
@@ -38,7 +39,14 @@ func _ready() -> void:
 			_finalize_preload()
 			_transition_to_next_scene()
 			return
-	_show_phase(Phase.CRISPY_CABARET)
+	_show_phase(Phase.GAME_LOGO)
+
+func _populate_game_name_label() -> void:
+	if _game_logo_panel == null:
+		return
+	var game_name_label: Label = _game_logo_panel.get_node_or_null("GameNameLabel") as Label
+	if game_name_label != null:
+		game_name_label.text = CFG_GAME_CONFIG.game_name
 
 func _process(delta: float) -> void:
 	if _current_phase == Phase.DONE:
@@ -71,7 +79,7 @@ func is_skip_allowed() -> bool:
 
 func _advance_phase() -> void:
 	match _current_phase:
-		Phase.CRISPY_CABARET:
+		Phase.GAME_LOGO:
 			_current_phase = Phase.GODOT_ENGINE
 			_phase_timer = 0.0
 			_can_skip = false
@@ -82,8 +90,8 @@ func _advance_phase() -> void:
 			_transition_to_next_scene()
 
 func _show_phase(phase: Phase) -> void:
-	if _crispy_panel != null:
-		_crispy_panel.visible = (phase == Phase.CRISPY_CABARET)
+	if _game_logo_panel != null:
+		_game_logo_panel.visible = (phase == Phase.GAME_LOGO)
 	if _godot_panel != null:
 		_godot_panel.visible = (phase == Phase.GODOT_ENGINE)
 	_update_skip_hint(false)

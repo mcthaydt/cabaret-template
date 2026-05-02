@@ -45,7 +45,6 @@ layout_mode = 2
 
 [node name="LogoLabel" type="Label" parent="CenterContainer/VBoxContainer" unique_id=616078809]
 layout_mode = 2
-text = "Cabaret Template"
 horizontal_alignment = 1
 
 [node name="SpinnerLabel" type="Label" parent="CenterContainer/VBoxContainer" unique_id=2087808912]

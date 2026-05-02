@@ -1,6 +1,6 @@
 # Time Manager Overview
 
-**Project**: Cabaret Template (Godot 4.6)
+**Project**: Automata Template (Godot 4.6)
 **Created**: 2026-02-17
 **Last Updated**: 2026-02-18
 **Status**: COMPLETE (Phases 1-5 complete)

@@ -70,7 +70,6 @@ size_flags_vertical = 3
 [node name="HeaderLabel" type="Label" parent="MarginContainer/CenterContainer/MainPanel/MainPanelPadding/ScrollContainer/ContentVBox" unique_id=71719801]
 unique_name_in_owner = true
 layout_mode = 2
-text = "cabaret template"
 horizontal_alignment = 1
 
 [node name="TeamLabel" type="Label" parent="MarginContainer/CenterContainer/MainPanel/MainPanelPadding/ScrollContainer/ContentVBox" unique_id=1535776271]
@@ -94,7 +93,6 @@ horizontal_alignment = 1
 [node name="FooterLabel" type="Label" parent="MarginContainer/CenterContainer/MainPanel/MainPanelPadding/ScrollContainer/ContentVBox" unique_id=1079994238]
 unique_name_in_owner = true
 layout_mode = 2
-text = "© 2025 Crispy Cabaret"
 horizontal_alignment = 1
 
 [node name="SkipButtonMargin" type="MarginContainer" parent="." unique_id=643103723]

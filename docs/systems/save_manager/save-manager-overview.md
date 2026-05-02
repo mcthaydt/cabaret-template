@@ -1,6 +1,6 @@
 # Save Manager Overview
 
-**Project**: Cabaret Template (Godot 4.5)
+**Project**: Automata Template (Godot 4.5)
 **Created**: 2025-12-25
 **Last Updated**: 2025-12-25
 **Status**: READY FOR IMPLEMENTATION
