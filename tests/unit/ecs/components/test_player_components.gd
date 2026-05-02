@@ -31,9 +31,9 @@ func test_movement_component_defaults_and_registration() -> void:
 	await _pump()
 
 	assert_eq(component.get_component_type(), MOVEMENT_COMPONENT.COMPONENT_TYPE)
-	assert_eq(component.settings.max_speed, 6.0)
-	assert_eq(component.settings.acceleration, 20.0)
-	assert_eq(component.settings.deceleration, 25.0)
+	assert_eq(component.settings.max_speed, 4.0)
+	assert_eq(component.settings.acceleration, 25.0)
+	assert_eq(component.settings.deceleration, 30.0)
 
 	var components := manager.get_components(MOVEMENT_COMPONENT.COMPONENT_TYPE)
 	assert_eq(components, [component])
@@ -54,7 +54,7 @@ func test_jump_component_defaults_and_registration() -> void:
 	await _pump()
 
 	assert_eq(component.get_component_type(), JUMP_COMPONENT.COMPONENT_TYPE)
-	assert_eq(component.settings.jump_force, 12.0)
+	assert_eq(component.settings.jump_force, 7.0)
 	assert_eq(component.settings.coyote_time, 0.28)
 	assert_eq(component.settings.max_air_jumps, 0)
 

@@ -3,10 +3,10 @@ extends Resource
 
 class_name RS_MovementSettings
 
-@export var max_speed: float = 6.0
+@export var max_speed: float = 4.0
 @export var sprint_speed_multiplier: float = 1.5
-@export var acceleration: float = 20.0
-@export var deceleration: float = 25.0
+@export var acceleration: float = 25.0
+@export var deceleration: float = 30.0
 @export var use_second_order_dynamics: bool = true
 @export var response_frequency: float = 1.0
 @export var damping_ratio: float = 0.5

@@ -4,7 +4,7 @@ class_name S_GravitySystem
 
 ## Phase 16: Reads gravity_scale from state for zone-based modifiers
 
-@export var gravity: float = 30.0
+@export var gravity: float = 35.0
 
 ## Injected state store (for testing)
 ## If set, system uses this instead of U_StateUtils.get_store()

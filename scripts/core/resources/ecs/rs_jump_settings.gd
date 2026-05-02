@@ -3,7 +3,7 @@ extends Resource
 
 class_name RS_JumpSettings
 
-@export var jump_force: float = 12.0
+@export var jump_force: float = 7.0
 @export var coyote_time: float = 0.28
 @export var max_air_jumps: int = 0
 @export var jump_buffer_time: float = 0.28
