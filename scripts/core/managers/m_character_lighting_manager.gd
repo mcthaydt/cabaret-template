@@ -328,6 +328,7 @@ func _update_character_entities() -> void:
 		if discovered.has(previous):
 			continue
 		_material_applier.restore_character_materials(previous)
+		_material_applier.restore_sprite_materials(previous)
 		_clear_character_runtime_state(previous)
 
 	_character_entities = discovered
@@ -456,6 +457,12 @@ func _apply_lighting_to_characters() -> void:
 		var effective_intensity: float = _to_float(stabilized.get("intensity", 1.0), 1.0)
 		_apply_probe.start()
 		_material_applier.apply_character_lighting(
+			character_node,
+			Color(1.0, 1.0, 1.0, 1.0),
+			effective_tint,
+			effective_intensity
+		)
+		_material_applier.apply_sprite_lighting(
 			character_node,
 			Color(1.0, 1.0, 1.0, 1.0),
 			effective_tint,
