@@ -2,7 +2,6 @@ extends RefCounted
 class_name U_CharacterLightingMaterialApplier
 
 const SH_CHARACTER_ZONE_LIGHTING := preload("res://assets/core/shaders/sh_character_zone_lighting.gdshader")
-const SH_SPRITE_ZONE_LIGHTING := preload("res://assets/core/shaders/sh_sprite_zone_lighting.gdshader")
 
 const PARAM_ALBEDO_TEXTURE := "albedo_texture"
 const PARAM_BASE_TINT := "base_tint"
@@ -12,8 +11,8 @@ const MIN_INTENSITY := 0.0
 const MAX_INTENSITY := 8.0
 
 var _material_cache: Dictionary = {}
+var _sprite_modulate_cache: Dictionary = {}
 var _shader: Shader = SH_CHARACTER_ZONE_LIGHTING
-var _sprite_shader: Shader = SH_SPRITE_ZONE_LIGHTING
 var _fallback_white_texture: ImageTexture = null
 
 func collect_mesh_targets(character_entity: Node) -> Array[MeshInstance3D]:
@@ -40,54 +39,36 @@ func apply_sprite_lighting(
 	effective_tint: Color,
 	effective_intensity: float
 ) -> void:
-	_prune_invalid_cache_entries()
 	var targets := collect_sprite_targets(character_entity)
 	for sprite in targets:
-		_apply_sprite_override(sprite, base_tint, effective_tint, effective_intensity)
+		_apply_sprite_override(sprite, effective_tint, effective_intensity)
 
 func _apply_sprite_override(
 	sprite: Sprite3D,
-	base_tint: Color,
 	effective_tint: Color,
 	effective_intensity: float
 ) -> void:
 	if sprite == null or not is_instance_valid(sprite):
 		return
-	if sprite.texture == null:
-		return
 
-	var albedo_texture: Texture2D = sprite.texture
-
-	var shader_material := _ensure_sprite_shader_material(sprite)
-	if shader_material == null:
-		return
-
-	shader_material.set_shader_parameter(PARAM_ALBEDO_TEXTURE, albedo_texture)
-	shader_material.set_shader_parameter(PARAM_BASE_TINT, base_tint)
-	shader_material.set_shader_parameter(PARAM_EFFECTIVE_TINT, effective_tint)
-	shader_material.set_shader_parameter(
-		PARAM_EFFECTIVE_INTENSITY,
-		clampf(effective_intensity, MIN_INTENSITY, MAX_INTENSITY)
-	)
-	sprite.material_override = shader_material
-
-func _ensure_sprite_shader_material(sprite: Sprite3D) -> ShaderMaterial:
 	var cache_key: int = sprite.get_instance_id()
-	var entry_variant: Variant = _material_cache.get(cache_key, null)
-	if entry_variant is Dictionary:
-		var existing_entry := entry_variant as Dictionary
-		var shader_material_variant: Variant = existing_entry.get("shader_material", null)
-		if shader_material_variant is ShaderMaterial:
-			return shader_material_variant as ShaderMaterial
+	if not _sprite_modulate_cache.has(cache_key):
+		_sprite_modulate_cache[cache_key] = sprite.modulate
 
-	var shader_material := ShaderMaterial.new()
-	shader_material.shader = _sprite_shader
-	_material_cache[cache_key] = {
-		"mesh_ref": weakref(sprite),
-		"original_material_override": sprite.material_override,
-		"shader_material": shader_material,
-	}
-	return shader_material
+	var original: Color = _sprite_modulate_cache[cache_key]
+	var clamped_intensity: float = clampf(effective_intensity, MIN_INTENSITY, MAX_INTENSITY)
+	var tint_with_floor := Color(
+		effective_tint.r * clamped_intensity,
+		effective_tint.g * clamped_intensity,
+		effective_tint.b * clamped_intensity,
+		original.a
+	)
+	sprite.modulate = Color(
+		original.r * tint_with_floor.r,
+		original.g * tint_with_floor.g,
+		original.b * tint_with_floor.b,
+		original.a
+	)
 
 func restore_character_materials(character_entity: Node) -> void:
 	var targets := collect_mesh_targets(character_entity)
@@ -99,16 +80,12 @@ func restore_sprite_materials(character_entity: Node) -> void:
 	var targets := collect_sprite_targets(character_entity)
 	for sprite in targets:
 		_restore_sprite(sprite)
-	_prune_invalid_cache_entries()
 
 func _restore_sprite(sprite: Sprite3D) -> void:
 	var cache_key: int = sprite.get_instance_id()
-	var entry_variant: Variant = _material_cache.get(cache_key, null)
-	if not (entry_variant is Dictionary):
-		return
-	var entry := entry_variant as Dictionary
-	sprite.material_override = entry.get("original_material_override", null)
-	_material_cache.erase(cache_key)
+	if _sprite_modulate_cache.has(cache_key):
+		sprite.modulate = _sprite_modulate_cache[cache_key]
+		_sprite_modulate_cache.erase(cache_key)
 
 func restore_all_materials() -> void:
 	var keys: Array = _material_cache.keys()

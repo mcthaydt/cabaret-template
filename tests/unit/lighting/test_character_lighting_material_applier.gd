@@ -297,7 +297,7 @@ func test_collect_sprite_targets_skips_ground_indicator() -> void:
 	assert_true(result.has(sprite), "Should include the regular sprite.")
 	assert_false(result.has(ground_indicator), "Should exclude the GroundIndicator.")
 
-func test_apply_sprite_lighting_sets_shader_material_and_params() -> void:
+func test_apply_sprite_lighting_sets_modulate() -> void:
 	var script_obj := _applier_script()
 	if script_obj == null:
 		return
@@ -311,21 +311,13 @@ func test_apply_sprite_lighting_sets_shader_material_and_params() -> void:
 
 	applier.apply_sprite_lighting(character_root, Color(1.0, 1.0, 1.0, 1.0), Color(0.5, 0.6, 0.7, 1.0), 1.75)
 
-	var override_material := sprite.material_override as ShaderMaterial
-	assert_not_null(override_material, "Sprite should receive a ShaderMaterial override.")
-	var shader := override_material.shader
-	assert_not_null(shader, "ShaderMaterial should have the sprite lighting shader assigned.")
-	var shader_code: String = shader.code
-	assert_true(shader_code.find("unshaded") >= 0, "Sprite shader must remain unshaded.")
-	assert_true(shader_code.find("blend_mix") >= 0, "Sprite shader must use blend_mix for transparency.")
-	assert_true(shader_code.find("vertex()") >= 0, "Sprite shader must implement vertex billboarding.")
-	assert_true(shader_code.find("ALPHA") >= 0, "Sprite shader must output texture alpha.")
-	assert_eq(override_material.get_shader_parameter(PARAM_ALBEDO_TEXTURE), texture)
-	assert_eq(override_material.get_shader_parameter(PARAM_BASE_TINT), Color(1.0, 1.0, 1.0, 1.0))
-	assert_eq(override_material.get_shader_parameter(PARAM_EFFECTIVE_TINT), Color(0.5, 0.6, 0.7, 1.0))
-	assert_almost_eq(float(override_material.get_shader_parameter(PARAM_EFFECTIVE_INTENSITY)), 1.75, 0.0001)
+	assert_null(sprite.material_override, "modulate approach must not set material_override.")
+	assert_almost_eq(sprite.modulate.r, 0.875, 0.0001, "r = 1.0 * 0.5 * 1.75")
+	assert_almost_eq(sprite.modulate.g, 1.05, 0.0001, "g = 1.0 * 0.6 * 1.75")
+	assert_almost_eq(sprite.modulate.b, 1.225, 0.0001, "b = 1.0 * 0.7 * 1.75")
+	assert_almost_eq(sprite.modulate.a, 1.0, 0.0001, "alpha must be preserved from original modulate.")
 
-func test_apply_sprite_lighting_preserves_base_tint_when_color_is_white() -> void:
+func test_apply_sprite_lighting_preserves_original_modulate_alpha() -> void:
 	var script_obj := _applier_script()
 	if script_obj == null:
 		return
@@ -334,19 +326,15 @@ func test_apply_sprite_lighting_preserves_base_tint_when_color_is_white() -> voi
 	var texture := _create_test_texture()
 
 	var sprite := _create_sprite_with_texture(texture)
+	sprite.modulate = Color(1.0, 1.0, 1.0, 0.5)
 	character_root.add_child(sprite)
 	autofree(sprite)
 
-	applier.apply_sprite_lighting(character_root, Color(1.0, 1.0, 1.0, 1.0), Color(0.5, 0.6, 0.7, 1.0), 1.75)
+	applier.apply_sprite_lighting(character_root, Color(1.0, 1.0, 1.0, 1.0), Color(1.0, 1.0, 1.0, 1.0), 0.5)
 
-	var override_material := sprite.material_override as ShaderMaterial
-	assert_not_null(override_material)
-	assert_eq(override_material.get_shader_parameter(PARAM_BASE_TINT), Color(1.0, 1.0, 1.0, 1.0),
-		"base_tint should remain the caller value when no albedo_color forwarding is needed.")
-	assert_eq(override_material.get_shader_parameter(PARAM_ALBEDO_TEXTURE), texture,
-		"albedo_texture should be the actual texture, not a fallback.")
+	assert_eq(sprite.modulate.a, 0.5, "alpha must be preserved from original modulate.")
 
-func test_restore_sprite_materials_clears_material_override() -> void:
+func test_restore_sprite_materials_restores_modulate() -> void:
 	var script_obj := _applier_script()
 	if script_obj == null:
 		return
@@ -354,14 +342,14 @@ func test_restore_sprite_materials_clears_material_override() -> void:
 	var character_root := _create_character_root()
 	var texture := _create_test_texture()
 
-	var original_override := StandardMaterial3D.new()
+	var original_modulate := Color(0.8, 0.9, 1.0, 0.7)
 	var sprite := _create_sprite_with_texture(texture)
-	sprite.material_override = original_override
+	sprite.modulate = original_modulate
 	character_root.add_child(sprite)
 	autofree(sprite)
 
 	applier.apply_sprite_lighting(character_root, Color.WHITE, Color(0.8, 0.8, 0.8, 1.0), 2.0)
-	assert_true(sprite.material_override is ShaderMaterial)
+	assert_ne(sprite.modulate, original_modulate, "modulate should change after apply.")
 
 	applier.restore_sprite_materials(character_root)
-	assert_eq(sprite.material_override, original_override)
+	assert_eq(sprite.modulate, original_modulate, "restore must return modulate to original value.")
