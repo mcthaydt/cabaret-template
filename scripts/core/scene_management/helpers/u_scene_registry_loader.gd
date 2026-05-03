@@ -73,7 +73,9 @@ func _load_entries_from_manifest(
 	var loaded_count: int = 0
 	var skipped_count: int = 0
 
-	if not FileAccess.file_exists(MANIFEST_SCRIPT_PATH):
+	if not (FileAccess.file_exists(MANIFEST_SCRIPT_PATH) or 
+		FileAccess.file_exists(MANIFEST_SCRIPT_PATH.trim_suffix(".gd") + ".gdc") or 
+		FileAccess.file_exists(MANIFEST_SCRIPT_PATH.trim_suffix(".gd") + ".gde")):
 		return {"loaded": 0, "skipped": 0}
 
 	var script: Variant = load(MANIFEST_SCRIPT_PATH)
