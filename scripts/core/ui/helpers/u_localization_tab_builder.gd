@@ -4,7 +4,6 @@ class_name U_LocalizationTabBuilder
 const U_UI_SETTINGS_CATALOG := preload("res://scripts/core/ui/helpers/u_ui_settings_catalog.gd")
 
 var _on_language_selected: Callable
-var _on_test_localization_pressed: Callable
 var _on_dyslexia_toggled: Callable
 var _on_apply_pressed: Callable
 var _on_cancel_pressed: Callable
@@ -15,14 +14,12 @@ func _init(tab: Control) -> void:
 
 func set_callbacks(
 	language_cb: Callable,
-	test_cb: Callable,
 	dyslexia_cb: Callable = Callable(),
 	apply_cb: Callable = Callable(),
 	cancel_cb: Callable = Callable(),
 	reset_cb: Callable = Callable()
 ) -> U_LocalizationTabBuilder:
 	_on_language_selected = language_cb
-	_on_test_localization_pressed = test_cb
 	_on_dyslexia_toggled = dyslexia_cb
 	_on_apply_pressed = apply_cb
 	_on_cancel_pressed = cancel_cb
@@ -52,9 +49,6 @@ func build() -> Control:
 		"DyslexiaCheckButton"
 	)
 	end_section()
-	
-	var test_btn := _add_button(_current_parent, &"settings.localization.button.test", _on_test_localization_pressed, "Test Localization")
-	test_btn.name = "TestLocalizationButton"
 	
 	add_button_row(
 		_on_apply_pressed,

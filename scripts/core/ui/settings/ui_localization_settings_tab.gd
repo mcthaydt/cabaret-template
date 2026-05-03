@@ -111,7 +111,6 @@ func _setup_builder() -> void:
 	_builder = U_UI_SETTINGS_CATALOG.create_localization_builder(
 		self,
 		_on_language_selected,
-		_on_test_localization_pressed,
 		_on_dyslexia_toggled,
 		_on_apply_pressed,
 		_on_cancel_pressed,
@@ -248,9 +247,6 @@ func _on_language_selected(_index: int) -> void:
 	U_UISoundPlayer.play_confirm()
 	_has_local_edits = true
 	_update_localization_preview_from_ui()
-
-func _on_test_localization_pressed() -> void:
-	U_UISoundPlayer.play_confirm()
 
 func _on_dyslexia_toggled(_pressed: bool) -> void:
 	if _updating_from_state:

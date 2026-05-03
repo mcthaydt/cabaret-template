@@ -13,15 +13,6 @@ func test_localization_builder_creates_language_dropdown() -> void:
 	assert_eq(built_tab, tab, "build should return the tab")
 	assert_not_null(_find_first(tab, "LanguageOptionButton"), "LanguageOption should exist")
 
-func test_localization_builder_creates_test_button() -> void:
-	var tab := VBoxContainer.new()
-	add_child_autofree(tab)
-	
-	var builder = U_LOCALIZATION_TAB_BUILDER.new(tab)
-	var built_tab = builder.build()
-	
-	assert_not_null(_find_first(tab, "TestLocalizationButton"), "TestLocalizationButton should exist")
-
 func test_localization_builder_creates_heading() -> void:
 	var tab := VBoxContainer.new()
 	add_child_autofree(tab)
