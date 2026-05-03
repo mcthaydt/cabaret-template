@@ -127,20 +127,6 @@ layout_mode = 2
 size_flags_horizontal = 3
 button_pressed = true
 
-[node name="SilhouetteEnabledRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox" unique_id=2001137001]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="SilhouetteEnabledLabel" type="Label" parent="CenterContainer/Panel/VBox/SilhouetteEnabledRow" unique_id=1948180139]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="SilhouetteEnabledToggle" type="CheckButton" parent="CenterContainer/Panel/VBox/SilhouetteEnabledRow" unique_id=1864562238]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-button_pressed = true
-
 [node name="Spacer" type="Control" parent="CenterContainer/Panel/VBox" unique_id=393290215]
 layout_mode = 2
 size_flags_vertical = 3

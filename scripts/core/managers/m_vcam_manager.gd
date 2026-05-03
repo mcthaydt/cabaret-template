@@ -717,10 +717,7 @@ func _clear_all_silhouettes(entity_id: StringName) -> void:
 func _is_occlusion_silhouette_enabled() -> bool:
 	if _is_mobile:
 		return false
-	var store := _resolve_state_store()
-	if store == null:
-		return true
-	return U_VFX_SELECTORS.is_occlusion_silhouette_enabled(store.get_state())
+	return true
 
 func _publish_silhouette_update_request(entity_id: StringName, occluders: Array, enabled: bool) -> void:
 	var store := _resolve_state_store()

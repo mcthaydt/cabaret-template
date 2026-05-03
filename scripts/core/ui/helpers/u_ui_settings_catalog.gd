@@ -32,12 +32,6 @@ const VFX_TOGGLE_OPTIONS: Array[Dictionary] = [
 		"default": true,
 	},
 	{
-		"key": &"occlusion_silhouette_enabled",
-		"label_key": &"settings.vfx.label.occlusion_silhouette",
-		"tooltip_key": &"settings.vfx.tooltip.occlusion_silhouette",
-		"default": true,
-	},
-	{
 		"key": &"screen_shake_intensity",
 		"label_key": &"settings.vfx.label.shake_intensity",
 		"tooltip_key": &"settings.vfx.tooltip.shake_intensity",
