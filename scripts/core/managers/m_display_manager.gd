@@ -21,11 +21,8 @@ const U_DISPLAY_COLOR_GRADING_APPLIER := preload("res://scripts/core/managers/he
 const U_POST_PROCESS_PIPELINE := preload("res://scripts/core/managers/helpers/display/u_post_process_pipeline.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const U_UI_THEME_DEBUG := preload("res://scripts/core/ui/utils/u_ui_theme_debug.gd")
-const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/core/utils/display/u_mobile_platform_detector.gd")
 const U_SCENE_REGISTRY := preload("res://scripts/core/scene_management/u_scene_registry.gd")
 const U_PERF_PROBE := preload("res://scripts/core/utils/debug/u_perf_probe.gd")
-const U_PERF_MONITOR := preload("res://scripts/core/utils/debug/u_perf_monitor.gd")
-const U_PERF_SHADER_BYPASS := preload("res://scripts/core/utils/debug/u_perf_shader_bypass.gd")
 const RS_DISPLAY_CONFIG_SCRIPT := preload("res://scripts/core/resources/managers/rs_display_config.gd")
 const DEFAULT_DISPLAY_CONFIG := preload("res://resources/core/base_settings/display/cfg_display_config_default.tres")
 
@@ -61,25 +58,13 @@ var _pipeline: RefCounted = null  # U_PostProcessPipeline
 # Cached values for inspection/tests (Phase 1B)
 var _last_applied_settings: Dictionary = {}
 var _apply_count: int = 0
-var _last_suppressed: bool = false
 var _perf_probe: U_PerfProbe = null
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	U_SERVICE_LOCATOR.register(SERVICE_NAME, self)
-	_theme_debug_log("ready: service registered")
-	_apply_mobile_overrides()
 	_ensure_appliers()
-
-	# Performance monitoring (mobile diagnostics)
-	var _is_mobile_perf := U_MOBILE_PLATFORM_DETECTOR.is_mobile()
-	_perf_probe = U_PerfProbe.create("FilmGrain", _is_mobile_perf)
-	var perf_monitor := U_PERF_MONITOR.new()
-	perf_monitor.name = "PerfMonitor"
-	add_child(perf_monitor)
-	var shader_bypass := U_PERF_SHADER_BYPASS.new()
-	shader_bypass.name = "PerfShaderBypass"
-	add_child(shader_bypass)
+	_perf_probe = U_PerfProbe.create("FilmGrain", false)
 
 	await _initialize_store_async()
 
@@ -94,14 +79,6 @@ func _exit_tree() -> void:
 		if _state_store.slice_updated.is_connected(_on_slice_updated):
 			_state_store.slice_updated.disconnect(_on_slice_updated)
 	_state_store = null
-
-## Apply mobile-specific rendering overrides that don't depend on state store.
-func _apply_mobile_overrides() -> void:
-	if not U_MOBILE_PLATFORM_DETECTOR.is_mobile():
-		return
-	# Cap FPS at 30 on mobile to prevent wasted GPU work on frames
-	# the user can't perceive and to reduce thermal throttling
-	Engine.max_fps = 30
 
 func _initialize_store_async() -> void:
 	_theme_debug_log("initialize_store_async: awaiting store")
@@ -180,9 +157,6 @@ func _on_slice_updated(slice_name: StringName, ___slice_data: Dictionary) -> voi
 	if slice_name == NAVIGATION_SLICE_NAME:
 		_update_overlay_visibility()
 
-	if slice_name == SCENE_SLICE_NAME:
-		_sync_mobile_scaling_suppression()
-
 func set_display_settings_preview(settings: Dictionary) -> void:
 	_preview_settings = settings.duplicate(true)
 	_display_settings_preview_active = true
@@ -220,14 +194,11 @@ func _apply_display_settings(state: Dictionary) -> void:
 		_last_window_hash = window_hash
 
 	_apply_quality_settings(effective_settings)
-	_apply_mobile_resolution_scale(state)
 	_apply_post_process_settings(effective_settings)
 	_apply_color_grading_settings(effective_settings)
 	_apply_ui_scale_settings(effective_settings)
 	_apply_accessibility_settings(effective_settings)
 	_sync_pipeline_visibility(effective_settings, state)
-
-	_sync_mobile_scaling_suppression()
 
 func _build_effective_settings(state: Dictionary) -> Dictionary:
 	var settings: Dictionary = U_DISPLAY_SELECTORS.get_display_settings(state).duplicate(true)
@@ -255,27 +226,6 @@ func _apply_quality_settings(display_settings: Dictionary) -> void:
 	if _quality_applier == null:
 		return
 	_quality_applier.apply_settings(display_settings)
-
-func _apply_mobile_resolution_scale(state: Dictionary) -> void:
-	if not U_MOBILE_PLATFORM_DETECTOR.is_mobile():
-		return
-	var config: Dictionary = _resolve_display_config_values()
-	var scale := U_DISPLAY_SELECTORS.get_mobile_resolution_scale(state)
-	U_MOBILE_PLATFORM_DETECTOR.set_scale_override(
-		clampf(scale, float(config.get("min_mobile_resolution_scale", 0.35)), 1.0)
-	)
-	_request_mobile_scale_refresh()
-
-func _request_mobile_scale_refresh() -> void:
-	var game_viewport_variant: Variant = U_SERVICE_LOCATOR.try_get_service(StringName("game_viewport"))
-	if not (game_viewport_variant is Node):
-		return
-	var game_viewport: Node = game_viewport_variant as Node
-	var container: Node = game_viewport.get_parent()
-	if container == null:
-		return
-	if container.has_method("request_scale_refresh"):
-		container.call("request_scale_refresh")
 
 func _apply_ui_scale_settings(display_settings: Dictionary) -> void:
 	_ensure_appliers()
@@ -504,23 +454,6 @@ func _sync_pipeline_visibility(display_settings: Dictionary, state: Dictionary) 
 		"grain_dither_enabled": pp_enabled and (fg_enabled or dither_enabled or scanlines_enabled),
 		"color_grading_enabled": shell == SHELL_GAMEPLAY,
 	})
-
-## Toggle mobile resolution scaling suppression based on active scene type.
-## Menus render inside GameViewport; scaling makes them look zoomed in.
-func _sync_mobile_scaling_suppression() -> void:
-	if not U_MOBILE_PLATFORM_DETECTOR.is_mobile():
-		return
-	var state: Dictionary = {}
-	if _state_store != null:
-		state = _state_store.get_state()
-	var scene_id: StringName = U_SceneSelectors.get_current_scene_id(state)
-	var scene_type: int = U_SCENE_REGISTRY.get_scene_type(scene_id)
-	# Suppress scaling for full-screen menus (MENU, END_GAME, UI)
-	var suppress: bool = scene_type != U_SCENE_REGISTRY.SceneType.GAMEPLAY
-	U_MOBILE_PLATFORM_DETECTOR.set_scaling_suppressed(suppress)
-	if suppress != _last_suppressed:
-		_last_suppressed = suppress
-		_request_mobile_scale_refresh()
 
 func _get_palette_id_text(palette: Resource) -> String:
 	if palette == null:

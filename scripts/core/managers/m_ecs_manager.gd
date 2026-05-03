@@ -10,7 +10,6 @@ const U_ECS_EVENT_BUS := preload("res://scripts/core/events/ecs/u_ecs_event_bus.
 const U_ECS_QUERY_METRICS := preload("res://scripts/core/utils/ecs/u_ecs_query_metrics.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const I_ECS_ENTITY := preload("res://scripts/core/interfaces/i_ecs_entity.gd")
-const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/core/utils/display/u_mobile_platform_detector.gd")
 const PROJECT_SETTING_QUERY_METRICS_ENABLED := "ecs/debug/query_metrics_enabled"
 const PROJECT_SETTING_QUERY_METRICS_CAPACITY := "ecs/debug/query_metrics_capacity"
 const PROJECT_SETTING_SYSTEM_PROFILING_ENABLED := "ecs/debug/system_profiling_enabled"
@@ -86,9 +85,6 @@ func _initialize_system_profiling_settings() -> void:
 			_system_profiling_enabled = bool(stored)
 	else:
 		_system_profiling_enabled = false
-	# Force-enable system profiling on mobile for diagnostics
-	if U_MOBILE_PLATFORM_DETECTOR.is_mobile():
-		_system_profiling_enabled = true
 
 func is_system_profiling_enabled() -> bool:
 	return _system_profiling_enabled

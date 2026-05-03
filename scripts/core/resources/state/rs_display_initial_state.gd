@@ -2,12 +2,6 @@
 extends Resource
 class_name RS_DisplayInitialState
 
-## Display Initial State Resource (Phase 0 - Task 0A.2)
-##
-## Defines default display settings for the display slice.
-
-const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/core/utils/display/u_mobile_platform_detector.gd")
-
 @export_group("Graphics")
 @export var window_size_preset: String = "1920x1080"
 @export_enum("windowed", "fullscreen", "borderless") var window_mode: String = "windowed"
@@ -36,9 +30,7 @@ const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/core/utils/display/u_
 @export_range(0.25, 1.0, 0.05) var mobile_resolution_scale: float = 0.35
 
 ## Convert resource to Dictionary for state store.
-## On mobile, overrides graphics defaults for better performance.
 func to_dictionary() -> Dictionary:
-	# Load intensity values from preset
 	var preset_values := U_PostProcessingPresetValues.get_preset_values(post_processing_preset)
 
 	var result := {
@@ -62,13 +54,5 @@ func to_dictionary() -> Dictionary:
 		"color_blind_shader_enabled": color_blind_shader_enabled,
 		"mobile_resolution_scale": mobile_resolution_scale,
 	}
-
-	# Mobile override: downgrade defaults for better performance
-	if U_MOBILE_PLATFORM_DETECTOR.is_mobile():
-		result["quality_preset"] = "low"
-		result["post_processing_enabled"] = false
-		result["film_grain_enabled"] = false
-		result["dither_enabled"] = false
-		result["scanlines_enabled"] = false
 
 	return result

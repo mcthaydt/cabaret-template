@@ -1,20 +1,14 @@
 extends RefCounted
 class_name U_DisplayQualityApplier
 
-## Applies rendering quality presets to the active viewport.
-## On mobile, enforces a performance floor regardless of user settings.
-
 const U_DISPLAY_OPTION_CATALOG := preload("res://scripts/core/utils/display/u_display_option_catalog.gd")
 const U_DISPLAY_SELECTORS := preload("res://scripts/core/state/selectors/u_display_selectors.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/core/utils/display/u_mobile_platform_detector.gd")
 
 var _owner: Node = null
-var _is_mobile: bool = false
 
 func initialize(owner: Node) -> void:
 	_owner = owner
-	_is_mobile = U_MOBILE_PLATFORM_DETECTOR.is_mobile()
 
 func apply_settings(display_settings: Dictionary) -> void:
 	var state := {"display": display_settings}
@@ -27,30 +21,12 @@ func apply_quality_preset(preset: String) -> void:
 	if not _is_rendering_available():
 		return
 
-	# On mobile, force "low" quality regardless of preset setting
-	var effective_preset := preset
-	if _is_mobile:
-		effective_preset = "low"
-
-	var config := _load_quality_preset(effective_preset)
+	var config := _load_quality_preset(preset)
 	if config == null:
 		return
 
 	_apply_shadow_quality(str(config.shadow_quality))
 	_apply_anti_aliasing(str(config.anti_aliasing))
-
-	# Mobile floor: disable MSAA even on "low" and reduce shadow atlas further
-	if _is_mobile:
-		_apply_mobile_floor()
-
-func _apply_mobile_floor() -> void:
-	# Force disable MSAA on mobile (even "low" preset might have it)
-	var viewport := _get_render_target_viewport()
-	if viewport != null:
-		viewport.msaa_3d = Viewport.MSAA_DISABLED
-		viewport.screen_space_aa = Viewport.SCREEN_SPACE_AA_DISABLED
-	# Force shadow atlas to minimum
-	RenderingServer.directional_shadow_atlas_set_size(1024, false)
 
 func _load_quality_preset(preset: String) -> Resource:
 	var resource := U_DISPLAY_OPTION_CATALOG.get_quality_preset_by_id(preset)

@@ -6,14 +6,11 @@ const FLOATING_TYPE := StringName("C_FloatingComponent")
 ## Number of consecutive frames required to transition stable ground state
 ## 4 frames ≈ 67ms at 60fps, filters spring oscillations (~50ms) while staying responsive
 const STABLE_GROUND_FRAMES_REQUIRED := 4
-## Mobile throttle: skip every Nth physics tick to reduce raycast overhead
-const MOBILE_TICK_INTERVAL := 2
 
 const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/core/ecs/components/c_character_state_component.gd")
 const CHARACTER_STATE_TYPE := C_CHARACTER_STATE_COMPONENT.COMPONENT_TYPE
 const C_SPAWN_STATE_COMPONENT := preload("res://scripts/core/ecs/components/c_spawn_state_component.gd")
 const SPAWN_STATE_TYPE := C_SPAWN_STATE_COMPONENT.COMPONENT_TYPE
-const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/core/utils/display/u_mobile_platform_detector.gd")
 const U_PERF_PROBE := preload("res://scripts/core/utils/debug/u_perf_probe.gd")
 const U_DEBUG_LOG_THROTTLE := preload("res://scripts/core/utils/debug/u_debug_log_throttle.gd")
 
@@ -25,8 +22,6 @@ const U_DEBUG_LOG_THROTTLE := preload("res://scripts/core/utils/debug/u_debug_lo
 
 var _debug_log_throttle: Variant = U_DEBUG_LOG_THROTTLE.new()
 var _diag_frame_counter: int = 0
-var _is_mobile: bool = false
-var _tick_counter: int = 0
 var _perf_probe: U_PerfProbe = null
 
 class SupportInfo:
@@ -39,18 +34,12 @@ class SupportInfo:
 	var miss_ray_names: Array = []
 
 func _init() -> void:
-	_is_mobile = U_MOBILE_PLATFORM_DETECTOR.is_mobile()
-	_perf_probe = U_PerfProbe.create("S_FloatingSystem", _is_mobile)
+	_perf_probe = U_PerfProbe.create("S_FloatingSystem", false)
 
 func get_phase() -> BaseECSSystem.SystemPhase:
 	return BaseECSSystem.SystemPhase.PHYSICS_SOLVE
 
 func process_tick(delta: float) -> void:
-	# Mobile throttle: skip every Nth physics tick to reduce raycast overhead
-	_tick_counter += 1
-	if _is_mobile and (_tick_counter % MOBILE_TICK_INTERVAL) != 0:
-		return
-
 	_perf_probe.start()
 	_diag_frame_counter += 1
 	_debug_log_throttle.tick(delta)

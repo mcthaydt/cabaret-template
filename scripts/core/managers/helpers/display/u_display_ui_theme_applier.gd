@@ -91,8 +91,9 @@ func _apply_ui_theme_to_node(node: Node) -> void:
 		var control := node as Control
 		if control.theme == null or control.theme == _ui_theme:
 			control.theme = _ui_theme
-	var children: Array = node.get_children()
-	for child in children:
+	elif node is Window:
+		_apply_theme_to_window(node as Window)
+	for child in node.get_children():
 		if child is Node:
 			_apply_ui_theme_to_node(child)
 
@@ -101,11 +102,25 @@ func _apply_unified_theme_to_node(node: Node) -> void:
 		return
 	if node is Control:
 		_apply_unified_theme_to_control(node as Control)
-		return
-	var children: Array = node.get_children()
-	for child in children:
+	elif node is Window:
+		_apply_unified_theme_to_window(node as Window)
+	for child in node.get_children():
 		if child is Node:
 			_apply_unified_theme_to_node(child)
+
+func _apply_theme_to_window(window: Window) -> void:
+	if window.theme == null or window.theme == _ui_theme:
+		window.theme = _ui_theme
+
+func _apply_unified_theme_to_window(window: Window) -> void:
+	var merged_theme := U_UI_THEME_BUILDER.build_theme(
+		U_UI_THEME_BUILDER.active_config,
+		window.theme,
+		_active_palette
+	)
+	if merged_theme == null:
+		return
+	window.theme = merged_theme
 
 func _apply_unified_theme_to_control(control: Control) -> void:
 	if control == null:
