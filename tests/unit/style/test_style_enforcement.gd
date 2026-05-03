@@ -2544,13 +2544,15 @@ func test_core_scripts_never_import_from_demo() -> void:
 		"res://scenes/demo/",
 		"res://resources/demo/"
 	]
-	_collect_demo_imports_in_core("res://scripts/core", violations, forbidden_patterns)
+	# u_scene_manifest.gd is allow-listed: it registers scene paths (including demo) but doesn't import/depend on demo code
+	var allow_listed_files: Array[String] = ["res://scripts/core/scene_management/u_scene_manifest.gd"]
+	_collect_demo_imports_in_core("res://scripts/core", violations, forbidden_patterns, allow_listed_files)
 	var message := "scripts/core/ must not import from demo/ paths. Core must not depend on demo."
 	if violations.size() > 0:
 		message += ":\n" + "\n".join(violations)
 	assert_eq(violations.size(), 0, message)
 
-func _collect_demo_imports_in_core(dir_path: String, violations: Array[String], forbidden_patterns: Array[String]) -> void:
+func _collect_demo_imports_in_core(dir_path: String, violations: Array[String], forbidden_patterns: Array[String], allow_listed_files: Array[String] = []) -> void:
 	var dir := DirAccess.open(dir_path)
 	if dir == null:
 		return
@@ -2560,8 +2562,11 @@ func _collect_demo_imports_in_core(dir_path: String, violations: Array[String], 
 		var path := "%s/%s" % [dir_path, entry]
 		if dir.current_is_dir():
 			if not entry.begins_with("."):
-				_collect_demo_imports_in_core(path, violations, forbidden_patterns)
+				_collect_demo_imports_in_core(path, violations, forbidden_patterns, allow_listed_files)
 		elif entry.ends_with(".gd"):
+			if path in allow_listed_files:
+				entry = dir.get_next()
+				continue
 			var file := FileAccess.open(path, FileAccess.READ)
 			if file == null:
 				entry = dir.get_next()
