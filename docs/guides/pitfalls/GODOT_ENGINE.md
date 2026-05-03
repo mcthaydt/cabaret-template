@@ -8,6 +8,10 @@ Engine-level quirks and platform-specific gotchas for Godot 4.6.
 
 - **Create new `.tscn` files via builder scripts, not by hand**: When a task calls for a new scene or prefab (template, player prefab, room, etc.), write a builder script (`U_EditorPrefabBuilder`, `U_TemplateBaseSceneBuilder`, or a new `U_*Builder`) that generates the `.tscn`. Do not create `.tscn` files directly. See `docs/architecture/extensions/builders.md` — "Using editor prefab / blockout builders (Phase 7)".
 - **Always edit builder scripts for geometry/material changes, not `.tscn` files directly**: `tmpl_base_scene.tscn` geometry (walls, floor, ceiling) must be modified through builder scripts (`U_EditorBlockoutBuilder`) that regenerate the `.tscn`, not by hand-editing the `.tscn` file. Hand-editing scene geometry leads to drift between the builder's intent and the serialized output, and changes will be lost on the next build-script run.
+- **After modifying a builder that emits scene nodes, regenerate `.tscn` files**: run the rebuild script headless:
+  ```
+  /Applications/Godot.app/Contents/MacOS/Godot --path . --headless --script tools/rebuild_scenes.gd
+  ```
 - **Assign `owner` before packing generated scenes**: Godot only serializes nodes owned by the packed scene root. If a builder creates a populated tree but calls `PackedScene.pack(root)` without assigning `child.owner = root`, the saved `.tscn` can contain only the root node even though the in-memory tree looked correct. Fix pattern:
   ```gdscript
   func _set_owner_recursive(node: Node, owner: Node) -> void:

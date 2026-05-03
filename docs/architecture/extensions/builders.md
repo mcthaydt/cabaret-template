@@ -167,6 +167,10 @@ This recipe does **not** cover:
               .save("res://scenes/demo/prefabs/prefab_my_thing.tscn")
    ```
 3. `U_EditorPrefabBuilder` and `U_EditorBlockoutBuilder` are `RefCounted`; no `EditorScript` base. This lets GUT unit-test them headlessly.
+4. After modifying any builder that emits scene nodes, regenerate `.tscn` files via the rebuild script:
+   ```
+   /Applications/Godot.app/Contents/MacOS/Godot --path . --headless --script tools/rebuild_scenes.gd
+   ```
 
 ### Using UI settings tab / menu builders (Phase 8)
 
