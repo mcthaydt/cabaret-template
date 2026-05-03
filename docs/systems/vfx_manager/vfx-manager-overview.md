@@ -1,6 +1,6 @@
 # VFX Manager Overview
 
-**Project**: Automata Template (Godot 4.6)
+**Project**: Automata Template (Godot 4.7)
 **Created**: 2026-01-01
 **Last Updated**: 2026-03-07
 **Status**: IMPLEMENTED baseline (vCam-alignment addendum documented)

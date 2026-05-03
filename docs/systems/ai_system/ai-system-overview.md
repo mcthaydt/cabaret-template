@@ -1,6 +1,6 @@
 # AI System Overview (Behavior Trees)
 
-**Project**: Automata Template (Godot 4.6)
+**Project**: Automata Template (Godot 4.7)
 **Created**: 2026-03-31
 **Last Updated**: 2026-04-23
 **Status**: BT runtime migration complete through Cleanup V8 P1.10; extension recipe authored

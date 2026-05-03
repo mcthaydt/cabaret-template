@@ -1,6 +1,6 @@
 # VFX Manager PRD
 
-**Project**: Automata Template (Godot 4.6)
+**Project**: Automata Template (Godot 4.7)
 **Owner**: Development Team
 **Feature Branch**: `feature/vfx-manager`
 **Created**: 2026-01-01
