@@ -196,6 +196,12 @@ func _add_core_systems(parent: Node) -> void:
 	input_sys.set_script(INPUT_SYSTEM_SCRIPT)
 	core.add_child(input_sys)
 
+	var touchscreen_sys := Node.new()
+	touchscreen_sys.name = "S_TouchscreenSystem"
+	const TOUCHSCREEN_SYSTEM_SCRIPT := preload("res://scripts/core/ecs/systems/s_touchscreen_system.gd")
+	touchscreen_sys.set_script(TOUCHSCREEN_SYSTEM_SCRIPT)
+	core.add_child(touchscreen_sys)
+
 	var vcam_sys := Node.new()
 	vcam_sys.name = "S_VCamSystem"
 	const VCAM_SYSTEM_SCRIPT := preload("res://scripts/core/ecs/systems/s_vcam_system.gd")

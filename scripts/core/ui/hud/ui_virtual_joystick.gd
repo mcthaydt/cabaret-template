@@ -50,7 +50,9 @@ func _handle_touch(event: InputEventScreenTouch) -> void:
 	if event.pressed:
 		if _touch_id != -1:
 			return
-		if not get_global_rect().has_point(touch_position):
+		var gr := get_global_rect()
+		var inside := gr.has_point(touch_position)
+		if not inside:
 			return
 		_touch_id = event.index
 		_is_active = true

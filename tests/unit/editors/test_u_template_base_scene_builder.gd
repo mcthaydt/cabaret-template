@@ -149,6 +149,7 @@ func test_core_systems_contain_input_vcam_wallcutout() -> void:
 	var core: Node = root.get_node_or_null("Systems/Core")
 	assert_not_null(core, "Core systems must exist")
 	assert_not_null(core.get_node_or_null("S_InputSystem"), "InputSystem must exist")
+	assert_not_null(core.get_node_or_null("S_TouchscreenSystem"), "TouchscreenSystem must exist")
 	assert_not_null(core.get_node_or_null("S_VCamSystem"), "VCamSystem must exist")
 	assert_not_null(core.get_node_or_null("S_WallCutoutSystem"), "WallCutoutSystem must exist")
 

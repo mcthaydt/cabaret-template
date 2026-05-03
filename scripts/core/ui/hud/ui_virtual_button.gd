@@ -82,7 +82,8 @@ func is_pressed() -> bool:
 func _handle_touch_press(event: InputEventScreenTouch) -> void:
 	if _touch_id != -1:
 		return
-	if not _is_touch_inside(event.position):
+	var inside := _is_touch_inside(event.position)
+	if not inside:
 		return
 	_touch_id = event.index
 	_is_repositioning = can_reposition
