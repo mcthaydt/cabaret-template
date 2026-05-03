@@ -28,7 +28,7 @@ Use this prompt to resume work on the QB Rule Manager feature in a new session.
 
 ## Context
 
-You are implementing a Quality-Based (QB) Rule Manager for a Godot 4.6 ECS game template. The rule manager is a data-driven condition-effect engine that replaces scattered decision/gating logic across ECS systems with declarative rules defined as Resource `.tres` files.
+You are implementing a Quality-Based (QB) Rule Manager for a Godot 4.7 ECS game template. The rule manager is a data-driven condition-effect engine that replaces scattered decision/gating logic across ECS systems with declarative rules defined as Resource `.tres` files.
 
 **Key design decisions:**
 - **4 effect types, no CALL_METHOD**: DISPATCH_ACTION, PUBLISH_EVENT, SET_COMPONENT_FIELD, SET_QUALITY

@@ -35,7 +35,7 @@
 
 **Deliverable:** ~17 new files, ~80 test functions. All tested in isolation. v1 untouched.
 
-**Risk gate (1D):** Verify `Array[RS_BaseCondition]` shows correct subclass dropdown in the Godot 4.6 inspector before proceeding past Phase 1. If it doesn't work, fall back to `Array[Resource]` with runtime type checks.
+**Risk gate (1D):** Verify `Array[RS_BaseCondition]` shows correct subclass dropdown in the Godot 4.7 inspector before proceeding past Phase 1. If it doesn't work, fall back to `Array[Resource]` with runtime type checks.
 Current Phase 1 outcome: fallback path was selected due headless parser instability (`Could not find type ...`) and runtime subtype validation is enforced in `U_RuleValidator`.
 
 ---
@@ -165,7 +165,7 @@ Phase 5C completion note (2026-02-25): Recorded final suite counts and committed
 
 | Risk | Mitigation |
 |---|---|
-| `Array[RS_BaseCondition]` inspector support in Godot 4.6 | Phase 1D: verify before proceeding. Fallback: `Array[Resource]` + runtime checks |
+| `Array[RS_BaseCondition]` inspector support in Godot 4.7 | Phase 1D: verify before proceeding. Fallback: `Array[Resource]` + runtime checks |
 | Handler systems depend on v1 event payload shape | Phase 3C: integration tests verify identical payloads |
 | `.tscn` files reference old script paths after rename | Grep all scenes at each migration phase (T144, T174, T197, T224) |
 | Performance regression from virtual dispatch vs enum dispatch | Negligible at current rule counts. Benchmark after Phase 4 if concerned |

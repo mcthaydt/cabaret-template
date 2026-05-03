@@ -1,6 +1,6 @@
 # Display Manager - Implementation Plan
 
-**Project**: Automata Template (Godot 4.6)
+**Project**: Automata Template (Godot 4.7)
 **Status**: Planning
 **Estimated Duration**: 18 days
 **Test Count**: ~120 tests (90 unit + 30 integration)

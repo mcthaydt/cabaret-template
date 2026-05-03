@@ -1,6 +1,6 @@
 # Time Manager - Implementation Plan
 
-**Project**: Automata Template (Godot 4.6)
+**Project**: Automata Template (Godot 4.7)
 **Status**: Complete
 **Methodology**: Test-Driven Development (Red-Green-Refactor)
 **Reference**: `docs/time_manager/time-manager-overview.md`

@@ -54,7 +54,7 @@ Resource classes live under `scripts/core/resources/**`. Resource instances live
 1. Pick the owning domain directory under `scripts/core/resources/**`.
 2. Create `rs_<domain>_<name>.gd`; extend `Resource` or the established domain base class.
 3. Add `class_name RS_<Domain><Name>` when the class is designer-facing or referenced by `.tres` files.
-4. Use typed exported properties where Godot 4.6 supports them.
+4. Use typed exported properties where Godot 4.7 supports them.
 5. Validate local field shape in property setters when invalid values should fail loudly at load time.
 6. Include `resource_path` in `push_error()` messages when reporting invalid authored data.
 7. Add a focused unit test for validation and serialization helpers.

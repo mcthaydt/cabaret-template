@@ -22,7 +22,7 @@ Use this prompt to resume work on the Scene Director / Objectives Manager featur
 
 ## Context
 
-You are implementing a Scene Director and Objectives Manager for a Godot 4.6 ECS game template. This builds on top of the completed QB v2 rule engine (typed resources + stateless scoring library). The feature adds three systems:
+You are implementing a Scene Director and Objectives Manager for a Godot 4.7 ECS game template. This builds on top of the completed QB v2 rule engine (typed resources + stateless scoring library). The feature adds three systems:
 
 1. **M_ObjectivesManager** -- Dependency graph, win/loss conditions, event logging
 2. **M_SceneDirector** -- Beat runner for intra-scene sequences
