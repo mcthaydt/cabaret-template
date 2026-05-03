@@ -155,3 +155,32 @@ Engine-level quirks and platform-specific gotchas for Godot 4.6.
   ```
 
 - **3D audio is viewport/world scoped**: `AudioStreamPlayer3D` must exist in the same `Viewport`/`World3D` as the active listener (the viewport's current `Camera3D`). If you parent your SFX pool under `/root` while gameplay runs in `GameViewport`, 3D SFX can be silent even though they are "playing".
+
+---
+
+## Jolt Physics Export Checklist
+
+When preparing builds for release:
+
+1. **Verify addon inclusion:**
+   - Export → Resources → Include Filters: `*godot-jolt*`
+   - Or manually copy `addons/godot-jolt/` to export directory
+
+2. **Platform-specific libraries:**
+   - Windows: `godot-jolt_64.dll`
+   - macOS: `libgodot-jolt.macos.dylib`
+   - Linux: `libgodot-jolt.linux.so`
+   - Web: `godot-jolt.wasm` (if using web export)
+
+3. **Test physics after export:**
+   - Run exported build
+   - Verify collision detection works
+   - Check ragdoll/constraint behavior
+
+4. **Fallback option:**
+   If Jolt causes issues, temporarily switch to Godot Physics:
+   ```ini
+   [physics]
+   3d/physics_engine="Godot Physics"
+   ```
+   **Warning:** Requires retesting all physics interactions.

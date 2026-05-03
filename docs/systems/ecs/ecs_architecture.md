@@ -1724,6 +1724,25 @@ func build_entity_snapshot(entity: Node) -> Dictionary
 3. Expand unit coverage for event-driven responder systems (particles, audio, camera shake).
 4. Continue enforcing deep-copy semantics for shared dictionaries/arrays.
 
+## Physics Engine Dependency
+
+This template uses **Jolt Physics** via the Godot Jolt addon (`addons/godot-jolt`).
+
+**Configuration:** `project.godot` line 235:
+```ini
+[physics]
+3d/physics_engine="Jolt Physics"
+```
+
+**For LLMs:** If generating physics-related code, assume Jolt Physics is active. Do not suggest Godot Physics-specific features unless marked as optional.
+
+**Export Checklist:**
+- ✅ `addons/godot-jolt/` must be included in export presets
+- ✅ Jolt shared libraries must be packaged for target platform
+- ✅ Fallback to Godot Physics requires `project.godot` change + testing
+
+---
+
 ## 10. Current Runtime Contracts
 
 These contracts are the active authoring rules for ECS code in this template.
