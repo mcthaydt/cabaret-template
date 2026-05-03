@@ -24,11 +24,11 @@ scripts/core/resources/state/
 
 ---
 
-## Step 1: Define Initial State (.tres file)
+## Step 1: Define Initial State
 
-Create a Resource that defines default state values:
+Create a Resource that defines default state values. This involves two files:
 
-**File:** `resources/core/state/cfg_default_<slice>_initial_state.tres`
+**File 1:** `resources/core/state/cfg_default_<slice>_initial_state.tres`
 
 ```gdscript
 [gd_resource type="Resource" script_class="RS_<Slice>InitialState" format=3 uid="uid://<generated>"]
@@ -39,11 +39,7 @@ Create a Resource that defines default state values:
 script = ExtResource("1_default")
 ```
 
----
-
-## Step 2: Create Initial State Resource Script
-
-**File:** `scripts/core/resources/state/rs_<slice>_initial_state.gd`
+**File 2:** `scripts/core/resources/state/rs_<slice>_initial_state.gd`
 
 ```gdscript
 @icon("res://assets/core/editor_icons/icn_resource.svg")
@@ -66,7 +62,7 @@ func to_dictionary() -> Dictionary:
 
 ---
 
-## Step 3: Create Actions (Action Creator Functions)
+## Step 2: Create Actions (Action Creator Functions)
 
 **File:** `scripts/core/state/actions/u_<slice>_actions.gd`
 
@@ -100,7 +96,7 @@ static func example_action(payload: Type) -> Dictionary:
 
 ---
 
-## Step 4: Create Reducer (Handle Function with Match Cases)
+## Step 3: Create Reducer (Handle Function with Match Cases)
 
 **File:** `scripts/core/state/reducers/u_<slice>_reducer.gd`
 
@@ -137,7 +133,7 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 
 ---
 
-## Step 5: Create Selectors (Query Functions)
+## Step 4: Create Selectors (Query Functions)
 
 **File:** `scripts/core/state/selectors/u_<slice>_selectors.gd`
 
@@ -177,7 +173,7 @@ static func _get_<slice>_slice(state: Dictionary) -> Dictionary:
 
 ---
 
-## Step 6: Register Slice (in M_StateStore)
+## Step 5: Register Slice (in M_StateStore)
 
 The slice is registered automatically via export variables in `M_StateStore`:
 
@@ -207,7 +203,7 @@ var <slice>_config := RS_StateSliceConfig.new(StringName("<slice>"))
 
 ---
 
-## Step 7: Write Tests (GUT Test Examples)
+## Step 6: Write Tests (GUT Test Examples)
 
 **File:** `tests/unit/state/test_u_<slice>_actions.gd`
 
