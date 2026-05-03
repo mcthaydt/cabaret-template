@@ -1,35 +1,11 @@
 extends GutTest
 
 const U_PERF_PROBE := preload("res://scripts/core/utils/debug/u_perf_probe.gd")
-const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/core/utils/display/u_mobile_platform_detector.gd")
 
 
-func before_all() -> void:
-	U_MOBILE_PLATFORM_DETECTOR.set_testing(true)
-	U_MOBILE_PLATFORM_DETECTOR.set_mobile_override(0)  # Force desktop for tests
-
-
-func after_all() -> void:
-	U_MOBILE_PLATFORM_DETECTOR.set_mobile_override(-1)
-	U_MOBILE_PLATFORM_DETECTOR.set_testing(false)
-
-
-func test_create_default_enabled_on_mobile() -> void:
-	U_MOBILE_PLATFORM_DETECTOR.set_mobile_override(1)
+func test_create_default_always_disabled() -> void:
 	var probe := U_PerfProbe.create("test_probe")
-	assert_true(probe.is_enabled(), "create() default should auto-enable probe on mobile")
-
-
-func test_create_default_disabled_on_desktop() -> void:
-	U_MOBILE_PLATFORM_DETECTOR.set_mobile_override(0)
-	var probe := U_PerfProbe.create("test_probe")
-	assert_false(probe.is_enabled(), "create() default should stay disabled on desktop")
-
-
-func test_explicit_enabled_override_still_wins_on_desktop() -> void:
-	U_MOBILE_PLATFORM_DETECTOR.set_mobile_override(0)
-	var probe := U_PerfProbe.create("test_probe", true)
-	assert_true(probe.is_enabled(), "Explicit enabled=true should override desktop default")
+	assert_false(probe.is_enabled(), "create() default should always be disabled")
 
 
 func test_explicit_disabled_stays_zero_cost() -> void:

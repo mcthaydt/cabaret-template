@@ -40,7 +40,7 @@ static func create(name: String, enabled: Variant = null, flush_interval_sec: fl
 
 static func _resolve_enabled(enabled: Variant) -> bool:
 	if enabled == null:
-		return U_MobilePlatformDetector.is_mobile()
+		return false
 	return bool(enabled)
 
 
