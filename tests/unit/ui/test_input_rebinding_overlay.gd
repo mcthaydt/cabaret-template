@@ -706,11 +706,12 @@ func test_sync_focus_tracking_does_not_crash_on_row_container() -> void:
 	await _pump()
 
 	var row_container := overlay.get_node_or_null("%ActionList") as VBoxContainer
-	# If the scene uses a builder, the row itself may be deeper; just assert we can call the method safely.
-	if overlay.has_method("_sync_focus_tracking_from_control"):
-		overlay.call("_sync_focus_tracking_from_control", row_container)
+	assert_true(overlay.has_method("_sync_focus_tracking_from_control"),
+		"Overlay should have _sync_focus_tracking_from_control method")
+	# Calling with a non-Button control should not crash.
+	overlay.call("_sync_focus_tracking_from_control", row_container)
 	# If no exception was thrown, the regression is fixed.
-	pass
+	assert_true(true, "_sync_focus_tracking_from_control should not crash on non-Button control")
 
 func _get_store_custom_bindings() -> Dictionary:
 	if _store == null:
