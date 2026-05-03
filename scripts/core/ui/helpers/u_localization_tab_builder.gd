@@ -29,23 +29,23 @@ func set_callbacks(
 func build() -> Control:
 	set_heading(&"settings.localization.title")
 	
-	begin_section(&"settings.localization.section.language", "LanguageSection")
+	begin_section(&"settings.localization.section.language", "LanguageSection", "LANGUAGE")
 	add_dropdown(
 		&"settings.localization.label.language",
 		U_UI_SETTINGS_CATALOG.get_language_options(),
 		_on_language_selected,
 		&"",
-		"",
+		"Language",
 		"LanguageOptionButton"
 	)
 	end_section()
 	
-	begin_section(&"settings.localization.section.accessibility", "AccessibilitySection")
+	begin_section(&"settings.localization.section.accessibility", "AccessibilitySection", "ACCESSIBILITY")
 	add_toggle(
 		&"settings.localization.label.dyslexia",
 		_on_dyslexia_toggled,
 		&"",
-		"",
+		"Dyslexia-Friendly Font",
 		"DyslexiaCheckButton"
 	)
 	end_section()

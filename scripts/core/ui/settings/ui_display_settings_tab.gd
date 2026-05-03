@@ -574,6 +574,7 @@ func _configure_window_confirm_dialog() -> void:
 	var window_confirm_dialog: ConfirmationDialog = _get_window_confirm_dialog()
 	if window_confirm_dialog == null:
 		return
+	window_confirm_dialog.title = U_LOCALIZATION_UTILS.localize_with_fallback(DIALOG_WINDOW_CONFIRM_TITLE_KEY, "Confirm Display Changes")
 	var ok_button: Button = _get_window_confirm_ok_button()
 	if ok_button != null:
 		ok_button.text = U_LOCALIZATION_UTILS.localize_with_fallback(&"common.keep", "Keep")

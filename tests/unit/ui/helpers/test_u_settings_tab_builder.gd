@@ -384,6 +384,70 @@ func test_add_button_row_creates_three_buttons() -> void:
 	assert_eq(_pressed_buttons, ["apply", "cancel", "reset"], "All buttons should be wired")
 
 
+func test_begin_section_accepts_and_uses_fallback_text() -> void:
+	var builder_script := _get_builder_script()
+	if builder_script == null:
+		return
+	var tab := VBoxContainer.new()
+	add_child_autofree(tab)
+	var builder = builder_script.new(tab)
+	builder.begin_section(&"missing.section.key", "TestSection", "Section Fallback")
+	builder.build()
+	var section := tab.find_child("TestSection", true, false)
+	assert_not_null(section, "Section container should be created")
+	var label: Label = null
+	for child in section.get_children():
+		if child is Label:
+			label = child as Label
+			break
+	assert_not_null(label, "Section should contain a label")
+	assert_eq(label.text, "Section Fallback", "begin_section should use fallback text when key missing")
+
+
+func test_add_dropdown_uses_fallback_text_when_key_missing() -> void:
+	var builder_script := _get_builder_script()
+	if builder_script == null:
+		return
+	var tab := VBoxContainer.new()
+	add_child_autofree(tab)
+	var options: Array[Dictionary] = [{"id": &"a", "label_key": &"a"}]
+	builder_script.new(tab).add_dropdown(&"missing.dropdown.key", options, _on_dropdown_selected, &"", "Dropdown Fallback").build()
+	var label := _find_label(tab, "Dropdown Fallback")
+	assert_not_null(label, "Dropdown label should use fallback text when key missing")
+	assert_true(label.get_parent() is HBoxContainer, "Dropdown label should be in a row")
+
+
+func test_add_toggle_uses_fallback_text_when_key_missing() -> void:
+	var builder_script := _get_builder_script()
+	if builder_script == null:
+		return
+	var tab := VBoxContainer.new()
+	add_child_autofree(tab)
+	builder_script.new(tab).add_toggle(&"missing.toggle.key", _on_toggle_changed, &"", "Toggle Fallback").build()
+	var label := _find_label(tab, "Toggle Fallback")
+	assert_not_null(label, "Toggle label should use fallback text when key missing")
+	assert_true(label.get_parent() is HBoxContainer, "Toggle label should be in a row")
+
+
+func test_add_slider_uses_fallback_text_when_key_missing() -> void:
+	var builder_script := _get_builder_script()
+	if builder_script == null:
+		return
+	var tab := VBoxContainer.new()
+	add_child_autofree(tab)
+	builder_script.new(tab).add_slider(
+		&"missing.slider.key",
+		0.0, 1.0, 0.1,
+		_on_slider_changed,
+		&"",
+		&"",
+		"Slider Fallback"
+	).build()
+	var label := _find_label(tab, "Slider Fallback")
+	assert_not_null(label, "Slider label should use fallback text when key missing")
+	assert_true(label.get_parent() is HBoxContainer, "Slider label should be in a row")
+
+
 func _find_button_by_name(node: Node, name: String) -> Button:
 	if node is Button and node.name == name:
 		return node as Button

@@ -57,12 +57,12 @@ func bind_action_button(button: Button, key: StringName, callback: Callable = Ca
 	_connect(button.pressed, callback)
 	return self
 
-func begin_section(key: StringName, section_name: String = "Section") -> U_SettingsTabBuilder:
+func begin_section(key: StringName, section_name: String = "Section", fallback: String = "") -> U_SettingsTabBuilder:
 	var section := VBoxContainer.new()
 	section.name = section_name + "Section" if section_name.ends_with("Header") else section_name
 	_tab.add_child(section)
 	_current_parent = section
-	var label := _add_label(key, section)
+	var label := _add_label(key, section, fallback)
 	label.name = section_name if section_name.ends_with("Header") else "SectionHeader"
 	_theme_map.append({"control": label, "role": &"section_header"})
 	return self

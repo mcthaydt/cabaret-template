@@ -116,7 +116,7 @@ func _configure_focus_neighbors() -> void:
 		vertical_controls.append(_particles_enabled_toggle)
 
 	if not vertical_controls.is_empty():
-		U_FocusConfigurator.configure_vertical_focus(vertical_controls, false)
+		U_FocusConfigurator.configure_vertical_focus(vertical_controls, true)
 
 	var last_vertical_control: Control = null
 	if not vertical_controls.is_empty():

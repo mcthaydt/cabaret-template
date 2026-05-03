@@ -257,6 +257,12 @@ func test_apply_with_window_change_requires_confirm() -> void:
 	)
 	var window_confirm_dialog: ConfirmationDialog = tab._get_window_confirm_dialog()
 	assert_not_null(window_confirm_dialog, "Confirm dialog should exist")
+	if window_confirm_dialog != null:
+		assert_eq(
+			window_confirm_dialog.title,
+			"Confirm Display Changes",
+			"Window confirm dialog title should show English fallback when no localization"
+		)
 	assert_true(tab._window_confirm_active, "Window confirm should be active on window changes")
 
 	if window_confirm_dialog != null:

@@ -223,7 +223,7 @@ func _configure_focus_neighbors() -> void:
 		[null, _spatial_audio_toggle],
 	]
 
-	U_FocusConfigurator.configure_grid_focus(grid, false, false)
+	U_FocusConfigurator.configure_grid_focus(grid, true, false)
 
 	# Add a sensible "down" neighbor for the last slider into the spatial toggle.
 	if _ambient_volume_slider != null and _spatial_audio_toggle != null:

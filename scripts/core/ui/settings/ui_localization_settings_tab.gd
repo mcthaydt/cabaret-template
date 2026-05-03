@@ -42,30 +42,6 @@ func _get_control_by_name(name: String) -> Control:
 func _get_node_by_name(name: String) -> Node:
 	return find_child(name, true, false)
 
-func _get_heading_label() -> Label:
-	return _get_control_by_name("HeadingLabel") as Label
-
-func _get_language_section_label() -> Label:
-	return _get_control_by_name("LanguageSection") as Label
-
-func _get_language_label() -> Label:
-	return _get_control_by_name("LanguageLabel") as Label
-
-func _get_accessibility_section_label() -> Label:
-	return _get_control_by_name("AccessibilitySection") as Label
-
-func _get_dyslexia_label() -> Label:
-	return _get_control_by_name("DyslexiaLabel") as Label
-
-func _get_language_row() -> HBoxContainer:
-	return _get_control_by_name("LanguageRow") as HBoxContainer
-
-func _get_dyslexia_row() -> HBoxContainer:
-	return _get_control_by_name("DyslexiaRow") as HBoxContainer
-
-func _get_button_row() -> HBoxContainer:
-	return _get_control_by_name("ButtonRow") as HBoxContainer
-
 func _get_language_option() -> OptionButton:
 	return _get_control_by_name("LanguageOptionButton") as OptionButton
 
@@ -117,15 +93,6 @@ func _setup_builder() -> void:
 		_on_reset_pressed
 	)
 	if _builder != null:
-		_builder.bind_row(_get_language_row(), false)
-		_builder.bind_row(_get_dyslexia_row(), false)
-		_builder.bind_row(_get_button_row(), true)
-		_builder.bind_section_header(_get_language_section_label(), &"settings.localization.section.language")
-		_builder.bind_section_header(_get_accessibility_section_label(), &"settings.localization.section.accessibility")
-		_builder.bind_field_label(_get_language_label(), &"settings.localization.label.language")
-		_builder.bind_field_label(_get_dyslexia_label(), &"settings.localization.label.dyslexia_font")
-		_builder.bind_field_control(_get_language_option())
-		_builder.bind_field_control(_get_dyslexia_toggle())
 		_builder.bind_theme_role(self, &"separation_default")
 
 func _apply_theme_tokens() -> void:
@@ -517,12 +484,4 @@ func _localize_labels() -> void:
 	_populate_language_option()
 	if _builder != null:
 		_builder.localize_labels()
-	if _get_language_section_label() != null:
-		_get_language_section_label().text = U_LOCALIZATION_UTILS.localize(&"settings.localization.language_section")
-	if _get_language_label() != null:
-		_get_language_label().text = U_LOCALIZATION_UTILS.localize(&"settings.localization.language_label")
-	if _get_accessibility_section_label() != null:
-		_get_accessibility_section_label().text = U_LOCALIZATION_UTILS.localize(&"settings.localization.accessibility_section")
-	if _get_dyslexia_label() != null:
-		_get_dyslexia_label().text = U_LOCALIZATION_UTILS.localize(&"settings.localization.dyslexia_label")
 	_refresh_language_confirm_dialog_localization(_language_confirm_active)
