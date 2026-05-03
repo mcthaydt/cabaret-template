@@ -6,7 +6,7 @@
 
 **Architecture:** Extend `U_EditorBlockoutBuilder` with geometry/material helpers (staying under 200-line cap). Create a `@tool` build script that regenerates `tmpl_base_scene.tscn`. Update camera resource configs directly. Copy one grid texture from demo to core.
 
-**Tech Stack:** Godot 4.6, GDScript, GUT test framework, CSGBox3D geometry, VCam orbit mode
+**Tech Stack:** Godot 4.7, GDScript, GUT test framework, CSGBox3D geometry, VCam orbit mode
 
 ---
 

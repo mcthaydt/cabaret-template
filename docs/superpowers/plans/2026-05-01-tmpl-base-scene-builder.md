@@ -6,7 +6,7 @@
 
 **Architecture:** A `RefCounted` fluent builder following the `U_EditorBlockoutBuilder` pattern. A thin `@tool extends EditorScript` adapter calls it. The generated `.tscn` becomes the source of truth.
 
-**Tech Stack:** Godot 4.6 GDScript, GUT test framework
+**Tech Stack:** Godot 4.7 GDScript, GUT test framework
 
 ---
 

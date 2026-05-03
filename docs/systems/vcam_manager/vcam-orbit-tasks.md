@@ -440,7 +440,7 @@ Before starting Phase 2, verify:
 
 ### Phase 2C8 Follow-up: Input Consistency + Icon Coverage (March 15, 2026)
 
-> **Why:** Align default bindings with locked intent (`sprint=L3`, `camera_center=R3`), keep labels/icons canonical with Godot 4.6 constants, and expose touchscreen recenter via empty-space double-tap while keeping recenter in the shared input pipeline.
+> **Why:** Align default bindings with locked intent (`sprint=L3`, `camera_center=R3`), keep labels/icons canonical with Godot 4.7 constants, and expose touchscreen recenter via empty-space double-tap while keeping recenter in the shared input pipeline.
 
 - [x] **Task 2C8F.1**: Lock default bindings to intent (`camera_center=R3`, `sprint=L3`)
   - Updated `project.godot` `camera_center` joypad default from index `10` to `JOY_BUTTON_RIGHT_STICK` (`8`).
@@ -448,7 +448,7 @@ Before starting Phase 2, verify:
   - Left `sprint` bound to `JOY_BUTTON_LEFT_STICK` (`7`) unchanged.
 
 - [x] **Task 2C8F.2**: Canonicalize gamepad label mapping and prompt icon behavior
-  - `U_ButtonPromptRegistry._gamepad_button_to_label(...)` now uses Godot joypad constants (not legacy hardcoded index assumptions).
+   - `U_ButtonPromptRegistry._gamepad_button_to_label(...)` now uses Godot 4.7 joypad constants (not legacy hardcoded index assumptions).
   - Added explicit `camera_center` prompt defaults: keyboard `key_c` + gamepad `button_rs` (`R3`).
   - Prompt icon resolution is now binding-aware (`InputMap` binding texture first, registry fallback second) via `U_ButtonPromptRegistry.get_prompt_for_current_binding(...)`.
   - Added keyboard glyph support for `KEY_C` in `U_InputEventDisplay.get_texture_for_event(...)`.

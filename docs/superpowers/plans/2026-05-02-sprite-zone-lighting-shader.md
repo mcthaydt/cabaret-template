@@ -6,7 +6,7 @@
 
 **Architecture:** New shader file in `assets/core/shaders/`. Extend `U_CharacterLightingMaterialApplier` with parallel sprite methods sharing the same instance-id-keyed cache. Add one call site in `M_CharacterLightingManager._apply_lighting_to_characters()`. Wire up default shader material in `build_prefab_player_body.gd` so the prefab ships pre-configured.
 
-**Tech Stack:** Godot 4.6, GDScript, spatial unshaded shaders, GUT test framework
+**Tech Stack:** Godot 4.7, GDScript, spatial unshaded shaders, GUT test framework
 
 ---
 

@@ -6,7 +6,7 @@
 
 **Architecture:** Builder infrastructure (`U_SettingsTabBuilder`, `U_UIMenuBuilder`, `U_UISettingsCatalog`) is complete and tested. Three settings tabs (display, audio, localization) are fully migrated to builder-created nodes (0 @onready vars). Fourteen menu/overlay scripts use the builder's binding API (`bind_heading`, `bind_row`, `bind_field_control`, etc.) to wire existing `.tscn`-authored nodes. The 10 failing tests look for nodes by old @onready names that don't match builder-created node names.
 
-**Tech Stack:** Godot 4.6 / GDScript / GUT test framework
+**Tech Stack:** Godot 4.7 / GDScript / GUT test framework
 
 ---
 

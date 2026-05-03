@@ -6,7 +6,7 @@
 
 **Architecture:** Extend `U_EditorPrefabBuilder` with two child-parenting methods. Character prefabs inherit `tmpl_character.tscn`, attach `Body_Mesh` to `Player_Body`, override component settings, add ECS components. Scene prefabs import GLB models and add collision. All builder scripts are `@tool extends EditorScript` thin wrappers.
 
-**Tech Stack:** Godot 4.6, GDScript, GUT, PackedScene API.
+**Tech Stack:** Godot 4.7, GDScript, GUT, PackedScene API.
 
 ---
 

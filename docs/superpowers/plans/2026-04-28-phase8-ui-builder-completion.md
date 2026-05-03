@@ -6,7 +6,7 @@
 
 **Architecture:** The `U_SettingsTabBuilder` and `U_UIMenuBuilder` classes currently have `add_*` methods that are never used. This plan migrates three settings tabs (Display, Audio, Localization) from the `bind` pattern (taking existing .tscn nodes) to the `add` pattern (creating nodes programmatically). Each tab gets its own builder factory method in `U_UISettingsCatalog`.
 
-**Tech Stack:** Godot 4.6 GDScript, GUT testing framework, fluent builder pattern, TDD discipline.
+**Tech Stack:** Godot 4.7 GDScript, GUT testing framework, fluent builder pattern, TDD discipline.
 
 ---
 

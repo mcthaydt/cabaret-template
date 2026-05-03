@@ -366,7 +366,7 @@ Before starting Phase 0, verify:
   - `static func localize_fmt(key: StringName, args: Array) -> String` — calls `localize()` then replaces `{0}`, `{1}`, etc. using `str(args[i])`
   - `static func register_ui_root(root: Node) -> void` — delegates to manager
   - `static func _get_manager() -> Object` — ServiceLocator lookup
-  - **CRITICAL**: Method named `localize()` NOT `tr()` — Godot 4.6 refuses to resolve `.tr()` as an external class member (parse error). Never call bare `tr(key)`.
+  - **CRITICAL**: Method named `localize()` NOT `tr()` — Godot 4.7 refuses to resolve `.tr()` as an external class member (parse error). Never call bare `tr(key)`.
   - Use `str(value)` not `String(value)` for Variant→String conversion in args substitution
   - All tests should pass
 
@@ -686,9 +686,9 @@ patterns from the audio/display/VFX tabs and do not require additional test cove
 **Key Decisions:**
 - Localization slice has **no transient fields** — all settings persist to `user://global_settings.json`
 - Locale JSON uses `FileAccess.open()` (NOT `preload()` — preloading `.json` is a compile error)
-- **`tr()` CANNOT be a static method name in Godot 4.6**: Godot's parser refuses to resolve `.tr()` as an external class member (collides with `Object.tr()` built-in). Method renamed to `localize()` / `localize_fmt()` in `U_LocalizationUtils`. Never call bare `tr(key)`.
+- **`tr()` CANNOT be a static method name in Godot 4.7**: Godot's parser refuses to resolve `.tr()` as an external class member (collides with `Object.tr()` built-in). Method renamed to `localize()` / `localize_fmt()` in `U_LocalizationUtils`. Never call bare `tr(key)`.
 - **`String(value)` does not work for Variant→String in GDScript 4**: use `str(value)` instead. `String(...)` constructor only accepts numeric/bool, not arbitrary Variants.
-- **Inner class names must start with a capital letter** in GDScript 4 test files. Using `_MockFoo` with underscore prefix causes parse errors.
+- **Inner class names must start with a capital letter** in GDScript 4.7 test files. Using `_MockFoo` with underscore prefix causes parse errors.
 - Font stubs in `assets/fonts/` are copies of GUT addon fonts — replace with real fonts before shipping.
 - `localization_initial_state` is the **13th parameter** to `initialize_slices()` — misaligning it silently breaks all existing slices
 - `u_global_settings_serialization.gd` has **4 methods** that must all be updated — missing any breaks the save/load round-trip
