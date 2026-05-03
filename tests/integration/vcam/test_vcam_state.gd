@@ -65,22 +65,6 @@ func test_vcam_slice_is_excluded_from_global_settings_payload() -> void:
 	assert_false(settings.has("vcam"), "Transient vcam slice should not be persisted to global settings")
 	assert_true(settings.has("vfx"), "Persisted vfx settings should still be included")
 
-func test_vfx_occlusion_silhouette_setting_persists_to_global_settings() -> void:
-	var store := _create_store(true)
-	add_child_autofree(store)
-	await _await_store_ready(store)
-
-	store.dispatch(U_VFX_ACTIONS.set_occlusion_silhouette_enabled(false))
-	await get_tree().process_frame
-	await get_tree().process_frame
-
-	var saved_settings: Dictionary = U_GLOBAL_SETTINGS_SERIALIZATION.load_settings()
-	var vfx_settings: Dictionary = saved_settings.get("vfx", {})
-	assert_false(
-		bool(vfx_settings.get("occlusion_silhouette_enabled", true)),
-		"VFX occlusion silhouette setting should persist through global settings serialization"
-	)
-
 func test_touchscreen_look_settings_persist_to_global_settings() -> void:
 	var store := _create_store(true)
 	add_child_autofree(store)

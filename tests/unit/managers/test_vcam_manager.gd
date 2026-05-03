@@ -442,7 +442,7 @@ func test_submit_evaluated_camera_publishes_silhouette_update_request_event() ->
 func test_submit_evaluated_camera_includes_detected_occluders_when_silhouette_enabled() -> void:
 	var store := MOCK_STATE_STORE.new()
 	store.set_slice(StringName("gameplay"), {"player_entity_id": "player"})
-	store.set_slice(StringName("vfx"), {"occlusion_silhouette_enabled": true})
+	store.set_slice(StringName("vfx"), {"particles_enabled": true})
 	add_child(store)
 	autofree(store)
 
@@ -470,38 +470,10 @@ func test_submit_evaluated_camera_includes_detected_occluders_when_silhouette_en
 	var occluders := action.get("occluders", []) as Array
 	assert_eq(occluders.size(), 2, "Detected occluders should be forwarded in payload")
 
-func test_submit_evaluated_camera_disables_silhouette_when_vfx_toggle_is_off() -> void:
-	var store := MOCK_STATE_STORE.new()
-	store.set_slice(StringName("gameplay"), {"player_entity_id": "player"})
-	store.set_slice(StringName("vfx"), {"occlusion_silhouette_enabled": false})
-	add_child(store)
-	autofree(store)
-
-	var camera_manager := MOCK_CAMERA_MANAGER.new()
-	add_child(camera_manager)
-	autofree(camera_manager)
-
-	var manager := await _create_occlusion_test_manager(store, camera_manager)
-	manager.register_vcam(_create_vcam(StringName("cam_a"), 5))
-	var follow_target := Node3D.new()
-	add_child(follow_target)
-	autofree(follow_target)
-	manager.test_follow_target = follow_target
-	manager.test_occluders = [_create_mesh_occluder()]
-
-	store.clear_dispatched_actions()
-	manager.submit_evaluated_camera(StringName("cam_a"), {"transform": Transform3D.IDENTITY})
-
-	var action := _find_last_silhouette_payload(store)
-	assert_false(action.is_empty(), "Silhouette disable action should be dispatched when toggle is off")
-	assert_eq(action.get("enabled", true), false, "Silhouette request should disable rendering when toggle is off")
-	var occluders := action.get("occluders", []) as Array
-	assert_eq(occluders.size(), 0, "Disabled request should not carry occluders")
-
 func test_submit_evaluated_camera_does_not_dispatch_silhouette_count_action() -> void:
 	var store := MOCK_STATE_STORE.new()
 	store.set_slice(StringName("gameplay"), {"player_entity_id": "player"})
-	store.set_slice(StringName("vfx"), {"occlusion_silhouette_enabled": true})
+	store.set_slice(StringName("vfx"), {"particles_enabled": true})
 	add_child(store)
 	autofree(store)
 
@@ -530,7 +502,7 @@ func test_submit_evaluated_camera_does_not_dispatch_silhouette_count_action() ->
 func test_unregistering_active_vcam_publishes_silhouette_clear_request() -> void:
 	var store := MOCK_STATE_STORE.new()
 	store.set_slice(StringName("gameplay"), {"player_entity_id": "player"})
-	store.set_slice(StringName("vfx"), {"occlusion_silhouette_enabled": true})
+	store.set_slice(StringName("vfx"), {"particles_enabled": true})
 	add_child(store)
 	autofree(store)
 
@@ -556,7 +528,7 @@ func test_unregistering_active_vcam_publishes_silhouette_clear_request() -> void
 func test_scene_transition_blend_clears_active_silhouettes() -> void:
 	var store := MOCK_STATE_STORE.new()
 	store.set_slice(StringName("gameplay"), {"player_entity_id": "player"})
-	store.set_slice(StringName("vfx"), {"occlusion_silhouette_enabled": true})
+	store.set_slice(StringName("vfx"), {"particles_enabled": true})
 	add_child(store)
 	autofree(store)
 
@@ -897,7 +869,7 @@ func test_recovery_when_both_blend_vcams_are_freed_records_both_invalid() -> voi
 func test_live_blend_suppresses_occlusion_and_clears_silhouettes() -> void:
 	var store := MOCK_STATE_STORE.new()
 	store.set_slice(StringName("gameplay"), {"player_entity_id": "player"})
-	store.set_slice(StringName("vfx"), {"occlusion_silhouette_enabled": true})
+	store.set_slice(StringName("vfx"), {"particles_enabled": true})
 	add_child(store)
 	autofree(store)
 

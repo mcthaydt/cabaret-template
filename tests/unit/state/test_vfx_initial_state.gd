@@ -39,14 +39,7 @@ func test_has_particles_enabled_field() -> void:
 		"RS_VFXInitialState should have particles_enabled field"
 	)
 
-# Test 5: Has occlusion_silhouette_enabled field
-func test_has_occlusion_silhouette_enabled_field() -> void:
-	assert_true(
-		"occlusion_silhouette_enabled" in initial_state,
-		"RS_VFXInitialState should have occlusion_silhouette_enabled field"
-	)
-
-# Test 6: to_dictionary returns all fields
+# Test 5: to_dictionary returns all fields
 func test_to_dictionary_returns_all_fields() -> void:
 	var dict: Dictionary = initial_state.to_dictionary()
 
@@ -66,12 +59,8 @@ func test_to_dictionary_returns_all_fields() -> void:
 		dict.has("particles_enabled"),
 		"to_dictionary should include particles_enabled"
 	)
-	assert_true(
-		dict.has("occlusion_silhouette_enabled"),
-		"to_dictionary should include occlusion_silhouette_enabled"
-	)
 
-# Test 7: Defaults match reducer defaults
+# Test 6: Defaults match reducer defaults
 func test_defaults_match_reducer() -> void:
 	# This test will verify defaults once the reducer is implemented
 	# For now, just verify the resource has sensible defaults
@@ -90,10 +79,6 @@ func test_defaults_match_reducer() -> void:
 	assert_true(
 		initial_state.particles_enabled is bool,
 		"particles_enabled should be a boolean"
-	)
-	assert_true(
-		initial_state.occlusion_silhouette_enabled is bool,
-		"occlusion_silhouette_enabled should be a boolean"
 	)
 
 	# Verify intensity is in valid range (0.0-2.0)

@@ -51,8 +51,7 @@ func test_global_settings_load_applies_to_store() -> void:
 		},
 		"vfx": {
 			"screen_shake_enabled": false,
-			"screen_shake_intensity": 0.4,
-			"occlusion_silhouette_enabled": false
+			"screen_shake_intensity": 0.4
 		},
 		"input_settings": {
 			"active_profile_id": "default",
@@ -83,8 +82,6 @@ func test_global_settings_load_applies_to_store() -> void:
 	assert_almost_eq(U_AUDIO_SELECTORS.get_music_volume(state), 0.4, 0.001, "Audio volume should load from global settings")
 	assert_false(U_VFX_SELECTORS.is_screen_shake_enabled(state), "VFX setting should load from global settings")
 	assert_almost_eq(U_VFX_SELECTORS.get_screen_shake_intensity(state), 0.4, 0.001, "VFX intensity should load from global settings")
-	assert_false(U_VFX_SELECTORS.is_occlusion_silhouette_enabled(state),
-		"VFX silhouette setting should load from global settings")
 
 	var active_profile := U_INPUT_SELECTORS.get_active_profile_id(state)
 	assert_eq(String(active_profile), "default", "Input profile should load from global settings")

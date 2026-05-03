@@ -23,10 +23,6 @@ func test_default_state_has_all_fields() -> void:
 		default_state.has("particles_enabled"),
 		"Default state should have particles_enabled"
 	)
-	assert_true(
-		default_state.has("occlusion_silhouette_enabled"),
-		"Default state should have occlusion_silhouette_enabled"
-	)
 
 # Test 2: Default values are sensible
 func test_default_state_has_sensible_values() -> void:
@@ -47,10 +43,6 @@ func test_default_state_has_sensible_values() -> void:
 	assert_true(
 		default_state["particles_enabled"] is bool,
 		"particles_enabled should be a boolean"
-	)
-	assert_true(
-		default_state["occlusion_silhouette_enabled"] is bool,
-		"occlusion_silhouette_enabled should be a boolean"
 	)
 
 	# Intensity should be in valid range
@@ -165,52 +157,7 @@ func test_set_particles_enabled_true() -> void:
 		"particles_enabled should be true"
 	)
 
-# Test 12: set_occlusion_silhouette_enabled action structure
-func test_set_occlusion_silhouette_enabled_action_structure() -> void:
-	var action := U_VFXActions.set_occlusion_silhouette_enabled(false)
-
-	assert_eq(
-		action.get("type"),
-		U_VFXActions.ACTION_SET_OCCLUSION_SILHOUETTE_ENABLED,
-		"Action type should match ACTION_SET_OCCLUSION_SILHOUETTE_ENABLED"
-	)
-	assert_true(
-		action.has("payload"),
-		"Action should have payload"
-	)
-	var payload: Dictionary = action.get("payload", {})
-	assert_false(
-		payload.get("enabled", true),
-		"Payload enabled should be false"
-	)
-	assert_true(
-		action.get("immediate", false),
-		"Action should be immediate"
-	)
-
-# Test 13: set_occlusion_silhouette_enabled disables silhouettes
-func test_set_occlusion_silhouette_enabled_false() -> void:
-	var state := _make_vfx_state(true, 1.0, true, true, true)
-	var action := U_VFXActions.set_occlusion_silhouette_enabled(false)
-	var reduced: Dictionary = U_VFXReducer.reduce(state, action)
-
-	assert_false(
-		reduced["occlusion_silhouette_enabled"],
-		"occlusion_silhouette_enabled should be false"
-	)
-
-# Test 14: set_occlusion_silhouette_enabled enables silhouettes
-func test_set_occlusion_silhouette_enabled_true() -> void:
-	var state := _make_vfx_state(true, 1.0, true, true, false)
-	var action := U_VFXActions.set_occlusion_silhouette_enabled(true)
-	var reduced: Dictionary = U_VFXReducer.reduce(state, action)
-
-	assert_true(
-		reduced["occlusion_silhouette_enabled"],
-		"occlusion_silhouette_enabled should be true"
-	)
-
-# Test 15: Reducer is immutable
+# Test 12: Reducer is immutable
 func test_reducer_immutability() -> void:
 	var state := _make_vfx_state(true, 1.0, true)
 	var action := U_VFXActions.set_screen_shake_enabled(false)
@@ -226,7 +173,7 @@ func test_reducer_immutability() -> void:
 		"Original state should remain unchanged"
 	)
 
-# Test 16: Unknown action returns null (no change)
+# Test 13: Unknown action returns null (no change)
 func test_unhandled_action_returns_null() -> void:
 	var state := _make_vfx_state(true, 1.0, true)
 	var action := {"type": StringName("vfx/unknown_action")}
@@ -237,7 +184,7 @@ func test_unhandled_action_returns_null() -> void:
 		"Unknown action should return null (indicating no change)"
 	)
 
-# Test 17: Multiple field updates preserve other fields
+# Test 14: Multiple field updates preserve other fields
 func test_updating_one_field_preserves_others() -> void:
 	var state := _make_vfx_state(true, 1.0, true)
 	var action := U_VFXActions.set_screen_shake_intensity(0.5)
@@ -255,12 +202,8 @@ func test_updating_one_field_preserves_others() -> void:
 		reduced["particles_enabled"],
 		"particles_enabled should be preserved"
 	)
-	assert_true(
-		reduced["occlusion_silhouette_enabled"],
-		"occlusion_silhouette_enabled should be preserved"
-	)
 
-# Test 18: Zero intensity is valid
+# Test 15: Zero intensity is valid
 func test_set_screen_shake_intensity_zero() -> void:
 	var state := _make_vfx_state(true, 1.0, true)
 	var action := U_VFXActions.set_screen_shake_intensity(0.0)
@@ -273,7 +216,7 @@ func test_set_screen_shake_intensity_zero() -> void:
 		"Zero intensity should be allowed"
 	)
 
-# Test 19: Max intensity (2.0) is valid
+# Test 16: Max intensity (2.0) is valid
 func test_set_screen_shake_intensity_max() -> void:
 	var state := _make_vfx_state(true, 1.0, true)
 	var action := U_VFXActions.set_screen_shake_intensity(2.0)
@@ -286,7 +229,7 @@ func test_set_screen_shake_intensity_max() -> void:
 		"Max intensity (2.0) should be allowed"
 	)
 
-# Test 20: Empty state initializes with defaults
+# Test 17: Empty state initializes with defaults
 func test_empty_state_initializes_defaults() -> void:
 	var action := U_VFXActions.set_screen_shake_enabled(true)
 	var reduced: Dictionary = U_VFXReducer.reduce({}, action)
@@ -307,23 +250,17 @@ func test_empty_state_initializes_defaults() -> void:
 		reduced.has("particles_enabled"),
 		"Reducer should initialize particles_enabled for empty state"
 	)
-	assert_true(
-		reduced.has("occlusion_silhouette_enabled"),
-		"Reducer should initialize occlusion_silhouette_enabled for empty state"
-	)
 
 # Helper: Create VFX state for testing
 func _make_vfx_state(
 	shake_enabled: bool,
 	shake_intensity: float,
 	flash_enabled: bool,
-	particles_enabled: bool = true,
-	occlusion_silhouette_enabled: bool = true
+	particles_enabled: bool = true
 ) -> Dictionary:
 	return {
 		"screen_shake_enabled": shake_enabled,
 		"screen_shake_intensity": shake_intensity,
 		"damage_flash_enabled": flash_enabled,
-		"particles_enabled": particles_enabled,
-		"occlusion_silhouette_enabled": occlusion_silhouette_enabled
+		"particles_enabled": particles_enabled
 	}

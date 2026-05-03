@@ -31,11 +31,10 @@ func before_each() -> void:
 func after_each() -> void:
 	U_SERVICE_LOCATOR.clear()
 
-# Test 1: Mobile flag forces silhouette disabled regardless of redux state
+# Test 1: Mobile flag forces silhouette disabled
 func test_is_occlusion_silhouette_enabled_returns_false_on_mobile() -> void:
 	var store := MOCK_STATE_STORE.new()
 	store.set_slice(StringName("gameplay"), {"player_entity_id": "player"})
-	store.set_slice(StringName("vfx"), {"occlusion_silhouette_enabled": true})
 	add_child(store)
 	autofree(store)
 
@@ -47,13 +46,12 @@ func test_is_occlusion_silhouette_enabled_returns_false_on_mobile() -> void:
 	manager._is_mobile = true
 
 	var result: bool = manager._is_occlusion_silhouette_enabled()
-	assert_false(result, "Mobile should force silhouette disabled even when redux state is true")
+	assert_false(result, "Mobile should force silhouette disabled")
 
-# Test 2: Desktop respects redux state when enabled
-func test_is_occlusion_silhouette_enabled_respects_redux_on_desktop_enabled() -> void:
+# Test 2: Desktop returns true (feature retired, hardcoded)
+func test_is_occlusion_silhouette_enabled_returns_true_on_desktop() -> void:
 	var store := MOCK_STATE_STORE.new()
 	store.set_slice(StringName("gameplay"), {"player_entity_id": "player"})
-	store.set_slice(StringName("vfx"), {"occlusion_silhouette_enabled": true})
 	add_child(store)
 	autofree(store)
 
@@ -65,31 +63,12 @@ func test_is_occlusion_silhouette_enabled_respects_redux_on_desktop_enabled() ->
 	manager._is_mobile = false
 
 	var result: bool = manager._is_occlusion_silhouette_enabled()
-	assert_true(result, "Desktop should return true when redux state is enabled")
+	assert_true(result, "Desktop should return true (feature hardcoded)")
 
-# Test 3: Desktop respects redux state when disabled
-func test_is_occlusion_silhouette_enabled_respects_redux_on_desktop_disabled() -> void:
-	var store := MOCK_STATE_STORE.new()
-	store.set_slice(StringName("gameplay"), {"player_entity_id": "player"})
-	store.set_slice(StringName("vfx"), {"occlusion_silhouette_enabled": false})
-	add_child(store)
-	autofree(store)
-
-	var camera_manager := MOCK_CAMERA_MANAGER.new()
-	add_child(camera_manager)
-	autofree(camera_manager)
-
-	var manager := await _create_mobile_manager(store, camera_manager)
-	manager._is_mobile = false
-
-	var result: bool = manager._is_occlusion_silhouette_enabled()
-	assert_false(result, "Desktop should return false when redux state is disabled")
-
-# Test 4: Mobile publishes silhouette clear instead of occluders
+# Test 3: Mobile publishes silhouette clear instead of occluders
 func test_mobile_publishes_silhouette_clear_on_submit() -> void:
 	var store := MOCK_STATE_STORE.new()
 	store.set_slice(StringName("gameplay"), {"player_entity_id": "player"})
-	store.set_slice(StringName("vfx"), {"occlusion_silhouette_enabled": true})
 	add_child(store)
 	autofree(store)
 
