@@ -35,7 +35,7 @@ func apply_character_lighting(
 
 func apply_sprite_lighting(
 	character_entity: Node,
-	base_tint: Color,
+	_base_tint: Color,
 	effective_tint: Color,
 	effective_intensity: float
 ) -> void:

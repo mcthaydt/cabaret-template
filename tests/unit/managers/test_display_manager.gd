@@ -306,6 +306,9 @@ func test_mobile_resolution_scale_clamps_to_floor_and_refreshes_viewport() -> vo
 	_store.set_slice(StringName("display"), {
 		"mobile_resolution_scale": 0.2,
 	})
+	_store.set_slice(StringName("scene"), {
+		"current_scene_id": StringName("scene1"),
+	})
 	add_child_autofree(_store)
 	U_SERVICE_LOCATOR.register(StringName("state_store"), _store)
 

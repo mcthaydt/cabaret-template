@@ -9,6 +9,7 @@ const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_DISPLAY_SELECTORS := preload("res://scripts/core/state/selectors/u_display_selectors.gd")
 const U_LOCALIZATION_SELECTORS := preload("res://scripts/core/state/selectors/u_localization_selectors.gd")
 const U_NAVIGATION_SELECTORS := preload("res://scripts/core/state/selectors/u_navigation_selectors.gd")
+const U_SCENE_SELECTORS := preload("res://scripts/core/state/selectors/u_scene_selectors.gd")
 const U_PALETTE_MANAGER := preload("res://scripts/core/managers/helpers/u_palette_manager.gd")
 const U_DISPLAY_SERVER_WINDOW_OPS := preload("res://scripts/core/utils/display/u_display_server_window_ops.gd")
 const U_DISPLAY_WINDOW_APPLIER := preload("res://scripts/core/managers/helpers/display/u_display_window_applier.gd")
@@ -21,6 +22,7 @@ const U_POST_PROCESS_PIPELINE := preload("res://scripts/core/managers/helpers/di
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const U_UI_THEME_DEBUG := preload("res://scripts/core/ui/utils/u_ui_theme_debug.gd")
 const U_MOBILE_PLATFORM_DETECTOR := preload("res://scripts/core/utils/display/u_mobile_platform_detector.gd")
+const U_SCENE_REGISTRY := preload("res://scripts/core/scene_management/u_scene_registry.gd")
 const U_PERF_PROBE := preload("res://scripts/core/utils/debug/u_perf_probe.gd")
 const U_PERF_MONITOR := preload("res://scripts/core/utils/debug/u_perf_monitor.gd")
 const U_PERF_SHADER_BYPASS := preload("res://scripts/core/utils/debug/u_perf_shader_bypass.gd")
@@ -31,6 +33,7 @@ const SERVICE_NAME := StringName("display_manager")
 const DISPLAY_SLICE_NAME := StringName("display")
 const LOCALIZATION_SLICE_NAME := StringName("localization")
 const NAVIGATION_SLICE_NAME := StringName("navigation")
+const SCENE_SLICE_NAME := StringName("scene")
 const SHELL_GAMEPLAY := StringName("gameplay")
 
 ## Injected dependency (tests)
@@ -58,6 +61,7 @@ var _pipeline: RefCounted = null  # U_PostProcessPipeline
 # Cached values for inspection/tests (Phase 1B)
 var _last_applied_settings: Dictionary = {}
 var _apply_count: int = 0
+var _last_suppressed: bool = false
 var _perf_probe: U_PerfProbe = null
 
 func _ready() -> void:
@@ -176,6 +180,9 @@ func _on_slice_updated(slice_name: StringName, ___slice_data: Dictionary) -> voi
 	if slice_name == NAVIGATION_SLICE_NAME:
 		_update_overlay_visibility()
 
+	if slice_name == SCENE_SLICE_NAME:
+		_sync_mobile_scaling_suppression()
+
 func set_display_settings_preview(settings: Dictionary) -> void:
 	_preview_settings = settings.duplicate(true)
 	_display_settings_preview_active = true
@@ -219,6 +226,8 @@ func _apply_display_settings(state: Dictionary) -> void:
 	_apply_ui_scale_settings(effective_settings)
 	_apply_accessibility_settings(effective_settings)
 	_sync_pipeline_visibility(effective_settings, state)
+
+	_sync_mobile_scaling_suppression()
 
 func _build_effective_settings(state: Dictionary) -> Dictionary:
 	var settings: Dictionary = U_DISPLAY_SELECTORS.get_display_settings(state).duplicate(true)
@@ -490,16 +499,28 @@ func _sync_pipeline_visibility(display_settings: Dictionary, state: Dictionary) 
 	var fg_enabled := U_DISPLAY_SELECTORS.is_film_grain_enabled(state_wrap)
 	var dither_enabled := U_DISPLAY_SELECTORS.is_dither_enabled(state_wrap)
 	var scanlines_enabled := U_DISPLAY_SELECTORS.is_scanlines_enabled(state_wrap)
-	# grain_dither: visibility driven by effect settings only; the GrainDitherLayer
-	# CanvasLayer is hidden by update_overlay_visibility when not in gameplay shell,
-	# so no shell check is needed at the ColorRect level.
-	# color_grading: the ColorGradingLayer is NOT hidden by update_overlay_visibility
-	# (it is excluded), so the shell check lives here.
 	var shell := U_NAVIGATION_SELECTORS.get_shell(state)
 	(_pipeline as U_PostProcessPipeline).apply_settings({
 		"grain_dither_enabled": pp_enabled and (fg_enabled or dither_enabled or scanlines_enabled),
 		"color_grading_enabled": shell == SHELL_GAMEPLAY,
 	})
+
+## Toggle mobile resolution scaling suppression based on active scene type.
+## Menus render inside GameViewport; scaling makes them look zoomed in.
+func _sync_mobile_scaling_suppression() -> void:
+	if not U_MOBILE_PLATFORM_DETECTOR.is_mobile():
+		return
+	var state: Dictionary = {}
+	if _state_store != null:
+		state = _state_store.get_state()
+	var scene_id: StringName = U_SceneSelectors.get_current_scene_id(state)
+	var scene_type: int = U_SCENE_REGISTRY.get_scene_type(scene_id)
+	# Suppress scaling for full-screen menus (MENU, END_GAME, UI)
+	var suppress: bool = scene_type != U_SCENE_REGISTRY.SceneType.GAMEPLAY
+	U_MOBILE_PLATFORM_DETECTOR.set_scaling_suppressed(suppress)
+	if suppress != _last_suppressed:
+		_last_suppressed = suppress
+		_request_mobile_scale_refresh()
 
 func _get_palette_id_text(palette: Resource) -> String:
 	if palette == null:
