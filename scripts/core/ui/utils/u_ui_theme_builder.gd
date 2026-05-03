@@ -81,6 +81,7 @@ static func _apply_panel_styles(theme: Theme, config) -> void:
 	_set_stylebox(theme, &"panel", &"PanelContainer", config.panel_section)
 	_set_stylebox(theme, &"panel", &"AcceptDialog", config.panel_section)
 	_set_stylebox(theme, &"panel", &"ConfirmationDialog", config.panel_section)
+	_set_stylebox(theme, &"panel", &"Window", config.panel_section)
 	_set_stylebox(theme, &"embedded_border", &"Window", config.panel_section)
 	_set_stylebox(theme, &"embedded_unfocused_border", &"Window", config.panel_section)
 	theme.set_color(&"title_color", &"Window", config.text_primary)

@@ -65,6 +65,7 @@ func test_build_theme_applies_dialog_window_panel_styles() -> void:
 	var theme := U_UI_THEME_BUILDER.build_theme(_config)
 	var accept_dialog_panel := theme.get_stylebox(&"panel", &"AcceptDialog")
 	var confirmation_dialog_panel := theme.get_stylebox(&"panel", &"ConfirmationDialog")
+	var window_panel := theme.get_stylebox(&"panel", &"Window")
 	var window_border := theme.get_stylebox(&"embedded_border", &"Window")
 	var window_unfocused_border := theme.get_stylebox(&"embedded_unfocused_border", &"Window")
 
@@ -80,6 +81,11 @@ func test_build_theme_applies_dialog_window_panel_styles() -> void:
 	assert_true(
 		(confirmation_dialog_panel as StyleBoxFlat).bg_color.is_equal_approx(_config.panel_section.bg_color),
 		"ConfirmationDialog panel color should match config panel_section"
+	)
+	assert_true(window_panel is StyleBoxFlat, "Window panel stylebox should be StyleBoxFlat")
+	assert_true(
+		(window_panel as StyleBoxFlat).bg_color.is_equal_approx(_config.panel_section.bg_color),
+		"Window panel color should match config panel_section"
 	)
 	assert_true(window_border is StyleBoxFlat, "Window embedded border stylebox should be StyleBoxFlat")
 	assert_true(
