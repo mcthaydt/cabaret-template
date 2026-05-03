@@ -43,25 +43,18 @@ static func _register_music_tracks() -> void:
 
 	# Load music track resources
 	var main_menu := preload("res://resources/core/audio/tracks/music_main_menu.tres") as RS_MusicTrackDefinition
-	var alleyway := preload("res://resources/demo/audio/tracks/music_alleyway.tres") as RS_MusicTrackDefinition
 	var pause := preload("res://resources/core/audio/tracks/music_pause.tres") as RS_MusicTrackDefinition
-	var credits := preload("res://resources/demo/audio/tracks/music_credits.tres") as RS_MusicTrackDefinition
+	# Demo tracks loaded by demo-specific registry
 
 	# Register in dictionary
 	_music_tracks[StringName("main_menu")] = main_menu
-	_music_tracks[StringName("demo_room")] = alleyway
 	_music_tracks[StringName("pause")] = pause
-	_music_tracks[StringName("credits")] = credits
+	# Demo tracks loaded by demo-specific registry
 
 ## Register all ambient tracks from .tres resources
 static func _register_ambient_tracks() -> void:
 	_ambient_tracks.clear()
-
-	# Load ambient track resources
-	var exterior := preload("res://resources/demo/audio/ambient/ambient_exterior.tres") as RS_AmbientTrackDefinition
-
-	# Register in dictionary
-	_ambient_tracks[StringName("demo_room")] = exterior
+	# Demo ambient tracks loaded by demo-specific registry
 
 ## Register all UI sounds from .tres resources
 static func _register_ui_sounds() -> void:
@@ -84,14 +77,11 @@ static func _register_scene_audio_mappings() -> void:
 	_scene_audio_map.clear()
 
 	# Load scene mapping resources
-	var main_menu := preload("res://resources/demo/audio/scene_mappings/scene_main_menu.tres") as RS_SceneAudioMapping
-	var alleyway := preload("res://resources/demo/audio/scene_mappings/scene_alleyway.tres") as RS_SceneAudioMapping
-	var credits := preload("res://resources/demo/audio/scene_mappings/scene_credits.tres") as RS_SceneAudioMapping
+	var main_menu := preload("res://resources/core/audio/scene_mappings/scene_main_menu.tres") as RS_SceneAudioMapping
+	# Demo scene mappings loaded by demo-specific registry
 
 	# Register in dictionary
 	_scene_audio_map[StringName("main_menu")] = main_menu
-	_scene_audio_map[StringName("demo_room")] = alleyway
-	_scene_audio_map[StringName("credits")] = credits
 
 ## Validate registrations and warn about issues
 static func _validate_registrations() -> void:

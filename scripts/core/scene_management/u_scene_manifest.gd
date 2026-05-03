@@ -14,9 +14,6 @@ const END_GAME := U_SceneRegistry.SceneType.END_GAME
 func build() -> Dictionary:
 	var builder := BUILDER_SCRIPT.new()
 
-	# Demo gameplay scene
-	builder.register(&"demo_room", "res://scenes/demo/gameplay/gameplay_demo_room.tscn").with_type(GAMEPLAY).with_transition("loading").with_preload(8)
-
 	# Core UI overlays
 	builder.register(&"gamepad_settings", "res://scenes/core/ui/overlays/ui_gamepad_settings_overlay.tscn").with_type(UI).with_transition("instant").with_preload(5)
 	builder.register(&"touchscreen_settings", "res://scenes/core/ui/overlays/ui_touchscreen_settings_overlay.tscn").with_type(UI).with_transition("instant").with_preload(5)

@@ -2539,13 +2539,18 @@ func test_extension_recipe_structure() -> void:
 
 func test_core_scripts_never_import_from_demo() -> void:
 	var violations: Array[String] = []
-	_collect_demo_imports_in_core("res://scripts/core", violations)
-	var message := "scripts/core/ must not import from scripts/demo/"
+	var forbidden_patterns: Array[String] = [
+		"res://scripts/demo/",
+		"res://scenes/demo/",
+		"res://resources/demo/"
+	]
+	_collect_demo_imports_in_core("res://scripts/core", violations, forbidden_patterns)
+	var message := "scripts/core/ must not import from demo/ paths. Core must not depend on demo."
 	if violations.size() > 0:
 		message += ":\n" + "\n".join(violations)
 	assert_eq(violations.size(), 0, message)
 
-func _collect_demo_imports_in_core(dir_path: String, violations: Array[String]) -> void:
+func _collect_demo_imports_in_core(dir_path: String, violations: Array[String], forbidden_patterns: Array[String]) -> void:
 	var dir := DirAccess.open(dir_path)
 	if dir == null:
 		return
@@ -2555,7 +2560,7 @@ func _collect_demo_imports_in_core(dir_path: String, violations: Array[String]) 
 		var path := "%s/%s" % [dir_path, entry]
 		if dir.current_is_dir():
 			if not entry.begins_with("."):
-				_collect_demo_imports_in_core(path, violations)
+				_collect_demo_imports_in_core(path, violations, forbidden_patterns)
 		elif entry.ends_with(".gd"):
 			var file := FileAccess.open(path, FileAccess.READ)
 			if file == null:
@@ -2565,29 +2570,40 @@ func _collect_demo_imports_in_core(dir_path: String, violations: Array[String]) 
 			while not file.eof_reached():
 				line_number += 1
 				var line: String = file.get_line()
-				if "res://scripts/demo/" in line:
-					violations.append("%s:%d" % [path, line_number])
+				for pattern in forbidden_patterns:
+					if pattern in line:
+						violations.append("CORE_IMPORT_VIOLATION: %s:%d imports from %s" % [path, line_number, pattern])
 			file.close()
 		entry = dir.get_next()
 	dir.list_dir_end()
 
 func test_core_resources_never_reference_demo() -> void:
 	var violations: Array[String] = []
-	_collect_demo_refs_in_dir("res://resources/core", [".tres"], violations)
-	var message := "resources/core/ must not reference demo/ paths"
+	var forbidden_patterns: Array[String] = [
+		"res://scripts/demo/",
+		"res://scenes/demo/",
+		"res://resources/demo/"
+	]
+	_collect_demo_refs_in_dir("res://resources/core", [".tres"], violations, forbidden_patterns)
+	var message := "resources/core/ must not reference demo/ paths. Core must not depend on demo."
 	if violations.size() > 0:
 		message += ":\n" + "\n".join(violations)
 	assert_eq(violations.size(), 0, message)
 
 func test_core_scenes_never_reference_demo() -> void:
 	var violations: Array[String] = []
-	_collect_demo_refs_in_dir("res://scenes/core", [".tscn"], violations)
-	var message := "scenes/core/ must not reference demo/ paths"
+	var forbidden_patterns: Array[String] = [
+		"res://scripts/demo/",
+		"res://scenes/demo/",
+		"res://resources/demo/"
+	]
+	_collect_demo_refs_in_dir("res://scenes/core", [".tscn"], violations, forbidden_patterns)
+	var message := "scenes/core/ must not reference demo/ paths. Core must not depend on demo."
 	if violations.size() > 0:
 		message += ":\n" + "\n".join(violations)
 	assert_eq(violations.size(), 0, message)
 
-func _collect_demo_refs_in_dir(dir_path: String, extensions: Array[String], violations: Array[String]) -> void:
+func _collect_demo_refs_in_dir(dir_path: String, extensions: Array[String], violations: Array[String], forbidden_patterns: Array[String]) -> void:
 	var dir := DirAccess.open(dir_path)
 	if dir == null:
 		return
@@ -2597,7 +2613,7 @@ func _collect_demo_refs_in_dir(dir_path: String, extensions: Array[String], viol
 		var path := "%s/%s" % [dir_path, entry]
 		if dir.current_is_dir():
 			if not entry.begins_with("."):
-				_collect_demo_refs_in_dir(path, extensions, violations)
+				_collect_demo_refs_in_dir(path, extensions, violations, forbidden_patterns)
 		else:
 			var matched := false
 			for ext in extensions:
@@ -2611,8 +2627,9 @@ func _collect_demo_refs_in_dir(dir_path: String, extensions: Array[String], viol
 					while not file.eof_reached():
 						line_number += 1
 						var line: String = file.get_line()
-						if "res://resources/demo/" in line or "res://scenes/demo/" in line or "res://assets/demo/" in line:
-							violations.append("%s:%d" % [path, line_number])
+						for pattern in forbidden_patterns:
+							if pattern in line:
+								violations.append("CORE_REF_VIOLATION: %s:%d references %s" % [path, line_number, pattern])
 					file.close()
 		entry = dir.get_next()
 	dir.list_dir_end()

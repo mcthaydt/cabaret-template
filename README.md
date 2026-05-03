@@ -144,6 +144,16 @@ This repo uses GUT (`addons/gut`). A helper script is provided:
 GODOT_BIN="/path/to/Godot" tools/run_gut_suite.sh -gdir=res://tests/unit
 ```
 
+### Pre-commit Hooks (Optional)
+
+Install the pre-commit hook for import validation:
+
+```bash
+ln -s ../../tools/pre-commit-hooks/validate-imports.sh .git/hooks/pre-commit
+```
+
+This blocks commits with core/demo import violations before they reach CI.
+
 ## Docs (Start Here)
 
 - Per-topic pitfalls: `docs/guides/pitfalls/` (`GODOT_ENGINE.md`, `GDSCRIPT_4_6.md`, `TESTING.md`, `ECS.md`, `STATE.md`, `MOBILE.md`)

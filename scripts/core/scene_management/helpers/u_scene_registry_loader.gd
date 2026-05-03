@@ -34,15 +34,6 @@ func load_resource_entries(scenes: Dictionary, register_scene_callable: Callable
 			false,
 			false
 		)
-		var demo_result: Dictionary = _load_entries_from_dir(
-			"res://resources/demo/scene_registry",
-			scenes,
-			register_scene_callable,
-			false,
-			false
-		)
-		res_result["loaded"] = int(res_result.get("loaded", 0)) + int(demo_result.get("loaded", 0))
-		res_result["skipped"] = int(res_result.get("skipped", 0)) + int(demo_result.get("skipped", 0))
 		# tests/scene_registry is optional; don't warn if it's missing.
 		test_result = _load_entries_from_dir(
 			"res://tests/scene_registry",
