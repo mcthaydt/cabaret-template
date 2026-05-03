@@ -4,7 +4,7 @@ This guide is the high-level routing map for the Automata Template architecture.
 
 ## Project Shape
 
-- Project type: Godot 4.6 with GDScript.
+- Project type: Godot 4.7 with GDScript.
 - Core gameplay architecture: node-based ECS under `scripts/ecs/`, coordinated by per-scene `M_ECSManager` instances.
 - Persistent app root: `scenes/root.tscn`, with long-lived managers under `Managers`.
 - Gameplay scenes: `scenes/gameplay/**`, each with its own ECS manager, systems, entities, and scene-local content.

@@ -2,7 +2,7 @@
 
 ## Start Here
 
-- Project type: Godot 4.6 (GDScript).
+- Project type: Godot 4.7 (GDScript).
 - Do not create or use git worktrees for this project unless explicitly requested.
 - Before changing code, read `docs/guides/STYLE_GUIDE.md` and the relevant system overview under `docs/systems/**`.
 - For workflow and commit expectations, read `docs/guides/COMMIT_WORKFLOW.md`.
