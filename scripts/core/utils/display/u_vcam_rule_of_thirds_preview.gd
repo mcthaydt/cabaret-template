@@ -49,6 +49,9 @@ func _ready() -> void:
 	if not Engine.is_editor_hint():
 		queue_free()
 		return
+	if OS.has_feature("mobile"):
+		queue_free()
+		return
 	_setup_preview()
 	_apply_visibility()
 
@@ -59,7 +62,11 @@ func _setup_preview() -> void:
 	if _preview_layer != null:
 		return
 
-	_editor_viewport_3d = EditorInterface.get_editor_viewport_3d(0)
+	var editor_interface: Object = Engine.get_singleton("EditorInterface")
+	if editor_interface == null:
+		return
+
+	_editor_viewport_3d = editor_interface.get_editor_viewport_3d(0)
 	if _editor_viewport_3d == null:
 		return
 
