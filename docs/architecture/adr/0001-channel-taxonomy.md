@@ -77,3 +77,56 @@ Grep tests in `tests/unit/style/test_style_enforcement.gd` enforce the taxonomy 
 | `m_scene_director_manager` | Remove 3 redundant ECS publishes; Redux already carries director state |
 | `m_spawn_manager` | Dispatch `ACTION_PLAYER_SPAWNED` to Redux; `s_spawn_particles_system` subscribes to `action_dispatched` |
 | `m_scene_manager` | Remove `EVENT_OBJECTIVE_VICTORY_TRIGGERED` subscription; react to `ACTION_TRIGGER_VICTORY_ROUTING` from Redux |
+
+## Decision Rules (for LLMs)
+
+When writing code that communicates across boundaries, use this decision tree:
+
+```
+Need to communicate X?
+├─ ECS component → ECS system?
+│  └─ Use component data directly via query. NO event, NO signal.
+│
+├─ ECS component → Another ECS component?
+│  └─ Publish event via `U_ECSEventBus`.
+│
+├─ ECS component/system → Manager?
+│  └─ Dispatch Redux action. NEVER direct call.
+│
+├─ Manager → Manager?
+│  └─ Direct method call via ServiceLocator.
+│
+├─ Manager → UI?
+│  └─ Allow-listed signal ONLY. See appendix for allowed signals.
+│
+├─ UI → Manager?
+│  └─ Dispatch Redux action. NEVER direct call.
+│
+├─ UI → UI (same screen)?
+│  └─ Direct method call or signals within same screen.
+│
+├─ UI → UI (different screen)?
+│  └─ Redux action → Manager → Signal → Target UI. NEVER direct call.
+│
+└─ Everything else?
+   └─ Direct method call.
+```
+
+## Quick Reference Table
+
+| Source | Target | Mechanism | Example |
+|--------|--------|-----------|---------|
+| ECS Component | ECS System | Direct query | `get_components("C_MovementComponent")` |
+| ECS Component | ECS Component | Event bus | `U_ECSEventBus.publish("damage_taken", payload)` |
+| ECS System | Manager | Redux action | `store.dispatch(U_GameplayActions.spawn_entity(id))` |
+| Manager | Manager | ServiceLocator + method call | `locator.get("M_CameraManager").blend_to(target)` |
+| Manager | UI | Allow-listed signal | `scene_loaded.connect(on_scene_ready)` |
+| UI | Manager | Redux action | `store.dispatch(U_MenuActions.open_overlay("pause"))` |
+| UI | UI (same) | Direct call / signal | `pause_menu.hide()` |
+| UI | UI (different) | Redux → Manager → Signal | `store.dispatch(...)` → manager emits → target listens |
+
+**Forbidden Patterns:**
+- ❌ ECS component calling manager method directly
+- ❌ UI screen calling manager method directly
+- ❌ Manager publishing ECS events (only `M_ECSManager` may publish lifecycle events)
+- ❌ Cross-screen UI direct calls
