@@ -21,6 +21,7 @@ This guide is the high-level routing map for the Automata Template architecture.
 - Testing pitfalls: `docs/guides/pitfalls/TESTING.md`
 - Channel taxonomy ADR: `docs/architecture/adr/0001-channel-taxonomy.md`
 - Service locator ADR: `docs/architecture/adr/0005-service-locator.md`
+- LLM decision trees: `docs/superpowers/llm-decision-trees.md`
 
 ## Communication Channels
 

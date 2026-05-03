@@ -979,6 +979,10 @@ EXCLUSIONS:
 - Avoid `Resource.new()` fallback allocation in hot-path config resolvers. Use canonical default config instances under `resources/core/base_settings/**/cfg_*_config_default.tres` and scene exports where possible.
 - New production categories must update this guide and style enforcement together.
 
+## Templates
+
+- Redux slice template: `docs/_templates/redux-slice-template.md`
+
 ---
 
 ## Scene Node Naming (Non-script markers)
