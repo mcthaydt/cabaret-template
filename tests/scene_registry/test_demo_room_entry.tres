@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RS_SceneRegistryEntry" format=3 uid="uid://test_demo_room"]
+
+[ext_resource type="Script" uid="uid://c0rqh1w5f3ye" path="res://scripts/core/resources/scene_management/rs_scene_registry_entry.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+scene_id = &"demo_room"
+scene_path = "res://scenes/demo/gameplay/gameplay_demo_room.tscn"
+scene_type = "GAMEPLAY"
+transition_preset = "loading"
+preload_priority = 8
+is_critical = false
+is_shell = false
