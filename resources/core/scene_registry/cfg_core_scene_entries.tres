@@ -1,0 +1,85 @@
+[gd_resource type="Resource" script_class="RS_SceneManifestConfig" format=3 uid="uid://cm2c2c2c2c2c1"]
+
+[ext_resource type="Script" path="res://scripts/core/resources/scene_management/rs_scene_manifest_config.gd" id="1_manifest_config"]
+
+[resource]
+script = ExtResource("1_manifest_config")
+entries = [{
+"scene_id": &"gamepad_settings",
+"scene_path": "res://scenes/core/ui/overlays/ui_gamepad_settings_overlay.tscn",
+"scene_type": 2,
+"default_transition": "instant",
+"preload_priority": 5
+}, {
+"scene_id": &"touchscreen_settings",
+"scene_path": "res://scenes/core/ui/overlays/ui_touchscreen_settings_overlay.tscn",
+"scene_type": 2,
+"default_transition": "instant",
+"preload_priority": 5
+}, {
+"scene_id": &"edit_touch_controls",
+"scene_path": "res://scenes/core/ui/overlays/ui_edit_touch_controls_overlay.tscn",
+"scene_type": 2,
+"default_transition": "instant",
+"preload_priority": 5
+}, {
+"scene_id": &"input_profile_selector",
+"scene_path": "res://scenes/core/ui/overlays/ui_input_profile_selector.tscn",
+"scene_type": 2,
+"default_transition": "instant",
+"preload_priority": 5
+}, {
+"scene_id": &"input_rebinding",
+"scene_path": "res://scenes/core/ui/overlays/ui_input_rebinding_overlay.tscn",
+"scene_type": 2,
+"default_transition": "instant",
+"preload_priority": 5
+}, {
+"scene_id": &"keyboard_mouse_settings",
+"scene_path": "res://scenes/core/ui/overlays/ui_keyboard_mouse_settings_overlay.tscn",
+"scene_type": 2,
+"default_transition": "instant",
+"preload_priority": 5
+}, {
+"scene_id": &"audio_settings",
+"scene_path": "res://scenes/core/ui/overlays/settings/ui_audio_settings_overlay.tscn",
+"scene_type": 2,
+"default_transition": "instant",
+"preload_priority": 5
+}, {
+"scene_id": &"display_settings",
+"scene_path": "res://scenes/core/ui/overlays/settings/ui_display_settings_overlay.tscn",
+"scene_type": 2,
+"default_transition": "instant",
+"preload_priority": 5
+}, {
+"scene_id": &"localization_settings",
+"scene_path": "res://scenes/core/ui/overlays/settings/ui_localization_settings_overlay.tscn",
+"scene_type": 2,
+"default_transition": "instant",
+"preload_priority": 5
+}, {
+"scene_id": &"vfx_settings",
+"scene_path": "res://scenes/core/ui/overlays/settings/ui_vfx_settings_overlay.tscn",
+"scene_type": 2,
+"default_transition": "instant",
+"preload_priority": 5
+}, {
+"scene_id": &"game_over",
+"scene_path": "res://scenes/core/ui/menus/ui_game_over.tscn",
+"scene_type": 3,
+"default_transition": "",
+"preload_priority": 8
+}, {
+"scene_id": &"victory",
+"scene_path": "res://scenes/core/ui/menus/ui_victory.tscn",
+"scene_type": 3,
+"default_transition": "",
+"preload_priority": 5
+}, {
+"scene_id": &"credits",
+"scene_path": "res://scenes/core/ui/menus/ui_credits.tscn",
+"scene_type": 3,
+"default_transition": "",
+"preload_priority": 0
+}]

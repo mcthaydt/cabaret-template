@@ -2,36 +2,42 @@ extends RefCounted
 
 ## Scene Manifest
 ##
-## Replaces scene registry .tres entries with a builder script.
-## Called by U_SceneRegistryLoader to produce a scene registration Dictionary.
+## Data-driven scene registration via RS_SceneManifestConfig resources.
+## Replaces hardcoded string paths with resource-based entries.
+##
+## Core entries ship in:
+##   res://resources/core/scene_registry/cfg_core_scene_entries.tres
+##
+## Additional entries (e.g. demo) can be injected by providing their own
+## RS_SceneManifestConfig resource path.
+##
+## Called by U_SceneRegistryLoader._load_entries_from_manifest().
 
-const BUILDER_SCRIPT := preload("res://scripts/core/utils/scene/u_scene_registry_builder.gd")
+const RS_SCENE_MANIFEST_CONFIG := preload("res://scripts/core/resources/scene_management/rs_scene_manifest_config.gd")
 
-const GAMEPLAY := U_SceneRegistry.SceneType.GAMEPLAY
-const UI := U_SceneRegistry.SceneType.UI
-const END_GAME := U_SceneRegistry.SceneType.END_GAME
+const CORE_CONFIG_PATH := "res://resources/core/scene_registry/cfg_core_scene_entries.tres"
+const DEMO_CONFIG_PATH := "res://resources/demo/scene_registry/cfg_demo_scene_entries.tres"
 
-func build() -> Dictionary:
-	var builder := BUILDER_SCRIPT.new()
+## Build scene entries dictionary.
+## Loads CORE_CONFIG_PATH and, if present, DEMO_CONFIG_PATH. If
+## `additional_config_path` is provided and exists, those entries are merged
+## in last (they can override earlier entries).
+func build(additional_config_path: String = "") -> Dictionary:
+	var entries: Dictionary = {}
+	_load_config_into(CORE_CONFIG_PATH, entries)
+	_load_config_into(DEMO_CONFIG_PATH, entries)
+	_load_config_into(additional_config_path, entries)
+	return entries
 
-	# Demo gameplay scene (single gameplay entry for tests)
-	builder.register(&"demo_room", "res://scenes/demo/gameplay/gameplay_demo_room.tscn").with_type(GAMEPLAY).with_transition("loading").with_preload(8)
-
-	# Core UI overlays
-	builder.register(&"gamepad_settings", "res://scenes/core/ui/overlays/ui_gamepad_settings_overlay.tscn").with_type(UI).with_transition("instant").with_preload(5)
-	builder.register(&"touchscreen_settings", "res://scenes/core/ui/overlays/ui_touchscreen_settings_overlay.tscn").with_type(UI).with_transition("instant").with_preload(5)
-	builder.register(&"edit_touch_controls", "res://scenes/core/ui/overlays/ui_edit_touch_controls_overlay.tscn").with_type(UI).with_transition("instant").with_preload(5)
-	builder.register(&"input_profile_selector", "res://scenes/core/ui/overlays/ui_input_profile_selector.tscn").with_type(UI).with_transition("instant").with_preload(5)
-	builder.register(&"input_rebinding", "res://scenes/core/ui/overlays/ui_input_rebinding_overlay.tscn").with_type(UI).with_transition("instant").with_preload(5)
-	builder.register(&"keyboard_mouse_settings", "res://scenes/core/ui/overlays/ui_keyboard_mouse_settings_overlay.tscn").with_type(UI).with_transition("instant").with_preload(5)
-	builder.register(&"audio_settings", "res://scenes/core/ui/overlays/settings/ui_audio_settings_overlay.tscn").with_type(UI).with_transition("instant").with_preload(5)
-	builder.register(&"display_settings", "res://scenes/core/ui/overlays/settings/ui_display_settings_overlay.tscn").with_type(UI).with_transition("instant").with_preload(5)
-	builder.register(&"localization_settings", "res://scenes/core/ui/overlays/settings/ui_localization_settings_overlay.tscn").with_type(UI).with_transition("instant").with_preload(5)
-	builder.register(&"vfx_settings", "res://scenes/core/ui/overlays/settings/ui_vfx_settings_overlay.tscn").with_type(UI).with_transition("instant").with_preload(5)
-
-	# Core end-game menus
-	builder.register(&"game_over", "res://scenes/core/ui/menus/ui_game_over.tscn").with_type(END_GAME).with_preload(8)
-	builder.register(&"victory", "res://scenes/core/ui/menus/ui_victory.tscn").with_type(END_GAME).with_preload(5)
-	builder.register(&"credits", "res://scenes/core/ui/menus/ui_credits.tscn").with_type(END_GAME)
-
-	return builder.build()
+func _load_config_into(config_path: String, out_entries: Dictionary) -> void:
+	if not FileAccess.file_exists(config_path):
+		return
+	var res: Resource = load(config_path)
+	if res == null:
+		return
+	if not (res is RS_SCENE_MANIFEST_CONFIG):
+		return
+	var config: RS_SCENE_MANIFEST_CONFIG = res as RS_SCENE_MANIFEST_CONFIG
+	var built: Dictionary = config.build_entries()
+	for key: StringName in built.keys():
+		out_entries[key] = built[key]
