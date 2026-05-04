@@ -171,8 +171,11 @@ func _register_loaded_entry(
 		push_warning("U_SceneRegistryLoader: Failed to load scene registry resource at %s, skipping" % resource_path)
 		return false
 
+	if resource is RS_SceneManifestConfig:
+		return _register_manifest_config(resource, resource_path, scenes, register_scene_callable, warn_on_duplicates)
+
 	if not (resource is RS_SceneRegistryEntry):
-		push_warning("U_SceneRegistryLoader: Resource at %s is not RS_SceneRegistryEntry (found %s), skipping" % [resource_path, resource.get_class()])
+		push_warning("U_SceneRegistryLoader: Resource at %s is not RS_SceneRegistryEntry or RS_SceneManifestConfig (found %s), skipping" % [resource_path, resource.get_class()])
 		return false
 
 	var entry := resource as RS_SceneRegistryEntry
@@ -193,6 +196,32 @@ func _register_loaded_entry(
 		entry.preload_priority
 	)
 	return true
+
+func _register_manifest_config(
+	config: RS_SceneManifestConfig,
+	resource_path: String,
+	scenes: Dictionary,
+	register_scene_callable: Callable,
+	warn_on_duplicates: bool
+) -> bool:
+	var loaded_count: int = 0
+	for data in config.entries:
+		if not config._is_valid_entry_dict(data):
+			continue
+		var scene_id := StringName(data.get("scene_id", ""))
+		if scenes.has(scene_id):
+			if warn_on_duplicates:
+				push_warning("U_SceneRegistryLoader: Scene '%s' from manifest %s already registered, skipping" % [scene_id, resource_path])
+			continue
+		register_scene_callable.call(
+			scene_id,
+			data.get("scene_path", ""),
+			int(data.get("scene_type", 2)),
+			data.get("default_transition", "fade"),
+			int(data.get("preload_priority", 0))
+		)
+		loaded_count += 1
+	return loaded_count > 0
 
 func _should_scan_registry_dirs() -> bool:
 	# Mobile/Web exports may block directory iteration in packed resources.

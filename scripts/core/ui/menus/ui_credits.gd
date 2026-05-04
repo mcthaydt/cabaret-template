@@ -33,15 +33,24 @@ var _scroll_duration: float = 55.0
 var _auto_return_duration: float = 60.0
 var _is_returning: bool = false
 var _menu_builder: RefCounted = null
+var _test_scroll_duration: float = -1.0
+var _test_auto_return_duration: float = -1.0
 
 func set_test_durations(scroll_duration: float, auto_return_duration: float) -> void:
-	_scroll_duration = max(scroll_duration, 0.01)
-	_auto_return_duration = max(auto_return_duration, 0.01)
+	_test_scroll_duration = max(scroll_duration, 0.01)
+	_test_auto_return_duration = max(auto_return_duration, 0.01)
+	_scroll_duration = _test_scroll_duration
+	_auto_return_duration = _test_auto_return_duration
 
-	if _auto_return_timer != null:
-		_auto_return_timer.stop()
-		_auto_return_timer.wait_time = _auto_return_duration
-		_auto_return_timer.start()
+	if _auto_return_timer == null:
+		_auto_return_timer = Timer.new()
+		_auto_return_timer.one_shot = true
+		add_child(_auto_return_timer)
+		_auto_return_timer.timeout.connect(_on_auto_return_timeout)
+	
+	_auto_return_timer.stop()
+	_auto_return_timer.wait_time = _auto_return_duration
+	_auto_return_timer.start()
 
 	_restart_scroll_tween()
 
@@ -49,6 +58,12 @@ func _on_panel_ready() -> void:
 	_setup_menu_builder()
 	_apply_theme_tokens()
 	_localize_labels()
+	
+	if _test_auto_return_duration > 0.0:
+		_auto_return_duration = _test_auto_return_duration
+	if _test_scroll_duration > 0.0:
+		_scroll_duration = _test_scroll_duration
+	
 	_start_auto_return_timer()
 	_start_scroll_tween()
 	play_enter_animation()
@@ -127,8 +142,11 @@ func _start_auto_return_timer() -> void:
 		_auto_return_timer.one_shot = true
 		add_child(_auto_return_timer)
 		_auto_return_timer.timeout.connect(_on_auto_return_timeout)
-
-	_auto_return_timer.wait_time = _auto_return_duration
+	
+	if _test_auto_return_duration > 0.0:
+		_auto_return_timer.wait_time = _test_auto_return_duration
+	else:
+		_auto_return_timer.wait_time = _auto_return_duration
 	_auto_return_timer.start()
 
 func _start_scroll_tween() -> void:
@@ -162,6 +180,7 @@ func _on_skip_pressed() -> void:
 	_return_to_main_menu()
 
 func _on_auto_return_timeout() -> void:
+	print("Credits: _on_auto_return_timeout called")
 	_return_to_main_menu()
 
 func _on_back_pressed() -> void:

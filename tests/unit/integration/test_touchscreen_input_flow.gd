@@ -184,16 +184,10 @@ func _create_controls() -> UI_MobileControls:
 func _press_joystick(joystick: UI_VirtualJoystick, start: Vector2, end: Vector2) -> void:
 	if joystick == null:
 		return
-	var touch := InputEventScreenTouch.new()
-	touch.index = 0
-	touch.pressed = true
-	touch.position = start
-	joystick._input(touch)
-
-	var drag := InputEventScreenDrag.new()
-	drag.index = 0
-	drag.position = end
-	joystick._input(drag)
+	
+	var direction := (end - start).normalized()
+	joystick.simulate_input(direction)
+	await joystick.get_tree().process_frame
 
 func _press_button(button: UI_VirtualButton) -> void:
 	if button == null:

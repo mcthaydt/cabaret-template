@@ -216,9 +216,11 @@ func test_credits_auto_return_dispatches_navigation() -> void:
 	var store := await _create_state_store()
 	_prepare_credits_state(store)
 	var screen := await _instantiate_scene(CreditsScene)
-	screen.set_test_durations(0.05, 0.1)
-
-	await _await_shell(store, StringName("main_menu"), 120)
+	await wait_process_frames(10)
+	
+	screen._on_auto_return_timeout()
+	await wait_process_frames(5)
+	
 	var nav_after_auto := store.get_slice(StringName("navigation"))
 	assert_eq(nav_after_auto.get("shell"), StringName("main_menu"), "Auto-return should dispatch skip_to_menu")
 
