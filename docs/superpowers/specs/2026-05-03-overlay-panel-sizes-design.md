@@ -78,15 +78,44 @@ No Apply/Cancel buttons. Each setting change dispatches directly to the appropri
 
 For Display and Language tabs, the existing 10-second confirmation dialogs are **preserved**. Resolution changes and language switches still require explicit confirmation before applying. All other settings (Audio, VFX, Gamepad, K/M, Touch) apply instantly.
 
+### Device-specific tab visibility
+
+Tabs appear/disappear based on active device type and mobile context, matching the current `UI_SettingsMenu` button visibility rules:
+
+| Tab | Visibility Rule |
+|-----|----------------|
+| **Gamepad** | Visible when a gamepad is connected AND active device is not Touchscreen |
+| **Touchscreen** | Visible only in mobile context AND active device is not Gamepad |
+| **Keyboard/Mouse** | Hidden entirely in mobile context |
+| **Rebind Controls** (opens Input Rebinding overlay) | Hidden when active device is Touchscreen |
+| Display, Audio, VFX, Language | Always visible |
+
+When a tab disappears while active:
+1. If the active tab becomes hidden, snap to the first visible tab
+2. Refocus the first focusable control in the new tab content
+3. Reconfigure focus neighbors for both tab bar and content area
+
+When device type changes (e.g., user picks up gamepad while on Touchscreen tab):
+1. Recompute which tabs are visible
+2. If current tab is still visible, stay on it
+3. If current tab is newly hidden, switch to first visible tab (Gamepad by default when a gamepad connects)
+4. Reconfigure focus neighbors for tab bar and content area
+5. Reset analog navigation state and consume the next nav tick (same as current `_consume_next_nav` pattern)
+
+On mobile: Touchscreen and Language tabs are likely the only input-related tabs visible. Desktop: Gamepad and Keyboard/Mouse tabs appear; Touchscreen is hidden.
+
 ### Focus wrapping
 
 The tab bar is in the focus chain above the content area. Wrapping vertically within the content stays as-is. Tab buttons wrap horizontally. Gamepad D-pad left/right switches tabs.
+
+When device type changes, all focus neighbors are recomputed (same pattern as current `UI_SettingsMenu._configure_focus_neighbors()`).
 
 ### Tab bar accessibility
 
 - Each tab button is focusable with proper focus neighbor setup
 - The active tab button is visually distinct (theme token)
 - Switching tabs preserves focus within the content area (first focusable control in the new tab gets focus)
+- Hidden tabs are excluded from the focus chain entirely (`visible = false` removes them from Godot's focus graph)
 
 ## Implementation details
 
