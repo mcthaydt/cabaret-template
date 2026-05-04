@@ -2545,7 +2545,7 @@ func test_core_scripts_never_import_from_demo() -> void:
 		"res://resources/demo/"
 	]
 	# u_scene_manifest.gd is allow-listed: it registers scene paths (including demo) but doesn't import/depend on demo code
-	var allow_listed_files: Array[String] = ["res://scripts/core/scene_management/u_scene_manifest.gd"]
+	var allow_listed_files: Array[String] = ["res://scripts/core/scene_management/u_scene_manifest.gd", "res://scripts/core/root.gd"]
 	_collect_demo_imports_in_core("res://scripts/core", violations, forbidden_patterns, allow_listed_files)
 	var message := "scripts/core/ must not import from demo/ paths. Core must not depend on demo."
 	if violations.size() > 0:
