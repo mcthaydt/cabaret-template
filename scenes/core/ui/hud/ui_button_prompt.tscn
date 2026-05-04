@@ -42,16 +42,15 @@ texture = ExtResource("2_mobile_button")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="ActionLabel" type="Label" parent="MobileButton" unique_id=1557359746]
+[node name="ActionIcon" type="TextureRect" parent="MobileButton" unique_id=1557359746]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-text = "Interact"
-horizontal_alignment = 1
-vertical_alignment = 1
+expand_mode = 1
+stretch_mode = 5
 
 [node name="Text" type="Label" parent="." unique_id=1763875455]
 layout_mode = 2

@@ -23,7 +23,7 @@ var _text_icon_panel: Control
 var _text_icon_texture: TextureRect
 var _text_icon_label: Label
 var _mobile_button: Control
-var _mobile_button_label: Label
+var _mobile_button_icon: TextureRect
 var _store: I_StateStore = null
 var _device_manager: M_InputDeviceManager = null
 var _tree_node_added_connected: bool = false
@@ -38,7 +38,7 @@ func _ready() -> void:
 	_text_icon_texture = get_node_or_null(text_icon_texture_path) as TextureRect
 	_text_icon_label = get_node_or_null(text_icon_label_path) as Label
 	_mobile_button = get_node_or_null(mobile_button_path) as Control
-	_mobile_button_label = get_node_or_null(mobile_button_label_path) as Label
+	_mobile_button_icon = get_node_or_null(mobile_button_label_path) as TextureRect
 	_apply_theme_tokens()
 	_reset_visuals()
 	_bind_store()
@@ -101,9 +101,8 @@ func _refresh_prompt() -> void:
 			_text_icon_panel.visible = false
 		if _mobile_button != null:
 			_mobile_button.visible = true
-			if _mobile_button_label != null:
-				_mobile_button_label.text = _get_touchscreen_button_label(binding_label)
-				_mobile_button_label.modulate = INTERACT_COLOR
+			if _mobile_button_icon != null:
+				_mobile_button_icon.modulate = INTERACT_COLOR
 	else:
 		if _mobile_button != null:
 			_mobile_button.visible = false
@@ -152,15 +151,6 @@ func _get_default_interact_label() -> String:
 		return DEFAULT_INTERACT_FALLBACK
 	return localized
 
-func _get_touchscreen_button_label(binding_label: String) -> String:
-	if _action == StringName("interact"):
-		return _get_default_interact_label()
-	if not binding_label.is_empty():
-		return binding_label
-	var action_text := String(_action).replace("_", " ").strip_edges()
-	if action_text.is_empty():
-		return _get_default_interact_label()
-	return action_text.capitalize()
 
 func _reset_visuals() -> void:
 	if _label != null:
@@ -175,8 +165,8 @@ func _reset_visuals() -> void:
 		_text_icon_label.text = ""
 	if _mobile_button != null:
 		_mobile_button.visible = false
-	if _mobile_button_label != null:
-		_mobile_button_label.text = ""
+	if _mobile_button_icon != null:
+		_mobile_button_icon.modulate = Color(1, 1, 1, 1)
 	visible = false
 
 func _apply_theme_tokens() -> void:
@@ -196,8 +186,8 @@ func _apply_theme_tokens() -> void:
 		_label.add_theme_font_size_override(&"font_size", config.subheading)
 	if _text_icon_label != null:
 		_text_icon_label.add_theme_font_size_override(&"font_size", config.body)
-	if _mobile_button_label != null:
-		_mobile_button_label.add_theme_font_size_override(&"font_size", config.caption_small)
+	if _mobile_button_icon != null:
+		pass
 
 func _bind_device_manager() -> void:
 	if _device_manager != null and is_instance_valid(_device_manager):

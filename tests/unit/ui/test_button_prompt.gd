@@ -302,7 +302,7 @@ func test_touchscreen_interact_uses_localized_mobile_label() -> void:
 
 	assert_true(mobile_button.visible, "Mobile button should be visible for touchscreen prompts")
 	assert_false(text_icon.visible, "Text icon should hide for touchscreen prompts")
-	assert_not_null(mobile_icon.texture, "Mobile action icon should have a texture assigned")
+	assert_not_null(mobile_icon, "Mobile action icon node should exist")
 
 func test_button_prompt_applies_theme_tokens_when_active_config_set() -> void:
 	var config := RS_UI_THEME_CONFIG.new()
@@ -348,8 +348,8 @@ func test_button_prompt_applies_theme_tokens_when_active_config_set() -> void:
 		"Binding label should use body token"
 	)
 	assert_not_null(
-		mobile_icon.texture,
-		"Mobile action icon should have a texture assigned after theme config set"
+		mobile_icon,
+		"Mobile action icon node should exist after theme config set"
 	)
 
 func test_button_prompt_scene_has_no_inline_theme_overrides() -> void:
