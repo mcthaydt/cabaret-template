@@ -13,9 +13,9 @@ func test_fade_speed_default_is_four() -> void:
 	var settings := _new_settings()
 	assert_almost_eq(float(settings.get("fade_speed")), 4.0, 0.0001)
 
-func test_min_alpha_default_is_point_zero_five() -> void:
+func test_min_alpha_default_is_zero() -> void:
 	var settings := _new_settings()
-	assert_almost_eq(float(settings.get("min_alpha")), 0.05, 0.0001)
+	assert_almost_eq(float(settings.get("min_alpha")), 0.0, 0.0001)
 
 func test_fade_dot_threshold_is_clamped_to_zero_to_one() -> void:
 	var settings := _new_settings()

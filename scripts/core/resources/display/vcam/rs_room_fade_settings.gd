@@ -4,7 +4,7 @@ class_name RS_RoomFadeSettings
 
 @export var fade_dot_threshold: float = 0.3
 @export var fade_speed: float = 4.0
-@export var min_alpha: float = 0.05
+@export var min_alpha: float = 0.0
 
 func get_resolved_values() -> Dictionary:
 	return {
