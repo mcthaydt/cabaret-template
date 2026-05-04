@@ -82,7 +82,7 @@ func build_preview(
 		if button_instance.has_method("_refresh_icon"):
 			button_instance._refresh_icon()
 		button_instance.process_mode = Node.PROCESS_MODE_DISABLED
-			out_preview_buttons.append(button_instance)
+		out_preview_buttons.append(button_instance)
 
 func update_preview_from_sliders(
 	preview_container: Control,
