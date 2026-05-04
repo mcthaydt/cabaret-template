@@ -297,12 +297,12 @@ func test_touchscreen_interact_uses_localized_mobile_label() -> void:
 	await _await_frames(1)
 
 	var mobile_button: Control = _button_prompt.get_node("MobileButton")
-	var mobile_label: Label = _button_prompt.get_node("MobileButton/ActionLabel")
+	var mobile_icon: Control = _button_prompt.get_node("MobileButton/ActionIcon")
 	var text_icon: Control = _button_prompt.get_node("TextIcon")
 
 	assert_true(mobile_button.visible, "Mobile button should be visible for touchscreen prompts")
 	assert_false(text_icon.visible, "Text icon should hide for touchscreen prompts")
-	assert_eq(mobile_label.text, "Interagir", "Touchscreen interact label should use localized text")
+	assert_not_null(mobile_icon.texture, "Mobile action icon should have a texture assigned")
 
 func test_button_prompt_applies_theme_tokens_when_active_config_set() -> void:
 	var config := RS_UI_THEME_CONFIG.new()
@@ -326,7 +326,7 @@ func test_button_prompt_applies_theme_tokens_when_active_config_set() -> void:
 	var text_icon_panel := _button_prompt.get_node("TextIcon") as PanelContainer
 	var binding_label := _button_prompt.get_node("TextIcon/Label") as Label
 	var action_label := _button_prompt.get_node("Text") as Label
-	var mobile_label := _button_prompt.get_node("MobileButton/ActionLabel") as Label
+	var mobile_icon := _button_prompt.get_node("MobileButton/ActionIcon") as TextureRect
 
 	assert_eq(
 		_button_prompt.get_theme_constant(&"separation"),

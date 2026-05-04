@@ -119,8 +119,8 @@ func _exit_tree() -> void:
 
 func _on_locale_changed(_locale: StringName) -> void:
 	for button in _buttons:
-		if button != null and button.has_method("_refresh_label"):
-			button._refresh_label()
+		if button != null and button.has_method("_refresh_icon"):
+			button._refresh_icon()
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:

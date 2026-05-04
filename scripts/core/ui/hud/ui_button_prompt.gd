@@ -10,7 +10,7 @@ const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme
 @export var text_icon_texture_path: NodePath = NodePath("TextIcon/ButtonIcon")
 @export var text_icon_label_path: NodePath = NodePath("TextIcon/Label")
 @export var mobile_button_path: NodePath = NodePath("MobileButton")
-@export var mobile_button_label_path: NodePath = NodePath("MobileButton/ActionLabel")
+@export var mobile_button_label_path: NodePath = NodePath("MobileButton/ActionIcon")
 
 @export var input_device_manager: M_InputDeviceManager = null
 

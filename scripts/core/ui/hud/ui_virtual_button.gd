@@ -14,10 +14,8 @@ enum ActionType {
 @export var action_type: ActionType = ActionType.HOLD
 @export var can_reposition: bool = false
 @export var control_name: StringName = StringName()
-@export var button_texture: Texture2D
 
 const DEFAULT_SIZE := Vector2(100, 100)
-const DEFAULT_TEXTURE_PATH := "res://assets/core/button_prompts/mobile/button_background.svg"
 const PRESSED_SCALE := Vector2(0.95, 0.95)
 const RELEASED_SCALE := Vector2.ONE
 const PRESSED_MODULATE := Color(0.8, 0.8, 0.8, 1.0)
@@ -28,14 +26,12 @@ const ACTION_COLORS := {
 	StringName("interact"): Color(1.0, 0.85, 0.6),
 	StringName("pause"): Color(1.0, 0.6, 0.7)
 }
-const ACTION_LABEL_KEYS := {
-	StringName("jump"): &"input.action.jump",
-	StringName("sprint"): &"input.action.sprint",
-	StringName("interact"): &"input.action.interact",
-	StringName("pause"): &"input.action.pause",
-}
-
-const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_localization_utils.gd")
+const BUTTON_BG_COLOR := Color(0.4, 0.4, 0.4, 0.5)
+const BUTTON_BORDER_COLOR := Color(1.0, 1.0, 1.0, 0.15)
+const BUTTON_BORDER_WIDTH := 1.5
+const CORNER_RADIUS := 999.0
+const ICON_PREFIX := "res://assets/core/button_prompts/mobile/icon_"
+const ICON_SUFFIX := ".svg"
 
 const BRIDGE_MODE_NONE := 0
 const BRIDGE_MODE_INPUT_ACTION := 1
@@ -46,8 +42,7 @@ const ACTION_BRIDGE_MODES := {
 	StringName("pause"): BRIDGE_MODE_PAUSE_TOGGLE,
 }
 
-@onready var _button_texture_rect: TextureRect = null
-@onready var _action_label: Label = null
+@onready var _icon_texture_rect: TextureRect = null
 
 var _touch_id: int = -1
 var _is_pressed: bool = false
@@ -59,11 +54,10 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_process_input(true)
-	_button_texture_rect = get_node_or_null("ButtonTexture") as TextureRect
-	_action_label = get_node_or_null("ActionLabel") as Label
+	_icon_texture_rect = get_node_or_null("ActionIcon") as TextureRect
 	_ensure_default_size()
-	_apply_button_texture()
-	_refresh_label()
+	_apply_button_style()
+	_load_icon()
 	_apply_release_visuals()
 
 func _input(event: InputEvent) -> void:
@@ -136,37 +130,42 @@ func _ensure_default_size() -> void:
 		size = DEFAULT_SIZE
 	custom_minimum_size = DEFAULT_SIZE
 
-func _apply_button_texture() -> void:
-	if _button_texture_rect == null:
-		return
-	if button_texture == null:
-		button_texture = _load_texture(DEFAULT_TEXTURE_PATH)
-	_button_texture_rect.texture = button_texture
-	if button_texture != null:
-		var tex_size := button_texture.get_size()
-		_button_texture_rect.custom_minimum_size = tex_size
-		_button_texture_rect.set_deferred("size", tex_size)
-	_refresh_label()
+func _apply_button_style() -> void:
+	var style := StyleBoxFlat.new()
+	style.bg_color = BUTTON_BG_COLOR
+	style.border_color = BUTTON_BORDER_COLOR
+	style.border_width_left = BUTTON_BORDER_WIDTH
+	style.border_width_right = BUTTON_BORDER_WIDTH
+	style.border_width_top = BUTTON_BORDER_WIDTH
+	style.border_width_bottom = BUTTON_BORDER_WIDTH
+	style.corner_radius_top_left = CORNER_RADIUS
+	style.corner_radius_top_right = CORNER_RADIUS
+	style.corner_radius_bottom_left = CORNER_RADIUS
+	style.corner_radius_bottom_right = CORNER_RADIUS
+	style.content_margin_left = 12.0
+	style.content_margin_right = 12.0
+	style.content_margin_top = 12.0
+	style.content_margin_bottom = 12.0
+	add_theme_stylebox_override("normal", style)
 
-func _refresh_label() -> void:
-	if _action_label == null:
+func _load_icon() -> void:
+	if _icon_texture_rect == null:
 		return
-	var label_text := _get_localized_action_label(action)
-	if label_text.is_empty():
-		label_text = "?"
-	_action_label.text = label_text.capitalize()
+	if action == StringName():
+		return
+	var icon_path: String = ICON_PREFIX + String(action) + ICON_SUFFIX
+	var texture: Texture2D = load(icon_path) as Texture2D
+	if texture == null:
+		return
 	var tint: Color = ACTION_COLORS.get(action, Color(1, 1, 1, 0.9))
-	_action_label.modulate = tint
+	_icon_texture_rect.texture = texture
+	_icon_texture_rect.modulate = tint
 
-func _get_localized_action_label(action_name: StringName) -> String:
-	if action_name == StringName():
-		return ""
-	var key: StringName = ACTION_LABEL_KEYS.get(action_name, StringName())
-	if key != StringName():
-		var localized := U_LOCALIZATION_UTILS.localize(key)
-		if localized != String(key):
-			return localized
-	return String(action_name)
+func _refresh_icon() -> void:
+	if _icon_texture_rect == null:
+		return
+	var tint: Color = ACTION_COLORS.get(action, Color(1, 1, 1, 0.9))
+	_icon_texture_rect.modulate = tint
 
 func _apply_pressed_visuals() -> void:
 	modulate = PRESSED_MODULATE
@@ -244,12 +243,6 @@ func _get_parent_local_position(global_point: Vector2) -> Vector2:
 		var inverse := canvas_item.get_global_transform_with_canvas().affine_inverse()
 		return inverse * global_point
 	return global_point
-
-func _load_texture(path: String) -> Texture2D:
-	var resource := ResourceLoader.load(path)
-	if resource is Texture2D:
-		return resource
-	return null
 
 func _get_store_instance() -> I_StateStore:
 	if _store != null and is_instance_valid(_store):

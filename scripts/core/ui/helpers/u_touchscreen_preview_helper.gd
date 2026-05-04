@@ -79,8 +79,8 @@ func build_preview(
 			button_instance.name = "PreviewButton_%s" % String(actions[index])
 			if "action" in button_instance:
 				button_instance.action = actions[index]
-			if button_instance.has_method("_refresh_label"):
-				button_instance._refresh_label()
+		if button_instance.has_method("_refresh_icon"):
+			button_instance._refresh_icon()
 			button_instance.process_mode = Node.PROCESS_MODE_DISABLED
 			out_preview_buttons.append(button_instance)
 
