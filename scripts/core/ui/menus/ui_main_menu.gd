@@ -215,7 +215,9 @@ func _on_new_game_pressed() -> void:
 	if store == null:
 		return
 
-	if _should_confirm_new_game():
+	# ConfirmationDialog is a native OS Window; popup_centered() inside a SubViewport
+	# without gui_embed_subwindows does not render or receive touch on mobile.
+	if not OS.has_feature("mobile") and _should_confirm_new_game():
 		_show_new_game_confirmation()
 		return
 

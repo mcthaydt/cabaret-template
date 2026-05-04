@@ -415,11 +415,7 @@ func transition_to_scene(scene_id: StringName, transition_type: String = "fade",
 	# Validate scene exists in registry
 	var scene_data: Dictionary = U_SCENE_REGISTRY.get_scene(scene_id)
 	if scene_data.is_empty():
-		_debug_log("transition dropped: unknown scene_id=%s transition_type=%s priority=%s" % [
-			str(scene_id),
-			transition_type,
-			str(priority),
-		])
+		push_error("M_SceneManager: transition dropped — '%s' not in scene registry" % scene_id)
 		return
 
 	_ensure_store_reference()

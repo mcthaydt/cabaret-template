@@ -2,7 +2,10 @@ extends RefCounted
 class_name U_SceneRegistryLoader
 
 
-const PRELOADED_SCENE_REGISTRY_ENTRIES := []
+const PRELOADED_SCENE_REGISTRY_ENTRIES := [
+	preload("res://resources/core/scene_registry/cfg_core_scene_entries.tres"),
+	preload("res://resources/demo/scene_registry/cfg_demo_scene_entries.tres"),
+]
 
 const MANIFEST_SCRIPT_PATH := "res://scripts/core/scene_management/u_scene_manifest.gd"
 

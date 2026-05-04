@@ -18,6 +18,7 @@ class_name M_SaveManager
 ## - M_SceneManager: Scene transitions during load
 
 const I_SCENE_MANAGER := preload("res://scripts/core/interfaces/i_scene_manager.gd")
+const U_SCENE_REGISTRY := preload("res://scripts/core/scene_management/u_scene_registry.gd")
 const U_STATE_HANDOFF := preload("res://scripts/core/state/utils/u_state_handoff.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/core/state/actions/u_scene_actions.gd")
 const U_GAMEPLAY_SELECTORS := preload("res://scripts/core/state/selectors/u_gameplay_selectors.gd")
@@ -367,6 +368,14 @@ func load_from_slot(slot_id: StringName) -> Error:
 	# BUG FIX: Always use loading screen when loading from saves
 	# Loading is a significant operation that deserves visual feedback
 	var transition_type: String = "loading"
+
+	# Guard: if the saved scene isn't registered, transition_to_scene silently drops
+	# the request and transition_completed never fires, deadlocking _is_loading forever.
+	if U_SCENE_REGISTRY.get_scene_path(target_scene_id).is_empty():
+		_clear_loading_lock()
+		_state_store.dispatch(U_SAVE_ACTIONS.load_failed(slot_id, ERR_DOES_NOT_EXIST))
+		push_error("M_SaveManager: Scene '%s' not in registry; cannot restore save" % target_scene_id)
+		return ERR_DOES_NOT_EXIST
 
 	# Trigger scene transition with loading screen
 	# Note: M_StateStore will restore state from handoff after scene loads
