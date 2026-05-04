@@ -59,6 +59,8 @@ func is_active() -> bool:
 	return _is_active
 
 func get_vector() -> Vector2:
+	if not _is_active:
+		return Vector2.ZERO
 	return _current_vector
 
 func _on_godot_pressed() -> void:
@@ -72,10 +74,10 @@ func _on_godot_released(_input_vector: Vector2) -> void:
 		_save_position()
 
 func _on_godot_flicked(input_vector: Vector2) -> void:
-	_current_vector = input_vector
 	joystick_moved.emit(input_vector)
 
 func simulate_input(vector: Vector2) -> void:
+	_is_active = vector != Vector2.ZERO
 	_current_vector = vector
 	joystick_moved.emit(vector)
 
@@ -116,6 +118,15 @@ func _get_godot_joystick_property(name: String) -> Variant:
 	if _godot_joystick == null:
 		return null
 	return _godot_joystick.get(name)
+
+func _process(_delta: float) -> void:
+	if not _is_active or _godot_joystick == null:
+		return
+	_current_vector = Input.get_vector(
+		StringName("ui_left"), StringName("ui_right"),
+		StringName("ui_up"), StringName("ui_down"),
+		0.0
+	)
 
 func _gui_input(event: InputEvent) -> void:
 	pass
