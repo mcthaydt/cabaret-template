@@ -9,12 +9,14 @@ const UI_THEME_CONFIG_DEFAULT := preload("res://resources/core/ui/cfg_ui_theme_d
 
 func _enter_tree() -> void:
 	_theme_debug_log("_enter_tree start")
-	_preload_demo_scripts()
+	_register_demo_scene_entries()
 	_initialize_ui_theme_config()
 	_initialize_service_locator()
 
-func _preload_demo_scripts() -> void:
-	preload("res://scripts/demo/managers/helpers/u_demo_scene_registry_loader.gd")
+func _register_demo_scene_entries() -> void:
+	var scene_registry_loader := preload("res://scripts/core/scene_management/helpers/u_scene_registry_loader.gd")
+	var demo_loader := preload("res://scripts/demo/managers/helpers/u_demo_scene_registry_loader.gd")
+	scene_registry_loader.add_extension_loader(demo_loader.initialize)
 
 func _ready() -> void:
 	_theme_debug_log("_ready start")

@@ -7,7 +7,15 @@ const PRELOADED_SCENE_REGISTRY_ENTRIES := [
 ]
 
 static var _pending_extra_entries: Array[Resource] = []
+static var _extension_loaders: Array[Callable] = []
 
+
+static func add_extension_loader(loader: Callable) -> void:
+	if not _extension_loaders.has(loader):
+		_extension_loaders.append(loader)
+
+static func clear_extension_loaders() -> void:
+	_extension_loaders.clear()
 
 static func register_extra_entry(resource: Resource) -> void:
 	_pending_extra_entries.push_back(resource)
@@ -26,6 +34,9 @@ func load_resource_entries(scenes: Dictionary, register_scene_callable: Callable
 	# available even when exported PCKs do not support directory iteration.
 	var merged_entries: Array = []
 	merged_entries.append_array(PRELOADED_SCENE_REGISTRY_ENTRIES)
+	for loader: Callable in _extension_loaders:
+		if loader.is_valid():
+			loader.call()
 	merged_entries.append_array(_pending_extra_entries)
 	_pending_extra_entries.clear()
 	var preloaded_result: Dictionary = _load_entries_from_resources(
