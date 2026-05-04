@@ -31,7 +31,8 @@ func _ready() -> void:
 func _setup_godot_joystick() -> void:
 	if _godot_joystick == null:
 		return
-	
+
+	_godot_joystick.mouse_filter = Control.MOUSE_FILTER_STOP
 	_godot_joystick.joystick_size = joystick_radius * 2.0
 	_godot_joystick.deadzone_ratio = deadzone
 	_godot_joystick.joystick_mode = VirtualJoystick.JOYSTICK_DYNAMIC if can_reposition else VirtualJoystick.JOYSTICK_FIXED

@@ -39,7 +39,7 @@ var _perf_probe: U_PerfProbe = null
 
 func _init() -> void:
 	_is_mobile = U_MOBILE_PLATFORM_DETECTOR.is_mobile()
-	_perf_probe = U_PerfProbe.create("S_MovementSystem", _is_mobile)
+	_perf_probe = U_PerfProbe.create("S_MovementSystem", false)
 
 func get_phase() -> BaseECSSystem.SystemPhase:
 	return BaseECSSystem.SystemPhase.PHYSICS_SOLVE

@@ -51,8 +51,8 @@ var _apply_probe: U_PerfProbe = null
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_is_mobile = U_MOBILE_PLATFORM_DETECTOR.is_mobile()
-	_perf_probe = U_PerfProbe.create("CharLighting", _is_mobile)
-	_apply_probe = U_PerfProbe.create("CharLightApply", _is_mobile)
+	_perf_probe = U_PerfProbe.create("CharLighting", false)
+	_apply_probe = U_PerfProbe.create("CharLightApply", false)
 	_scene_default_profile_resolved = _resolve_default_profile_values()
 	_resolve_dependencies()
 	_connect_store_action_signal()
