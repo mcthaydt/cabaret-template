@@ -4,8 +4,13 @@ class_name U_SceneRegistryLoader
 
 const PRELOADED_SCENE_REGISTRY_ENTRIES := [
 	preload("res://resources/core/scene_registry/cfg_core_scene_entries.tres"),
-	preload("res://resources/demo/scene_registry/cfg_demo_scene_entries.tres"),
 ]
+
+static var _pending_extra_entries: Array[Resource] = []
+
+
+static func register_extra_entry(resource: Resource) -> void:
+	_pending_extra_entries.push_back(resource)
 
 const MANIFEST_SCRIPT_PATH := "res://scripts/core/scene_management/u_scene_manifest.gd"
 
@@ -19,8 +24,12 @@ func load_resource_entries(scenes: Dictionary, register_scene_callable: Callable
 
 	# Mobile/Web-safe baseline: registry resources are preloaded so core scenes remain
 	# available even when exported PCKs do not support directory iteration.
+	var merged_entries: Array = []
+	merged_entries.append_array(PRELOADED_SCENE_REGISTRY_ENTRIES)
+	merged_entries.append_array(_pending_extra_entries)
+	_pending_extra_entries.clear()
 	var preloaded_result: Dictionary = _load_entries_from_resources(
-		PRELOADED_SCENE_REGISTRY_ENTRIES,
+		merged_entries,
 		scenes,
 		register_scene_callable
 	)
