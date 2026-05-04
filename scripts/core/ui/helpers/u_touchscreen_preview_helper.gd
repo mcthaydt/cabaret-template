@@ -77,11 +77,11 @@ func build_preview(
 		if button_instance is Control:
 			preview_container.add_child(button_instance)
 			button_instance.name = "PreviewButton_%s" % String(actions[index])
-			if "action" in button_instance:
+		if "action" in button_instance:
 				button_instance.action = actions[index]
 		if button_instance.has_method("_refresh_icon"):
 			button_instance._refresh_icon()
-			button_instance.process_mode = Node.PROCESS_MODE_DISABLED
+		button_instance.process_mode = Node.PROCESS_MODE_DISABLED
 			out_preview_buttons.append(button_instance)
 
 func update_preview_from_sliders(

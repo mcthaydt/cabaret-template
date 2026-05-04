@@ -162,10 +162,7 @@ func _load_icon() -> void:
 	_icon_texture_rect.modulate = tint
 
 func _refresh_icon() -> void:
-	if _icon_texture_rect == null:
-		return
-	var tint: Color = ACTION_COLORS.get(action, Color(1, 1, 1, 0.9))
-	_icon_texture_rect.modulate = tint
+	_load_icon()
 
 func _apply_pressed_visuals() -> void:
 	modulate = PRESSED_MODULATE

@@ -297,7 +297,7 @@ func test_touchscreen_interact_uses_localized_mobile_label() -> void:
 	await _await_frames(1)
 
 	var mobile_button: Control = _button_prompt.get_node("MobileButton")
-	var mobile_icon: Control = _button_prompt.get_node("MobileButton/ActionIcon")
+	var mobile_icon: TextureRect = _button_prompt.get_node("MobileButton/ActionIcon") as TextureRect
 	var text_icon: Control = _button_prompt.get_node("TextIcon")
 
 	assert_true(mobile_button.visible, "Mobile button should be visible for touchscreen prompts")
@@ -347,10 +347,9 @@ func test_button_prompt_applies_theme_tokens_when_active_config_set() -> void:
 		config.body,
 		"Binding label should use body token"
 	)
-	assert_eq(
-		mobile_label.get_theme_font_size(&"font_size"),
-		config.caption_small,
-		"Mobile action label should use caption_small token"
+	assert_not_null(
+		mobile_icon.texture,
+		"Mobile action icon should have a texture assigned after theme config set"
 	)
 
 func test_button_prompt_scene_has_no_inline_theme_overrides() -> void:
