@@ -325,13 +325,5 @@ func _drag_mobile_controls(controls: UI_MobileControls, touch_id: int, start: Ve
 func _press_joystick(joystick: UI_VirtualJoystick, start: Vector2, finish: Vector2) -> void:
 	if joystick == null:
 		return
-	var touch := InputEventScreenTouch.new()
-	touch.index = 0
-	touch.pressed = true
-	touch.position = start
-	joystick._input(touch)
-
-	var drag := InputEventScreenDrag.new()
-	drag.index = 0
-	drag.position = finish
-	joystick._input(drag)
+	var vector := (finish - start) / joystick.joystick_radius
+	joystick.simulate_input(vector.limit_length(1.0))

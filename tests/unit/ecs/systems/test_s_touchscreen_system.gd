@@ -245,16 +245,8 @@ func _find_button(buttons: Array, action: StringName) -> UI_VirtualButton:
 	return null
 
 func _press_joystick(joystick: UI_VirtualJoystick, start: Vector2, end: Vector2) -> void:
-	var touch := InputEventScreenTouch.new()
-	touch.index = 0
-	touch.pressed = true
-	touch.position = start
-	joystick._input(touch)
-
-	var drag := InputEventScreenDrag.new()
-	drag.index = 0
-	drag.position = end
-	joystick._input(drag)
+	var vector := (end - start) / joystick.joystick_radius
+	joystick.simulate_input(vector.limit_length(1.0))
 
 func _press_button(button: UI_VirtualButton) -> void:
 	if button == null:

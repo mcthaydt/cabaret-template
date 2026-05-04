@@ -5,6 +5,7 @@ extends RefCounted
 ##
 ## Centralized registry for all audio resources with O(1) Dictionary lookups.
 ## Call initialize() once at startup to populate all registries.
+## Use add_extension_loader() before initialize() to register demo/mod tracks.
 
 
 # Static dictionaries for O(1) lookups
@@ -13,12 +14,51 @@ static var _ambient_tracks: Dictionary = {}
 static var _ui_sounds: Dictionary = {}
 static var _scene_audio_map: Dictionary = {}
 
+static var _extension_loaders: Array[Callable] = []
+
+## Register an extension loader callable (e.g. demo tracks). Must be called
+## before initialize() so the loader runs when initialize() fires.
+static func add_extension_loader(loader: Callable) -> void:
+	if not _extension_loaders.has(loader):
+		_extension_loaders.append(loader)
+
+## Remove all registered extension loaders (call in test teardown).
+static func clear_extension_loaders() -> void:
+	_extension_loaders.clear()
+
+## Register a single music track from external code (demo, mods).
+static func register_music_track(track: RS_MusicTrackDefinition) -> void:
+	if track == null:
+		return
+	_music_tracks[track.track_id] = track
+
+## Register a single ambient track from external code (demo, mods).
+static func register_ambient_track(track: RS_AmbientTrackDefinition) -> void:
+	if track == null:
+		return
+	_ambient_tracks[track.ambient_id] = track
+
+## Register a single UI sound from external code (demo, mods).
+static func register_ui_sound(sound: RS_UISoundDefinition) -> void:
+	if sound == null:
+		return
+	_ui_sounds[sound.sound_id] = sound
+
+## Register a single scene audio mapping from external code (demo, mods).
+static func register_scene_mapping(mapping: RS_SceneAudioMapping) -> void:
+	if mapping == null:
+		return
+	_scene_audio_map[mapping.scene_id] = mapping
+
 ## Initialize all audio registries. Call once at startup.
 static func initialize() -> void:
 	_register_music_tracks()
 	_register_ambient_tracks()
 	_register_ui_sounds()
 	_register_scene_audio_mappings()
+	for loader: Callable in _extension_loaders:
+		if loader.is_valid():
+			loader.call()
 	_validate_registrations()
 
 ## Get music track definition by ID (O(1) lookup)
@@ -54,7 +94,7 @@ static func _register_music_tracks() -> void:
 ## Register all ambient tracks from .tres resources
 static func _register_ambient_tracks() -> void:
 	_ambient_tracks.clear()
-	# Demo ambient tracks loaded by demo-specific registry
+	# Demo ambient tracks registered by demo-specific registry via add_extension_loader()
 
 ## Register all UI sounds from .tres resources
 static func _register_ui_sounds() -> void:

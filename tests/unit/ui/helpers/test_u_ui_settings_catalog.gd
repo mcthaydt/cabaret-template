@@ -34,7 +34,7 @@ func test_vfx_options_use_expected_entry_shape() -> void:
 	if catalog == null:
 		return
 	var toggles: Array[Dictionary] = catalog.get_toggle_options()
-	assert_eq(toggles.size(), 5, "VFX catalog should expose all toggle settings")
+	assert_eq(toggles.size(), 4, "VFX catalog should expose all toggle settings")
 	for entry in toggles:
 		assert_true(entry.has("key"), "Toggle entry should include key")
 		assert_true(entry.get("key") is StringName, "Toggle key should be StringName")

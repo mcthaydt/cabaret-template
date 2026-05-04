@@ -6,6 +6,8 @@ const RS_AUDIO_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_a
 const RS_SCENE_INITIAL_STATE := preload("res://scripts/core/resources/state/rs_scene_initial_state.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_AUDIO_SERIALIZATION := preload("res://scripts/core/utils/u_audio_serialization.gd")
+const U_AUDIO_REGISTRY_LOADER := preload("res://scripts/core/managers/helpers/u_audio_registry_loader.gd")
+const U_DEMO_AUDIO_REGISTRY_LOADER := preload("res://scripts/demo/managers/helpers/u_demo_audio_registry_loader.gd")
 
 
 static func reset_audio_buses() -> void:
@@ -43,6 +45,9 @@ static func reset_audio_buses() -> void:
 
 	remove_test_file(U_AUDIO_SERIALIZATION.SAVE_PATH)
 	remove_test_file(U_AUDIO_SERIALIZATION.BACKUP_PATH)
+
+	U_AUDIO_REGISTRY_LOADER.clear_extension_loaders()
+	U_AUDIO_REGISTRY_LOADER.add_extension_loader(U_DEMO_AUDIO_REGISTRY_LOADER.initialize)
 
 
 static func create_state_store(include_scene_slice: bool = true) -> M_StateStore:
