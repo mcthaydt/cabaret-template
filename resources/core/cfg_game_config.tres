@@ -4,7 +4,4 @@
 
 [resource]
 script = ExtResource("1_game_config")
-default_gameplay_scene_id = &"demo_room"
 retry_scene_id = &""
-game_name = "Automata Template"
-studio_name = "Ruken"

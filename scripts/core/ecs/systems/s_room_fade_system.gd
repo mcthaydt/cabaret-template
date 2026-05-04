@@ -10,6 +10,7 @@ const I_STATE_STORE := preload("res://scripts/interfaces/i_state_store.gd")
 const RS_ROOM_FADE_SETTINGS_SCRIPT := preload("res://scripts/resources/display/vcam/rs_room_fade_settings.gd")
 const U_ROOM_FADE_MATERIAL_APPLIER := preload("res://scripts/utils/lighting/u_room_fade_material_applier.gd")
 const U_ENTITY_SELECTORS := preload("res://scripts/state/selectors/u_entity_selectors.gd")
+const DEBUG_LOG_THROTTLE := preload("res://scripts/core/utils/debug/u_debug_log_throttle.gd")
 const DEFAULT_ROOM_FADE_SETTINGS := preload("res://resources/display/vcam/cfg_default_room_fade.tres")
 
 const ROOM_FADE_GROUP_TYPE := StringName("RoomFadeGroup")
@@ -34,6 +35,7 @@ var _tracked_targets: Dictionary = {}  # int -> Node3D (MeshInstance3D or CSGSha
 var _target_alpha_by_id: Dictionary = {}  # int -> float
 var _cached_normals: Dictionary = {}  # int -> Vector3
 var _cached_centroids: Dictionary = {}  # int (component instance id) -> Vector3
+var _debug_log_throttle: RefCounted = null
 var _debug_tick_counter: int = 0
 var _group_adjacency_map: Dictionary = {}  # StringName -> Array[StringName]
 var _group_adjacency_computed: bool = false
@@ -41,6 +43,11 @@ var _group_alpha_by_tag: Dictionary = {}  # StringName -> float
 
 func _init() -> void:
 	execution_priority = 110
+
+func _debug_print(message: String) -> void:
+	if _debug_log_throttle == null:
+		_debug_log_throttle = DEBUG_LOG_THROTTLE.new()
+	_debug_log_throttle.log_message(message)
 
 func on_configured() -> void:
 	_camera_manager = _resolve_camera_manager()
@@ -297,7 +304,7 @@ func _compute_group_adjacency(components: Array) -> void:
 			var center_distance: float = aabb_a.get_center().distance_to(aabb_b.get_center())
 			var intersects: bool = grown_a.intersects(grown_b)
 			if should_log_debug:
-				print(
+				_debug_print(
 					"[RoomFadeDiag] adjacency_candidate a=%s b=%s center_distance=%.2f intersects=%s aabb_a=%s aabb_b=%s" % [
 						str(tag_a),
 						str(tag_b),
@@ -654,7 +661,7 @@ func _should_log_target_decision(dot_value: float, threshold: float, target_alph
 	return absf(dot_value - threshold) <= DEBUG_DOT_MARGIN
 
 func _debug_log_skip(reason: String, mode_info: Dictionary) -> void:
-	print(
+	_debug_print(
 		"[RoomFadeDebug] tick=%d skip=%s active_mode=%s tracked_targets=%d" % [
 			_debug_tick_counter,
 			reason,
@@ -671,7 +678,7 @@ func _debug_log_tick_header(
 	filtered_component_count: int,
 	delta: float
 ) -> void:
-	print(
+	_debug_print(
 		"[RoomFadeDebug] tick=%d mode=%s components=%d filtered=%d tracked_targets=%d delta=%.3f camera=%s forward=%s" % [
 			_debug_tick_counter,
 			str(mode_info.get("active_mode", "")),
@@ -701,7 +708,7 @@ func _debug_log_component_summary(
 			fallback_target = first_target_variant as Node3D
 	var component_origin: Vector3 = _resolve_component_origin(component, fallback_target)
 
-	print(
+	_debug_print(
 		"[RoomFadeDebug] component=%s targets=%d faded_targets=%d avg_alpha=%.3f threshold=%.3f min_alpha=%.3f fade_speed=%.3f origin=%s" % [
 			_describe_object(component),
 			targets.size(),
@@ -714,14 +721,14 @@ func _debug_log_component_summary(
 		]
 	)
 	if faded_target_count > 0 and min_alpha > 0.0:
-		print(
+		_debug_print(
 			"[RoomFadeDiag]   min_alpha_floor_active component=%s min_alpha=%.3f (cannot fully disappear while this is > 0.0)" % [
 				_describe_object(component),
 				min_alpha,
 			]
 		)
 	for log_line in target_logs:
-		print(log_line)
+		_debug_print(log_line)
 
 func _debug_log_adjacency_floor_applied(
 	group_tag: StringName,
@@ -732,7 +739,7 @@ func _debug_log_adjacency_floor_applied(
 	target_count: int,
 	boosted_average_alpha: float
 ) -> void:
-	print(
+	_debug_print(
 		"[RoomFadeDiag] adjacency_floor_applied group=%s adjacent=%s prev_avg=%.3f floor=%.3f boosted_targets=%d/%d new_avg=%.3f" % [
 			str(group_tag),
 			str(adjacent_tags),
@@ -746,14 +753,14 @@ func _debug_log_adjacency_floor_applied(
 
 func _debug_log_adjacency_map_snapshot() -> void:
 	if _group_adjacency_map.is_empty():
-		print("[RoomFadeDiag] adjacency_map empty")
+		_debug_print("[RoomFadeDiag] adjacency_map empty")
 		return
 	var groups: Array = _group_adjacency_map.keys()
 	groups.sort()
 	for group_variant in groups:
 		var group_tag: StringName = group_variant as StringName
 		var adjacent: Array = _group_adjacency_map.get(group_tag, []) as Array
-		print("[RoomFadeDiag] adjacency_map group=%s adjacent=%s" % [
+		_debug_print("[RoomFadeDiag] adjacency_map group=%s adjacent=%s" % [
 			str(group_tag),
 			str(adjacent),
 		])
@@ -806,14 +813,14 @@ func _filter_components_by_active_room(components: Array, should_log_debug: bool
 	var player_data: Dictionary = _resolve_player_position_data()
 	if player_data.is_empty():
 		if should_log_debug:
-			print("[RoomFadeDiag] active_room_filter skipped=no_player_position")
+			_debug_print("[RoomFadeDiag] active_room_filter skipped=no_player_position")
 		return components
 	var player_position: Vector3 = player_data.get("position", Vector3.ZERO) as Vector3
 
 	var matching: Array = []
 	var logged_components: int = 0
 	if should_log_debug:
-		print(
+		_debug_print(
 			"[RoomFadeDiag] active_room_filter player_pos=%s components=%d" % [
 				_format_vector3(player_position),
 				components.size(),
@@ -834,7 +841,7 @@ func _filter_components_by_active_room(components: Array, should_log_debug: bool
 		expanded.size.y = room_aabb.size.y + 1.0
 		var is_matching_room: bool = expanded.has_point(player_position)
 		if should_log_debug and logged_components < DEBUG_MAX_FILTER_LOGS:
-			print(
+			_debug_print(
 				"[RoomFadeDiag]   room_candidate=%s room_aabb=%s expanded_aabb=%s contains_player=%s target_count=%d" % [
 					_describe_object(component),
 					_format_aabb(room_aabb),
@@ -848,7 +855,7 @@ func _filter_components_by_active_room(components: Array, should_log_debug: bool
 			matching.append(component_variant)
 
 	if should_log_debug:
-		print("[RoomFadeDiag] active_room_filter matched=%d/%d" % [matching.size(), components.size()])
+		_debug_print("[RoomFadeDiag] active_room_filter matched=%d/%d" % [matching.size(), components.size()])
 
 	if matching.is_empty():
 		return components
@@ -904,12 +911,12 @@ func _debug_log_normal_diagnosis(component: Object) -> void:
 			parent_basis_euler = parent_node.global_basis.get_euler()
 			parent_global_pos = parent_node.global_position
 
-	print("[RoomFadeDiag] component=%s" % _describe_object(component))
-	print("[RoomFadeDiag]   raw_fade_normal=%s  world_normal=%s" % [
+	_debug_print("[RoomFadeDiag] component=%s" % _describe_object(component))
+	_debug_print("[RoomFadeDiag]   raw_fade_normal=%s  world_normal=%s" % [
 		_format_vector3(raw_fade_normal),
 		_format_vector3(world_normal_from_component),
 	])
-	print("[RoomFadeDiag]   parent_rotation_deg=%s  parent_pos=%s" % [
+	_debug_print("[RoomFadeDiag]   parent_rotation_deg=%s  parent_pos=%s" % [
 		_format_vector3(Vector3(
 			rad_to_deg(parent_basis_euler.x),
 			rad_to_deg(parent_basis_euler.y),
@@ -925,7 +932,7 @@ func _debug_log_normal_diagnosis(component: Object) -> void:
 		if _is_supported_target(targets[0]):
 			fallback_target = targets[0] as Node3D
 		var comp_origin: Vector3 = _resolve_component_origin(component, fallback_target)
-		print("[RoomFadeDiag]   target_count=%d  component_origin=%s" % [
+		_debug_print("[RoomFadeDiag]   target_count=%d  component_origin=%s" % [
 			targets.size(),
 			_format_vector3(comp_origin),
 		])
@@ -938,7 +945,7 @@ func _debug_log_normal_diagnosis(component: Object) -> void:
 			var inward_planar: Vector3 = inward_raw
 			inward_planar.y = 0.0
 			var resolved_info: Dictionary = _resolve_target_world_normal_info(component, t, targets.size())
-			print("[RoomFadeDiag]   target[%d]=%s  pos=%s  inward_raw=%s  inward_planar=%s  resolved_normal=%s  source=%s" % [
+			_debug_print("[RoomFadeDiag]   target[%d]=%s  pos=%s  inward_raw=%s  inward_planar=%s  resolved_normal=%s  source=%s" % [
 				i,
 				_describe_node(t),
 				_format_vector3(t.global_position),

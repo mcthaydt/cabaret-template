@@ -1,4 +1,4 @@
-[gd_resource type="ShaderMaterial" format=3]
+[gd_resource type="ShaderMaterial" format=3 uid="uid://bvmwbb2wbe4gc"]
 
 [ext_resource type="Shader" uid="uid://damxhbt46sv1q" path="res://assets/core/shaders/sh_wall_cutout.gdshader" id="1"]
 [ext_resource type="Texture2D" uid="uid://bsfq5ykk8yynq" path="res://assets/core/textures/prototype_grids/tex_texture_01.png" id="2"]
@@ -6,6 +6,10 @@
 [resource]
 render_priority = 0
 shader = ExtResource("1")
+shader_parameter/wall_cutout_player_pos = Vector3(1000000, 1000000, 1000000)
+shader_parameter/wall_cutout_disc_radius = 0.5
+shader_parameter/wall_cutout_disc_falloff = 0.05
+shader_parameter/wall_cutout_disc_min_alpha = 0.0
 shader_parameter/base_color = Color(1, 1, 1, 1)
-shader_parameter/use_base_texture = true
 shader_parameter/base_texture = ExtResource("2")
+shader_parameter/use_base_texture = true
