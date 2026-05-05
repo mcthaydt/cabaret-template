@@ -23,6 +23,12 @@ const BACKGROUND_SHADER_PRESET_MODE_BY_ID := {
 	BACKGROUND_SHADER_PRESET_ARCADE_NOISE: 2,
 }
 
+const BACKGROUND_IMAGE_BY_PRESET := {
+	BACKGROUND_SHADER_PRESET_RETRO_GRID: "res://assets/core/textures/bg_menu_main.png",
+	BACKGROUND_SHADER_PRESET_SCANLINE_DRIFT: "res://assets/core/textures/bg_menu_pause.png",
+	BACKGROUND_SHADER_PRESET_ARCADE_NOISE: "res://assets/core/textures/bg_game_over.png",
+}
+
 @export var background_path: NodePath = NodePath("ColorRect")
 @export var content_path: NodePath = NodePath("CenterContainer/VBoxContainer")
 @export var logo_label_path: NodePath = NodePath("CenterContainer/VBoxContainer/LogoLabel")
@@ -35,6 +41,7 @@ const BACKGROUND_SHADER_PRESET_MODE_BY_ID := {
 @export_range(0.0, 5.0, 0.01) var background_shader_speed: float = 1.0
 
 var _background: ColorRect = null
+var _background_image: TextureRect = null
 var _content: VBoxContainer = null
 var _logo_label: Label = null
 var _spinner_label: Label = null
@@ -110,10 +117,24 @@ func _on_visibility_changed() -> void:
 func _on_fade_finished() -> void:
 	_fade_tween = null
 
+func _resolve_background() -> Control:
+	var bg_image := get_node_or_null("BackgroundImage") as TextureRect
+	if bg_image != null:
+		return bg_image
+	if _background != null:
+		return _background
+	return null
+
 func _setup_background_shader() -> void:
-	if background_shader_preset == BACKGROUND_SHADER_PRESET_NONE:
+	var bg := _resolve_background()
+	if bg == null:
 		return
-	if _background == null:
+
+	if bg is TextureRect:
+		_background_image = bg
+		return
+
+	if background_shader_preset == BACKGROUND_SHADER_PRESET_NONE:
 		return
 
 	var preset_mode := _get_background_shader_mode(background_shader_preset)
@@ -130,6 +151,8 @@ func _setup_background_shader() -> void:
 	_apply_background_shader_uniforms(preset_mode)
 
 func _apply_background_shader_uniforms(preset_mode: int) -> void:
+	if _background_image != null:
+		return
 	if _background_shader_material == null:
 		return
 	_background_shader_material.set_shader_parameter(SHADER_PARAM_PRESET_MODE, preset_mode)
