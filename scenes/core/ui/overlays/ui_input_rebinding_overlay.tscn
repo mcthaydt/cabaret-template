@@ -29,6 +29,7 @@ texture = ExtResource("bg_menu_pause")
 expand_mode = 1
 stretch_mode = 5
 z_index = -1
+texture_filter = 0
 mouse_filter = 2
 
 [node name="UIScaleRoot" type="Node" parent="." unique_id=1469292173]

@@ -140,6 +140,7 @@ func _setup_background_image(preset: String) -> bool:
 	bg_image.set_anchors_preset(Control.PRESET_FULL_RECT)
 	bg_image.z_index = -1
 	bg_image.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bg_image.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	add_child(bg_image)
 	move_child(bg_image, 0)
 	_background_image = bg_image
