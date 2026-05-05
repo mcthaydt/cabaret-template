@@ -109,6 +109,18 @@ func set_back_button(key: StringName, callback: Callable, fallback: String = "")
 	return self
 
 func set_background_dim(color: Color) -> U_UIMenuBuilder:
+	var bg_image := _menu.get_node_or_null("BackgroundImage") as TextureRect
+	if bg_image != null:
+		var overlay := ColorRect.new()
+		overlay.name = "OverlayBackground"
+		overlay.color = color
+		overlay.anchor_right = 1.0
+		overlay.anchor_bottom = 1.0
+		var bg_index: int = bg_image.get_index()
+		_menu.add_child(overlay)
+		_menu.move_child(overlay, bg_index)
+		_theme_map.append({"control": overlay, "role": &"background"})
+		return self
 	var bg := _menu.get_node_or_null("Background") as ColorRect
 	if bg == null:
 		bg = ColorRect.new()

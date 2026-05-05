@@ -387,6 +387,16 @@ func test_auto_provision_skipped_when_no_preset_mapping() -> void:
 	await wait_process_frames(3)
 	assert_null(screen.get("_background_image"), "Should not auto-provision when preset is none")
 
+func test_no_background_image_no_color_rect_preset_none() -> void:
+	await _create_state_store()
+	var screen := BaseMenuScreen.new()
+	screen.background_shader_preset = "none"
+	add_child_autofree(screen)
+	await wait_process_frames(3)
+	assert_null(screen.get("_background_image"), "Should not auto-provision when no nodes and preset is none")
+	assert_null(screen.get("_background_shader_material"), "Should not set up shader when preset is none")
+	assert_null(screen.get("_background_rect"), "Should not set _background_rect when no ColorRect exists")
+
 func _create_state_store() -> M_StateStore:
 	var store := M_StateStore.new()
 	store.settings = RS_StateStoreSettings.new()

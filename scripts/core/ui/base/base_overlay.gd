@@ -35,13 +35,13 @@ func _ready() -> void:
 		if _background_panel.get_parent() == self:
 			move_child(_background_panel, 0)
 	elif auto_create_background:
-		# Try to reuse existing ColorRect as first child (backward compatibility)
 		var first_child: Node = get_child(0) if get_child_count() > 0 else null
 		if first_child is ColorRect:
 			_background_panel = first_child as ColorRect
 			_configure_existing_background(_background_panel)
+		elif first_child is TextureRect and first_child.name == "BackgroundImage":
+			_create_background_panel(first_child.get_index() + 1)
 		else:
-			# Create new background panel
 			_create_background_panel()
 
 	super._ready()
@@ -52,14 +52,16 @@ func set_overlay_scene_id(scene_id: StringName) -> void:
 func get_overlay_scene_id() -> StringName:
 	return overlay_scene_id
 
-func _create_background_panel() -> void:
+func _create_background_panel(at_index: int = -1) -> void:
 	_background_panel = ColorRect.new()
 	_background_panel.name = "OverlayBackground"
 	_configure_new_background(_background_panel)
 
-	# Add as first child (bottom of z-order)
 	add_child(_background_panel)
-	move_child(_background_panel, 0)
+	if at_index >= 0:
+		move_child(_background_panel, at_index)
+	else:
+		move_child(_background_panel, 0)
 
 func _configure_new_background(panel: ColorRect) -> void:
 	"""Configure a newly created background panel with all properties."""
