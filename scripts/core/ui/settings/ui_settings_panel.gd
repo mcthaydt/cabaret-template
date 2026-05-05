@@ -39,6 +39,8 @@ const _TAB_LABELS: Dictionary = {
 	TabId.TOUCHSCREEN: {"key": StringName("settings_tab_touchscreen"), "fallback": "Touchscreen"},
 }
 
+@export var emulate_mobile_override: bool = false
+
 var _active_tab: TabId = TabId.DISPLAY
 var _tab_buttons: Dictionary = {}
 var _tab_contents: Dictionary = {}
@@ -129,7 +131,30 @@ func _update_tab_button_states() -> void:
 			button.theme_type_variation = "TabInactive"
 
 func _update_tab_visibility(state: Dictionary = {}) -> void:
-	pass
+	if state.is_empty():
+		var store := get_store()
+		if store != null:
+			state = store.get_state()
+	var has_gamepad: bool = U_InputSelectors.is_gamepad_connected(state)
+	var device_type: int = U_InputSelectors.get_active_device_type(state)
+	var is_mobile_context: bool = _is_mobile_context()
+	var is_gamepad_active: bool = device_type == M_InputDeviceManager.DeviceType.GAMEPAD
+
+	if device_type != _last_device_type:
+		var previous_type: int = _last_device_type
+		_last_device_type = device_type
+		if device_type == M_InputDeviceManager.DeviceType.GAMEPAD \
+				and previous_type == M_InputDeviceManager.DeviceType.TOUCHSCREEN:
+			reset_analog_navigation()
+			_consume_next_nav = true
+
+	_set_tab_visible(TabId.GAMEPAD, has_gamepad and device_type != M_InputDeviceManager.DeviceType.TOUCHSCREEN)
+	_set_tab_visible(TabId.TOUCHSCREEN, is_mobile_context and not is_gamepad_active)
+	_set_tab_visible(TabId.KEYBOARD_MOUSE, not is_mobile_context)
+
+	if _is_tab_hidden(_active_tab):
+		_snap_to_first_visible_tab()
+	_configure_focus_neighbors()
 
 func _configure_focus_neighbors() -> void:
 	var visible_buttons: Array[Control] = []
@@ -141,6 +166,52 @@ func _configure_focus_neighbors() -> void:
 		if button.is_visible_in_tree():
 			visible_buttons.append(button)
 	U_FocusConfigurator.configure_horizontal_focus(visible_buttons)
+
+func _set_tab_visible(tab_id: TabId, visible: bool) -> void:
+	var entry: Dictionary = _tab_buttons.get(tab_id, {})
+	var button: Button = entry.get("button") as Button
+	if button != null:
+		button.visible = visible
+	var content: Control = _tab_contents.get(tab_id) as Control
+	if content != null:
+		content.visible = visible
+
+func _is_tab_hidden(tab_id: TabId) -> bool:
+	var entry: Dictionary = _tab_buttons.get(tab_id, {})
+	var button: Button = entry.get("button") as Button
+	if button == null:
+		return true
+	return not button.visible
+
+func _snap_to_first_visible_tab() -> void:
+	var priority_order: Array[TabId] = [
+		TabId.DISPLAY,
+		TabId.AUDIO,
+		TabId.VFX,
+		TabId.LANGUAGE,
+		TabId.GAMEPAD,
+		TabId.KEYBOARD_MOUSE,
+		TabId.TOUCHSCREEN,
+	]
+	for tab_id: TabId in priority_order:
+		if not _is_tab_hidden(tab_id):
+			switch_to_tab(tab_id)
+			return
+	switch_to_tab(TabId.DISPLAY)
+
+func _is_mobile_context() -> bool:
+	if emulate_mobile_override:
+		return true
+	if OS.has_feature("mobile"):
+		return true
+	var args: PackedStringArray = OS.get_cmdline_args()
+	return args.has("--emulate-mobile")
+
+func _navigate_focus(direction: StringName) -> void:
+	if _consume_next_nav:
+		_consume_next_nav = false
+		return
+	super._navigate_focus(direction)
 
 func _find_first_focusable_in_tab(tab_id: TabId) -> Control:
 	var content: Control = _tab_contents.get(tab_id) as Control
