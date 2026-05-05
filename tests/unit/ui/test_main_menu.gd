@@ -3,7 +3,6 @@ extends GutTest
 const MainMenuScene := preload("res://scenes/core/ui/menus/ui_main_menu.tscn")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
-const MENU_FULLSCREEN_SHADER := preload("res://assets/core/shaders/sh_menu_fullscreen_shader.gdshader")
 const CFG_GAME_CONFIG := preload("res://resources/core/cfg_game_config.tres")
 
 func before_each() -> void:
@@ -38,21 +37,22 @@ func test_applies_theme_tokens_when_active_config_present() -> void:
 
 	var menu := await _create_main_menu()
 	var title_label: Label = menu.get_node("%TitleLabel")
-	var background: ColorRect = menu.get_node("Background")
+	var background_image: TextureRect = menu.get_node_or_null("BackgroundImage")
 
 	assert_eq(
 		title_label.get_theme_font_size(&"font_size"),
 		62,
 		"Title label should use the title size token from the active theme config"
 	)
-	assert_true(
-		background.color.is_equal_approx(config.bg_base),
-		"Background color should use the bg_base token from the active theme config"
+	assert_not_null(
+		background_image,
+		"Main menu should have a BackgroundImage TextureRect node"
 	)
-	var material := background.material as ShaderMaterial
-	assert_not_null(material, "Main menu should apply configured fullscreen backdrop shader")
-	if material != null:
-		assert_eq(material.shader, MENU_FULLSCREEN_SHADER, "Main menu backdrop should use shared shader")
+	if background_image != null:
+		assert_not_null(
+			background_image.texture,
+			"BackgroundImage should have a texture assigned"
+		)
 
 func test_main_panel_visible_by_default() -> void:
 	var store := await _create_state_store()

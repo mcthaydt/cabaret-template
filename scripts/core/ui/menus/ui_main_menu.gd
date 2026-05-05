@@ -24,7 +24,6 @@ const OVERLAY_SAVE_LOAD := StringName("save_load_menu_overlay")
 @onready var _title_label: Label = %TitleLabel
 @onready var _main_panel: Control = %MainPanel
 
-@onready var _background: ColorRect = $Background
 @onready var _continue_button: Button = %ContinueButton
 @onready var _new_game_button: Button = %NewGameButton
 @onready var _load_game_button: Button = %LoadGameButton
@@ -59,7 +58,6 @@ func _on_panel_ready() -> void:
 
 func _setup_menu_builder() -> void:
 	_menu_builder = U_UI_MENU_BUILDER.new(self)
-	_menu_builder.bind_background(_background)
 	_menu_builder.bind_title(_title_label, &"menu.main.title", "Main Menu")
 	_menu_builder.bind_theme_role(_title_label, &"title")
 	_menu_builder.bind_button_group([
@@ -348,10 +346,9 @@ func _debug_log_theme_snapshot() -> void:
 			str(has_root_button_style),
 			str(has_root_panel_style),
 		] +
-		"button_theme=%s button_effective_style=%s background=%s" % [
+		"button_theme=%s button_effective_style=%s" % [
 			str(button_theme != null),
 			str(has_button_effective_style),
-			str(_background.color if _background != null else Color.BLACK),
 		]
 	)
 

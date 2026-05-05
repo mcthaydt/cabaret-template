@@ -4,6 +4,7 @@
 [ext_resource type="Resource" uid="uid://b72010a71rlh7" path="res://resources/core/ui/motions/cfg_motion_fade_slide.tres" id="2_motion_set"]
 [ext_resource type="Script" uid="uid://dfg7i5kfpjwg1" path="res://scripts/core/ui/helpers/u_ui_scale_root.gd" id="2_ui_scale_root"]
 [ext_resource type="Script" uid="uid://cvi7rh32jhp6d" path="res://scripts/core/ui/helpers/u_localization_root.gd" id="localization_root"]
+[ext_resource type="Texture2D" uid="uid://cl8wd2ah0lfq8" path="res://assets/core/textures/bg_game_over.png" id="bg_game_over"]
 
 [node name="LanguageSelector" type="Control" unique_id=399635865]
 layout_mode = 3
@@ -13,25 +14,26 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_lang_selector_script")
-background_shader_preset = "arcade_noise"
-background_shader_intensity = 0.58
-background_shader_speed = 1.25
 motion_set = ExtResource("2_motion_set")
 
-[node name="UIScaleRoot" type="Node" parent="." unique_id=1309674675]
-script = ExtResource("2_ui_scale_root")
-
-[node name="LocalizationRoot" type="Node" parent="." unique_id=1751483382]
-script = ExtResource("localization_root")
-
-[node name="Background" type="ColorRect" parent="." unique_id=687595469]
+[node name="BackgroundImage" type="TextureRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.114, 0.114, 0.129, 1)
+texture = ExtResource("bg_game_over")
+expand_mode = 1
+stretch_mode = 5
+z_index = -1
+mouse_filter = 2
+
+[node name="UIScaleRoot" type="Node" parent="." unique_id=1309674675]
+script = ExtResource("2_ui_scale_root")
+
+[node name="LocalizationRoot" type="Node" parent="." unique_id=1751483382]
+script = ExtResource("localization_root")
 
 [node name="ButtonContainer" type="CenterContainer" parent="." unique_id=839940316]
 unique_name_in_owner = true

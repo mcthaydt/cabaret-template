@@ -32,7 +32,7 @@ func test_loading_screen_applies_theme_tokens_when_active_config_set() -> void:
 	add_child_autofree(_loading_screen)
 	await get_tree().process_frame
 
-	var background := _loading_screen.get_node_or_null("ColorRect") as ColorRect
+	var background_image := _loading_screen.get_node_or_null("BackgroundImage") as TextureRect
 	var content := _loading_screen.get_node_or_null("CenterContainer/VBoxContainer") as VBoxContainer
 	var logo_label := _loading_screen.get_node_or_null("CenterContainer/VBoxContainer/LogoLabel") as Label
 	var spinner_label := _loading_screen.get_node_or_null("CenterContainer/VBoxContainer/SpinnerLabel") as Label
@@ -40,7 +40,7 @@ func test_loading_screen_applies_theme_tokens_when_active_config_set() -> void:
 	var tip_label := _loading_screen.get_node_or_null("CenterContainer/VBoxContainer/TipLabel") as Label
 	var progress_bar := _loading_screen.get_node_or_null("CenterContainer/VBoxContainer/ProgressBar") as ProgressBar
 
-	assert_not_null(background, "Loading screen background should exist")
+	assert_not_null(background_image, "Loading screen should have a BackgroundImage node")
 	assert_not_null(content, "Loading screen content container should exist")
 	assert_not_null(logo_label, "Logo label should exist")
 	assert_not_null(spinner_label, "Spinner label should exist")
@@ -48,10 +48,10 @@ func test_loading_screen_applies_theme_tokens_when_active_config_set() -> void:
 	assert_not_null(tip_label, "Tip label should exist")
 	assert_not_null(progress_bar, "Progress bar should exist")
 
-	if background != null:
-		assert_true(
-			background.color.is_equal_approx(config.bg_base),
-			"Background should use bg_base token color"
+	if background_image != null:
+		assert_not_null(
+			background_image.texture,
+			"BackgroundImage should have a texture assigned"
 		)
 	if content != null:
 		assert_eq(

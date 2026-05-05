@@ -29,7 +29,7 @@ const BACKGROUND_IMAGE_BY_PRESET := {
 	BACKGROUND_SHADER_PRESET_ARCADE_NOISE: "res://assets/core/textures/bg_game_over.png",
 }
 
-@export var background_path: NodePath = NodePath("ColorRect")
+@export var background_path: NodePath = NodePath()
 @export var content_path: NodePath = NodePath("CenterContainer/VBoxContainer")
 @export var logo_label_path: NodePath = NodePath("CenterContainer/VBoxContainer/LogoLabel")
 @export var spinner_label_path: NodePath = NodePath("CenterContainer/VBoxContainer/SpinnerLabel")

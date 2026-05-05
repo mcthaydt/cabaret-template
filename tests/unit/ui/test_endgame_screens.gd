@@ -8,7 +8,6 @@ const U_GAMEPLAY_ACTIONS := preload("res://scripts/core/state/actions/u_gameplay
 const U_NAVIGATION_ACTIONS := preload("res://scripts/core/state/actions/u_navigation_actions.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
-const MENU_FULLSCREEN_SHADER := preload("res://assets/core/shaders/sh_menu_fullscreen_shader.gdshader")
 
 
 
@@ -35,16 +34,14 @@ func test_game_over_has_motion_and_theme_tokens_when_active_config_set() -> void
 	var motion_set: Variant = screen.get("motion_set")
 	var title_label: Label = screen.get_node("%TitleLabel")
 	var death_count_label: Label = screen.get_node("%DeathCountLabel")
-	var background: ColorRect = screen.get_node("Background")
+	var background_image: TextureRect = screen.get_node_or_null("BackgroundImage")
 
 	assert_not_null(motion_set, "Game Over should assign enter/exit motion set")
 	assert_eq(title_label.get_theme_font_size(&"font_size"), 58, "Title should use theme title size token")
 	assert_eq(death_count_label.get_theme_font_size(&"font_size"), 34, "Death count should use theme heading size token")
-	assert_true(background.color.is_equal_approx(config.bg_base), "Background should use theme bg_base token")
-	var game_over_material := background.material as ShaderMaterial
-	assert_not_null(game_over_material, "Game over should apply configured fullscreen backdrop shader")
-	if game_over_material != null:
-		assert_eq(game_over_material.shader, MENU_FULLSCREEN_SHADER, "Game over backdrop should use shared shader")
+	assert_not_null(background_image, "Game Over should have a BackgroundImage node")
+	if background_image != null:
+		assert_not_null(background_image.texture, "Game Over BackgroundImage should have a texture assigned")
 
 func test_victory_has_motion_and_theme_tokens_when_active_config_set() -> void:
 	var store := await _create_state_store()
@@ -61,16 +58,14 @@ func test_victory_has_motion_and_theme_tokens_when_active_config_set() -> void:
 	var motion_set: Variant = screen.get("motion_set")
 	var title_label: Label = screen.get_node("%TitleLabel")
 	var completed_label: Label = screen.get_node("%CompletedLabel")
-	var background: ColorRect = screen.get_node("Background")
+	var background_image: TextureRect = screen.get_node_or_null("BackgroundImage")
 
 	assert_not_null(motion_set, "Victory should assign enter/exit motion set")
 	assert_eq(title_label.get_theme_font_size(&"font_size"), 60, "Victory title should use theme title size token")
 	assert_eq(completed_label.get_theme_font_size(&"font_size"), 32, "Victory stats should use theme heading size token")
-	assert_true(background.color.is_equal_approx(config.bg_base), "Victory background should use theme bg_base token")
-	var victory_material := background.material as ShaderMaterial
-	assert_not_null(victory_material, "Victory should apply configured fullscreen backdrop shader")
-	if victory_material != null:
-		assert_eq(victory_material.shader, MENU_FULLSCREEN_SHADER, "Victory backdrop should use shared shader")
+	assert_not_null(background_image, "Victory should have a BackgroundImage node")
+	if background_image != null:
+		assert_not_null(background_image.texture, "Victory BackgroundImage should have a texture assigned")
 
 func test_game_over_retry_returns_to_gameplay() -> void:
 	var store := await _create_state_store()
@@ -199,18 +194,16 @@ func test_credits_has_motion_and_theme_tokens_when_active_config_set() -> void:
 	var names_label: Label = screen.get_node("%NamesLabel")
 	var footer_label: Label = screen.get_node("%FooterLabel")
 	var content_vbox: VBoxContainer = screen.get_node("%ContentVBox")
-	var background: ColorRect = screen.get_node("Background")
+	var background_image: TextureRect = screen.get_node_or_null("BackgroundImage")
 
 	assert_not_null(motion_set, "Credits should assign enter/exit motion set")
 	assert_eq(header_label.get_theme_font_size(&"font_size"), 62, "Credits header should use theme title size token")
 	assert_eq(names_label.get_theme_font_size(&"font_size"), 26, "Credits names should use theme body size token")
 	assert_eq(footer_label.get_theme_font_size(&"font_size"), 15, "Credits footer should use theme caption size token")
 	assert_eq(content_vbox.get_theme_constant(&"separation"), 29, "Credits spacing should use separation_medium token")
-	assert_true(background.color.is_equal_approx(config.bg_base), "Credits background should use theme bg_base token")
-	var credits_material := background.material as ShaderMaterial
-	assert_not_null(credits_material, "Credits should apply configured fullscreen backdrop shader")
-	if credits_material != null:
-		assert_eq(credits_material.shader, MENU_FULLSCREEN_SHADER, "Credits backdrop should use shared shader")
+	assert_not_null(background_image, "Credits should have a BackgroundImage node")
+	if background_image != null:
+		assert_not_null(background_image.texture, "Credits BackgroundImage should have a texture assigned")
 
 func test_credits_auto_return_dispatches_navigation() -> void:
 	var store := await _create_state_store()

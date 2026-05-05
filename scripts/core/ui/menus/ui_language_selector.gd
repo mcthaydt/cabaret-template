@@ -27,7 +27,7 @@ const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_buil
 @onready var _pt_button: Button = %PtButton
 @onready var _zh_cn_button: Button = %ZhCnButton
 @onready var _ja_button: Button = %JaButton
-@onready var _background: ColorRect = $Background
+
 var _menu_builder: RefCounted = null
 
 
@@ -72,7 +72,6 @@ func _setup_buttons() -> void:
 
 func _setup_menu_builder() -> void:
 	_menu_builder = U_UI_MENU_BUILDER.new(self)
-	_menu_builder.bind_background(_background)
 	_menu_builder.bind_panel(_panel_container, _panel_padding, _content_vbox)
 	_menu_builder.bind_title(_title_label, &"menu.language_selector.title", "Select Language")
 	_menu_builder.bind_theme_role(_grid_container, &"h_separation_compact")

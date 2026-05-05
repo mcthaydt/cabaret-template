@@ -22,7 +22,7 @@ const CFG_GAME_CONFIG := preload("res://resources/core/cfg_game_config.tres")
 @onready var _names_label: Label = %NamesLabel
 @onready var _thanks_label: Label = %ThanksLabel
 @onready var _footer_label: Label = %FooterLabel
-@onready var _background: ColorRect = $Background
+
 @onready var _content_margin: MarginContainer = $MarginContainer
 @onready var _panel_padding: MarginContainer = $MarginContainer/CenterContainer/MainPanel/MainPanelPadding
 @onready var _skip_button_margin: MarginContainer = $SkipButtonMargin
@@ -78,8 +78,6 @@ func _apply_theme_tokens() -> void:
 	if not (config_resource is RS_UI_THEME_CONFIG):
 		return
 	var config := config_resource as RS_UI_THEME_CONFIG
-	if _background != null:
-		_background.color = config.bg_base
 	if _content_margin != null:
 		_content_margin.add_theme_constant_override(&"margin_left", config.margin_outer)
 		_content_margin.add_theme_constant_override(&"margin_top", config.margin_outer)

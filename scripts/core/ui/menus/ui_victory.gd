@@ -23,7 +23,7 @@ const DEBUG_VICTORY_TRACE := false
 @onready var _completed_label: Label = %CompletedLabel
 @onready var _button_row: HBoxContainer = $MarginContainer/CenterContainer/MainPanel/MainPanelPadding/VBoxContainer/ButtonRow
 @onready var _content_vbox: VBoxContainer = $MarginContainer/CenterContainer/MainPanel/MainPanelPadding/VBoxContainer
-@onready var _background: ColorRect = $Background
+
 @onready var _continue_button: Button = %ContinueButton
 @onready var _credits_button: Button = %CreditsButton
 @onready var _menu_button: Button = %MenuButton
@@ -67,8 +67,6 @@ func _apply_theme_tokens() -> void:
 	if not (config_resource is RS_UI_THEME_CONFIG):
 		return
 	var config := config_resource as RS_UI_THEME_CONFIG
-	if _background != null:
-		_background.color = config.bg_base
 	if _content_vbox != null:
 		_content_vbox.add_theme_constant_override(&"separation", config.separation_large)
 	if _button_row != null:

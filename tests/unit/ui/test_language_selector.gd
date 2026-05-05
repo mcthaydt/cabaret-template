@@ -4,7 +4,6 @@ const LanguageSelectorScene := preload("res://scenes/core/ui/menus/ui_language_s
 const MockSceneManagerScript := preload("res://tests/mocks/mock_scene_manager_with_transition.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 const RS_UI_THEME_CONFIG := preload("res://scripts/core/resources/ui/rs_ui_theme_config.gd")
-const MENU_FULLSCREEN_SHADER := preload("res://assets/core/shaders/sh_menu_fullscreen_shader.gdshader")
 
 
 func before_each() -> void:
@@ -34,7 +33,7 @@ func test_language_selector_has_motion_and_theme_tokens_when_active_config_set()
 	var motion_set: Variant = screen.get("motion_set")
 	var button_container: Control = screen.get_node("%ButtonContainer")
 	var title_label: Label = screen.get_node("%TitleLabel")
-	var background: ColorRect = screen.get_node("Background")
+	var background_image: TextureRect = screen.get_node_or_null("BackgroundImage")
 	var content_vbox: VBoxContainer = screen.get_node("%ContentVBox")
 	var grid_container: GridContainer = screen.get_node("%GridContainer")
 	var panel: PanelContainer = screen.get_node("%PanelContainer")
@@ -43,11 +42,9 @@ func test_language_selector_has_motion_and_theme_tokens_when_active_config_set()
 	assert_true(button_container.visible, "Language selector buttons should be visible for first-run flow")
 	assert_not_null(motion_set, "Language selector should assign enter/exit motion set")
 	assert_eq(title_label.get_theme_font_size(&"font_size"), 44, "Title should use heading token")
-	assert_true(background.color.is_equal_approx(config.bg_base), "Background should use bg_base token")
-	var material := background.material as ShaderMaterial
-	assert_not_null(material, "Language selector should apply configured fullscreen backdrop shader")
-	if material != null:
-		assert_eq(material.shader, MENU_FULLSCREEN_SHADER, "Language selector backdrop should use shared shader")
+	assert_not_null(background_image, "Language selector should have a BackgroundImage node")
+	if background_image != null:
+		assert_not_null(background_image.texture, "Language selector BackgroundImage should have a texture assigned")
 	assert_eq(content_vbox.get_theme_constant(&"separation"), 18, "VBox separation should use token value")
 	assert_eq(grid_container.get_theme_constant(&"h_separation"), 7, "Grid h-separation should use compact token")
 	assert_eq(grid_container.get_theme_constant(&"v_separation"), 7, "Grid v-separation should use compact token")
