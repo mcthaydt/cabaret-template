@@ -58,25 +58,21 @@ func test_main_panel_visible_by_default() -> void:
 	var store := await _create_state_store()
 	var menu := await _create_main_menu()
 	var main_panel: Control = menu.get_node("CenterContainer/MainPanel")
-	var settings_panel: Control = menu.get_node("SettingsPanel")
 
 	assert_not_null(store, "State store should exist for main menu tests")
 	assert_true(main_panel.visible, "Main panel should be visible on load")
-	assert_false(settings_panel.visible, "Settings panel should be hidden by default")
 
-func test_dispatching_panel_change_updates_visibility() -> void:
+func test_legacy_settings_panel_id_is_ignored() -> void:
 	var store := await _create_state_store()
 	var menu := await _create_main_menu()
 	var main_panel: Control = menu.get_node("CenterContainer/MainPanel")
-	var settings_panel: Control = menu.get_node("SettingsPanel")
 
 	store.dispatch(U_NavigationActions.set_menu_panel(StringName("menu/settings")))
 	await wait_process_frames(2)
 
-	assert_false(main_panel.visible, "Main panel should hide when settings panel is active")
-	assert_true(settings_panel.visible, "Settings panel should show when selected via navigation state")
+	assert_true(main_panel.visible, "Main panel should ignore removed embedded settings panel id")
 
-func test_settings_button_switches_to_settings_panel() -> void:
+func test_settings_button_navigates_to_settings_panel() -> void:
 	var store := await _create_state_store()
 	var menu := await _create_main_menu()
 	var settings_button: Button = menu.get_node("%SettingsButton")
@@ -85,24 +81,22 @@ func test_settings_button_switches_to_settings_panel() -> void:
 	await wait_process_frames(2)
 
 	var nav_slice: Dictionary = store.get_slice(StringName("navigation"))
-	assert_eq(nav_slice.get("active_menu_panel"), StringName("menu/settings"),
-		"Settings button should switch to the settings panel")
+	assert_eq(nav_slice.get("shell"), StringName("main_menu"), "Settings stays in the menu shell")
+	assert_eq(nav_slice.get("base_scene_id"), StringName("settings_panel"),
+		"Settings button should navigate to the settings panel screen")
 
-func test_back_button_returns_to_main_panel() -> void:
+func test_back_action_keeps_main_panel_visible_without_internal_subpanel() -> void:
 	var store := await _create_state_store()
 	var menu := await _create_main_menu()
-	var settings_button: Button = menu.get_node("%SettingsButton")
-	var settings_content: Control = menu.get_node("SettingsPanel/SettingsContent")
-	var back_button: Button = settings_content.get_node("%BackButton")
+	var main_panel: Control = menu.get_node("CenterContainer/MainPanel")
 
-	settings_button.emit_signal("pressed")
-	await wait_process_frames(2)
-	back_button.emit_signal("pressed")
+	menu._on_back_pressed()
 	await wait_process_frames(2)
 
 	var nav_slice: Dictionary = store.get_slice(StringName("navigation"))
 	assert_eq(nav_slice.get("active_menu_panel"), StringName("menu/main"),
-		"Back button should return to the main panel")
+		"Back action should leave the main panel active")
+	assert_true(main_panel.visible, "Main panel should remain visible")
 
 func test_play_button_dispatches_start_game_action() -> void:
 	var store := await _create_state_store()
@@ -234,20 +228,16 @@ func test_ignores_non_menu_panel_ids() -> void:
 	var store := await _create_state_store()
 	var menu := await _create_main_menu()
 	var main_panel: Control = menu.get_node("CenterContainer/MainPanel")
-	var settings_panel: Control = menu.get_node("SettingsPanel")
 
 	# Verify initial state: main panel visible
 	assert_true(main_panel.visible, "Main panel should be visible initially")
-	assert_false(settings_panel.visible, "Settings panel should be hidden initially")
 
 	# Simulate what happens when user clicks Play - navigation state updates to pause/root
 	store.dispatch(U_NavigationActions.set_menu_panel(StringName("pause/root")))
 	await wait_process_frames(2)
 
 	# Main menu should IGNORE "pause/root" because it's not a menu panel
-	# BUG: Currently fails - main menu interprets "pause/root" as "not main, so show settings"
 	assert_true(main_panel.visible, "Main panel should remain visible when non-menu panel is set")
-	assert_false(settings_panel.visible, "Settings panel should remain hidden when non-menu panel is set")
 
 ## Regression test: Quit button should be hidden on mobile platforms
 func test_quit_button_hidden_on_mobile() -> void:

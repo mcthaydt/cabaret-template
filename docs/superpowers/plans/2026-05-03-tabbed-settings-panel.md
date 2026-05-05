@@ -1157,11 +1157,15 @@ git commit -m "(FIX) Register settings_panel scene in scene manifest"
 - Delete: `scenes/core/ui/overlays/ui_touchscreen_settings_overlay.gd`
 - Delete: `scenes/core/ui/overlays/ui_touchscreen_settings_overlay.tscn`
 
-- [ ] **Step 1: Verify nothing references these scripts/scenes**
+- [x] **Step 1: Verify nothing references these scripts/scenes**
 
 Search the codebase for references to each deleted file's path. If any remain (other than tests and .tres definitions), update them to reference the new tab scripts or panel instead.
 
-- [ ] **Step 2: Remove .tres screen definitions for deleted overlays**
+2026-05-05 audit: Runtime scripts, scenes, resources, and tests no longer reference the
+deleted settings overlay scene paths or overlay IDs. Remaining matches are historical/spec
+docs that describe the migration.
+
+- [x] **Step 2: Remove .tres screen definitions for deleted overlays**
 
 Delete or update these `.tres` files from `resources/core/ui_screens/`:
 - `cfg_display_settings_overlay.tres`
@@ -1174,14 +1178,16 @@ Delete or update these `.tres` files from `resources/core/ui_screens/`:
 
 Remove their preloads and `_register_definition()` calls from `scripts/core/ui/utils/u_ui_registry.gd`.
 
-- [ ] **Step 3: Delete the script and scene files**
+- [x] **Step 3: Delete the script and scene files**
 
 Remove all files listed above.
 
-- [ ] **Step 4: Run style enforcement suite**
+- [x] **Step 4: Run style enforcement suite**
 
 Run: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd`
 Expected: PASS (verify no broken references)
+
+2026-05-05 audit: PASS.
 
 - [ ] **Step 5: Run full test suite**
 
@@ -1208,7 +1214,7 @@ Note: Use `git add` on specific files rather than `-A` per project convention.
 - Delete: `resources/core/ui_screens/cfg_settings_menu_overlay.tres`
 - Remove from scene registry: `settings_menu` entry
 
-- [ ] **Step 1: Verify nothing references UI_SettingsMenu or BaseSettingsSimpleOverlay**
+- [x] **Step 1: Verify nothing references UI_SettingsMenu or BaseSettingsSimpleOverlay**
 
 Search for:
 - `UI_SettingsMenu` class references
@@ -1218,18 +1224,24 @@ Search for:
 
 Update any found references.
 
-- [ ] **Step 2: Move OVERLAY_SCREEN_MARGIN to BaseOverlay if needed**
+2026-05-05 audit: Runtime scripts, scenes, resources, and tests no longer reference
+`UI_SettingsMenu`, `BaseSettingsSimpleOverlay`, `settings_menu_overlay`, or the deleted
+settings menu scene. Remaining matches are historical/spec docs.
+
+- [x] **Step 2: Move OVERLAY_SCREEN_MARGIN to BaseOverlay if needed**
 
 Check if any remaining overlay uses `OVERLAY_SCREEN_MARGIN`. If so, move the constant to `BaseOverlay`. If not, simply delete it.
 
-- [ ] **Step 3: Delete files and remove registry entry**
+- [x] **Step 3: Delete files and remove registry entry**
 
 Remove the `settings_menu_overlay` preload and registration from `U_UIRegistry`. Remove `settings_menu` from the scene manifest if present.
 
-- [ ] **Step 4: Run style enforcement suite**
+- [x] **Step 4: Run style enforcement suite**
 
 Run: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd`
 Expected: PASS
+
+2026-05-05 audit: PASS.
 
 - [ ] **Step 5: Run full test suite**
 
@@ -1251,7 +1263,7 @@ git commit -m "(REFACTOR) Delete UI_SettingsMenu, BaseSettingsSimpleOverlay, and
 - Modify/Update: Various test files
 - Delete: Tests for deleted overlay scripts
 
-- [ ] **Step 1: Identify tests that need changes**
+- [x] **Step 1: Identify tests that need changes**
 
 Tests to **delete** (they test deleted overlay scripts):
 - `tests/unit/ui/settings/test_ui_vfx_settings_overlay_builder.gd` → replace with `tests/unit/ui/settings/test_ui_vfx_settings_tab.gd` (already created in Task 5)
@@ -1269,9 +1281,13 @@ Tests to **migrate** (update test targets from overlay to tab):
 - `tests/unit/ui/settings/test_ui_display_settings_tab_builder.gd` → update if it references overlay wrapper
 - `tests/unit/ui/settings/test_ui_audio_settings_tab_builder.gd` → update if it references overlay wrapper
 
-- [ ] **Step 2: Migrate and update tests**
+- [x] **Step 2: Migrate and update tests**
 
 For each test, update the class under test from the overlay class to the new tab class. Remove overlay-specific assertions (has motion, has theme tokens via overlay builder, etc.) and replace with tab-appropriate assertions.
+
+2026-05-05 audit: Removed obsolete overlay/base tests that were still present, added
+coverage for default tab visibility and keyboard/mouse action-row construction, and
+updated settings panel tests to use an isolated state store fixture.
 
 - [ ] **Step 3: Run full test suite**
 
@@ -1297,19 +1313,26 @@ git commit -m "(TEST) Migrate overlay tests to tab page tests, delete obsolete o
 Run: `tools/run_gut_suite.sh`
 Expected: All tests PASS
 
-- [ ] **Step 2: Run style enforcement suite**
+- [x] **Step 2: Run style enforcement suite**
 
 Run: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd`
 Expected: All tests PASS
 
-- [ ] **Step 3: Verify core→demo separation**
+2026-05-05 audit: PASS.
+
+- [x] **Step 3: Verify core→demo separation**
 
 Run: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd`
 Check that `test_core_scripts_never_import_from_demo` still passes.
 
-- [ ] **Step 4: Verify no stale references remain**
+2026-05-05 audit: PASS as part of the style enforcement suite.
+
+- [x] **Step 4: Verify no stale references remain**
 
 Search for: `settings_menu_overlay`, `display_settings`, `audio_settings`, `vfx_settings`, `localization_settings`, `gamepad_settings`, `keyboard_mouse_settings`, `touchscreen_settings` (as overlay IDs, not tab names) in scripts. Any remaining references should be updated.
+
+2026-05-05 audit: PASS for runtime scripts, scenes, resources, and tests. Historical/spec docs
+still mention old overlay names as migration history.
 
 - [ ] **Step 5: Visual parity check**
 

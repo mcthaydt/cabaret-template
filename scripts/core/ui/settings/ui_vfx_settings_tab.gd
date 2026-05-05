@@ -63,7 +63,7 @@ func _setup_builder() -> void:
 	_builder.add_slider(LABEL_SHAKE_INTENSITY_KEY, 0.0, 2.0, 0.1, _on_intensity_changed, &"", TOOLTIP_SHAKE_INTENSITY_KEY, "Adjusts camera shake strength.", "IntensitySlider")
 	_builder.add_toggle(LABEL_DAMAGE_FLASH_KEY, _on_flash_enabled_toggled, TOOLTIP_DAMAGE_FLASH_KEY, "Flashes the screen when taking damage.", "FlashEnabledToggle")
 	_builder.add_toggle(LABEL_PARTICLES_KEY, _on_particles_enabled_toggled, TOOLTIP_PARTICLES_KEY, "Shows particle effects.", "ParticlesEnabledToggle")
-	_builder.add_button_row(Callable(), Callable(), _on_reset_pressed, &"", &"common.reset", BUTTON_RESET_DEFAULTS_KEY, "", "", "Reset to Defaults")
+	_builder.add_button_row(Callable(), Callable(), _on_reset_pressed, &"", &"", BUTTON_RESET_DEFAULTS_KEY, "", "", "Reset to Defaults")
 
 func _capture_control_references() -> void:
 	_shake_enabled_toggle = _find_child_by_name(self, "ShakeEnabledToggle") as CheckBox

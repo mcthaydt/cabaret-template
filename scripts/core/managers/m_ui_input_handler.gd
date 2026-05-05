@@ -100,10 +100,10 @@ func _handle_gameplay_cancel(overlay_stack: Array) -> void:
 ## Handle cancel in main menu shell
 func _handle_main_menu_cancel(active_panel: StringName, base_scene_id: StringName) -> void:
 	# Only apply root-panel behavior when the active base scene is the main
-	# menu itself. Standalone menu scenes (settings_menu, gamepad_settings,
-	# touchscreen_settings, input_rebinding, etc.) run in the main_menu shell
-	# but manage their own back behavior via BasePanel/_on_back_pressed, so
-	# M_UIInputHandler must not swallow ui_cancel in those cases.
+	# menu itself. Standalone UI scenes/overlays such as settings_panel,
+	# input_rebinding, and input_profile_selector can run in the main_menu
+	# shell but manage their own back behavior, so M_UIInputHandler must not
+	# swallow ui_cancel in those cases.
 	var is_root_menu_scene: bool = (
 		base_scene_id == U_NavigationReducer.SHELL_MAIN_MENU
 		or base_scene_id == StringName("language_selector")

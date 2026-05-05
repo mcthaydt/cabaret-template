@@ -32,17 +32,22 @@ func load_resource_entries(scenes: Dictionary, register_scene_callable: Callable
 
 	# Mobile/Web-safe baseline: registry resources are preloaded so core scenes remain
 	# available even when exported PCKs do not support directory iteration.
-	var merged_entries: Array = []
-	merged_entries.append_array(PRELOADED_SCENE_REGISTRY_ENTRIES)
-	for loader: Callable in _extension_loaders:
-		if loader.is_valid():
-			loader.call()
-	merged_entries.append_array(_pending_extra_entries)
-	_pending_extra_entries.clear()
-	var preloaded_result: Dictionary = _load_entries_from_resources(
-		merged_entries,
+	for loader: Callable in U_SceneRegistryLoader._extension_loaders:
+		if loader == Callable():
+			continue
+		loader.call()
+	var extra_result: Dictionary = _load_entries_from_resources(
+		U_SceneRegistryLoader._pending_extra_entries,
 		scenes,
-		register_scene_callable
+		register_scene_callable,
+		true
+	)
+	U_SceneRegistryLoader._pending_extra_entries.clear()
+	var preloaded_result: Dictionary = _load_entries_from_resources(
+		PRELOADED_SCENE_REGISTRY_ENTRIES,
+		scenes,
+		register_scene_callable,
+		false
 	)
 
 	var res_result: Dictionary = {"loaded": 0, "skipped": 0}
@@ -69,11 +74,13 @@ func load_resource_entries(scenes: Dictionary, register_scene_callable: Callable
 	# Keep totals available for potential debugging, even if unused by callers.
 	var _total_loaded: int = (
 		int(preloaded_result.get("loaded", 0)) +
+		int(extra_result.get("loaded", 0)) +
 		int(res_result.get("loaded", 0)) +
 		int(test_result.get("loaded", 0))
 	)
 	var _total_skipped: int = (
 		int(preloaded_result.get("skipped", 0)) +
+		int(extra_result.get("skipped", 0)) +
 		int(res_result.get("skipped", 0)) +
 		int(test_result.get("skipped", 0))
 	)
@@ -137,7 +144,8 @@ func _register_scene_from_dict(
 func _load_entries_from_resources(
 	resources: Array,
 	scenes: Dictionary,
-	register_scene_callable: Callable
+	register_scene_callable: Callable,
+	warn_on_duplicates: bool = true
 ) -> Dictionary:
 	var loaded_count: int = 0
 	var skipped_count: int = 0
@@ -145,7 +153,7 @@ func _load_entries_from_resources(
 	for i in range(resources.size()):
 		var resource: Resource = resources[i] as Resource
 		var source_label: String = "preloaded_scene_registry[%d]" % i
-		if _register_loaded_entry(resource, source_label, scenes, register_scene_callable, true):
+		if _register_loaded_entry(resource, source_label, scenes, register_scene_callable, warn_on_duplicates):
 			loaded_count += 1
 		else:
 			skipped_count += 1

@@ -10,7 +10,7 @@ signal joystick_released
 @export var can_reposition: bool = false
 @export var control_name: StringName = StringName("virtual_joystick")
 
-@onready var _godot_joystick: VirtualJoystick = $GodotVirtualJoystick
+@onready var _godot_joystick: Control = get_node_or_null("GodotVirtualJoystick") as Control
 @onready var _base_style: StyleBoxFlat = _create_base_style()
 @onready var _tip_style: StyleBoxFlat = _create_tip_style()
 
@@ -21,6 +21,9 @@ var _is_active: bool = false
 const DEFAULT_BASE_COLOR := Color(0.2, 0.2, 0.2, 0.3)
 const DEFAULT_TIP_COLOR := Color(0.4, 0.4, 0.4, 0.8)
 const CORNER_RADIUS := 999.0
+const JOYSTICK_MODE_FIXED := 0
+const JOYSTICK_MODE_DYNAMIC := 1
+const VISIBILITY_MODE_ALWAYS := 0
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -30,13 +33,16 @@ func _ready() -> void:
 
 func _setup_godot_joystick() -> void:
 	if _godot_joystick == null:
+		custom_minimum_size = Vector2.ONE * joystick_radius * 2.0
+		size = custom_minimum_size
+		mouse_filter = Control.MOUSE_FILTER_STOP
 		return
 
 	_godot_joystick.mouse_filter = Control.MOUSE_FILTER_STOP
-	_godot_joystick.joystick_size = joystick_radius * 2.0
-	_godot_joystick.deadzone_ratio = deadzone
-	_godot_joystick.joystick_mode = VirtualJoystick.JOYSTICK_DYNAMIC if can_reposition else VirtualJoystick.JOYSTICK_FIXED
-	_godot_joystick.visibility_mode = VirtualJoystick.VISIBILITY_ALWAYS
+	_set_godot_joystick_property("joystick_size", joystick_radius * 2.0)
+	_set_godot_joystick_property("deadzone_ratio", deadzone)
+	_set_godot_joystick_property("joystick_mode", JOYSTICK_MODE_DYNAMIC if can_reposition else JOYSTICK_MODE_FIXED)
+	_set_godot_joystick_property("visibility_mode", VISIBILITY_MODE_ALWAYS)
 
 func _apply_styles() -> void:
 	if _godot_joystick == null:
@@ -51,9 +57,12 @@ func _connect_godot_signals() -> void:
 	if _godot_joystick == null:
 		return
 	
-	_godot_joystick.pressed.connect(_on_godot_pressed)
-	_godot_joystick.released.connect(_on_godot_released)
-	_godot_joystick.flicked.connect(_on_godot_flicked)
+	if _godot_joystick.has_signal("pressed"):
+		_godot_joystick.pressed.connect(_on_godot_pressed)
+	if _godot_joystick.has_signal("released"):
+		_godot_joystick.released.connect(_on_godot_released)
+	if _godot_joystick.has_signal("flicked"):
+		_godot_joystick.flicked.connect(_on_godot_flicked)
 
 func is_active() -> bool:
 	return _is_active

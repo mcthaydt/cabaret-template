@@ -203,19 +203,15 @@ This table documents how existing screens/overlays should behave in the new arch
 
 ### 3.2 Overlays
 
-| screen_id                 | kind    | scene_id                   | allowed_shells | allowed_parents        | close_mode                     | Notes                                           |
-|---------------------------|---------|----------------------------|----------------|------------------------|--------------------------------|------------------------------------------------|
-| `pause_menu`              | OVERLAY | `pause_menu`               | ["gameplay"]   | []                              | RESUME_TO_GAMEPLAY             | Top-level pause overlay                         |
-| `settings_menu_overlay`   | OVERLAY | `settings_menu`            | ["gameplay"]   | ["pause_menu"]                  | RETURN_TO_PREVIOUS_OVERLAY     | Settings overlay opened from pause              |
-| `input_profile_selector`  | OVERLAY | `input_profile_selector`   | ["gameplay"]   | ["pause_menu", "settings_menu_overlay"] | RETURN_TO_PREVIOUS_OVERLAY     | Returns to settings or pause overlay on close   |
-| `gamepad_settings`        | OVERLAY | `gamepad_settings`         | ["gameplay"]   | ["pause_menu", "settings_menu_overlay"] | RETURN_TO_PREVIOUS_OVERLAY     | Returns to settings or pause overlay on close   |
-| `touchscreen_settings`    | OVERLAY | `touchscreen_settings`     | ["gameplay"]   | ["pause_menu", "settings_menu_overlay"] | RETURN_TO_PREVIOUS_OVERLAY     | Returns to settings or pause overlay on close   |
-| `input_rebinding`         | OVERLAY | `input_rebinding`          | ["gameplay"]   | ["pause_menu", "settings_menu_overlay"] | RETURN_TO_PREVIOUS_OVERLAY     | Returns to settings or pause overlay on close   |
-| `edit_touch_controls`     | OVERLAY | `edit_touch_controls`      | ["gameplay"]   | ["pause_menu", "touchscreen_settings"]  | RETURN_TO_PREVIOUS_OVERLAY     | Returns to touchscreen or pause overlay on close|
+| screen_id                 | kind    | scene_id                   | allowed_shells | allowed_parents                  | close_mode                     | Notes                                           |
+|---------------------------|---------|----------------------------|----------------|----------------------------------|--------------------------------|------------------------------------------------|
+| `pause_menu`              | OVERLAY | `pause_menu`               | ["gameplay"]   | []                               | RESUME_TO_GAMEPLAY             | Top-level pause overlay                         |
+| `settings_panel`          | OVERLAY | `settings_panel`           | ["gameplay"]   | ["pause_menu"]                   | RETURN_TO_PREVIOUS_OVERLAY     | Tabbed settings overlay opened from pause       |
+| `input_profile_selector`  | OVERLAY | `input_profile_selector`   | ["gameplay"]   | ["pause_menu", "settings_panel"] | RETURN_TO_PREVIOUS_OVERLAY     | Returns to settings or pause overlay on close   |
+| `input_rebinding`         | OVERLAY | `input_rebinding`          | ["gameplay"]   | ["pause_menu", "settings_panel"] | RETURN_TO_PREVIOUS_OVERLAY     | Returns to settings or pause overlay on close   |
+| `edit_touch_controls`     | OVERLAY | `edit_touch_controls`      | ["gameplay"]   | ["pause_menu", "settings_panel"] | RETURN_TO_PREVIOUS_OVERLAY     | Hides previous overlays while editing controls  |
 
-**Close Mode Summary**: All sub-settings overlays (profiles, gamepad, touchscreen, rebinding, edit_touch_controls) now use `RETURN_TO_PREVIOUS_OVERLAY`, so closing them returns to their parent overlay (settings or pause) instead of resuming gameplay directly.
-
-> ⚠️ **BEHAVIORAL CHANGE**: Earlier iterations resumed gameplay directly when closing sub-settings overlays. The current implementation routes all sub-settings overlays back to their parent (`settings_menu_overlay`, `touchscreen_settings`, or `pause_menu`), keeping the game paused until the user explicitly exits the pause/settings stack.
+**Close Mode Summary**: Settings and child settings overlays use `RETURN_TO_PREVIOUS_OVERLAY`, so closing them returns to the parent overlay instead of resuming gameplay directly. The tabbed `settings_panel` now owns display, audio, VFX, language, gamepad, keyboard/mouse, and touchscreen settings tabs.
 
 ### 3.3 Panels (Conceptual)
 
@@ -234,13 +230,13 @@ Panel definitions live alongside screen definitions but do not have `scene_id`; 
 
 ### 3.4 Reusable Panels
 
-In the current implementation, the only cross-context “settings” UI is the **Settings Hub** used for input configuration. It is shared between shells in a simple way:
+In the current implementation, the cross-context settings UI is the tabbed **Settings Panel**. It opens as an overlay from pause and as a UI scene from the main menu flow.
 
-| Panel / Screen   | Panel ID        | Contexts                     | Consumes Selectors                                  | Dispatches Actions                                         | Notes                                                                 |
-|------------------|-----------------|------------------------------|-----------------------------------------------------|------------------------------------------------------------|-----------------------------------------------------------------------|
-| Settings Hub     | `menu/settings` | main_menu (panel) / gameplay (overlay via `settings_menu_overlay`) | `U_InputSelectors` for device state, `U_NavigationSelectors.get_shell()` for context | `U_NavigationActions.set_menu_panel("menu/main")`, `U_NavigationActions.close_top_overlay()`, `U_NavigationActions.open_overlay(...)` | Single hub UI used both as embedded panel in main menu and as an overlay from pause; fans out to dedicated overlays/scenes for each settings area. |
+| Panel / Screen   | Screen ID        | Contexts                  | Consumes Selectors                                  | Dispatches Actions                                         | Notes                                                                 |
+|------------------|------------------|---------------------------|-----------------------------------------------------|------------------------------------------------------------|-----------------------------------------------------------------------|
+| Settings Panel   | `settings_panel` | main_menu flow / gameplay overlay | `U_InputSelectors`, `U_NavigationSelectors`, settings-manager state | `U_NavigationActions.navigate_to_ui_screen(...)`, `U_NavigationActions.close_top_overlay()`, child overlay open actions | Single tabbed owner for display, audio, VFX, language, gamepad, keyboard/mouse, and touchscreen settings. |
 
-The more ambitious tabbed `SettingsPanel` (with audio/graphics/accessibility categories) is intentionally deferred. New settings areas should be added as additional hub entries plus dedicated overlays/scenes rather than as new tabs until a future phase revisits that design.
+New settings areas should be added as additional tabs unless they need full-screen editing behavior like input rebinding or touch-control placement.
 
 #### Panel Architecture (Phase 4 target – adjusted)
 
@@ -499,7 +495,7 @@ All overlays use the return stack pattern for consistent back navigation:
 ### Pattern
 ```gdscript
 # Opening overlay from pause
-store.dispatch(U_NavigationActions.open_overlay("settings_menu_overlay"))
+store.dispatch(U_NavigationActions.open_overlay("settings_panel"))
 
 # Closing overlay - CloseMode determines behavior
 store.dispatch(U_NavigationActions.close_top_overlay())
@@ -512,9 +508,7 @@ store.dispatch(U_NavigationActions.close_top_overlay())
 | Overlay | CloseMode | Result |
 |---------|-----------|--------|
 | pause_menu | RESUME_TO_GAMEPLAY | Game resumes |
-| settings_menu_overlay | RETURN_TO_PREVIOUS_OVERLAY | Back to pause |
-| gamepad_settings | RESUME_TO_GAMEPLAY | Game resumes |
-| touchscreen_settings | RESUME_TO_GAMEPLAY | Game resumes |
-| input_rebinding | RESUME_TO_GAMEPLAY | Game resumes |
-| input_profile_selector | RESUME_TO_GAMEPLAY | Game resumes |
-| edit_touch_controls | RESUME_TO_GAMEPLAY | Game resumes |
+| settings_panel | RETURN_TO_PREVIOUS_OVERLAY | Back to pause |
+| input_rebinding | RETURN_TO_PREVIOUS_OVERLAY | Back to settings or pause |
+| input_profile_selector | RETURN_TO_PREVIOUS_OVERLAY | Back to settings or pause |
+| edit_touch_controls | RETURN_TO_PREVIOUS_OVERLAY | Back to settings or pause |

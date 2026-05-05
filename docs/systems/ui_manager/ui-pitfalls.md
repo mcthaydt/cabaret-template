@@ -117,7 +117,7 @@ Opening an overlay without its required parent can fail or reconcile unexpectedl
 ```gdscript
 store.dispatch(U_NavigationActions.open_pause())
 await get_tree().process_frame
-store.dispatch(U_NavigationActions.open_overlay(StringName("settings_menu_overlay")))
+store.dispatch(U_NavigationActions.open_overlay(StringName("settings_panel")))
 ```
 
 ## Custom Overlay Navigation

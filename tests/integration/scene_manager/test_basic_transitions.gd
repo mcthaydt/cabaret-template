@@ -2,7 +2,7 @@ extends GutTest
 
 ## Integration test for basic scene transitions
 ##
-## Tests full scene transition flow: main_menu → settings_menu → back to main_menu.
+## Tests full scene transition flow: main_menu → settings_panel → back to main_menu.
 ## Validates M_SceneManager, U_SceneRegistry, scene slice state, and transition effects.
 ## Tests follow TDD discipline: written BEFORE implementation.
 
@@ -68,7 +68,7 @@ func after_each() -> void:
 	_ui_overlay_stack = null
 	_root_scene = null
 
-## Test complete flow: main_menu → settings_menu → back to main_menu
+## Test complete flow: main_menu → settings_panel → back to main_menu
 func test_main_menu_to_settings_and_back() -> void:
 	# Start at main menu
 	_manager.transition_to_scene(StringName("main_menu"), "instant")
@@ -78,13 +78,13 @@ func test_main_menu_to_settings_and_back() -> void:
 	var scene_state1: Dictionary = state1.get("scene", {})
 	assert_eq(scene_state1.get("current_scene_id"), StringName("main_menu"), "Should start at main_menu")
 
-	# Transition to settings menu
+	# Transition to settings panel
 	_manager.transition_to_scene(StringName("settings_panel"), "fade")
 	await wait_physics_frames(15)  # Wait for 0.2s fade transition (0.2s * 60fps = 12 frames + buffer)
 
 	var state2: Dictionary = _store.get_state()
 	var scene_state2: Dictionary = state2.get("scene", {})
-	assert_eq(scene_state2.get("current_scene_id"), StringName("settings_panel"), "Should transition to settings_menu")
+	assert_eq(scene_state2.get("current_scene_id"), StringName("settings_panel"), "Should transition to settings_panel")
 
 	# Transition back to main menu
 	_manager.transition_to_scene(StringName("main_menu"), "instant")
@@ -224,6 +224,7 @@ func test_scene_transition_cleans_up_previous() -> void:
 func test_invalid_scene_id_handled_gracefully() -> void:
 	_manager.transition_to_scene(StringName("nonexistent_scene"), "instant")
 	await wait_physics_frames(2)
+	assert_push_error("transition dropped")
 
 	# Should not crash
 	assert_true(true, "Should handle invalid scene ID gracefully")

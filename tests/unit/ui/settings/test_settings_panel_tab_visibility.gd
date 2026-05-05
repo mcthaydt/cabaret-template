@@ -1,7 +1,17 @@
-extends GutTest
+extends "res://tests/base_test.gd"
 
 const UI_SettingsPanel := preload("res://scripts/core/ui/settings/ui_settings_panel.gd")
 const M_INPUT_DEVICE_MANAGER := preload("res://scripts/core/managers/m_input_device_manager.gd")
+
+var _store: M_StateStore = null
+
+func before_each() -> void:
+	super.before_each()
+	_store = _create_state_store()
+
+func after_each() -> void:
+	_store = null
+	super.after_each()
 
 func test_display_tab_always_visible():
 	var panel := await _create_panel()
@@ -106,10 +116,26 @@ func test_navigate_focus_consumes_next_nav():
 func _create_panel() -> UI_SettingsPanel:
 	var scene := load("res://scenes/core/ui/settings/ui_settings_panel.tscn") as PackedScene
 	var panel := scene.instantiate() as UI_SettingsPanel
-	add_child(panel)
+	add_child_autofree(panel)
 	await get_tree().process_frame
 	return panel
 
 func _get_tab_button(panel: UI_SettingsPanel, tab_id: int) -> Button:
 	var data: Dictionary = panel._tab_buttons.get(tab_id, {})
 	return data.get("button") as Button
+
+func _create_state_store() -> M_StateStore:
+	var store := M_StateStore.new()
+	var test_settings := RS_StateStoreSettings.new()
+	test_settings.enable_persistence = false
+	test_settings.enable_global_settings_persistence = false
+	test_settings.enable_debug_logging = false
+	test_settings.enable_debug_overlay = false
+	store.settings = test_settings
+	store.audio_initial_state = RS_AudioInitialState.new()
+	store.display_initial_state = RS_DisplayInitialState.new()
+	store.localization_initial_state = RS_LocalizationInitialState.new()
+	store.vfx_initial_state = RS_VFXInitialState.new()
+	add_child_autofree(store)
+	U_ServiceLocator.register(StringName("state_store"), store)
+	return store

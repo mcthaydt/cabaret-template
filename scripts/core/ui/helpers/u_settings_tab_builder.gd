@@ -33,7 +33,6 @@ func bind_field_label(label: Label, key: StringName, fallback: String = "") -> U
 func bind_value_label(label: Label, key: StringName = &"", fallback: String = "") -> U_SettingsTabBuilder:
 	_bind_label(label, key, &"value_label", fallback)
 	return self
-
 func bind_row(row: Control, compact: bool = false) -> U_SettingsTabBuilder:
 	if row != null:
 		_theme_map.append({"control": row, "role": &"compact_row" if compact else &"default_row"})
@@ -56,7 +55,6 @@ func bind_action_button(button: Button, key: StringName, callback: Callable = Ca
 	_focusable_controls.append(button)
 	_connect(button.pressed, callback)
 	return self
-
 func begin_section(key: StringName, section_name: String = "Section", fallback: String = "") -> U_SettingsTabBuilder:
 	var section := VBoxContainer.new()
 	section.name = section_name + "Section" if section_name.ends_with("Header") else section_name
@@ -66,7 +64,6 @@ func begin_section(key: StringName, section_name: String = "Section", fallback: 
 	label.name = section_name if section_name.ends_with("Header") else "SectionHeader"
 	_theme_map.append({"control": label, "role": &"section_header"})
 	return self
-
 func end_section() -> U_SettingsTabBuilder:
 	_current_parent = _tab
 	return self
@@ -79,7 +76,6 @@ func begin_inline_group(group_name: String = "") -> U_SettingsTabBuilder:
 	_inline_group_row = row
 	_inline_group_item_count = 0
 	return self
-
 func end_inline_group() -> U_SettingsTabBuilder:
 	_inline_group_row = null
 	_inline_group_item_count = 0
@@ -201,12 +197,9 @@ func add_button_row(
 	row.name = "ActionButtons"
 	_current_parent.add_child(row)
 	_theme_map.append({"control": row, "role": &"compact_row"})
-	var apply_btn := _add_button(row, apply_key, apply_callback, apply_fallback)
-	apply_btn.name = "ApplyButton"
-	var cancel_btn := _add_button(row, cancel_key, cancel_callback, cancel_fallback)
-	cancel_btn.name = "CancelButton"
-	var reset_btn := _add_button(row, reset_key, reset_callback, reset_fallback)
-	reset_btn.name = "ResetButton"
+	_add_optional_button(row, apply_key, apply_callback, apply_fallback, "ApplyButton")
+	_add_optional_button(row, cancel_key, cancel_callback, cancel_fallback, "CancelButton")
+	_add_optional_button(row, reset_key, reset_callback, reset_fallback, "ResetButton")
 	return self
 func build() -> Control:
 	apply_theme_tokens(U_UI_THEME_BUILDER.active_config)
@@ -255,6 +248,13 @@ func _add_button(parent: Control, key: StringName, callback: Callable, fallback:
 	_theme_map.append({"control": button, "role": &"action"})
 	_focusable_controls.append(button)
 	_connect(button.pressed, callback)
+	return button
+
+func _add_optional_button(parent: Control, key: StringName, callback: Callable, fallback: String, button_name: String) -> Button:
+	if key == &"" and fallback == "" and not callback.is_valid():
+		return null
+	var button := _add_button(parent, key, callback, fallback)
+	button.name = button_name
 	return button
 
 func _register_field(label: Label, control: Control) -> void:

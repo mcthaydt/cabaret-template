@@ -323,6 +323,7 @@ func test_transition_with_invalid_scene_id() -> void:
 	# Should handle gracefully, possibly log warning
 	_manager.transition_to_scene(StringName("nonexistent_scene"), "fade")
 	await get_tree().physics_frame
+	assert_push_error("transition dropped")
 
 	# Should not crash
 	assert_true(true, "Should handle invalid scene ID gracefully")

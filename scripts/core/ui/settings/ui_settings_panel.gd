@@ -48,7 +48,7 @@ const _TAB_LABELS: Dictionary = {
 
 @export var emulate_mobile_override: bool = false
 
-var _active_tab: TabId = TabId.DISPLAY
+var _active_tab: int = -1
 var _tab_buttons: Dictionary = {}
 var _tab_contents: Dictionary = {}
 var _last_device_type: int = -1
@@ -66,17 +66,19 @@ func _ready() -> void:
 	switch_to_tab(TabId.DISPLAY)
 
 func get_active_tab_id() -> TabId:
-	return _active_tab
+	return _active_tab as TabId
 
 func switch_to_tab(tab_id: TabId) -> void:
-	if _active_tab == tab_id:
+	var current_content := _tab_contents.get(tab_id) as Control
+	if _active_tab == tab_id and current_content != null and current_content.visible:
 		return
-	_hide_tab_content(_active_tab)
+	if _active_tab >= 0:
+		_hide_tab_content(_active_tab as TabId)
 	_active_tab = tab_id
-	_show_tab_content(_active_tab)
+	_show_tab_content(tab_id)
 	_update_tab_button_states()
 	_configure_focus_neighbors()
-	var first_focusable: Control = _find_first_focusable_in_tab(_active_tab)
+	var first_focusable: Control = _find_first_focusable_in_tab(tab_id)
 	if first_focusable != null:
 		first_focusable.grab_focus()
 
@@ -185,7 +187,7 @@ func _update_tab_visibility(state: Dictionary = {}) -> void:
 	_set_tab_visible(TabId.TOUCHSCREEN, is_mobile_context and not is_gamepad_active)
 	_set_tab_visible(TabId.KEYBOARD_MOUSE, not is_mobile_context)
 
-	if _is_tab_hidden(_active_tab):
+	if _active_tab < 0 or _is_tab_hidden(_active_tab as TabId):
 		_snap_to_first_visible_tab()
 	_configure_focus_neighbors()
 
@@ -198,6 +200,8 @@ func _configure_focus_neighbors() -> void:
 			continue
 		if button.is_visible_in_tree():
 			visible_buttons.append(button)
+	if visible_buttons.is_empty():
+		return
 	U_FocusConfigurator.configure_horizontal_focus(visible_buttons)
 
 func _set_tab_visible(tab_id: TabId, visible: bool) -> void:
@@ -207,7 +211,7 @@ func _set_tab_visible(tab_id: TabId, visible: bool) -> void:
 		button.visible = visible
 	var content: Control = _tab_contents.get(tab_id) as Control
 	if content != null:
-		content.visible = visible
+		content.visible = visible and tab_id == _active_tab
 
 func _is_tab_hidden(tab_id: TabId) -> bool:
 	var entry: Dictionary = _tab_buttons.get(tab_id, {})

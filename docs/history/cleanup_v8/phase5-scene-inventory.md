@@ -47,7 +47,6 @@ script files as **keep** or **delete** for Phase 5.
 | `scenes/core/ui/menus/ui_splash_screen.tscn` | Boot splash screen |
 | `scenes/core/ui/menus/ui_language_selector.tscn` | Language selection screen |
 | `scenes/core/ui/menus/ui_main_menu.tscn` | Main menu |
-| `scenes/core/ui/menus/ui_settings_menu.tscn` | Settings menu |
 | `scenes/core/ui/menus/ui_pause_menu.tscn` | Pause menu |
 | `scenes/core/ui/menus/ui_victory.tscn` | Victory/win screen |
 | `scenes/core/ui/menus/ui_game_over.tscn` | Game over screen |
@@ -68,20 +67,14 @@ script files as **keep** or **delete** for Phase 5.
 |---|---|
 | `scenes/core/ui/overlays/ui_save_load_menu.tscn` | Save/load menu overlay |
 | `scenes/core/ui/overlays/ui_input_rebinding_overlay.tscn` | Input rebinding overlay |
-| `scenes/core/ui/overlays/ui_gamepad_settings_overlay.tscn` | Gamepad settings |
-| `scenes/core/ui/overlays/ui_touchscreen_settings_overlay.tscn` | Touchscreen settings |
 | `scenes/core/ui/overlays/ui_edit_touch_controls_overlay.tscn` | Touch control editor |
 | `scenes/core/ui/overlays/ui_input_profile_selector.tscn` | Input profile selector |
-| `scenes/core/ui/overlays/ui_keyboard_mouse_settings_overlay.tscn` | Keyboard/mouse settings |
 | `scenes/core/ui/overlays/ui_post_process_overlay.tscn` | Post-process settings overlay |
 | `scenes/core/ui/overlays/ui_damage_flash_overlay.tscn` | Damage flash feedback overlay |
-| `scenes/core/ui/overlays/settings/ui_audio_settings_overlay.tscn` | Audio settings |
 | `scenes/core/ui/overlays/settings/ui_audio_settings_tab.tscn` | Audio settings tab |
-| `scenes/core/ui/overlays/settings/ui_display_settings_overlay.tscn` | Display settings |
 | `scenes/core/ui/overlays/settings/ui_display_settings_tab.tscn` | Display settings tab |
-| `scenes/core/ui/overlays/settings/ui_localization_settings_overlay.tscn` | Localization settings |
 | `scenes/core/ui/overlays/settings/ui_localization_settings_tab.tscn` | Localization settings tab |
-| `scenes/core/ui/overlays/settings/ui_vfx_settings_overlay.tscn` | VFX settings |
+| `scenes/core/ui/settings/ui_settings_panel.tscn` | Tabbed settings panel |
 
 ## Keep — Core UI Widgets (3)
 
@@ -117,6 +110,19 @@ script files as **keep** or **delete** for Phase 5.
 | `scenes/demo/gameplay/gameplay_nav_nexus.tscn` | Legacy demo scene, cut for clean slate |
 | `scenes/demo/gameplay/gameplay_ai_showcase.tscn` | Legacy demo AI scene, cut for clean slate |
 | `scenes/demo/gameplay/gameplay_ai_woods.tscn` | Legacy demo AI scene, cut for clean slate |
+
+## Delete — Legacy Settings Screens (8)
+
+| File | Reason |
+|---|---|
+| `scenes/core/ui/menus/ui_settings_menu.tscn` | Replaced by tabbed settings panel |
+| `scenes/core/ui/overlays/ui_gamepad_settings_overlay.tscn` | Absorbed into settings panel tab |
+| `scenes/core/ui/overlays/ui_touchscreen_settings_overlay.tscn` | Absorbed into settings panel tab |
+| `scenes/core/ui/overlays/ui_keyboard_mouse_settings_overlay.tscn` | Absorbed into settings panel tab |
+| `scenes/core/ui/overlays/settings/ui_audio_settings_overlay.tscn` | Absorbed into settings panel tab |
+| `scenes/core/ui/overlays/settings/ui_display_settings_overlay.tscn` | Absorbed into settings panel tab |
+| `scenes/core/ui/overlays/settings/ui_localization_settings_overlay.tscn` | Absorbed into settings panel tab |
+| `scenes/core/ui/overlays/settings/ui_vfx_settings_overlay.tscn` | Absorbed into settings panel tab |
 
 ## Delete — Demo Prefabs (11)
 

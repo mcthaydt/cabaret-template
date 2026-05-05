@@ -266,7 +266,7 @@ func test_pause_menu_process_mode_set_to_always() -> void:
 ## T109-T114: Scene History Navigation Tests
 
 func test_ui_scenes_track_history() -> void:
-	# Given: Navigate from main_menu to settings_menu
+	# Given: Navigate from main_menu to settings_panel
 	_scene_manager.transition_to_scene(StringName("main_menu"), "instant", M_SCENE_MANAGER.Priority.HIGH)
 	await wait_physics_frames(5)
 	_scene_manager.transition_to_scene(StringName("settings_panel"), "instant", M_SCENE_MANAGER.Priority.HIGH)
@@ -279,7 +279,7 @@ func test_ui_scenes_track_history() -> void:
 	assert_true(can_go_back, "Should be able to go back after UI navigation")
 
 func test_go_back_returns_to_previous_ui_scene() -> void:
-	# Given: Navigate main_menu → settings_menu
+	# Given: Navigate main_menu → settings_panel
 	_scene_manager.transition_to_scene(StringName("main_menu"), "instant", M_SCENE_MANAGER.Priority.HIGH)
 	await wait_physics_frames(5)
 	_scene_manager.transition_to_scene(StringName("settings_panel"), "instant", M_SCENE_MANAGER.Priority.HIGH)

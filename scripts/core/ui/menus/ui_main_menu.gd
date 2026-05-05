@@ -161,9 +161,7 @@ func _update_panel_state(panel_id: StringName) -> void:
 
 ## Check if a panel ID belongs to the main menu
 func _is_main_menu_panel(panel_id: StringName) -> bool:
-	# Main menu panels all start with "menu/"
-	var panel_str: String = str(panel_id)
-	return panel_str.begins_with("menu/")
+	return panel_id == PANEL_MAIN
 
 func _set_panel_visibility(show_main: bool) -> void:
 	if _main_panel != null:
@@ -264,7 +262,7 @@ func _on_settings_pressed() -> void:
 	var store := get_store()
 	if store == null:
 		return
-	store.dispatch(U_NavigationActions.open_overlay(OVERLAY_SETTINGS))
+	store.dispatch(U_NavigationActions.navigate_to_ui_screen(OVERLAY_SETTINGS, "fade", 2))
 
 func _on_quit_pressed() -> void:
 	U_UISoundPlayer.play_confirm()

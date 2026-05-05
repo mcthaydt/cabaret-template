@@ -1,6 +1,7 @@
 extends GutTest
 
 const M_TIME_MANAGER := preload("res://scripts/core/managers/m_time_manager.gd")
+const UI_SettingsPanel := preload("res://scripts/core/ui/settings/ui_settings_panel.gd")
 const GAMEPLAY_SCENE_ID := StringName("demo_room")
 
 var _store: M_StateStore
@@ -153,13 +154,13 @@ func test_pause_menu_opens_profile_selector_overlay() -> void:
 	assert_not_null(pause_menu, "Pause menu overlay should exist")
 	var settings_button := pause_menu.get_node("%SettingsButton") as Button
 	assert_not_null(settings_button, "SettingsButton should exist on pause menu")
+	_store.dispatch(U_InputActions.device_changed(M_InputDeviceManager.DeviceType.GAMEPAD))
 	settings_button.emit_signal("pressed")
 	await wait_physics_frames(4)
 
 	var settings_overlay := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1) as Control
 	assert_not_null(settings_overlay, "Settings overlay should exist after pressing Settings")
-	var profiles_button := settings_overlay.get_node("%InputProfilesButton") as Button
-	assert_not_null(profiles_button, "InputProfilesButton should exist on settings overlay")
+	var profiles_button := await _get_input_profiles_button(settings_overlay)
 	profiles_button.emit_signal("pressed")
 	# Allow selector overlay to finish loading and register to the stack.
 	await wait_physics_frames(4)
@@ -184,12 +185,13 @@ func test_apply_closes_overlays_and_resumes() -> void:
 		return
 	var pause_menu := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1) as Control
 	var settings_button := pause_menu.get_node("%SettingsButton") as Button
+	_store.dispatch(U_InputActions.device_changed(M_InputDeviceManager.DeviceType.GAMEPAD))
 	settings_button.emit_signal("pressed")
 	await wait_physics_frames(4)
 	_debug_overlay_snapshot("after SettingsButton pressed + wait(4)")
 
 	var settings_overlay := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1) as Control
-	var profiles_button := settings_overlay.get_node("%InputProfilesButton") as Button
+	var profiles_button := await _get_input_profiles_button(settings_overlay)
 	profiles_button.emit_signal("pressed")
 	await wait_physics_frames(4)
 	_debug_overlay_snapshot("after InputProfilesButton pressed + wait(4)")
@@ -257,12 +259,12 @@ func test_profile_selector_shows_binding_preview() -> void:
 	var pause_menu := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1) as Control
 	var settings_button := pause_menu.get_node("%SettingsButton") as Button
 	assert_not_null(settings_button, "SettingsButton should exist on pause menu")
+	_store.dispatch(U_InputActions.device_changed(M_InputDeviceManager.DeviceType.GAMEPAD))
 	settings_button.emit_signal("pressed")
 	await wait_physics_frames(4)
 
 	var settings_overlay := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1) as Control
-	var profiles_button := settings_overlay.get_node("%InputProfilesButton") as Button
-	assert_not_null(profiles_button, "InputProfilesButton should exist on settings overlay")
+	var profiles_button := await _get_input_profiles_button(settings_overlay)
 	profiles_button.emit_signal("pressed")
 	await wait_physics_frames(4)
 
@@ -297,12 +299,12 @@ func test_profile_selector_updates_overlay_labels_on_locale_change() -> void:
 	var pause_menu := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1) as Control
 	var settings_button := pause_menu.get_node("%SettingsButton") as Button
 	assert_not_null(settings_button, "SettingsButton should exist on pause menu")
+	_store.dispatch(U_InputActions.device_changed(M_InputDeviceManager.DeviceType.GAMEPAD))
 	settings_button.emit_signal("pressed")
 	await wait_physics_frames(4)
 
 	var settings_overlay := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1) as Control
-	var profiles_button := settings_overlay.get_node("%InputProfilesButton") as Button
-	assert_not_null(profiles_button, "InputProfilesButton should exist on settings overlay")
+	var profiles_button := await _get_input_profiles_button(settings_overlay)
 	profiles_button.emit_signal("pressed")
 	await wait_physics_frames(4)
 
@@ -343,3 +345,23 @@ func _await_scene(scene_id: StringName, limit_frames: int = 120) -> void:
 			return
 		await wait_physics_frames(1)
 	assert_true(false, "Timed out waiting for scene_id %s" % scene_id)
+
+func _get_input_profiles_button(settings_overlay: Control) -> Button:
+	assert_not_null(settings_overlay, "Settings overlay should exist")
+	if settings_overlay != null and settings_overlay.has_method("switch_to_tab"):
+		settings_overlay.switch_to_tab(UI_SettingsPanel.TAB_GAMEPAD)
+		await wait_physics_frames(2)
+	var profiles_button := _find_child_by_name(settings_overlay, "InputProfilesButton") as Button
+	assert_not_null(profiles_button, "InputProfilesButton should exist on Gamepad settings tab")
+	return profiles_button
+
+func _find_child_by_name(root: Node, target_name: String) -> Node:
+	if root == null:
+		return null
+	if root.name == target_name:
+		return root
+	for child in root.get_children():
+		var found := _find_child_by_name(child, target_name)
+		if found != null:
+			return found
+	return null

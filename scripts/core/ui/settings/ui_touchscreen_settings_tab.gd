@@ -152,6 +152,8 @@ func _resolve_input_profile_manager() -> Node:
 	return null
 
 func _build_preview() -> void:
+	if not ClassDB.class_exists("VirtualJoystick"):
+		return
 	_preview_container = Control.new()
 	_preview_container.name = "PreviewContainer"
 	_preview_container.custom_minimum_size = Vector2(200, 120)
@@ -258,12 +260,16 @@ func _configure_tooltips() -> void:
 		)
 
 func _connect_signals() -> void:
-	_joystick_size_slider.value_changed.connect(_on_joystick_size_changed)
-	_button_size_slider.value_changed.connect(_on_button_size_changed)
-	_joystick_opacity_slider.value_changed.connect(_on_joystick_opacity_changed)
-	_button_opacity_slider.value_changed.connect(_on_button_opacity_changed)
-	_joystick_deadzone_slider.value_changed.connect(_on_joystick_deadzone_changed)
-	_look_sensitivity_slider.value_changed.connect(_on_look_sensitivity_changed)
+	_connect_if_needed(_joystick_size_slider.value_changed, _on_joystick_size_changed)
+	_connect_if_needed(_button_size_slider.value_changed, _on_button_size_changed)
+	_connect_if_needed(_joystick_opacity_slider.value_changed, _on_joystick_opacity_changed)
+	_connect_if_needed(_button_opacity_slider.value_changed, _on_button_opacity_changed)
+	_connect_if_needed(_joystick_deadzone_slider.value_changed, _on_joystick_deadzone_changed)
+	_connect_if_needed(_look_sensitivity_slider.value_changed, _on_look_sensitivity_changed)
+
+func _connect_if_needed(signal_ref: Signal, callback: Callable) -> void:
+	if callback.is_valid() and not signal_ref.is_connected(callback):
+		signal_ref.connect(callback)
 
 func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
 	if state == null:

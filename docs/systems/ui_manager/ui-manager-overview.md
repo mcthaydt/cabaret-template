@@ -27,9 +27,9 @@ UI controllers dispatch navigation actions rather than calling scene-manager API
 const U_NavigationActions = preload("res://scripts/core/state/actions/u_navigation_actions.gd")
 
 store.dispatch(U_NavigationActions.open_pause())
-store.dispatch(U_NavigationActions.open_overlay(StringName("settings_menu_overlay")))
+store.dispatch(U_NavigationActions.open_overlay(StringName("settings_panel")))
 store.dispatch(U_NavigationActions.close_top_overlay())
-store.dispatch(U_NavigationActions.set_menu_panel(StringName("menu/settings")))
+store.dispatch(U_NavigationActions.navigate_to_ui_screen(StringName("settings_panel"), "fade", 2))
 ```
 
 ## UI Registry
@@ -108,9 +108,9 @@ HUD feedback motion is data-driven through `cfg_motion_hud_checkpoint_toast.tres
 
 ## Settings Panel
 
-The reusable settings architecture uses one navigation owner and plain tab content panels.
+The reusable settings architecture uses one overlay owner and plain tab content panels.
 
-- `SettingsPanel` extends `BaseMenuScreen`.
+- `UI_SettingsPanel` extends `BaseOverlay`.
 - Tab content panels extend `Control`, not `BaseMenuScreen`.
 - Use `ButtonGroup` for tab radio behavior.
 - Settings changes auto-save by dispatching Redux actions immediately; do not add Apply/Cancel batching.

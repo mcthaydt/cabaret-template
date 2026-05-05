@@ -37,20 +37,20 @@ This document describes how key UI flows map onto navigation state, the UI regis
 
 - In pause root panel, player activates “Settings” button (via `ui_confirm` or click).
 - Panel:
-  - Emits intent or dispatches `NAV/OPEN_OVERLAY("settings_menu_overlay", from="pause")`.
+  - Emits intent or dispatches `NAV/OPEN_OVERLAY("settings_panel", from="pause")`.
 - Navigation reducer:
   - Uses `U_UIRegistry` to verify:
-    - `"settings_menu_overlay"` has `kind = OVERLAY`.
+    - `"settings_panel"` has `kind = OVERLAY`.
     - Allowed in shell `gameplay` with parent `"pause_menu"`.
-  - Updates `overlay_stack = ["pause_menu", "settings_menu_overlay"]`.
+  - Updates `overlay_stack = ["pause_menu", "settings_panel"]`.
 - Scene Manager reconciliation:
-  - Calls `push_overlay("settings_menu")` (Scene ID from registry).
+  - Calls `push_overlay("settings_panel")` (Scene ID from registry).
 
 **Step 3 – Back from Settings to Pause**
 
 - Player presses `ui_back` in settings overlay.
 - UI input handler:
-  - Context: shell = gameplay, overlay_stack top = `"settings_menu_overlay"`, CloseMode = RETURN_TO_PREVIOUS_OVERLAY.
+  - Context: shell = gameplay, overlay_stack top = `"settings_panel"`, CloseMode = RETURN_TO_PREVIOUS_OVERLAY.
   - Dispatches `NAV/CLOSE_TOP_OVERLAY`.
 - Navigation reducer:
   - Pops top overlay from `overlay_stack` (back to ["pause_menu"]).

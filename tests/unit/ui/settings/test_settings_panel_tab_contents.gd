@@ -32,7 +32,7 @@ func test_panel_creates_all_tab_contents():
 		var content := panel._tab_contents.get(tab_id) as Control
 		assert_not_null(content, "Should have content for tab " + str(tab_id))
 	panel.queue_free()
-	_cleanup()
+	await _cleanup()
 
 func test_tab_contents_have_correct_names():
 	var panel := await _create_panel()
@@ -49,7 +49,7 @@ func test_tab_contents_have_correct_names():
 		var content: Control = panel._tab_contents[tab_id]
 		assert_eq(content.name, expected_names[tab_id], "Tab content name should match: " + str(tab_id))
 	panel.queue_free()
-	_cleanup()
+	await _cleanup()
 
 func test_tab_contents_are_children_of_content_container():
 	var panel := await _create_panel()
@@ -57,7 +57,7 @@ func test_tab_contents_are_children_of_content_container():
 		var content: Control = panel._tab_contents[tab_id]
 		assert_eq(content.get_parent(), panel._content_container, "Tab content should be child of ContentContainer: " + str(tab_id))
 	panel.queue_free()
-	_cleanup()
+	await _cleanup()
 
 func test_tab_contents_expand_fill():
 	var panel := await _create_panel()
@@ -66,7 +66,7 @@ func test_tab_contents_expand_fill():
 		assert_eq(content.size_flags_horizontal, Control.SIZE_EXPAND_FILL, "Tab content should expand-fill horizontally: " + str(tab_id))
 		assert_eq(content.size_flags_vertical, Control.SIZE_EXPAND_FILL, "Tab content should expand-fill vertically: " + str(tab_id))
 	panel.queue_free()
-	_cleanup()
+	await _cleanup()
 
 func test_switch_to_tab_shows_target_content():
 	var panel := await _create_panel()
@@ -76,13 +76,13 @@ func test_switch_to_tab_shows_target_content():
 	if audio_content != null:
 		assert_true(audio_content.visible, "Audio tab content should be visible after switching to it")
 	panel.queue_free()
-	_cleanup()
+	await _cleanup()
 
 func test_tab_content_count_matches_tab_ids():
 	var panel := await _create_panel()
 	assert_eq(panel._tab_contents.size(), 7, "Should have exactly 7 tab content entries")
 	panel.queue_free()
-	_cleanup()
+	await _cleanup()
 
 func _create_panel() -> UI_SettingsPanel:
 	U_ServiceLocator.push_scope()
@@ -109,3 +109,4 @@ func _cleanup() -> void:
 	if _store != null and is_instance_valid(_store):
 		_store.queue_free()
 	_store = null
+	await get_tree().process_frame

@@ -163,6 +163,7 @@ func test_scene_loading_failure_fallback_to_main_menu() -> void:
 	# Attempt to load a non-existent scene
 	_manager.transition_to_scene(StringName("nonexistent_scene_12345"), "instant")
 	await wait_physics_frames(5)
+	assert_push_error("transition dropped")
 
 	# Should fall back to main_menu (or stay at current scene without crashing)
 	var state: Dictionary = _store.get_state()

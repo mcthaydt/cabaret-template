@@ -160,7 +160,7 @@ func _handle_keyboard_mouse_input(_event: InputEvent = null) -> void:
 	_switch_device(DeviceType.KEYBOARD_MOUSE, -1)
 
 func _handle_touch_input() -> void:
-	if _is_settings_panel_active():
+	if _has_overlay_active() or _is_settings_panel_active():
 		return
 	_switch_device(DeviceType.TOUCHSCREEN, -1)
 
@@ -352,6 +352,8 @@ func _is_settings_panel_active() -> bool:
 		return false
 	var state: Dictionary = _state_store.get_state()
 	if U_NAVIGATION_SELECTORS.get_top_overlay_id(state) == SETTINGS_PANEL_SCREEN_ID:
+		return true
+	if U_NAVIGATION_SELECTORS.get_overlay_stack(state).has(SETTINGS_PANEL_SCREEN_ID):
 		return true
 	return U_NAVIGATION_SELECTORS.get_base_scene_id(state) == SETTINGS_PANEL_SCREEN_ID
 

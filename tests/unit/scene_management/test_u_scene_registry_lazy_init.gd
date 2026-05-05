@@ -52,10 +52,10 @@ func test_ensure_loaded_does_not_reload_once_set() -> void:
 	_reset_lazy_state()
 	U_SceneRegistry._ensure_loaded()
 	# Register a loader after first load — it must NOT run on a second _ensure_loaded call.
-	var called := false
-	U_SceneRegistryLoader.add_extension_loader(func() -> void: called = true)
+	var call_markers: Array[bool] = [false]
+	U_SceneRegistryLoader.add_extension_loader(func() -> void: call_markers[0] = true)
 	U_SceneRegistry._ensure_loaded()
-	assert_false(called,
+	assert_false(call_markers[0],
 		"_ensure_loaded() must be a no-op after the first call")
 
 
@@ -100,20 +100,20 @@ func test_validate_door_pairings_triggers_lazy_load() -> void:
 
 func test_extension_loader_registered_before_first_access_is_called() -> void:
 	_reset_lazy_state()
-	var was_called := false
-	U_SceneRegistryLoader.add_extension_loader(func() -> void: was_called = true)
+	var call_markers: Array[bool] = [false]
+	U_SceneRegistryLoader.add_extension_loader(func() -> void: call_markers[0] = true)
 	U_SceneRegistry.get_scene(&"main_menu")
-	assert_true(was_called,
+	assert_true(call_markers[0],
 		"Extension loader registered before first access must run during lazy load")
 
 
 func test_extension_loader_registered_after_first_access_is_not_called() -> void:
 	_reset_lazy_state()
 	U_SceneRegistry._ensure_loaded()
-	var was_called := false
-	U_SceneRegistryLoader.add_extension_loader(func() -> void: was_called = true)
+	var call_markers: Array[bool] = [false]
+	U_SceneRegistryLoader.add_extension_loader(func() -> void: call_markers[0] = true)
 	U_SceneRegistry.get_scene(&"main_menu")
-	assert_false(was_called,
+	assert_false(call_markers[0],
 		"Extension loader registered after first access must not run on subsequent gets")
 
 

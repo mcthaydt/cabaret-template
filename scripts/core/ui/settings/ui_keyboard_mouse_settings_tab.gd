@@ -68,7 +68,17 @@ func _setup_builder() -> void:
 	_builder.add_slider(LABEL_MOUSE_SENSITIVITY_KEY, MIN_MOUSE_SENSITIVITY, MAX_MOUSE_SENSITIVITY, 0.1, _on_mouse_sensitivity_changed, &"", TOOLTIP_MOUSE_SENSITIVITY_KEY, "Adjust camera rotation sensitivity for mouse look input.", "MouseSensitivitySlider")
 	_builder.add_toggle(LABEL_KEYBOARD_LOOK_ENABLED_KEY, _on_keyboard_look_enabled_toggled, TOOLTIP_KEYBOARD_LOOK_ENABLED_KEY, "Allow keyboard keys to rotate the camera.", "KeyboardLookEnabledCheck")
 	_builder.add_slider(LABEL_KEYBOARD_LOOK_SPEED_KEY, MIN_KEYBOARD_LOOK_SPEED, MAX_KEYBOARD_LOOK_SPEED, 0.1, _on_keyboard_look_speed_changed, &"", TOOLTIP_KEYBOARD_LOOK_SPEED_KEY, "Adjust camera rotation speed for keyboard look input.", "KeyboardLookSpeedSlider")
-	_builder.add_button_row(Callable(), Callable(), _on_reset_pressed, _on_rebind_pressed, &"", BUTTON_RESET_DEFAULTS_KEY, BUTTON_REBIND_LOOK_KEY, "", "Reset to Defaults", "Rebind")
+	_builder.add_button_row(Callable(), Callable(), _on_reset_pressed, &"", &"", BUTTON_RESET_DEFAULTS_KEY, "", "", "Reset to Defaults")
+	_add_rebind_button_to_action_row()
+
+func _add_rebind_button_to_action_row() -> void:
+	var action_row := _find_child_by_name(self, "ActionButtons") as HBoxContainer
+	if action_row == null:
+		return
+	var rebind_button := Button.new()
+	rebind_button.name = "RebindButton"
+	action_row.add_child(rebind_button)
+	_builder.bind_action_button(rebind_button, BUTTON_REBIND_LOOK_KEY, _on_rebind_pressed, "Rebind")
 
 func _capture_control_references() -> void:
 	_mouse_sensitivity_slider = _find_child_by_name(self, "MouseSensitivitySlider") as HSlider
@@ -120,7 +130,14 @@ func _configure_focus_neighbors() -> void:
 		var last_control := vertical_controls[vertical_controls.size() - 1]
 		last_control.focus_neighbor_bottom = last_control.get_path_to(_reset_button)
 		_reset_button.focus_neighbor_top = _reset_button.get_path_to(last_control)
-		_reset_button.focus_neighbor_bottom = _reset_button.get_path_to(last_control)
+		if _rebind_button != null:
+			_reset_button.focus_neighbor_right = _reset_button.get_path_to(_rebind_button)
+			_reset_button.focus_neighbor_bottom = _reset_button.get_path_to(_rebind_button)
+			_rebind_button.focus_neighbor_left = _rebind_button.get_path_to(_reset_button)
+			_rebind_button.focus_neighbor_top = _rebind_button.get_path_to(_reset_button)
+			_rebind_button.focus_neighbor_bottom = _rebind_button.get_path_to(last_control)
+		else:
+			_reset_button.focus_neighbor_bottom = _reset_button.get_path_to(last_control)
 
 func _configure_tooltips() -> void:
 	if _mouse_sensitivity_slider != null:

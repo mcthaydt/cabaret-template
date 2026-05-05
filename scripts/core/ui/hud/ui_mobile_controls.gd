@@ -293,7 +293,7 @@ func _build_controls(state: Dictionary) -> void:
 		_joystick.queue_free()
 		_joystick = null
 
-	var joystick_instance := VIRTUAL_JOYSTICK_SCENE.instantiate() as UI_VirtualJoystick
+	var joystick_instance := _create_virtual_joystick()
 	if joystick_instance != null:
 		joystick_instance.name = "VirtualJoystick"
 		_controls_root.add_child(joystick_instance)
@@ -311,6 +311,11 @@ func _build_controls(state: Dictionary) -> void:
 		_buttons.append(button_instance)
 		_connect_input_signals(button_instance)
 	_apply_state(state)
+
+func _create_virtual_joystick() -> UI_VirtualJoystick:
+	if ClassDB.class_exists("VirtualJoystick"):
+		return VIRTUAL_JOYSTICK_SCENE.instantiate() as UI_VirtualJoystick
+	return UI_VirtualJoystick.new()
 
 func _apply_state(state: Dictionary) -> void:
 	if state == null:
