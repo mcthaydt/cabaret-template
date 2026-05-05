@@ -265,8 +265,8 @@ func _create_button(configure: Callable = Callable()) -> Control:
 	await _await_frames(1)
 	var control := button as Control
 	if control.size.is_zero_approx():
-		control.custom_minimum_size = Vector2(100, 100)
-		control.size = Vector2(100, 100)
+		control.custom_minimum_size = Vector2(72, 72)
+		control.size = Vector2(72, 72)
 	return control
 
 func _make_touch_event(index: int, position: Vector2, pressed: bool) -> InputEventScreenTouch:

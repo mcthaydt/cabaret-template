@@ -25,7 +25,7 @@ func get_max_preview_scales(
 	var sample_button: Control = null
 	if not preview_buttons.is_empty() and preview_buttons[0] is Control:
 		sample_button = preview_buttons[0] as Control
-	var base_button_size := _resolve_control_base_size(sample_button, Vector2(100, 100))
+	var base_button_size := _resolve_control_base_size(sample_button, Vector2(72, 72))
 	var button_max_width: float = (
 		available_width - (float(BUTTON_GRID_COLS - 1) * BUTTON_SPACING)
 	) / max(float(BUTTON_GRID_COLS) * max(base_button_size.x, 1.0), 1.0)
@@ -148,11 +148,11 @@ func _update_preview_positions(
 			max(PREVIEW_PADDING, preview_size.y - PREVIEW_PADDING - joystick_scaled.y)
 		)
 
-	var base_button_size: Vector2 = Vector2.ONE * 100.0
+	var base_button_size: Vector2 = Vector2.ONE * 72.0
 	if not preview_buttons.is_empty():
 		var sample_button: Control = preview_buttons[0]
 		if sample_button != null and is_instance_valid(sample_button):
-			base_button_size = _resolve_control_base_size(sample_button, Vector2(100, 100))
+			base_button_size = _resolve_control_base_size(sample_button, Vector2(72, 72))
 	var button_scaled_size: Vector2 = base_button_size * button_size
 
 	var grid_width: float = float(BUTTON_GRID_COLS) * button_scaled_size.x + float(BUTTON_GRID_COLS - 1) * BUTTON_SPACING

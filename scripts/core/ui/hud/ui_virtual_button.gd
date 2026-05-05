@@ -15,7 +15,7 @@ enum ActionType {
 @export var can_reposition: bool = false
 @export var control_name: StringName = StringName()
 
-const DEFAULT_SIZE := Vector2(100, 100)
+const DEFAULT_SIZE := Vector2(72, 72)
 const PRESSED_SCALE := Vector2(0.95, 0.95)
 const RELEASED_SCALE := Vector2.ONE
 const PRESSED_MODULATE := Color(0.8, 0.8, 0.8, 1.0)
@@ -29,7 +29,6 @@ const ACTION_COLORS := {
 const BUTTON_BG_COLOR := Color(0.4, 0.4, 0.4, 0.5)
 const BUTTON_BORDER_COLOR := Color(1.0, 1.0, 1.0, 0.15)
 const BUTTON_BORDER_WIDTH := 1.5
-const CORNER_RADIUS := 999.0
 const ICON_PREFIX := "res://assets/core/button_prompts/mobile/icon_"
 const ICON_SUFFIX := ".svg"
 
@@ -130,23 +129,18 @@ func _ensure_default_size() -> void:
 		size = DEFAULT_SIZE
 	custom_minimum_size = DEFAULT_SIZE
 
+func _draw() -> void:
+	var center := size * 0.5
+	var outer_radius: float = minf(size.x, size.y) * 0.5
+	var inner_radius: float = outer_radius - BUTTON_BORDER_WIDTH
+	if inner_radius < outer_radius and inner_radius > 0.0:
+		draw_circle(center, outer_radius, BUTTON_BORDER_COLOR)
+		draw_circle(center, inner_radius, BUTTON_BG_COLOR)
+	else:
+		draw_circle(center, outer_radius, BUTTON_BG_COLOR)
+
 func _apply_button_style() -> void:
-	var style := StyleBoxFlat.new()
-	style.bg_color = BUTTON_BG_COLOR
-	style.border_color = BUTTON_BORDER_COLOR
-	style.border_width_left = BUTTON_BORDER_WIDTH
-	style.border_width_right = BUTTON_BORDER_WIDTH
-	style.border_width_top = BUTTON_BORDER_WIDTH
-	style.border_width_bottom = BUTTON_BORDER_WIDTH
-	style.corner_radius_top_left = CORNER_RADIUS
-	style.corner_radius_top_right = CORNER_RADIUS
-	style.corner_radius_bottom_left = CORNER_RADIUS
-	style.corner_radius_bottom_right = CORNER_RADIUS
-	style.content_margin_left = 12.0
-	style.content_margin_right = 12.0
-	style.content_margin_top = 12.0
-	style.content_margin_bottom = 12.0
-	add_theme_stylebox_override("normal", style)
+	queue_redraw()
 
 func _load_icon() -> void:
 	if _icon_texture_rect == null:
