@@ -11,7 +11,7 @@ const U_LOCALIZATION_UTILS := preload("res://scripts/core/utils/localization/u_l
 const U_UI_MENU_BUILDER := preload("res://scripts/core/ui/helpers/u_ui_menu_builder.gd")
 const U_UI_THEME_BUILDER := preload("res://scripts/core/ui/utils/u_ui_theme_builder.gd")
 
-const OVERLAY_SETTINGS := StringName("settings_menu_overlay")
+const OVERLAY_SETTINGS := StringName("settings_panel")
 const OVERLAY_SAVE_LOAD := StringName("save_load_menu_overlay")
 
 @onready var _title_label: Label = %TitleLabel
