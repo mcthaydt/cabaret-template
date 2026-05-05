@@ -8,5 +8,5 @@ screen_id = &"input_profile_selector"
 kind = 1
 scene_id = &"input_profile_selector"
 allowed_shells = Array[StringName]([&"gameplay"])
-allowed_parents = Array[StringName]([&"pause_menu", &"settings_menu_overlay"])
+allowed_parents = Array[StringName]([&"pause_menu", &"settings_menu_overlay", &"settings_panel"])
 close_mode = 0

@@ -8,6 +8,6 @@ screen_id = &"edit_touch_controls"
 kind = 1
 scene_id = &"edit_touch_controls"
 allowed_shells = Array[StringName]([&"gameplay"])
-allowed_parents = Array[StringName]([&"pause_menu", &"touchscreen_settings"])
+allowed_parents = Array[StringName]([&"pause_menu", &"touchscreen_settings", &"settings_panel"])
 close_mode = 0
 hides_previous_overlays = true
