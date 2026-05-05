@@ -30,6 +30,7 @@ const VFX_SETTINGS_OVERLAY := preload("res://resources/core/ui_screens/cfg_vfx_s
 const DISPLAY_SETTINGS_OVERLAY := preload("res://resources/core/ui_screens/cfg_display_settings_overlay.tres")
 const AUDIO_SETTINGS_OVERLAY := preload("res://resources/core/ui_screens/cfg_audio_settings_overlay.tres")
 const LOCALIZATION_SETTINGS_OVERLAY := preload("res://resources/core/ui_screens/cfg_localization_settings_overlay.tres")
+const SETTINGS_PANEL_OVERLAY := preload("res://resources/core/ui_screens/cfg_settings_panel_overlay.tres")
 
 static var _screens: Dictionary = {}
 
@@ -55,6 +56,7 @@ static func _register_all_screens() -> void:
 	_register_definition(DISPLAY_SETTINGS_OVERLAY as RS_UIScreenDefinition)
 	_register_definition(AUDIO_SETTINGS_OVERLAY as RS_UIScreenDefinition)
 	_register_definition(LOCALIZATION_SETTINGS_OVERLAY as RS_UIScreenDefinition)
+	_register_definition(SETTINGS_PANEL_OVERLAY as RS_UIScreenDefinition)
 
 ## Reload registry entries from disk or a provided list (useful for tests).
 static func reload_registry(definitions: Array = []) -> void:

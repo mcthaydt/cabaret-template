@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RS_UIScreenDefinition" format=3 uid="uid://csp4n3l09ax01"]
+
+[ext_resource type="Script" uid="uid://deyqeb28ec6aq" path="res://scripts/core/resources/ui/rs_ui_screen_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+screen_id = &"settings_panel"
+kind = 1
+scene_id = &"settings_panel"
+allowed_shells = Array[StringName]([&"gameplay"])
+allowed_parents = Array[StringName]([&"pause_menu"])
+close_mode = 0
+hides_previous_overlays = false
