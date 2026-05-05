@@ -27,7 +27,6 @@ const MARKER_ENTITIES := preload("res://scripts/core/scene_structure/marker_enti
 const MARKER_SPAWN_POINTS := preload("res://scripts/core/scene_structure/marker_spawn_points_group.gd")
 
 const BASE_ECS_ENTITY_SCRIPT := preload("res://scripts/core/ecs/base_ecs_entity.gd")
-const ROOM_FADE_COMPONENT_SCRIPT := preload("res://scripts/core/ecs/components/c_room_fade_group_component.gd")
 
 const ROOT_GAME_SCRIPT := preload("res://scripts/core/root.gd")
 
@@ -48,10 +47,10 @@ func build_scene_objects() -> U_TemplateBaseSceneBuilder:
 
 	_add_floor(group)
 	_add_ceiling(group)
-	_add_wall(group, "SO_Wall_West", Vector3(-HALF_ROOM, HALF_WALL_HEIGHT, 0), Vector3(THIN, WALL_HEIGHT, ROOM_SIZE), &"wall_west", Vector3(-1, 0, 0))
-	_add_wall(group, "SO_Wall_East", Vector3(HALF_ROOM, HALF_WALL_HEIGHT, 0), Vector3(THIN, WALL_HEIGHT, ROOM_SIZE), &"wall_east", Vector3(1, 0, 0))
-	_add_wall(group, "SO_Wall_North", Vector3(0, HALF_WALL_HEIGHT, -HALF_ROOM), Vector3(ROOM_SIZE, WALL_HEIGHT, THIN), &"wall_north", Vector3(0, 0, -1))
-	_add_wall(group, "SO_Wall_South", Vector3(0, HALF_WALL_HEIGHT, HALF_ROOM), Vector3(ROOM_SIZE, WALL_HEIGHT, THIN), &"wall_south", Vector3(0, 0, 1))
+	_add_wall(group, "SO_Wall_West", Vector3(-HALF_ROOM, HALF_WALL_HEIGHT, 0), Vector3(THIN, WALL_HEIGHT, ROOM_SIZE), &"wall_west")
+	_add_wall(group, "SO_Wall_East", Vector3(HALF_ROOM, HALF_WALL_HEIGHT, 0), Vector3(THIN, WALL_HEIGHT, ROOM_SIZE), &"wall_east")
+	_add_wall(group, "SO_Wall_North", Vector3(0, HALF_WALL_HEIGHT, -HALF_ROOM), Vector3(ROOM_SIZE, WALL_HEIGHT, THIN), &"wall_north")
+	_add_wall(group, "SO_Wall_South", Vector3(0, HALF_WALL_HEIGHT, HALF_ROOM), Vector3(ROOM_SIZE, WALL_HEIGHT, THIN), &"wall_south")
 	return self
 
 func build_environment() -> U_TemplateBaseSceneBuilder:
@@ -164,7 +163,7 @@ func _add_ceiling(parent: Node3D) -> void:
 	box.material = WALL_MATERIAL
 	parent.add_child(box)
 
-func _add_wall(parent: Node3D, name_: String, position: Vector3, size: Vector3, entity_id: StringName, fade_normal: Vector3 = Vector3()) -> void:
+func _add_wall(parent: Node3D, name_: String, position: Vector3, size: Vector3, entity_id: StringName) -> void:
 	var box := CSGBox3D.new()
 	box.name = name_
 	box.position = position
@@ -173,16 +172,7 @@ func _add_wall(parent: Node3D, name_: String, position: Vector3, size: Vector3, 
 	box.material = WALL_MATERIAL
 	box.set_script(BASE_ECS_ENTITY_SCRIPT)
 	box.entity_id = entity_id
-	box.tags.assign([&"room_fade_group"])
 	parent.add_child(box)
-
-	var component := Node.new()
-	component.name = "C_RoomFadeGroupComponent"
-	component.set_script(ROOM_FADE_COMPONENT_SCRIPT)
-	component.group_tag = entity_id
-	if fade_normal != Vector3():
-		component.fade_normal = fade_normal
-	box.add_child(component)
 
 func _add_core_systems(parent: Node) -> void:
 	var core := Node.new()

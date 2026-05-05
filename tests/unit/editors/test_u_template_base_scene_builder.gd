@@ -90,24 +90,6 @@ func test_scene_objects_follow_2_5d_units_and_scale_contract() -> void:
 	assert_eq(north_wall.size, Vector3(5.0, 3.0, 0.01),
 		"Wall dimensions must use 3-tile height and 5-tile room width")
 
-func test_walls_are_ecs_entities_with_room_fade_component() -> void:
-	var builder: Object = _new_builder()
-	if builder == null:
-		return
-	builder.call("create_root")
-	builder.call("build_scene_objects")
-	var root: Node = builder.call("build") as Node
-	var so: Node = root.get_node_or_null("SceneObjects")
-	var wall_west: Node = so.get_node_or_null("SO_Wall_West")
-	assert_not_null(wall_west, "West wall must exist")
-	assert_not_null(wall_west.get_script(), "Wall must have script")
-	assert_eq(wall_west.get("entity_id"), &"wall_west", "entity_id must be set")
-	var tags: Array = wall_west.get("tags")
-	assert_true(tags.has(&"room_fade_group"), "Wall must have room_fade_group tag")
-	var component: Node = wall_west.get_node_or_null("C_RoomFadeGroupComponent")
-	assert_not_null(component, "RoomFadeGroupComponent must exist on wall")
-	assert_eq(component.get("group_tag"), &"wall_west", "group_tag must match entity_id")
-
 func test_environment_has_world_environment_and_light() -> void:
 	var builder: Object = _new_builder()
 	if builder == null:

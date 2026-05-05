@@ -11,9 +11,6 @@ const I_ECS_MANAGER := preload("res://scripts/core/interfaces/i_ecs_manager.gd")
 const RS_VCAM_BLEND_HINT_SCRIPT := preload("res://scripts/core/resources/display/vcam/rs_vcam_blend_hint.gd")
 const U_VCAM_COLLISION_DETECTOR := preload("res://scripts/core/managers/helpers/u_vcam_collision_detector.gd")
 const U_VCAM_BLEND_MANAGER := preload("res://scripts/core/managers/helpers/u_vcam_blend_manager.gd")
-const C_ROOM_FADE_GROUP_COMPONENT_SCRIPT := preload(
-	"res://scripts/core/ecs/components/c_room_fade_group_component.gd"
-)
 
 const VCAM_OCCLUSION_COLLISION_MASK: int = 1 << 5
 const DEBUG_OCCLUSION_MAX_PATHS: int = 8
@@ -658,48 +655,8 @@ func _sanitize_occluders(
 				"%s sanitize skip reason=invalid_geometry value=%s" % [debug_context, str(occluder_variant)]
 			)
 			continue
-		var room_fade_state: Dictionary = _get_occluder_room_fade_state(occluder)
-		if bool(room_fade_state.get("is_faded", false)):
-			_debug_log_occlusion(
-				debug_enabled,
-				"%s sanitize skip reason=room_faded occluder=%s alpha=%.3f room_fade=%s" % [
-					debug_context,
-					str(occluder.get_path()),
-					float(room_fade_state.get("alpha", 1.0)),
-					str(room_fade_state.get("component_path", "")),
-				]
-			)
-			continue
 		safe_occluders.append(occluder)
 	return safe_occluders
-
-func _is_occluder_room_faded(occluder: GeometryInstance3D) -> bool:
-	var room_fade_state: Dictionary = _get_occluder_room_fade_state(occluder)
-	return bool(room_fade_state.get("is_faded", false))
-
-func _get_occluder_room_fade_state(occluder: GeometryInstance3D) -> Dictionary:
-	var parent := occluder.get_parent()
-	if parent == null:
-		return {
-			"is_faded": false,
-		}
-	for child_variant in parent.get_children():
-		if child_variant == null or not is_instance_valid(child_variant):
-			continue
-		if not (child_variant is Node):
-			continue
-		var child := child_variant as Node
-		if child.get_script() != C_ROOM_FADE_GROUP_COMPONENT_SCRIPT:
-			continue
-		var alpha: float = float(child.get("current_alpha"))
-		return {
-			"is_faded": alpha < 1.0,
-			"alpha": alpha,
-			"component_path": str(child.get_path()),
-		}
-	return {
-		"is_faded": false,
-	}
 
 func _clear_silhouettes_for_vcam(vcam_id: StringName) -> void:
 	var vcam := _vcams_by_id.get(vcam_id, null) as Node
