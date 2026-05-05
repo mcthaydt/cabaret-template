@@ -161,12 +161,12 @@ func test_demo_room_scene_registered() -> void:
 	assert_false(scene_data.is_empty(), "demo_room should be registered")
 	assert_eq(scene_data["scene_type"], U_SceneRegistry.SceneType.GAMEPLAY, "demo_room should be GAMEPLAY type")
 
-## Test settings_menu scene exists
-func test_settings_menu_scene_registered() -> void:
-	var scene_data: Dictionary = U_SceneRegistry.get_scene(StringName("settings_menu"))
+## Test settings_panel scene exists
+func test_settings_panel_scene_registered() -> void:
+	var scene_data: Dictionary = U_SceneRegistry.get_scene(StringName("settings_panel"))
 
-	assert_false(scene_data.is_empty(), "settings_menu should be registered")
-	assert_eq(scene_data["scene_type"], U_SceneRegistry.SceneType.UI, "settings_menu should be UI type")
+	assert_false(scene_data.is_empty(), "settings_panel should be registered")
+	assert_eq(scene_data["scene_type"], U_SceneRegistry.SceneType.UI, "settings_panel should be UI type")
 
 ## Test end-game scenes are present in the manifest
 func test_endgame_scenes_present_in_manifest() -> void:
@@ -223,12 +223,7 @@ func test_localization_settings_scene_present_in_manifest() -> void:
 	var manifest: Object = manifest_script.new()
 	var scenes: Dictionary = manifest.call("build") as Dictionary
 
-	var localization_settings: Dictionary = scenes.get(StringName("localization_settings"), {}) as Dictionary
-	assert_false(localization_settings.is_empty(), "localization_settings should be present in manifest")
-	assert_eq(localization_settings.get("scene_type", -1), U_SceneRegistry.SceneType.UI,
-		"localization_settings should be UI type")
-	assert_eq(
-		String(localization_settings.get("path", "")),
-		"res://scenes/core/ui/overlays/settings/ui_localization_settings_overlay.tscn",
-		"localization_settings should point to the localization settings overlay scene"
-	)
+	var settings_panel: Dictionary = scenes.get(StringName("settings_panel"), {}) as Dictionary
+	assert_false(settings_panel.is_empty(), "settings_panel should be present in manifest")
+	assert_eq(settings_panel.get("scene_type", -1), U_SceneRegistry.SceneType.UI,
+		"settings_panel should be UI type")

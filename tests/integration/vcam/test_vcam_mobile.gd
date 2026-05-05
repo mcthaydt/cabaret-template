@@ -1,7 +1,6 @@
 extends BaseTest
 
 const MOBILE_CONTROLS_SCENE := preload("res://scenes/core/ui/hud/ui_mobile_controls.tscn")
-const TOUCHSCREEN_SETTINGS_OVERLAY_SCENE := preload("res://scenes/core/ui/overlays/ui_touchscreen_settings_overlay.tscn")
 
 const M_STATE_STORE := preload("res://scripts/core/state/m_state_store.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/core/resources/state/rs_state_store_settings.gd")
@@ -128,35 +127,6 @@ func test_input_system_does_not_clobber_touchscreen_owned_look_input() -> void:
 	var look_input: Vector2 = input_slice.get("look_input", Vector2.ZERO)
 	assert_false(look_input.is_zero_approx(),
 		"S_InputSystem should not overwrite touchscreen-owned look_input with zero payloads")
-
-func test_touchscreen_settings_overlay_updates_drag_look_sensitivity() -> void:
-	var fixture := await _setup_mobile_vcam_fixture(_new_orbit_mode(), false)
-	autofree_context(fixture)
-	var controls: UI_MobileControls = fixture["controls"] as UI_MobileControls
-	var ecs_manager: M_ECSManager = fixture["ecs_manager"] as M_ECSManager
-	var store: M_StateStore = fixture["store"] as M_StateStore
-
-	var overlay := TOUCHSCREEN_SETTINGS_OVERLAY_SCENE.instantiate() as UI_TouchscreenSettingsOverlay
-	add_child_autofree(overlay)
-	await _await_frames(2)
-	overlay._look_sensitivity_slider.value = 2.0
-	overlay._apply_button.emit_signal("pressed")
-	await _await_frames(1)
-	if is_instance_valid(overlay):
-		overlay.queue_free()
-	store.dispatch(U_NAVIGATION_ACTIONS.start_game(StringName("demo_room")))
-	store.dispatch(U_INPUT_ACTIONS.device_changed(M_InputDeviceManager.DeviceType.TOUCHSCREEN, -1))
-	await _await_frames(2)
-
-	var start := _get_empty_space_position(controls)
-	var finish := start + Vector2(10.0, 0.0)
-	_drag_mobile_controls(controls, 34, start, finish)
-	ecs_manager._physics_process(0.016)
-
-	var gameplay_slice: Dictionary = store.get_slice(StringName("gameplay"))
-	var input_slice: Dictionary = gameplay_slice.get("input", {})
-	var look_input: Vector2 = input_slice.get("look_input", Vector2.ZERO)
-	assert_almost_eq(look_input.x, 20.0, 0.001, "Applied overlay sensitivity should scale drag-look input")
 
 func test_drag_look_y_uses_direct_touchscreen_direction() -> void:
 	var fixture := await _setup_mobile_vcam_fixture(_new_orbit_mode(), false)

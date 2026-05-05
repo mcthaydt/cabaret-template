@@ -53,17 +53,10 @@ const PRODUCTION_PATH_DIRECTORIES := [
 
 const UI_POLISHED_OVERLAY_SCENES := [
 	"res://scenes/core/ui/menus/ui_pause_menu.tscn",
-	"res://scenes/core/ui/menus/ui_settings_menu.tscn",
 	"res://scenes/core/ui/overlays/ui_save_load_menu.tscn",
 	"res://scenes/core/ui/overlays/ui_input_rebinding_overlay.tscn",
 	"res://scenes/core/ui/overlays/ui_input_profile_selector.tscn",
-	"res://scenes/core/ui/overlays/ui_gamepad_settings_overlay.tscn",
-	"res://scenes/core/ui/overlays/ui_touchscreen_settings_overlay.tscn",
 	"res://scenes/core/ui/overlays/ui_edit_touch_controls_overlay.tscn",
-	"res://scenes/core/ui/overlays/settings/ui_audio_settings_overlay.tscn",
-	"res://scenes/core/ui/overlays/settings/ui_display_settings_overlay.tscn",
-	"res://scenes/core/ui/overlays/settings/ui_localization_settings_overlay.tscn",
-	"res://scenes/core/ui/overlays/settings/ui_vfx_settings_overlay.tscn",
 ]
 
 const UI_THEME_OVERRIDE_ALLOWED_COUNTS := {
@@ -1700,7 +1693,6 @@ func test_all_production_files_use_selectors_for_state_access() -> void:
 		"res://scripts/core/ui/menus/ui_main_menu.gd",
 		"res://scripts/core/ui/overlays/ui_input_rebinding_overlay.gd",
 		"res://scripts/core/ui/overlays/ui_save_load_menu.gd",
-		"res://scripts/core/ui/overlays/ui_touchscreen_settings_overlay.gd",
 		"res://scripts/core/utils/scene_director/u_objectives_debug_tracer.gd",
 	]
 	var production_dirs: Array[String] = [
@@ -2391,36 +2383,7 @@ func test_base_event_bus_publish_does_not_duplicate_subscriber_list() -> void:
 	assert_false(publish_body.find(".duplicate()") >= 0,
 		"BaseEventBus.publish() must not duplicate subscriber list — use _publishing guard + live iteration instead")
 
-func test_simple_settings_overlays_under_15_lines() -> void:
-	var simple_overlays := [
-		"res://scripts/core/ui/settings/ui_audio_settings_overlay.gd",
-		"res://scripts/core/ui/settings/ui_display_settings_overlay.gd",
-		"res://scripts/core/ui/settings/ui_localization_settings_overlay.gd",
-	]
-	var violations: PackedStringArray = []
-	for overlay_path in simple_overlays:
-		var overlay_file := FileAccess.open(overlay_path, FileAccess.READ)
-		if overlay_file == null:
-			violations.append("Cannot open %s" % overlay_path)
-			continue
-		var line_count := 0
-		while not overlay_file.eof_reached():
-			overlay_file.get_line()
-			line_count += 1
-		overlay_file.close()
-		if line_count > 15:
-			violations.append("%s is %d lines (max 15)" % [overlay_path, line_count])
-	# VFX overlay is explicitly excluded — it has Apply/Cancel and inline controls
-	var vfx_path := "res://scripts/core/ui/settings/ui_vfx_settings_overlay.gd"
-	var vfx_file := FileAccess.open(vfx_path, FileAccess.READ)
-	if vfx_file != null:
-		var vfx_lines := 0
-		while not vfx_file.eof_reached():
-			vfx_file.get_line()
-			vfx_lines += 1
-		vfx_file.close()
-		assert_true(vfx_lines > 15, "VFX overlay should NOT be under 15 lines (explicitly excluded from dedup)")
-	assert_eq(violations.size(), 0, "Simple settings overlays must be under 15 lines: %s" % [violations])
+
 
 func test_no_localize_with_fallback_in_migrated_scripts() -> void:
 	var ui_dirs: Array[String] = [

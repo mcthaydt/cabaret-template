@@ -32,7 +32,7 @@ var _input_sources: Array[I_InputSource] = []
 
 const DEVICE_SWITCH_DEADZONE := 0.25
 const DISCONNECT_GRACE_SECONDS := 1.0
-const GAMEPAD_SETTINGS_SCREEN_ID := StringName("gamepad_settings")
+const SETTINGS_PANEL_SCREEN_ID := StringName("settings_panel")
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -160,7 +160,7 @@ func _handle_keyboard_mouse_input(_event: InputEvent = null) -> void:
 	_switch_device(DeviceType.KEYBOARD_MOUSE, -1)
 
 func _handle_touch_input() -> void:
-	if _is_gamepad_settings_active():
+	if _is_settings_panel_active():
 		return
 	_switch_device(DeviceType.TOUCHSCREEN, -1)
 
@@ -347,13 +347,13 @@ func _has_overlay_active() -> bool:
 	var state: Dictionary = _state_store.get_state()
 	return not U_NAVIGATION_SELECTORS.get_overlay_stack(state).is_empty()
 
-func _is_gamepad_settings_active() -> bool:
+func _is_settings_panel_active() -> bool:
 	if _state_store == null or not is_instance_valid(_state_store):
 		return false
 	var state: Dictionary = _state_store.get_state()
-	if U_NAVIGATION_SELECTORS.get_top_overlay_id(state) == GAMEPAD_SETTINGS_SCREEN_ID:
+	if U_NAVIGATION_SELECTORS.get_top_overlay_id(state) == SETTINGS_PANEL_SCREEN_ID:
 		return true
-	return U_NAVIGATION_SELECTORS.get_base_scene_id(state) == GAMEPAD_SETTINGS_SCREEN_ID
+	return U_NAVIGATION_SELECTORS.get_base_scene_id(state) == SETTINGS_PANEL_SCREEN_ID
 
 func _should_guard_disconnect_by_grace_period() -> bool:
 	if not _is_mobile_context():

@@ -34,18 +34,11 @@ func test_get_overlays_for_shell_returns_all_gameplay_overlays() -> void:
 
 	var expected_ids: Array = [
 		StringName("pause_menu"),
-		StringName("settings_menu_overlay"),
+		StringName("settings_panel"),
 		StringName("input_profile_selector"),
-		StringName("gamepad_settings"),
-		StringName("keyboard_mouse_settings"),
-		StringName("display_settings"),
-		StringName("vfx_settings"),
-		StringName("audio_settings"),
-		StringName("touchscreen_settings"),
 		StringName("input_rebinding"),
 		StringName("edit_touch_controls"),
 		StringName("save_load_menu_overlay"),
-		StringName("localization_settings")
 	]
 
 	for expected_id in expected_ids:
@@ -59,22 +52,22 @@ func test_get_overlays_for_shell_returns_all_gameplay_overlays() -> void:
 ## T024: Close modes and parent validation guard navigation
 func test_close_mode_and_parent_validation() -> void:
 	assert_eq(
-		UIRegistry.get_close_mode(StringName("settings_menu_overlay")),
+		UIRegistry.get_close_mode(StringName("settings_panel")),
 		RS_UIScreenDefinition.CloseMode.RETURN_TO_PREVIOUS_OVERLAY,
-		"Settings overlay should return to previous overlay"
+		"Settings panel should return to previous overlay"
 	)
 
 	assert_true(
-		UIRegistry.is_valid_overlay_for_parent(StringName("settings_menu_overlay"), StringName("pause_menu")),
-		"Settings overlay should allow pause_menu parent"
+		UIRegistry.is_valid_overlay_for_parent(StringName("settings_panel"), StringName("pause_menu")),
+		"Settings panel should allow pause_menu parent"
 	)
 	assert_true(
 		UIRegistry.is_valid_overlay_for_parent(StringName("pause_menu"), StringName("")),
 		"Pause overlay should be allowed without a parent"
 	)
 	assert_false(
-		UIRegistry.is_valid_overlay_for_parent(StringName("settings_menu_overlay"), StringName("input_rebinding")),
-		"Settings overlay should reject invalid parents"
+		UIRegistry.is_valid_overlay_for_parent(StringName("settings_panel"), StringName("input_rebinding")),
+		"Settings panel should reject invalid parents"
 	)
 
 ## T024: Validation fails when definition references missing scene or shell

@@ -100,7 +100,7 @@ func test_gameplay_with_settings_overlay_closes_settings() -> void:
 	# Setup: gameplay → pause → settings (return overlay)
 	_store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	_store.dispatch(U_NavigationActions.open_pause())
-	_store.dispatch(U_NavigationActions.open_overlay(StringName("settings_menu_overlay")))
+	_store.dispatch(U_NavigationActions.open_overlay(StringName("settings_panel")))
 	await wait_process_frames(2)
 
 	# Action: press ui_cancel
@@ -114,22 +114,22 @@ func test_gameplay_with_settings_overlay_closes_settings() -> void:
 	assert_eq(overlay_stack[0], StringName("pause_menu"), "Pause should remain after settings closes")
 
 
-func test_gameplay_with_gamepad_settings_resumes_gameplay() -> void:
-	# Setup: gameplay → pause → gamepad_settings (resume overlay)
+func test_gameplay_with_input_rebinding_resumes_gameplay() -> void:
+	# Setup: gameplay → pause → input_rebinding (resume overlay)
 	_store.dispatch(U_NavigationActions.start_game(StringName("demo_room")))
 	_store.dispatch(U_NavigationActions.open_pause())
-	_store.dispatch(U_NavigationActions.open_overlay(StringName("gamepad_settings")))
+	_store.dispatch(U_NavigationActions.open_overlay(StringName("input_rebinding")))
 	await wait_process_frames(2)
 
 	# Action: press ui_cancel
 	_simulate_ui_cancel()
 	await wait_process_frames(2)
 
-	# Assert: returns to settings overlay, game remains paused
+	# Assert: returns to pause overlay, game remains paused
 	var nav_slice: Dictionary = _store.get_slice(StringName("navigation"))
 	var overlay_stack: Array = nav_slice.get("overlay_stack", [])
-	assert_eq(overlay_stack.size(), 1, "Should return to settings overlay when gamepad_settings closes")
-	assert_eq(overlay_stack[0], StringName("pause_menu"), "Pause overlay should be active after gamepad_settings closes")
+	assert_eq(overlay_stack.size(), 1, "Should return to pause overlay when input_rebinding closes")
+	assert_eq(overlay_stack[0], StringName("pause_menu"), "Pause overlay should be active after input_rebinding closes")
 	assert_true(U_NavigationSelectors.is_paused(nav_slice), "Game should remain paused while pause overlay is active")
 
 

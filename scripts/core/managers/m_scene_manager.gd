@@ -715,7 +715,7 @@ func is_pause_suppressed_for_current_frame() -> bool:
 ##
 ## Example:
 ##   push_overlay("pause_menu")                 # 1 overlay: pause
-##   push_overlay_with_return("settings_menu")  # Remember pause, replace → 1 overlay: settings
+##   push_overlay_with_return("settings_panel")  # Remember pause, replace → 1 overlay: settings
 ##   pop_overlay_with_return()                  # Restore pause → 1 overlay: pause
 func push_overlay_with_return(overlay_id: StringName) -> void:
 	var viewport: Viewport = get_tree().root

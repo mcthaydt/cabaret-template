@@ -60,7 +60,6 @@ static func _ensure_loaded() -> void:
 ##
 ## CRITICAL (hardcoded for boot safety):
 ## - main_menu: Game entry point, must always work
-## - settings_menu: Core UI, treated as critical
 ## - pause_menu: Preloaded at startup (priority 10)
 ## - loading_screen: Preloaded at startup (priority 10)
 ## - test scenes: Required for test suite
@@ -96,15 +95,6 @@ static func _register_scenes() -> void:
 		SceneType.MENU,
 		"fade",
 		10  # Critical path - preload at startup (Phase 8)
-	)
-
-	# Settings Menu (user-designated critical)
-	_register_scene(
-		StringName("settings_menu"),
-		"res://scenes/core/ui/menus/ui_settings_menu.tscn",
-		SceneType.UI,
-		"instant",
-		10  # Upgraded to critical priority per user request
 	)
 
 	# Pause Menu (preloaded at startup)

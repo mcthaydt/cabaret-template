@@ -17,11 +17,8 @@ const SHELL_GAMEPLAY := StringName("gameplay")
 const SHELL_ENDGAME := StringName("endgame")
 
 const OVERLAY_PAUSE := StringName("pause_menu")
-const OVERLAY_SETTINGS := StringName("settings_menu_overlay")
 const OVERLAY_SAVE_LOAD := StringName("save_load_menu_overlay")
 const OVERLAY_INPUT_PROFILE := StringName("input_profile_selector")
-const OVERLAY_GAMEPAD_SETTINGS := StringName("gamepad_settings")
-const OVERLAY_TOUCHSCREEN_SETTINGS := StringName("touchscreen_settings")
 const OVERLAY_INPUT_REBINDING := StringName("input_rebinding")
 const OVERLAY_EDIT_TOUCH_CONTROLS := StringName("edit_touch_controls")
 
