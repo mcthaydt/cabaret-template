@@ -236,7 +236,7 @@ func _setup_background_image(preset: String) -> bool:
 	var bg_image := TextureRect.new()
 	bg_image.name = "BackgroundImage"
 	bg_image.texture = texture
-	bg_image.expand_mode = TextureRect.EXPAND_FIT_WIDTH
+	bg_image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	bg_image.stretch_mode = TextureRect.STRETCH_SCALE
 	bg_image.set_anchors_preset(Control.PRESET_FULL_RECT)
 	bg_image.z_index = -1
