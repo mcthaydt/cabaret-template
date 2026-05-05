@@ -298,7 +298,73 @@ func _collect_cutout_targets() -> Array:
 				continue
 			seen_target_ids[target_id] = true
 			targets.append(target)
+	_collect_material_authored_cutout_targets(targets, seen_target_ids)
 	return targets
+
+
+func _collect_material_authored_cutout_targets(targets: Array, seen_target_ids: Dictionary) -> void:
+	var root := _resolve_cutout_search_root()
+	if root == null:
+		return
+	_collect_material_authored_cutout_targets_recursive(root, targets, seen_target_ids)
+
+
+func _resolve_cutout_search_root() -> Node:
+	if owner != null and is_instance_valid(owner):
+		return owner
+	var current: Node = self
+	while current.get_parent() != null and not (current.get_parent() is Window):
+		current = current.get_parent()
+	return current
+
+
+func _collect_material_authored_cutout_targets_recursive(
+	node: Node,
+	targets: Array,
+	seen_target_ids: Dictionary
+) -> void:
+	if node == null or not is_instance_valid(node):
+		return
+	var target := node as Node3D
+	if target != null and _uses_wall_cutout_material(target):
+		var target_id: int = target.get_instance_id()
+		if not seen_target_ids.has(target_id):
+			seen_target_ids[target_id] = true
+			targets.append(target)
+	for child_variant in node.get_children():
+		_collect_material_authored_cutout_targets_recursive(child_variant as Node, targets, seen_target_ids)
+
+
+func _uses_wall_cutout_material(target: Node3D) -> bool:
+	var material := _resolve_cutout_target_material(target)
+	if material == null:
+		return false
+	var expected_material: ShaderMaterial = wall_cutout_material
+	if expected_material == null:
+		expected_material = DEFAULT_WALL_CUTOUT_MATERIAL
+	if material == expected_material:
+		return true
+	if not material.resource_path.is_empty() and material.resource_path == expected_material.resource_path:
+		return true
+	var shader_material := material as ShaderMaterial
+	if shader_material == null:
+		return false
+	return shader_material.shader != null and shader_material.shader == expected_material.shader
+
+
+func _resolve_cutout_target_material(target: Node3D) -> Material:
+	if target is CSGBox3D:
+		return (target as CSGBox3D).material
+	var geometry := target as GeometryInstance3D
+	if geometry == null:
+		return null
+	if geometry.material_override != null:
+		return geometry.material_override
+	if target is MeshInstance3D:
+		var mesh_instance := target as MeshInstance3D
+		if mesh_instance.mesh != null and mesh_instance.mesh.get_surface_count() > 0:
+			return mesh_instance.get_surface_override_material(0)
+	return null
 
 
 func _update_cutout_target_gates(

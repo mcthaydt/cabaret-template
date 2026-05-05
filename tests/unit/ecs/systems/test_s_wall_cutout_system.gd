@@ -308,3 +308,76 @@ func test_tight_occlusion_segment_enables_intersected_wall_only() -> void:
 		"Wall whose footprint intersects the camera-player segment should allow cutout.")
 	assert_almost_eq(_read_instance_float(writer, side_wall, PARAM_CUTOUT_ENABLED), 0.0, 0.0001,
 		"Adjacent wall beside the player should not allow cutout when it does not intersect the camera-player segment.")
+
+
+func test_collects_material_authored_walls_without_room_fade_components() -> void:
+	var fixture := _create_fixture(Vector3.ZERO, "orbit")
+	var system = fixture.get("system")
+	assert_not_null(system)
+
+	var wall := _make_wall_target(
+		"SO_Wall_RuntimeFallback",
+		Vector3(0.0, 1.0, 1.0),
+		Vector3(4.0, 2.0, 0.1)
+	)
+	wall.material = load("res://assets/core/materials/mat_wall_cutout.tres")
+
+	var targets: Array = system._collect_cutout_targets()
+
+	assert_true(targets.has(wall),
+		"WallCutoutSystem should discover template-authored walls that use the shared cutout material even when legacy RoomFadeGroup components are absent.")
+
+
+func test_collects_mesh_instance_targets_using_wall_cutout_material_override() -> void:
+	var fixture := _create_fixture(Vector3.ZERO, "orbit")
+	var system = fixture.get("system")
+	assert_not_null(system)
+
+	var wall := MeshInstance3D.new()
+	wall.name = "SO_MeshWall_RuntimeFallback"
+	wall.mesh = BoxMesh.new()
+	wall.material_override = load("res://assets/core/materials/mat_wall_cutout.tres")
+	add_child_autofree(wall)
+
+	var targets: Array = system._collect_cutout_targets()
+
+	assert_true(targets.has(wall),
+		"WallCutoutSystem should discover MeshInstance3D walls that use the shared cutout material override.")
+
+
+func test_material_authored_collection_ignores_non_cutout_materials() -> void:
+	var fixture := _create_fixture(Vector3.ZERO, "orbit")
+	var system = fixture.get("system")
+	assert_not_null(system)
+
+	var prop := _make_wall_target(
+		"SO_NonCutoutProp",
+		Vector3(0.0, 1.0, 1.0),
+		Vector3(4.0, 2.0, 0.1)
+	)
+	prop.material = StandardMaterial3D.new()
+
+	var targets: Array = system._collect_cutout_targets()
+
+	assert_false(targets.has(prop),
+		"WallCutoutSystem should not gate unrelated scene geometry that does not use the wall cutout material.")
+
+
+func test_material_authored_collection_deduplicates_existing_targets() -> void:
+	var fixture := _create_fixture(Vector3.ZERO, "orbit")
+	var system = fixture.get("system")
+	assert_not_null(system)
+
+	var wall := _make_wall_target(
+		"SO_Wall_DedupedFallback",
+		Vector3(0.0, 1.0, 1.0),
+		Vector3(4.0, 2.0, 0.1)
+	)
+	wall.material = load("res://assets/core/materials/mat_wall_cutout.tres")
+	var targets: Array = [wall]
+	var seen_target_ids := {wall.get_instance_id(): true}
+
+	system._collect_material_authored_cutout_targets(targets, seen_target_ids)
+
+	assert_eq(targets.count(wall), 1,
+		"Material fallback collection should not duplicate targets already discovered through component-authored paths.")
