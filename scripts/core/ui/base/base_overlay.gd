@@ -17,6 +17,8 @@ class_name BaseOverlay
 
 ## Optional: reference to existing background panel (if you want custom control)
 @export var custom_background_panel: ColorRect = null
+const OVERLAY_PANEL_SIZE := Vector2(860.0, 620.0)
+
 var overlay_scene_id: StringName = StringName("")
 
 var _background_panel: ColorRect = null
