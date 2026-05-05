@@ -269,12 +269,10 @@ func test_base_menu_screen_targets_center_container_when_backdrop_and_panel_exis
 	assert_true(center_container.modulate.a > 0.01,
 		"Center container should animate alpha during enter tween")
 
-func test_base_menu_screen_applies_background_shader_material_when_preset_enabled() -> void:
+func test_base_menu_screen_auto_provisions_background_image_instead_of_shader() -> void:
 	await _create_state_store()
 	var screen := BaseMenuScreen.new()
 	screen.background_shader_preset = "retro_grid"
-	screen.background_shader_intensity = 0.62
-	screen.background_shader_speed = 1.3
 
 	var background := ColorRect.new()
 	background.name = "Background"
@@ -284,16 +282,12 @@ func test_base_menu_screen_applies_background_shader_material_when_preset_enable
 	add_child_autofree(screen)
 	await wait_process_frames(3)
 
-	var material := background.material as ShaderMaterial
-	assert_not_null(material, "Background shader preset should assign a ShaderMaterial")
-	if material == null:
+	var bg_image := screen.get_node_or_null("BackgroundImage") as TextureRect
+	assert_not_null(bg_image, "Preset should auto-provision BackgroundImage instead of shader")
+	if bg_image == null:
 		return
-	assert_eq(material.shader, MENU_FULLSCREEN_SHADER, "Background shader should use shared fullscreen menu shader")
-	assert_eq(int(material.get_shader_parameter("preset_mode")), 0, "retro_grid preset should map to mode 0")
-	assert_almost_eq(float(material.get_shader_parameter("effect_intensity")), 0.62, 0.001,
-		"Shader intensity should use exported intensity")
-	assert_almost_eq(float(material.get_shader_parameter("effect_speed")), 1.3, 0.001,
-		"Shader speed should use exported speed")
+	assert_ne(bg_image.texture, null, "Auto-provisioned BackgroundImage should have texture loaded")
+	assert_null(screen.get("_background_shader_material"), "Should not create shader material when BackgroundImage is auto-provisioned")
 
 func test_base_menu_screen_background_shader_noop_when_preset_none_or_background_missing() -> void:
 	await _create_state_store()
@@ -312,35 +306,15 @@ func test_base_menu_screen_background_shader_noop_when_preset_none_or_background
 	await wait_process_frames(3)
 
 	assert_null(none_background.material, "Preset none should leave Background material untouched")
-	assert_null(
-		missing_background_screen.get("_background_shader_material"),
-		"Missing Background node should silently skip shader setup"
+	assert_not_null(
+		missing_background_screen.get_node_or_null("BackgroundImage"),
+		"Missing Background node with valid preset should auto-provision BackgroundImage"
 	)
 
 func test_base_menu_screen_background_shader_preset_mode_mapping() -> void:
-	await _create_state_store()
-	var screen := BaseMenuScreen.new()
-	screen.background_shader_preset = "retro_grid"
-
-	var background := ColorRect.new()
-	background.name = "Background"
-	screen.add_child(background)
-
-	add_child_autofree(screen)
-	await wait_process_frames(3)
-
-	var material := background.material as ShaderMaterial
-	assert_not_null(material, "Preset should create shader material for mapping checks")
-	if material == null:
-		return
-
-	screen.background_shader_preset = "scanline_drift"
-	screen._update_background_shader_state()
-	assert_eq(int(material.get_shader_parameter("preset_mode")), 1, "scanline_drift should map to mode 1")
-
-	screen.background_shader_preset = "arcade_noise"
-	screen._update_background_shader_state()
-	assert_eq(int(material.get_shader_parameter("preset_mode")), 2, "arcade_noise should map to mode 2")
+	assert_eq(BaseMenuScreen.BACKGROUND_SHADER_PRESET_MODE_BY_ID["retro_grid"], 0, "retro_grid should map to mode 0")
+	assert_eq(BaseMenuScreen.BACKGROUND_SHADER_PRESET_MODE_BY_ID["scanline_drift"], 1, "scanline_drift should map to mode 1")
+	assert_eq(BaseMenuScreen.BACKGROUND_SHADER_PRESET_MODE_BY_ID["arcade_noise"], 2, "arcade_noise should map to mode 2")
 
 func test_background_image_skips_shader_setup() -> void:
 	await _create_state_store()
@@ -387,6 +361,31 @@ func test_base_overlay_animates_dim_on_enter() -> void:
 	await wait_seconds(0.08)
 	assert_true(background.modulate.a > 0.05,
 		"Background dim alpha should increase during enter animation")
+
+func test_auto_provision_background_image_from_preset() -> void:
+	await _create_state_store()
+	var screen := BaseMenuScreen.new()
+	var color_rect := ColorRect.new()
+	color_rect.name = "Background"
+	screen.add_child(color_rect)
+	screen.background_shader_preset = "retro_grid"
+	add_child_autofree(screen)
+	await wait_process_frames(3)
+	assert_not_null(screen.get("_background_image"), "Should auto-create BackgroundImage for retro_grid preset")
+	var bg_image := screen.get("_background_image") as TextureRect
+	assert_ne(bg_image.texture, null, "Auto-provisioned BackgroundImage should have texture loaded")
+	assert_eq(bg_image.name, "BackgroundImage", "Auto-provisioned should be named BackgroundImage")
+
+func test_auto_provision_skipped_when_no_preset_mapping() -> void:
+	await _create_state_store()
+	var screen := BaseMenuScreen.new()
+	var color_rect := ColorRect.new()
+	color_rect.name = "Background"
+	screen.add_child(color_rect)
+	screen.background_shader_preset = "none"
+	add_child_autofree(screen)
+	await wait_process_frames(3)
+	assert_null(screen.get("_background_image"), "Should not auto-provision when preset is none")
 
 func _create_state_store() -> M_StateStore:
 	var store := M_StateStore.new()

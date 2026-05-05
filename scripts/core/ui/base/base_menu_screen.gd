@@ -226,17 +226,41 @@ func _find_panel_descendant(root: Node) -> PanelContainer:
 			return panel
 	return null
 
-func _setup_background_shader() -> void:
-	var bg := _resolve_background()
-	if bg == null:
-		return
+func _setup_background_image(preset: String) -> bool:
+	if not BACKGROUND_IMAGE_BY_PRESET.has(preset):
+		return false
+	var texture_path: String = BACKGROUND_IMAGE_BY_PRESET[preset]
+	var texture := load(texture_path) as Texture2D
+	if texture == null:
+		return false
+	var bg_image := TextureRect.new()
+	bg_image.name = "BackgroundImage"
+	bg_image.texture = texture
+	bg_image.expand_mode = TextureRect.EXPAND_FIT_WIDTH
+	bg_image.stretch_mode = TextureRect.STRETCH_SCALE
+	bg_image.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg_image.z_index = -1
+	bg_image.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(bg_image)
+	move_child(bg_image, 0)
+	_background_image = bg_image
+	return true
 
-	if bg is TextureRect:
-		_background_image = bg
+func _setup_background_shader() -> void:
+	var existing := get_node_or_null("BackgroundImage") as TextureRect
+	if existing != null:
+		_background_image = existing
 		_background_rect = null
 		return
 
-	_background_rect = bg as ColorRect
+	if background_shader_preset != BACKGROUND_SHADER_PRESET_NONE:
+		if _setup_background_image(background_shader_preset):
+			return
+
+	_background_rect = _resolve_background() as ColorRect
+
+	if _background_rect == null:
+		return
 
 	if background_shader_preset == BACKGROUND_SHADER_PRESET_NONE:
 		return
