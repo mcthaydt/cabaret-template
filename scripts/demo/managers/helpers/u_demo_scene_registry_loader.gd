@@ -12,7 +12,7 @@ const SCENE_REGISTRY_LOADER := preload("res://scripts/core/scene_management/help
 
 static func initialize() -> void:
 	for demo_path: String in _DEMO_PATHS:
-		SCENE_REGISTRY_LOADER.register_extra_entry(preload(demo_path))
+		SCENE_REGISTRY_LOADER.register_extra_entry(load(demo_path))
 
 static var _DEMO_PATHS: PackedStringArray = [
 	"res://resources/demo/scene_registry/cfg_demo_scene_entries.tres",

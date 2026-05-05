@@ -33,19 +33,25 @@ enum SceneType {
 ## Value: Dictionary with scene metadata
 static var _scenes: Dictionary = {}
 static var _loader := U_SceneRegistryLoader.new()
+static var _resource_entries_loaded: bool = false
 
 ## Door pairing dictionary
 ## Key: scene_id (StringName)
 ## Value: Dictionary[door_id (StringName)] -> exit_data (Dictionary)
 static var _door_exits: Dictionary = {}
 
-## Static initializer - registers all scenes and door pairings
-##
-## T212: Now loads resource-based scene entries from resources/scene_registry/
+## Static initializer - registers hardcoded critical scenes and door pairings.
+## Resource-based entries (including extension loaders) are deferred to first
+## access so root._enter_tree() can register loaders before they run.
 static func _static_init() -> void:
 	_register_scenes()
-	_load_resource_entries()
 	_register_door_pairings()
+
+static func _ensure_loaded() -> void:
+	if _resource_entries_loaded:
+		return
+	_resource_entries_loaded = true
+	_load_resource_entries()
 
 ## Register all scenes with metadata
 ##
@@ -177,6 +183,7 @@ static func _register_scenes() -> void:
 static func _load_resource_entries() -> void:
 	_loader.load_resource_entries(_scenes, Callable(U_SceneRegistry, "_register_scene"))
 
+
 ## Ensure critical gameplay, settings, and end-game scenes are registered even
 ## if resources are missing. This provides a safety net for exports where
 ## resource-based entries might be excluded by filters (e.g., mobile builds).
@@ -224,6 +231,7 @@ static func _register_door_exit(
 
 ## Get scene metadata by scene_id
 static func get_scene(scene_id: StringName) -> Dictionary:
+	_ensure_loaded()
 	if _scenes.has(scene_id):
 		return _scenes[scene_id].duplicate(true)
 	return {}
@@ -256,6 +264,7 @@ static func get_door_exit(scene_id: StringName, door_id: StringName) -> Dictiona
 
 ## Get all registered scenes
 static func get_all_scenes() -> Array:
+	_ensure_loaded()
 	var result: Array = []
 	for scene_data in _scenes.values():
 		result.append(scene_data.duplicate(true))
@@ -263,6 +272,7 @@ static func get_all_scenes() -> Array:
 
 ## Get scenes filtered by type
 static func get_scenes_by_type(scene_type: int) -> Array:
+	_ensure_loaded()
 	var result: Array = []
 	for scene_data in _scenes.values():
 		if scene_data["scene_type"] == scene_type:
@@ -276,6 +286,7 @@ static func get_scenes_by_type(scene_type: int) -> Array:
 ##
 ## Returns: Array of scene metadata dictionaries
 static func get_preloadable_scenes(min_priority: int = 10) -> Array:
+	_ensure_loaded()
 	var result: Array = []
 	for scene_data in _scenes.values():
 		var priority: int = scene_data.get("preload_priority", 0)
@@ -291,6 +302,7 @@ static func get_preloadable_scenes(min_priority: int = 10) -> Array:
 ##
 ## Returns true if all validations pass (errors only), false otherwise.
 static func validate_door_pairings() -> bool:
+	_ensure_loaded()
 	var is_valid: bool = true
 
 	# Check all door exits reference valid scenes
