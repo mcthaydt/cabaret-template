@@ -65,6 +65,12 @@ entries = Array[Dictionary]([{
 "scene_path": "res://scenes/core/ui/overlays/settings/ui_vfx_settings_overlay.tscn",
 "scene_type": 2
 }, {
+"default_transition": "instant",
+"preload_priority": 5,
+"scene_id": &"settings_panel",
+"scene_path": "res://scenes/core/ui/settings/ui_settings_panel.tscn",
+"scene_type": 2
+}, {
 "default_transition": "",
 "preload_priority": 8,
 "scene_id": &"game_over",
