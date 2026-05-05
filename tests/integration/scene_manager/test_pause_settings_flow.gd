@@ -77,14 +77,14 @@ func test_settings_with_return_to_pause_using_new_api() -> void:
 
 	# When: Open settings with return navigation (Phase 6.5 - REPLACE mode)
 	# This pops pause, remembers it, then pushes settings
-	_scene_manager.push_overlay_with_return(StringName("settings_menu"))
+	_scene_manager.push_overlay_with_return(StringName("settings_panel"))
 	await get_tree().process_frame
 
 	# Then: Still one overlay (pause REPLACED with settings)
 	assert_eq(_ui_overlay_stack.get_child_count(), 1, "Should have one overlay (settings replaces pause)")
 	# Verify the overlay is settings_menu
 	var top_id := _scene_manager._overlay_helper.get_top_overlay_id(_ui_overlay_stack)
-	assert_true(StringName(top_id) == StringName("settings_menu"), "Top overlay should be settings_menu")
+	assert_true(StringName(top_id) == StringName("settings_panel"), "Top overlay should be settings_menu")
 
 	# When: Return from settings with automatic restoration (Phase 6.5)
 	# This pops settings, then restores pause from return stack

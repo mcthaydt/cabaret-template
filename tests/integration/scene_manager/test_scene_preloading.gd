@@ -121,7 +121,7 @@ func test_async_loading_progress_updates() -> void:
 	var progress_callback := func(progress: float) -> void:
 		progress_values.append(progress)
 
-	var scene_path: String = U_SceneRegistry.get_scene_path(StringName("settings_menu"))
+	var scene_path: String = U_SceneRegistry.get_scene_path(StringName("settings_panel"))
 	var loaded_scene: Node = await _manager._scene_loader.load_scene_async(scene_path, progress_callback, _manager._background_loads)
 
 	# Always assert that scene loaded successfully
@@ -196,7 +196,7 @@ func test_cache_eviction_on_max_count() -> void:
 	# Add 4 scenes to cache
 	var scene_paths: Array[String] = [
 		U_SceneRegistry.get_scene_path(StringName("main_menu")),
-		U_SceneRegistry.get_scene_path(StringName("settings_menu")),
+		U_SceneRegistry.get_scene_path(StringName("settings_panel")),
 		U_SceneRegistry.get_scene_path(StringName("pause_menu")),
 		U_SceneRegistry.get_scene_path(StringName("demo_room"))
 	]

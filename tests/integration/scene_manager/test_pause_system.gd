@@ -177,7 +177,7 @@ func test_nested_pause_overlays_stack_correctly() -> void:
 	# When: Push pause menu → settings menu
 	_scene_manager.push_overlay(StringName("pause_menu"))
 	await get_tree().process_frame
-	_scene_manager.push_overlay(StringName("settings_menu"))
+	_scene_manager.push_overlay(StringName("settings_panel"))
 	await get_tree().process_frame
 
 	# Then: Both overlays on stack
@@ -269,7 +269,7 @@ func test_ui_scenes_track_history() -> void:
 	# Given: Navigate from main_menu to settings_menu
 	_scene_manager.transition_to_scene(StringName("main_menu"), "instant", M_SCENE_MANAGER.Priority.HIGH)
 	await wait_physics_frames(5)
-	_scene_manager.transition_to_scene(StringName("settings_menu"), "instant", M_SCENE_MANAGER.Priority.HIGH)
+	_scene_manager.transition_to_scene(StringName("settings_panel"), "instant", M_SCENE_MANAGER.Priority.HIGH)
 	await wait_physics_frames(5)
 
 	# When: Call go_back()
@@ -282,7 +282,7 @@ func test_go_back_returns_to_previous_ui_scene() -> void:
 	# Given: Navigate main_menu → settings_menu
 	_scene_manager.transition_to_scene(StringName("main_menu"), "instant", M_SCENE_MANAGER.Priority.HIGH)
 	await wait_physics_frames(5)
-	_scene_manager.transition_to_scene(StringName("settings_menu"), "instant", M_SCENE_MANAGER.Priority.HIGH)
+	_scene_manager.transition_to_scene(StringName("settings_panel"), "instant", M_SCENE_MANAGER.Priority.HIGH)
 	await wait_physics_frames(5)
 
 	# When: Go back
@@ -312,11 +312,11 @@ func test_history_navigation_skips_gameplay_scenes() -> void:
 	# Given: Navigate menu → settings → gameplay → settings
 	_scene_manager.transition_to_scene(StringName("main_menu"), "instant", M_SCENE_MANAGER.Priority.HIGH)
 	await wait_physics_frames(5)
-	_scene_manager.transition_to_scene(StringName("settings_menu"), "instant", M_SCENE_MANAGER.Priority.HIGH)
+	_scene_manager.transition_to_scene(StringName("settings_panel"), "instant", M_SCENE_MANAGER.Priority.HIGH)
 	await wait_physics_frames(5)
 	_scene_manager.transition_to_scene(StringName("demo_room"), "instant", M_SCENE_MANAGER.Priority.HIGH)
 	await wait_physics_frames(5)
-	_scene_manager.transition_to_scene(StringName("settings_menu"), "instant", M_SCENE_MANAGER.Priority.HIGH)
+	_scene_manager.transition_to_scene(StringName("settings_panel"), "instant", M_SCENE_MANAGER.Priority.HIGH)
 	await wait_physics_frames(5)
 
 	# When: Go back from settings
@@ -330,7 +330,7 @@ func test_history_navigation_skips_gameplay_scenes() -> void:
 	# Note: Since gameplay clears history, going back from settings after gameplay
 	# should have no history, so go_back() should be a no-op
 	# OR if we track pre-gameplay history, should return to main_menu
-	assert_true(current_scene == StringName("settings_menu") or current_scene == StringName("main_menu"),
+	assert_true(current_scene == StringName("settings_panel") or current_scene == StringName("main_menu"),
 		"Should either stay at settings (no history) or return to main_menu (pre-gameplay history)")
 
 func test_navigation_action_triggers_pause_during_gameplay() -> void:

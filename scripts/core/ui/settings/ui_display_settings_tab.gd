@@ -471,7 +471,7 @@ func _close_overlay() -> void:
 	if not overlay_stack.is_empty():
 		_state_store.dispatch(U_NavigationActions.close_top_overlay())
 	else:
-		_state_store.dispatch(U_NavigationActions.set_shell(StringName("main_menu"), StringName("settings_menu")))
+			_state_store.dispatch(U_NavigationActions.set_shell(StringName("main_menu"), StringName("settings_panel")))
 
 func _update_display_settings_preview_from_ui() -> void:
 	_update_dependent_controls()

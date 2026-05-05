@@ -182,7 +182,7 @@ func test_overlay_visibility_respects_navigation_shell() -> void:
 	var grain_dither_layer := _overlay.get_node_or_null("GrainDitherLayer") as CanvasLayer
 	assert_not_null(grain_dither_layer, "GrainDitherLayer should exist")
 
-	_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("main_menu"), StringName("settings_menu")))
+	_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("main_menu"), StringName("settings_panel")))
 	await get_tree().physics_frame
 	assert_false(grain_dither_layer.visible, "Overlay should hide when shell is not gameplay")
 

@@ -221,7 +221,7 @@ func test_transition_during_transition_queues_correctly() -> void:
 	assert_true(scene_state1.get("is_transitioning", false), "First transition should start")
 
 	# Trigger another transition while first is in progress
-	_manager.transition_to_scene(StringName("settings_menu"), "instant")
+	_manager.transition_to_scene(StringName("settings_panel"), "instant")
 	await get_tree().physics_frame
 
 	# Should queue the second transition
@@ -234,7 +234,7 @@ func test_transition_during_transition_queues_correctly() -> void:
 	# Should eventually reach the second scene
 	var state2: Dictionary = _store.get_state()
 	var scene_state2: Dictionary = state2.get("scene", {})
-	assert_eq(scene_state2.get("current_scene_id"), StringName("settings_menu"),
+	assert_eq(scene_state2.get("current_scene_id"), StringName("settings_panel"),
 		"Should complete both transitions in order")
 	assert_false(scene_state2.get("is_transitioning", false), "Should finish processing")
 
@@ -244,7 +244,7 @@ func test_priority_queue_respects_critical_transitions() -> void:
 	await get_tree().physics_frame
 
 	# Queue more transitions while first is processing
-	_manager.transition_to_scene(StringName("settings_menu"), "instant", M_SceneManager.Priority.NORMAL)
+	_manager.transition_to_scene(StringName("settings_panel"), "instant", M_SceneManager.Priority.NORMAL)
 	_manager.transition_to_scene(StringName("pause_menu"), "instant", M_SceneManager.Priority.CRITICAL)
 
 	await get_tree().physics_frame
@@ -277,7 +277,7 @@ func test_rapid_fire_transitions_dont_cause_race_conditions() -> void:
 	# Spam transitions rapidly
 	for i in range(10):
 		_manager.transition_to_scene(StringName("main_menu"), "instant")
-		_manager.transition_to_scene(StringName("settings_menu"), "instant")
+		_manager.transition_to_scene(StringName("settings_panel"), "instant")
 
 	# Wait for all to settle
 	await wait_physics_frames(30)
@@ -288,7 +288,7 @@ func test_rapid_fire_transitions_dont_cause_race_conditions() -> void:
 	assert_false(scene_state.get("is_transitioning", false), "Should finish all transitions")
 	# Should be at one of the valid scenes
 	var current_id: StringName = scene_state.get("current_scene_id", StringName(""))
-	assert_true(current_id == StringName("main_menu") or current_id == StringName("settings_menu"),
+	assert_true(current_id == StringName("main_menu") or current_id == StringName("settings_panel"),
 		"Should end at valid scene")
 
 # ============================================================================
@@ -411,7 +411,7 @@ func test_low_memory_triggers_cache_eviction() -> void:
 
 	var scene_ids: Array[StringName] = [
 		StringName("main_menu"),
-		StringName("settings_menu"),
+		StringName("settings_panel"),
 		StringName("pause_menu"),
 		StringName("demo_room"),
 		StringName("game_over"),
@@ -432,7 +432,7 @@ func test_memory_pressure_evicts_lru_scenes() -> void:
 	_manager.transition_to_scene(StringName("main_menu"), "instant")
 	await wait_physics_frames(2)
 
-	_manager.transition_to_scene(StringName("settings_menu"), "instant")
+	_manager.transition_to_scene(StringName("settings_panel"), "instant")
 	await wait_physics_frames(2)
 
 	_manager.transition_to_scene(StringName("pause_menu"), "instant")
@@ -580,14 +580,14 @@ func test_deferred_transition_preserves_state() -> void:
 	await wait_physics_frames(2)
 
 	# Trigger transition with call_deferred pattern
-	_manager.call_deferred("transition_to_scene", StringName("settings_menu"), "instant")
+	_manager.call_deferred("transition_to_scene", StringName("settings_panel"), "instant")
 
 	await wait_physics_frames(5)
 
 	# Deferred transition should complete successfully
 	var state: Dictionary = _store.get_state()
 	var scene_state: Dictionary = state.get("scene", {})
-	assert_eq(scene_state.get("current_scene_id"), StringName("settings_menu"),
+	assert_eq(scene_state.get("current_scene_id"), StringName("settings_panel"),
 		"Deferred transition should complete correctly")
 
 # ============================================================================

@@ -93,7 +93,7 @@ func test_syncs_state_from_preexisting_ui_overlays() -> void:
 	autofree(overlay1)
 
 	var overlay2 := Node.new()
-	U_OverlayStackManager.register_overlay_scene_id(overlay2, StringName("settings_menu"))
+	U_OverlayStackManager.register_overlay_scene_id(overlay2, StringName("settings_panel"))
 	_ui_overlay_stack.add_child(overlay2)
 	autofree(overlay2)
 
@@ -109,14 +109,14 @@ func test_syncs_state_from_preexisting_ui_overlays() -> void:
 	var stack: Array = scene_state.get("scene_stack", [])
 	assert_eq(stack.size(), 2, "State should mirror two overlays from UI")
 	assert_eq(StringName(stack[0]), StringName("pause_menu"))
-	assert_eq(StringName(stack[1]), StringName("settings_menu"))
+	assert_eq(StringName(stack[1]), StringName("settings_panel"))
 	assert_true(get_tree().paused, "Tree should be paused when overlays exist")
 
 ## When state has overlays but UI is empty, manager should clear state
 func test_clears_stale_state_when_ui_empty() -> void:
 	# Arrange: push two overlays into state BEFORE manager is created
 	_store.dispatch(U_SceneActions.push_overlay(StringName("pause_menu")))
-	_store.dispatch(U_SceneActions.push_overlay(StringName("settings_menu")))
+	_store.dispatch(U_SceneActions.push_overlay(StringName("settings_panel")))
 	await get_tree().physics_frame
 
 	# UI overlay stack intentionally left empty
@@ -149,7 +149,7 @@ func test_restores_focus_to_underlying_overlay_after_pop() -> void:
 
 	var settings_overlay := Control.new()
 	settings_overlay.name = "SettingsOverlay"
-	U_OverlayStackManager.register_overlay_scene_id(settings_overlay, StringName("settings_menu"))
+	U_OverlayStackManager.register_overlay_scene_id(settings_overlay, StringName("settings_panel"))
 	var settings_button := Button.new()
 	settings_button.name = "BackButton"
 	settings_overlay.add_child(settings_button)

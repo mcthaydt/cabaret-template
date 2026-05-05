@@ -113,11 +113,11 @@ func test_navigation_nested_overlay_returns_to_pause() -> void:
 	_store.dispatch(U_NavigationActions.open_pause())
 	await wait_physics_frames(2)
 
-	_store.dispatch(U_NavigationActions.open_overlay(StringName("settings_menu_overlay")))
+	_store.dispatch(U_NavigationActions.open_overlay(StringName("settings_panel")))
 	await wait_physics_frames(3)
 
-	assert_eq(_ui_overlay_stack.get_child_count(), 1, "Settings overlay should replace pause as top overlay")
-	assert_eq(_get_top_overlay_scene_id(), StringName("settings_menu"), "Settings overlay should be top-most")
+	assert_eq(_ui_overlay_stack.get_child_count(), 1, "Settings panel overlay should replace pause as top overlay")
+	assert_eq(_get_top_overlay_scene_id(), StringName("settings_panel"), "Settings panel should be top-most")
 
 	_store.dispatch(U_NavigationActions.close_top_overlay())
 	await wait_physics_frames(2)
@@ -167,21 +167,21 @@ func test_navigation_victory_skip_flow() -> void:
 func test_sync_navigation_shell_does_not_override_pending_navigation() -> void:
 	var manager := await _spawn_scene_manager()
 
-	# Simulate navigation already requesting settings_menu while a previous
-	# scene (e.g., touchscreen_settings) finishes loading.
-	_store.dispatch(U_NavigationActions.set_shell(StringName("main_menu"), StringName("settings_menu")))
+	# Simulate navigation already requesting settings_panel while a previous
+	# scene (e.g., input_rebinding) finishes loading.
+	_store.dispatch(U_NavigationActions.set_shell(StringName("main_menu"), StringName("settings_panel")))
 
-	manager._set_navigation_pending_scene_id(StringName("settings_menu"))
+	manager._set_navigation_pending_scene_id(StringName("settings_panel"))
 
 	# A transition for the previous scene completes; SceneManager attempts to
 	# sync navigation shell to that scene_id. This should NOT clobber the
-	# pending navigation target (settings_menu).
-	manager._sync_navigation_shell_with_scene(StringName("touchscreen_settings"))
+	# pending navigation target (settings_panel).
+	manager._sync_navigation_shell_with_scene(StringName("input_rebinding"))
 
 	var nav_slice: Dictionary = _store.get_slice(StringName("navigation"))
 	assert_eq(
 		nav_slice.get("base_scene_id"),
-		StringName("settings_menu"),
+		StringName("settings_panel"),
 		"Syncing shell for a previous scene must not override a newer pending navigation target"
 	)
 
@@ -207,7 +207,7 @@ func test_sync_navigation_shell_clears_stale_pending_navigation() -> void:
 	assert_eq(nav_slice.get("base_scene_id"), GAMEPLAY_SCENE_ID, "Stale pending navigation should not block shell sync")
 	assert_eq(nav_slice.get("shell"), StringName("gameplay"), "Gameplay scene should run under gameplay shell")
 
-func test_manual_transition_to_touchscreen_settings_aligns_navigation() -> void:
+func test_manual_transition_to_input_rebinding_aligns_navigation() -> void:
 	var manager := await _spawn_scene_manager()
 
 	# Emulate runtime post-bootstrap state: navigation already synced and no
@@ -218,34 +218,34 @@ func test_manual_transition_to_touchscreen_settings_aligns_navigation() -> void:
 
 	_store.dispatch(U_NavigationActions.set_shell(StringName("main_menu"), StringName("main_menu")))
 
-	# Transition into settings_menu as a standalone UI scene (main menu flow).
-	manager.transition_to_scene(StringName("settings_menu"), "instant", M_SceneManager.Priority.HIGH)
-	await _await_scene(StringName("settings_menu"), 30)
+	# Transition into settings_panel as a standalone UI scene (main menu flow).
+	manager.transition_to_scene(StringName("settings_panel"), "instant", M_SceneManager.Priority.HIGH)
+	await _await_scene(StringName("settings_panel"), 30)
 
 	var nav_slice: Dictionary = _store.get_slice(StringName("navigation"))
 	var shell: StringName = U_NavigationSelectors.get_shell(nav_slice)
 	var base_scene_id: StringName = U_NavigationSelectors.get_base_scene_id(nav_slice)
 
-	assert_eq(shell, StringName("main_menu"), "Settings menu should run in main_menu shell")
+	assert_eq(shell, StringName("main_menu"), "Settings panel should run in main_menu shell")
 	assert_eq(
 		base_scene_id,
-		StringName("settings_menu"),
-		"Navigation base_scene_id should track settings_menu after manual transition"
+		StringName("settings_panel"),
+		"Navigation base_scene_id should track settings_panel after manual transition"
 	)
 
-	# From settings_menu, transition directly to touchscreen_settings (main menu flow).
-	manager.transition_to_scene(StringName("touchscreen_settings"), "instant", M_SceneManager.Priority.HIGH)
-	await _await_scene(StringName("touchscreen_settings"), 30)
+	# From settings_panel, transition directly to input_rebinding (main menu flow).
+	manager.transition_to_scene(StringName("input_rebinding"), "instant", M_SceneManager.Priority.HIGH)
+	await _await_scene(StringName("input_rebinding"), 30)
 
 	nav_slice = _store.get_slice(StringName("navigation"))
 	shell = U_NavigationSelectors.get_shell(nav_slice)
 	base_scene_id = U_NavigationSelectors.get_base_scene_id(nav_slice)
 
-	assert_eq(shell, StringName("main_menu"), "Touchscreen settings should run in main_menu shell")
+	assert_eq(shell, StringName("main_menu"), "Input rebinding should run in main_menu shell")
 	assert_eq(
 		base_scene_id,
-		StringName("touchscreen_settings"),
-		"Navigation base_scene_id should track touchscreen_settings after manual transition"
+		StringName("input_rebinding"),
+		"Navigation base_scene_id should track input_rebinding after manual transition"
 	)
 
 func _get_top_overlay_scene_id() -> StringName:

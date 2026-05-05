@@ -79,12 +79,12 @@ func test_main_menu_to_settings_and_back() -> void:
 	assert_eq(scene_state1.get("current_scene_id"), StringName("main_menu"), "Should start at main_menu")
 
 	# Transition to settings menu
-	_manager.transition_to_scene(StringName("settings_menu"), "fade")
+	_manager.transition_to_scene(StringName("settings_panel"), "fade")
 	await wait_physics_frames(15)  # Wait for 0.2s fade transition (0.2s * 60fps = 12 frames + buffer)
 
 	var state2: Dictionary = _store.get_state()
 	var scene_state2: Dictionary = state2.get("scene", {})
-	assert_eq(scene_state2.get("current_scene_id"), StringName("settings_menu"), "Should transition to settings_menu")
+	assert_eq(scene_state2.get("current_scene_id"), StringName("settings_panel"), "Should transition to settings_menu")
 
 	# Transition back to main menu
 	_manager.transition_to_scene(StringName("main_menu"), "instant")
@@ -177,7 +177,7 @@ func test_nested_overlays() -> void:
 	await wait_physics_frames(2)
 
 	# Push settings menu on top
-	_manager.push_overlay(StringName("settings_menu"))
+	_manager.push_overlay(StringName("settings_panel"))
 	await wait_physics_frames(2)
 
 	# Verify stack has both
@@ -186,7 +186,7 @@ func test_nested_overlays() -> void:
 	var scene_stack1: Array = scene_state1.get("scene_stack", [])
 	assert_eq(scene_stack1.size(), 2, "Should have two overlays")
 	assert_eq(scene_stack1[0], StringName("pause_menu"), "First should be pause")
-	assert_eq(scene_stack1[1], StringName("settings_menu"), "Second should be settings")
+	assert_eq(scene_stack1[1], StringName("settings_panel"), "Second should be settings")
 
 	# Pop settings (back to pause)
 	_manager.pop_overlay()
@@ -213,7 +213,7 @@ func test_scene_transition_cleans_up_previous() -> void:
 	_manager.transition_to_scene(StringName("main_menu"), "instant")
 	await wait_physics_frames(2)
 
-	_manager.transition_to_scene(StringName("settings_menu"), "instant")
+	_manager.transition_to_scene(StringName("settings_panel"), "instant")
 	await wait_physics_frames(2)
 
 	# Should have roughly same number (old scene removed, new scene added)
@@ -295,7 +295,7 @@ func test_previous_scene_id_tracked() -> void:
 	_manager.transition_to_scene(StringName("main_menu"), "instant")
 	await wait_physics_frames(2)
 
-	_manager.transition_to_scene(StringName("settings_menu"), "instant")
+	_manager.transition_to_scene(StringName("settings_panel"), "instant")
 	await wait_physics_frames(2)
 
 	var state: Dictionary = _store.get_state()

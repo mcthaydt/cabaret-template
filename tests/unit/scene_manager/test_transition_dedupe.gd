@@ -80,8 +80,8 @@ func test_duplicate_lower_priority_is_ignored() -> void:
     assert_eq(req.priority, M_SceneManager.Priority.HIGH)
 
 func test_duplicate_higher_priority_replaces_existing() -> void:
-    _enqueue(StringName("settings_menu"), "fade", M_SceneManager.Priority.NORMAL)
-    _enqueue(StringName("settings_menu"), "fade", M_SceneManager.Priority.CRITICAL)
+    _enqueue(StringName("settings_panel"), "fade", M_SceneManager.Priority.NORMAL)
+    _enqueue(StringName("settings_panel"), "fade", M_SceneManager.Priority.CRITICAL)
 
     var queue_helper = _get_queue_helper()
     assert_eq(queue_helper.size(), 1)

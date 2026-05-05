@@ -39,12 +39,12 @@ func test_settings_opens_with_pause_parent() -> void:
 	await get_tree().physics_frame
 
 	# WHEN: Settings overlay is requested
-	_store.dispatch(U_NavigationActions.open_overlay(StringName("settings_menu_overlay")))
+	_store.dispatch(U_NavigationActions.open_overlay(StringName("settings_panel")))
 	await get_tree().physics_frame
 
 	# THEN: Stack should contain only settings as top overlay, with pause stored for return
 	var nav := _store.get_slice(StringName("navigation"))
-	assert_eq(nav.get("overlay_stack"), [StringName("settings_menu_overlay")], "Settings should replace pause as top overlay")
+	assert_eq(nav.get("overlay_stack"), [StringName("settings_panel")], "Settings should replace pause as top overlay")
 	var return_stack: Array = nav.get("overlay_return_stack", [])
 	assert_eq(return_stack, [StringName("pause_menu")], "Pause_menu should be stored in overlay_return_stack")
 
@@ -54,7 +54,7 @@ func test_settings_REJECTED_without_pause_parent() -> void:
 	assert_eq(nav.get("overlay_stack"), [], "Stack should be empty")
 
 	# WHEN: Settings overlay is requested WITHOUT pause menu parent
-	_store.dispatch(U_NavigationActions.open_overlay(StringName("settings_menu_overlay")))
+	_store.dispatch(U_NavigationActions.open_overlay(StringName("settings_panel")))
 	await get_tree().physics_frame
 
 	# THEN: Action should be REJECTED, stack remains empty
@@ -67,25 +67,25 @@ func test_overlay_rejected_when_shell_not_gameplay() -> void:
 	await get_tree().physics_frame
 
 	# WHEN: Try to open overlay
-	_store.dispatch(U_NavigationActions.open_overlay(StringName("settings_menu_overlay")))
+	_store.dispatch(U_NavigationActions.open_overlay(StringName("settings_panel")))
 	await get_tree().physics_frame
 
 	# THEN: Action should be REJECTED
 	var nav := _store.get_slice(StringName("navigation"))
 	assert_eq(nav.get("overlay_stack"), [], "Overlay should be rejected when shell != gameplay")
 
-func test_gamepad_settings_opens_with_pause_parent() -> void:
+func test_input_rebinding_opens_with_pause_parent() -> void:
 	# GIVEN: Pause menu is open
 	_store.dispatch(U_NavigationActions.open_pause())
 	await get_tree().physics_frame
 
-	# WHEN: Gamepad settings overlay is requested
-	_store.dispatch(U_NavigationActions.open_overlay(StringName("gamepad_settings")))
+	# WHEN: Input rebinding overlay is requested
+	_store.dispatch(U_NavigationActions.open_overlay(StringName("input_rebinding")))
 	await get_tree().physics_frame
 
-	# THEN: Stack should contain only gamepad_settings as top overlay, with pause stored for return
+	# THEN: Stack should contain only input_rebinding as top overlay, with pause stored for return
 	var nav := _store.get_slice(StringName("navigation"))
-	assert_eq(nav.get("overlay_stack"), [StringName("gamepad_settings")], "Gamepad settings should be top overlay")
+	assert_eq(nav.get("overlay_stack"), [StringName("input_rebinding")], "Input rebinding should be top overlay")
 	var return_stack: Array = nav.get("overlay_return_stack", [])
 	assert_eq(return_stack, [StringName("pause_menu")], "Pause_menu should be stored in overlay_return_stack")
 

@@ -451,7 +451,7 @@ func _close_overlay() -> void:
 	if not overlay_stack.is_empty():
 		_state_store.dispatch(U_NAVIGATION_ACTIONS.close_top_overlay())
 	else:
-		_state_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("main_menu"), StringName("settings_menu")))
+		_state_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("main_menu"), StringName("settings_panel")))
 
 func _get_default_localization_state() -> Dictionary:
 	if DEFAULT_LOCALIZATION_INITIAL_STATE != null:

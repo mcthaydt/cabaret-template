@@ -351,7 +351,7 @@ func _close_overlay() -> void:
 		if shell == StringName("main_menu"):
 			_transition_back_to_settings_scene()
 		else:
-			store.dispatch(U_NavigationActions.set_shell(StringName("main_menu"), StringName("settings_menu")))
+			store.dispatch(U_NavigationActions.set_shell(StringName("main_menu"), StringName("settings_panel")))
 
 func _on_back_pressed() -> void:
 	# Back button behavior matches Cancel button
@@ -378,7 +378,7 @@ func _transition_back_to_settings_scene() -> void:
 	var store := get_store()
 	if store == null:
 		return
-	store.dispatch(U_NavigationActions.navigate_to_ui_screen(StringName("settings_menu"), "fade", 2))
+	store.dispatch(U_NavigationActions.navigate_to_ui_screen(StringName("settings_panel"), "fade", 2))
 
 func _update_preview() -> void:
 	if _header_label == null or _description_label == null or _bindings_container == null:

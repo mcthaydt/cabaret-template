@@ -117,8 +117,8 @@ func test_settings_button_opens_settings_overlay() -> void:
 
 	var nav_slice := store.get_slice(StringName("navigation"))
 	var stack: Array = nav_slice.get("overlay_stack", [])
-	assert_eq(stack.back(), StringName("settings_menu_overlay"),
-		"Settings button should push the settings overlay")
+	assert_eq(stack.back(), StringName("settings_panel"),
+		"Settings button should push the settings panel overlay")
 
 func test_quit_button_returns_to_main_menu() -> void:
 	var store := await _create_state_store()

@@ -312,10 +312,10 @@ func _count_navigation_close_or_return_actions() -> int:
 		elif action_type == U_NavigationActions.ACTION_SET_SHELL:
 			var shell: StringName = action.get("shell", StringName())
 			var base_scene: StringName = action.get("base_scene_id", StringName())
-			if shell == StringName("main_menu") and base_scene == StringName("settings_menu"):
+			if shell == StringName("main_menu") and base_scene == StringName("settings_panel"):
 				count += 1
 		elif action_type == U_NavigationActions.ACTION_NAVIGATE_TO_UI_SCREEN:
 			var scene_id: StringName = action.get("scene_id", StringName())
-			if scene_id == StringName("settings_menu"):
+			if scene_id == StringName("settings_panel"):
 				count += 1
 	return count

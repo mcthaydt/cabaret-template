@@ -332,7 +332,7 @@ func test_multiple_overlays_stack() -> void:
 	_manager.push_overlay(StringName("pause_menu"))
 	await wait_physics_frames(2)
 
-	_manager.push_overlay(StringName("settings_menu"))
+	_manager.push_overlay(StringName("settings_panel"))
 	await wait_physics_frames(2)
 
 	var overlay_count: int = _ui_overlay_stack.get_child_count()
@@ -393,7 +393,7 @@ func test_push_overlay_with_return_from_existing_overlay() -> void:
 	assert_eq(_ui_overlay_stack.get_child_count(), 1, "Should have pause overlay")
 
 	# When: Push settings with return (REPLACE mode - pops pause, pushes settings)
-	_manager.push_overlay_with_return(StringName("settings_menu"))
+	_manager.push_overlay_with_return(StringName("settings_panel"))
 	await get_tree().process_frame
 
 	# Then: Settings overlay replaces pause, return stack contains pause_menu
@@ -406,7 +406,7 @@ func test_pop_overlay_with_return_restores_previous() -> void:
 	# Given: pause → settings transition using push_overlay_with_return (REPLACE mode)
 	_manager.push_overlay(StringName("pause_menu"))
 	await get_tree().process_frame
-	_manager.push_overlay_with_return(StringName("settings_menu"))
+	_manager.push_overlay_with_return(StringName("settings_panel"))
 	await get_tree().process_frame
 	assert_eq(_ui_overlay_stack.get_child_count(), 1, "Should have one overlay (settings replaced pause)")
 
@@ -444,7 +444,7 @@ func test_nested_overlay_navigation() -> void:
 	assert_eq(_ui_overlay_stack.get_child_count(), 1, "Should have one overlay")
 
 	# When: Push settings with return (replaces pause)
-	_manager.push_overlay_with_return(StringName("settings_menu"))
+	_manager.push_overlay_with_return(StringName("settings_panel"))
 	await get_tree().process_frame
 	assert_eq(_ui_overlay_stack.get_child_count(), 1, "Should have one overlay (settings replaced pause)")
 
@@ -500,8 +500,8 @@ func test_get_top_overlay_id_helper() -> void:
 	assert_eq(_manager._get_top_overlay_id(), StringName("pause_menu"), "Should return pause_menu ID")
 
 	# When: Push second overlay
-	_manager.push_overlay(StringName("settings_menu"))
+	_manager.push_overlay(StringName("settings_panel"))
 	await get_tree().process_frame
 
 	# Then: Returns top overlay ID
-	assert_eq(_manager._get_top_overlay_id(), StringName("settings_menu"), "Should return settings_menu ID")
+	assert_eq(_manager._get_top_overlay_id(), StringName("settings_panel"), "Should return settings_panel ID")

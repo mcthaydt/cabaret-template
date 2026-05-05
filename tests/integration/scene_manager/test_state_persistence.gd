@@ -306,7 +306,7 @@ func test_gameplay_state_survives_multiple_transitions() -> void:
 	_manager.transition_to_scene(StringName("main_menu"), "instant")
 	await wait_physics_frames(2)
 
-	_manager.transition_to_scene(StringName("settings_menu"), "instant")
+	_manager.transition_to_scene(StringName("settings_panel"), "instant")
 	await wait_physics_frames(2)
 
 	_manager.transition_to_scene(StringName("main_menu"), "instant")

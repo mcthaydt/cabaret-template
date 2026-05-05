@@ -98,7 +98,7 @@ func test_ui_to_ui_uses_instant_transition() -> void:
 	var start_ticks: int = Time.get_ticks_msec()
 
 	# Transition to settings (should use instant for UI → UI)
-	_manager.transition_to_scene(StringName("settings_menu"), "instant")
+	_manager.transition_to_scene(StringName("settings_panel"), "instant")
 	await wait_physics_frames(2)
 
 	var elapsed: int = Time.get_ticks_msec() - start_ticks
@@ -108,7 +108,7 @@ func test_ui_to_ui_uses_instant_transition() -> void:
 
 	var state: Dictionary = _store.get_state()
 	var scene_state: Dictionary = state.get("scene", {})
-	assert_eq(scene_state.get("current_scene_id"), StringName("settings_menu"), "Should reach settings")
+	assert_eq(scene_state.get("current_scene_id"), StringName("settings_panel"), "Should reach settings")
 
 ## Test fade transition for menu → gameplay (T138, T141)
 func test_fade_transition_for_menu_to_gameplay() -> void:
@@ -207,7 +207,7 @@ func test_loading_screen_minimum_duration() -> void:
 	var start_ticks: int = Time.get_ticks_msec()
 
 	# Transition with loading screen (even for fast-loading UI scene)
-	_manager.transition_to_scene(StringName("settings_menu"), "loading")
+	_manager.transition_to_scene(StringName("settings_panel"), "loading")
 
 	# Wait for transition to complete
 	var max_wait_frames: int = 180  # 3 seconds max
@@ -242,12 +242,12 @@ func test_multiple_transition_types_in_sequence() -> void:
 	assert_eq(scene_state1.get("current_scene_id"), StringName("main_menu"))
 
 	# Fade transition
-	_manager.transition_to_scene(StringName("settings_menu"), "fade")
+	_manager.transition_to_scene(StringName("settings_panel"), "fade")
 	await wait_physics_frames(15)
 
 	var state2: Dictionary = _store.get_state()
 	var scene_state2: Dictionary = state2.get("scene", {})
-	assert_eq(scene_state2.get("current_scene_id"), StringName("settings_menu"))
+	assert_eq(scene_state2.get("current_scene_id"), StringName("settings_panel"))
 
 	# Instant transition back
 	_manager.transition_to_scene(StringName("main_menu"), "instant")

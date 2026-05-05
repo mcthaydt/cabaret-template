@@ -10,6 +10,13 @@ const M_INPUT_DEVICE_MANAGER := preload("res://scripts/core/managers/m_input_dev
 const U_NAVIGATION_ACTIONS := preload("res://scripts/core/state/actions/u_navigation_actions.gd")
 const U_NAVIGATION_SELECTORS := preload("res://scripts/core/state/selectors/u_navigation_selectors.gd")
 const U_FOCUS_CONFIGURATOR := preload("res://scripts/core/ui/helpers/u_focus_configurator.gd")
+const UI_DisplaySettingsTab := preload("res://scripts/core/ui/settings/ui_display_settings_tab.gd")
+const UI_AudioSettingsTab := preload("res://scripts/core/ui/settings/ui_audio_settings_tab.gd")
+const UI_VFXSettingsTab := preload("res://scripts/core/ui/settings/ui_vfx_settings_tab.gd")
+const UI_LocalizationSettingsTab := preload("res://scripts/core/ui/settings/ui_localization_settings_tab.gd")
+const UI_GamepadSettingsTab := preload("res://scripts/core/ui/settings/ui_gamepad_settings_tab.gd")
+const UI_KeyboardMouseSettingsTab := preload("res://scripts/core/ui/settings/ui_keyboard_mouse_settings_tab.gd")
+const UI_TouchscreenSettingsTab := preload("res://scripts/core/ui/settings/ui_touchscreen_settings_tab.gd")
 
 enum TabId {
 	DISPLAY,
@@ -94,7 +101,33 @@ func _build_tab_bar() -> void:
 		}
 
 func _create_tab_contents() -> void:
-	pass
+	var tab_classes := {
+		TabId.DISPLAY: UI_DisplaySettingsTab,
+		TabId.AUDIO: UI_AudioSettingsTab,
+		TabId.VFX: UI_VFXSettingsTab,
+		TabId.LANGUAGE: UI_LocalizationSettingsTab,
+		TabId.GAMEPAD: UI_GamepadSettingsTab,
+		TabId.KEYBOARD_MOUSE: UI_KeyboardMouseSettingsTab,
+		TabId.TOUCHSCREEN: UI_TouchscreenSettingsTab,
+	}
+	var tab_names := {
+		TabId.DISPLAY: "DisplayTabContent",
+		TabId.AUDIO: "AudioTabContent",
+		TabId.VFX: "VFXTabContent",
+		TabId.LANGUAGE: "LanguageTabContent",
+		TabId.GAMEPAD: "GamepadTabContent",
+		TabId.KEYBOARD_MOUSE: "KeyboardMouseTabContent",
+		TabId.TOUCHSCREEN: "TouchscreenTabContent",
+	}
+	for id in tab_classes:
+		var klass: GDScript = tab_classes[id]
+		var instance := klass.new() as Control
+		instance.name = tab_names[id]
+		instance.visible = false
+		instance.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		instance.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		_content_container.add_child(instance)
+		_tab_contents[id] = instance
 
 func _on_tab_button_pressed(tab_id: TabId) -> void:
 	U_UISoundPlayer.play_confirm()
@@ -271,6 +304,6 @@ func _on_back_pressed() -> void:
 	if not overlay_stack.is_empty():
 		store.dispatch(U_NavigationActions.close_top_overlay())
 	elif shell == StringName("main_menu"):
-		store.dispatch(U_NavigationActions.navigate_to_ui_screen(StringName("settings_menu"), "fade", 2))
+		store.dispatch(U_NavigationActions.navigate_to_ui_screen(StringName("settings_panel"), "fade", 2))
 	else:
-		store.dispatch(U_NavigationActions.set_shell(StringName("main_menu"), StringName("settings_menu")))
+		store.dispatch(U_NavigationActions.set_shell(StringName("main_menu"), StringName("settings_panel")))

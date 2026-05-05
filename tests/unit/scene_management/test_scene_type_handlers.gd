@@ -132,7 +132,7 @@ func test_ui_handler_requires_state_store() -> void:
 
 
 func test_ui_handler_returns_set_shell_action() -> void:
-	var action := ui_handler.get_navigation_action(StringName("settings_menu"))
+	var action := ui_handler.get_navigation_action(StringName("settings_panel"))
 	assert_true(action.has("type"), "Navigation action should have 'type' field")
 	assert_eq(action["type"], StringName("navigation/set_shell"),
 		"UI handler should return set_shell action")

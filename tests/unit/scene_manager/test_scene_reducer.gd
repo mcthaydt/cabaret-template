@@ -84,7 +84,7 @@ func test_push_overlay_adds_to_scene_stack() -> void:
 func test_pop_overlay_removes_from_scene_stack() -> void:
 	var state: Dictionary = {
 		"current_scene_id": StringName("demo_room"),
-		"scene_stack": [StringName("pause_menu"), StringName("settings_menu")],
+		"scene_stack": [StringName("pause_menu"), StringName("settings_panel")],
 		"is_transitioning": false,
 		"transition_type": "",
 		"previous_scene_id": StringName("")
@@ -168,12 +168,12 @@ func test_multiple_overlay_pushes() -> void:
 	var state1: Dictionary = U_SceneReducer.reduce(state, action1)
 
 	# Push settings menu
-	var action2: Dictionary = U_SceneActions.push_overlay(StringName("settings_menu"))
+	var action2: Dictionary = U_SceneActions.push_overlay(StringName("settings_panel"))
 	var state2: Dictionary = U_SceneReducer.reduce(state1, action2)
 
 	assert_eq(state2["scene_stack"].size(), 2, "Should have two overlays")
 	assert_eq(state2["scene_stack"][0], StringName("pause_menu"), "First overlay should be pause")
-	assert_eq(state2["scene_stack"][1], StringName("settings_menu"), "Second overlay should be settings")
+	assert_eq(state2["scene_stack"][1], StringName("settings_panel"), "Second overlay should be settings")
 
 ## Test scene_stack is properly duplicated (immutability)
 func test_scene_stack_is_duplicated() -> void:
@@ -186,7 +186,7 @@ func test_scene_stack_is_duplicated() -> void:
 		"previous_scene_id": StringName("")
 	}
 
-	var action: Dictionary = U_SceneActions.push_overlay(StringName("settings_menu"))
+	var action: Dictionary = U_SceneActions.push_overlay(StringName("settings_panel"))
 	var new_state: Dictionary = U_SceneReducer.reduce(state, action)
 
 	assert_eq(original_stack.size(), 1, "Original stack should be unchanged")
