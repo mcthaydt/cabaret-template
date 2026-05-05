@@ -223,7 +223,7 @@ func test_apply_closes_overlays_and_resumes() -> void:
 			_debug_overlay_snapshot("poll attempt=%d" % attempts)
 		if _ui_overlay_stack.get_child_count() == 1:
 			var top := _ui_overlay_stack.get_child(0)
-			if top != null and String(top.name) == "SettingsMenu":
+			if top != null and String(top.name) == "UI_SettingsPanel":
 				break
 
 	if attempts >= max_attempts:
@@ -234,7 +234,7 @@ func test_apply_closes_overlays_and_resumes() -> void:
 	_debug_overlay_snapshot("final (before assertions)")
 	assert_eq(_ui_overlay_stack.get_child_count(), 1, "Should return to a single settings overlay after apply")
 	var top_after := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1)
-	assert_eq(String(top_after.name), "SettingsMenu", "Top overlay should be the settings menu after applying profile")
+	assert_eq(String(top_after.name), "UI_SettingsPanel", "Top overlay should be the settings panel after applying profile")
 	assert_true(get_tree().paused, "Tree should remain paused while in settings")
 
 	# Allow queued frees from overlay reconciliation to flush so GUT doesn't

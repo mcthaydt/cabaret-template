@@ -17,12 +17,13 @@ const U_DEBUG_ACTIONS := preload("res://scripts/core/state/actions/u_debug_actio
 const CFG_GAME_CONFIG := preload("res://resources/core/cfg_game_config.tres")
 
 const PANEL_MAIN := StringName("menu/main")
-const PANEL_SETTINGS := StringName("menu/settings")
+const U_NAVIGATION_ACTIONS := preload("res://scripts/core/state/actions/u_navigation_actions.gd")
+const OVERLAY_SETTINGS := StringName("settings_panel")
 const OVERLAY_SAVE_LOAD := StringName("save_load_menu_overlay")
 
 @onready var _title_label: Label = %TitleLabel
 @onready var _main_panel: Control = %MainPanel
-@onready var _settings_panel: Control = %SettingsPanel
+
 @onready var _background: ColorRect = $Background
 @onready var _continue_button: Button = %ContinueButton
 @onready var _new_game_button: Button = %NewGameButton
@@ -98,9 +99,7 @@ func _update_button_visibility() -> void:
 
 func _process(delta: float) -> void:
 	# Only run analog stick navigation from the main panel.
-	# When the settings panel (SettingsMenu) is active, its own BaseMenuScreen
-	# instance handles analog navigation to avoid double-processing.
-	if _active_panel == PANEL_SETTINGS:
+	if _active_panel != PANEL_MAIN:
 		return
 	super._process(delta)
 
@@ -171,8 +170,6 @@ func _is_main_menu_panel(panel_id: StringName) -> bool:
 func _set_panel_visibility(show_main: bool) -> void:
 	if _main_panel != null:
 		_main_panel.visible = show_main
-	if _settings_panel != null:
-		_settings_panel.visible = not show_main
 
 func _focus_active_panel() -> void:
 	call_deferred("_apply_focus_after_layout")
@@ -269,7 +266,7 @@ func _on_settings_pressed() -> void:
 	var store := get_store()
 	if store == null:
 		return
-	store.dispatch(U_NavigationActions.set_menu_panel(PANEL_SETTINGS))
+	store.dispatch(U_NavigationActions.open_overlay(OVERLAY_SETTINGS))
 
 func _on_quit_pressed() -> void:
 	U_UISoundPlayer.play_confirm()
