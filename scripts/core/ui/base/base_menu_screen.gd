@@ -29,9 +29,16 @@ const BACKGROUND_SHADER_PRESET_MODE_BY_ID := {
 	BACKGROUND_SHADER_PRESET_ARCADE_NOISE: 2,
 }
 
+const BACKGROUND_IMAGE_BY_PRESET := {
+	BACKGROUND_SHADER_PRESET_RETRO_GRID: "res://assets/core/textures/bg_menu_main.png",
+	BACKGROUND_SHADER_PRESET_SCANLINE_DRIFT: "res://assets/core/textures/bg_menu_pause.png",
+	BACKGROUND_SHADER_PRESET_ARCADE_NOISE: "res://assets/core/textures/bg_game_over.png",
+}
+
 const STICK_DEADZONE: float = 0.25 # Must match project.godot ui_* action deadzone
 
 var _stick_repeater: RefCounted = null
+var _background_image: TextureRect = null
 var _background_rect: ColorRect = null
 var _background_shader_material: ShaderMaterial = null
 
@@ -52,7 +59,8 @@ func _ready() -> void:
 			_stick_repeater.on_navigate = _navigate_focus
 
 func _process(delta: float) -> void:
-	_update_background_shader_state()
+	if _background_image == null:
+		_update_background_shader_state()
 
 	# Update analog stick repeater ONLY for analog input (not keyboard/D-pad)
 	# This prevents double-firing since keyboard/D-pad have built-in repeat
@@ -178,9 +186,12 @@ func _resolve_center_panel_motion_target() -> Control:
 	return center
 
 func _has_backdrop_layer() -> bool:
-	return _resolve_background_rect() != null
+	return _resolve_background() != null
 
-func _resolve_background_rect() -> ColorRect:
+func _resolve_background() -> Control:
+	var bg_image := get_node_or_null("BackgroundImage") as TextureRect
+	if bg_image != null:
+		return bg_image
 	var background := get_node_or_null("Background") as ColorRect
 	if background != null:
 		return background
@@ -216,15 +227,22 @@ func _find_panel_descendant(root: Node) -> PanelContainer:
 	return null
 
 func _setup_background_shader() -> void:
+	var bg := _resolve_background()
+	if bg == null:
+		return
+
+	if bg is TextureRect:
+		_background_image = bg
+		_background_rect = null
+		return
+
+	_background_rect = bg as ColorRect
+
 	if background_shader_preset == BACKGROUND_SHADER_PRESET_NONE:
 		return
 
 	var preset_mode := _get_background_shader_mode(background_shader_preset)
 	if preset_mode < 0:
-		return
-
-	_background_rect = _resolve_background_rect()
-	if _background_rect == null:
 		return
 
 	var shader_material := _background_rect.material as ShaderMaterial
@@ -237,6 +255,9 @@ func _setup_background_shader() -> void:
 	_apply_background_shader_uniforms(preset_mode)
 
 func _update_background_shader_state() -> void:
+	if _background_image != null:
+		return
+
 	if background_shader_preset == BACKGROUND_SHADER_PRESET_NONE:
 		return
 

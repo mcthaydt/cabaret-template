@@ -342,6 +342,32 @@ func test_base_menu_screen_background_shader_preset_mode_mapping() -> void:
 	screen._update_background_shader_state()
 	assert_eq(int(material.get_shader_parameter("preset_mode")), 2, "arcade_noise should map to mode 2")
 
+func test_background_image_skips_shader_setup() -> void:
+	await _create_state_store()
+	var screen := BaseMenuScreen.new()
+	var bg_image := TextureRect.new()
+	bg_image.name = "BackgroundImage"
+	screen.add_child(bg_image)
+	screen.background_shader_preset = "retro_grid"
+	add_child_autofree(screen)
+	await wait_process_frames(3)
+	assert_null(screen.get("_background_shader_material"), "Should skip shader when BackgroundImage present")
+	assert_null(screen.get("_background_rect"), "Should not set _background_rect when BackgroundImage present")
+
+func test_background_image_takes_priority_over_color_rect() -> void:
+	await _create_state_store()
+	var screen := BaseMenuScreen.new()
+	var color_rect := ColorRect.new()
+	color_rect.name = "Background"
+	screen.add_child(color_rect)
+	var bg_image := TextureRect.new()
+	bg_image.name = "BackgroundImage"
+	screen.add_child(bg_image)
+	screen.background_shader_preset = "retro_grid"
+	add_child_autofree(screen)
+	await wait_process_frames(3)
+	assert_null(screen.get("_background_shader_material"), "BackgroundImage should take priority over ColorRect")
+
 func test_base_overlay_animates_dim_on_enter() -> void:
 	await _create_state_store()
 	var overlay := OverlayStub.new()
